@@ -1,0 +1,3 @@
+# ASH C++ Library
+
+Currently, this is just an experimental C++ library...
