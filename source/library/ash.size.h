@@ -66,17 +66,16 @@ namespace Ash
 			size_t lsLeft = m_Value & mask;
 			size_t msRight = size >> shift;
 			size_t lsRight = size & mask;
-			size_t partialResult = 0;
+			size_t lsResult = lsLeft * lsRight;
+			size_t msResult = (msLeft == 0) ? lsLeft * msRight : msLeft * lsRight;
 
-			result.m_IsValid = m_IsValid && ((msLeft == 0) || (msRight == 0));
-			result.m_Value = lsLeft * lsRight;
-					
-			partialResult = (msLeft == 0) ? lsLeft * msRight : msLeft * lsRight;
-			result.m_IsValid = result.m_IsValid && ((partialResult & ~mask) == 0);
-			partialResult = partialResult << shift;
-
-			result.m_IsValid = result.m_IsValid && (result.m_Value <= SIZE_MAX - partialResult);
-			result.m_Value = result.m_Value + partialResult;
+			result.m_IsValid = m_IsValid && ((msLeft == 0) || (msRight == 0)) && ((msResult & ~mask) == 0);
+			msResult = msResult << shift;
+			result.m_IsValid = result.m_IsValid && (lsResult <= SIZE_MAX - msResult);
+			if (result.m_IsValid)
+			{
+				result.m_Value = msResult + lsResult;
+			}
 
 			return result;
 		}
