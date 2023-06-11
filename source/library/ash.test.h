@@ -65,6 +65,10 @@ namespace Ash
 
 			#define TEST_IS_NOT_EQ(actual, expected) TEST_ASSERTION((actual) != (expected), #actual, #expected, false)
 
+			#define TEST(function) { Ash::Test::Assertion assertion = function(); if (!(assertion).isValid()) { return assertion; } }
+
+			#define TEST_GENERIC(function, ...) { Ash::Test::Assertion assertion = function<__VA_ARGS__>(); if (!(assertion).isValid()) { return assertion; } }
+
 			constexpr bool isValid() const { return m_IsValid; }
 
 			constexpr bool isConditionEqual() const { return m_IsConditionEqual; }
@@ -185,7 +189,7 @@ namespace Ash
 
 			constexpr Unit(Function function) : m_Function(function) {}
 
-			constexpr static Result run(std::initializer_list<Case> caseList, Capture capture = outputCapture)
+			static constexpr Result run(std::initializer_list<Case> caseList, Capture capture = outputCapture)
 			{
 				Result result;
 				
@@ -199,7 +203,7 @@ namespace Ash
 				return result;
 			}
 
-			constexpr static Result run(std::initializer_list<Unit> unitList, Capture capture = outputCapture)
+			static constexpr Result run(std::initializer_list<Unit> unitList, Capture capture = outputCapture)
 			{
 				Result result;
 				
@@ -217,6 +221,12 @@ namespace Ash
 
 		#define TEST_CASE(name) Ash::Test::Case(#name, name)
 
-		#define TEST_UNIT(...) ( [](Ash::Test::Capture capture) { return Ash::Test::Unit::run({ __VA_ARGS__ }, capture); } )
+		#define TEST_CASE_GENERIC(name, ...) Ash::Test::Case(#name "<" #__VA_ARGS__ ">", name<__VA_ARGS__>)
+
+#if STD >= 17
+		#define TEST_UNIT(name, ...) constexpr Ash::Test::Unit name( [](Ash::Test::Capture capture) { return Ash::Test::Unit::run({ __VA_ARGS__ }, capture); } )
+#else
+		#define TEST_UNIT(name, ...) static Ash::Test::Unit name( [](Ash::Test::Capture capture) { return Ash::Test::Unit::run({ __VA_ARGS__ }, capture); } )
+#endif
 	}
 }
