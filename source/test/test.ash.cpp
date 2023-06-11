@@ -1,14 +1,17 @@
 #include <iostream>
 #include "ash.test.test.h"
 #include "ash.test.size.h"
+#include "ash.test.integer.h"
 
 
 int main()
 {
-	const Ash::Test::Unit testSuite TEST_UNIT
+	TEST_UNIT
 	(
-		Ash::Test::Test::test,
-		Ash::Test::Size::test,
+		testSuite,
+		Ash::Test::testTest,
+		Ash::Test::testSize,
+		Ash::Test::testInteger,
 	);
 
 	Ash::Test::Result result = Ash::Test::Unit::run({ testSuite });

@@ -12,10 +12,10 @@ namespace Ash
 
 			constexpr Ash::Size InvalidSize = MaximumSize.add(1);
 
-			static Ash::Test::Assertion getValue()
+			constexpr Ash::Test::Assertion getValue()
 			{
 				Ash::Size size;
-				size_t sizeValue;
+				size_t sizeValue = 0;
 
 				TEST_IS_TRUE(size.isValid());
 
@@ -44,10 +44,10 @@ namespace Ash
 				return {};
 			}
 
-			static Ash::Test::Assertion add()
+			constexpr Ash::Test::Assertion add()
 			{
 				Ash::Size size;
-				size_t sizeValue;
+				size_t sizeValue = 0;
 
 				for (size_t value = 0; value <= SIZE_MAX / 2; value++)
 				{
@@ -102,10 +102,10 @@ namespace Ash
 				return {};
 			}
 
-			static Ash::Test::Assertion subtract()
+			constexpr Ash::Test::Assertion subtract()
 			{
 				Ash::Size size;
-				size_t sizeValue;
+				size_t sizeValue = 0;
 
 				for (size_t value = 0; value < SIZE_MAX; value++)
 				{
@@ -160,10 +160,10 @@ namespace Ash
 				return {};
 			}
 
-			static Ash::Test::Assertion multiply()
+			constexpr Ash::Test::Assertion multiply()
 			{
 				Ash::Size size;
-				size_t sizeValue;
+				size_t sizeValue = 0;
 
 				for (size_t left = 1; left < sizeof(size_t) * 8; left++)
 				{
@@ -226,10 +226,10 @@ namespace Ash
 				return {};
 			}
 
-			static Ash::Test::Assertion divide()
+			constexpr Ash::Test::Assertion divide()
 			{
 				Ash::Size size;
-				size_t sizeValue;
+				size_t sizeValue = 0;
 
 				for (size_t value = 0; value < sizeof(SIZE_MAX) * 8; value++)
 				{
@@ -284,10 +284,10 @@ namespace Ash
 				return {};
 			}
 
-			static Ash::Test::Assertion remainder()
+			constexpr Ash::Test::Assertion remainder()
 			{
 				Ash::Size size;
-				size_t sizeValue;
+				size_t sizeValue = 0;
 
 				for (size_t value = 0; value < sizeof(SIZE_MAX) * 8; value++)
 				{
@@ -342,10 +342,10 @@ namespace Ash
 				return {};
 			}
 
-			static Ash::Test::Assertion roundUp()
+			constexpr Ash::Test::Assertion roundUp()
 			{
 				Ash::Size size;
-				size_t sizeValue;
+				size_t sizeValue = 0;
 
 				// valid roundup constant -> valid
 				size = Ash::Size(33).roundUp(32);
@@ -397,17 +397,18 @@ namespace Ash
 
 				return {};
 			}
-
-			static const Ash::Test::Unit test TEST_UNIT
-			(
-				TEST_CASE(Ash::Test::Size::getValue),
-				TEST_CASE(Ash::Test::Size::add),
-				TEST_CASE(Ash::Test::Size::subtract),
-				TEST_CASE(Ash::Test::Size::multiply),
-				TEST_CASE(Ash::Test::Size::divide),
-				TEST_CASE(Ash::Test::Size::remainder),
-				TEST_CASE(Ash::Test::Size::roundUp)
-			);
 		}
+
+		TEST_UNIT
+		(
+			testSize,
+			TEST_CASE(Ash::Test::Size::getValue),
+			TEST_CASE(Ash::Test::Size::add),
+			TEST_CASE(Ash::Test::Size::subtract),
+			TEST_CASE(Ash::Test::Size::multiply),
+			TEST_CASE(Ash::Test::Size::divide),
+			TEST_CASE(Ash::Test::Size::remainder),
+			TEST_CASE(Ash::Test::Size::roundUp)
+		);
 	}
 }

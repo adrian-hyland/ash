@@ -62,18 +62,19 @@ namespace Ash
 
 				return {};
 			}
-
-			static const Ash::Test::Unit test TEST_UNIT
-			(
-				TEST_CASE(Ash::Test::Test::isTrue),
-				TEST_CASE(Ash::Test::Test::isFalse),
-				TEST_CASE(Ash::Test::Test::isNull),
-				TEST_CASE(Ash::Test::Test::isNotNull),
-				TEST_CASE(Ash::Test::Test::isZero),
-				TEST_CASE(Ash::Test::Test::isNotZero),
-				TEST_CASE(Ash::Test::Test::isEqual),
-				TEST_CASE(Ash::Test::Test::isNotEqual),
-			);
 		}
+
+		TEST_UNIT
+		(
+			testTest,
+			TEST_CASE(Ash::Test::Test::isTrue),
+			TEST_CASE(Ash::Test::Test::isFalse),
+			TEST_CASE(Ash::Test::Test::isNull),
+			TEST_CASE(Ash::Test::Test::isNotNull),
+			TEST_CASE(Ash::Test::Test::isZero),
+			TEST_CASE(Ash::Test::Test::isNotZero),
+			TEST_CASE(Ash::Test::Test::isEqual),
+			TEST_CASE(Ash::Test::Test::isNotEqual),
+		);
 	}
 }
