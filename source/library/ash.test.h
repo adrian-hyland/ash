@@ -83,14 +83,18 @@ namespace Ash
 			{
 				if (m_IsValid)
 				{
-					return stream << "PASS";
+					stream << "PASS";
 				}
 				else
 				{
-					return stream << "FAIL: Expected '" << m_Actual << "' "
-					              << (m_IsConditionEqual ? "to be equal to" : "to not be equal to")
-									  << " '" << m_Expected << "' - see '" << m_Location << '\'';
+					stream << "FAIL: Expected ";
+					stream << '\'' << m_Actual << '\'';
+					stream << ' ' << (m_IsConditionEqual ? "to be equal to " : "to not be equal to ");
+					stream << '\'' << m_Expected << '\'';
+					stream << " - see ";
+					stream << '\'' << m_Location << '\'';
 				}
+				return stream;
 			}
 
 		private:
