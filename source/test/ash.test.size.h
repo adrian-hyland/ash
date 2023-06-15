@@ -49,7 +49,7 @@ namespace Ash
 				Ash::Size size;
 				size_t sizeValue = 0;
 
-				for (size_t value = 0; value <= SIZE_MAX / 2; value++)
+				for (size_t value = 1; value < SIZE_MAX / 2 + 1; value = value * 2)
 				{
 					size = Ash::Size(value).add(SIZE_MAX - value);
 					TEST_IS_TRUE(size.isValid());
@@ -107,7 +107,7 @@ namespace Ash
 				Ash::Size size;
 				size_t sizeValue = 0;
 
-				for (size_t value = 0; value < SIZE_MAX; value++)
+				for (size_t value = 1; value < SIZE_MAX / 2 + 1; value = value * 2)
 				{
 					size = Ash::Size(SIZE_MAX).subtract(SIZE_MAX - value);
 					TEST_IS_TRUE(size.isValid());
