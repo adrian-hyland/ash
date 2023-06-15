@@ -35,25 +35,14 @@ namespace Ash
 			{
 				time_t timeNow = time(nullptr);
 
-				struct tm gmtNow;
 				struct tm localNow;
 #ifdef __WIN32__
-				gmtime_s(&gmtNow, &timeNow);
 				localtime_s(&localNow, &timeNow);
 #else
-				gmtime_r(&timeNow, &gmtNow);
 				localtime_r(&timeNow, &localNow);
 #endif
 
-				if (localNow.tm_isdst == 0)
-				{
-					return { getSystemEpoch() + timeNow, TimeDuration(-timezone) };
-				}
-
-				gmtNow.tm_isdst = 1;
-				time_t timeLocal = mktime(&gmtNow);
-
-				return { getSystemEpoch() + timeNow, TimeDuration(-timezone), TimeDuration(timeNow - timeLocal + timezone) };
+				return { getSystemEpoch() + timeNow, TimeDuration(-timezone), (localNow.tm_isdst == 0) ? 0 : Time::hours * 1 };
 			}
 
 			constexpr DateTime &operator ++ () { *this = *this + 1; return *this; }
@@ -77,11 +66,10 @@ namespace Ash
 #endif
 
 				Gregorian::Date date;
-				
 				date.setYearMonthDay(gmtEpoch.tm_year + 1900, Month(gmtEpoch.tm_mon + 1), Day(gmtEpoch.tm_mday));
 				Time time(gmtEpoch.tm_hour, gmtEpoch.tm_min, gmtEpoch.tm_sec);
 
-				return DateTimeDuration(date) * Time::days + DateTimeDuration(time);
+				return DateTime(date, time);
 			}
 
 		private:
