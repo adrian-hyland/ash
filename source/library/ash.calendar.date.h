@@ -16,7 +16,7 @@ namespace Ash
 
 		using Week = unsigned char;
 
-		template <DateDuration STEP, DateDuration COUNT, typename SUBCYCLE, DateDuration EPOCH=0>
+		template <typename SUBCYCLE, DateDuration STEP, DateDuration COUNT, DateDuration EPOCH=0>
 		class YearCycle : public SUBCYCLE
 		{
 		public:
@@ -126,9 +126,9 @@ namespace Ash
 
 		using TerrestrialCycle = OrbitalCycle<int16_t, 366>;
 
-		using JulianCycle = YearCycle<1, 4, TerrestrialCycle, -2>;
+		using JulianCycle = YearCycle<TerrestrialCycle, 1, 4, -2>;
 
-		using GregorianCycle = YearCycle<100, 4, JulianCycle>;
+		using GregorianCycle = YearCycle<JulianCycle, 100, 4>;
 
 
 		class Month : public Ash::Integer::Cycle<uint8_t, 1, 12>
