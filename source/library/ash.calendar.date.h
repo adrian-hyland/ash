@@ -301,7 +301,7 @@ namespace Ash
 					return true;
 				}
 
-				constexpr bool isYearWeekValid(Year year, Week week)
+				static constexpr bool isYearWeekValid(Year year, Week week)
 				{
 					return (week > 0) && (week <= year.getWeeks());
 				}
