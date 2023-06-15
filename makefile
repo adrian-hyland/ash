@@ -1,14 +1,17 @@
-# make [all | clean] [DEBUG=1] [EXAMPLE=name] [STD=11,14,17,20]
+# make [all | clean | coverage | vscode] [DEBUG=1] [EXAMPLE=name] [STD=11,14,17,20] [COVERAGE=1]
 
 # Rules:
-#   all     - builds the application (default rule)
-#   clean   - cleans the application build
-#   vscode  - add a build configuration to VS Code 
+#   all       - builds the application (default rule)
+#   clean     - cleans the application build
+#   coverage  - runs coverage on the test application (the 'COVERAGE' option should be set)
+#   vscode    - add a build configuration to VS Code
 
 # Options:
 #   DEBUG=1       - enables a debug build of the application (default is a release build with no debug information)
 #   EXAMPLE=name  - name of the example application to build (unit test application is built if no example is given)
 #   STD=nn        - sets which C++ standard should be used to build the application (default is 17)
+#   COVERAGE=1    - enables coverage to get added to the application
+
 
 ifndef EXAMPLE
 APP_NAME := test
@@ -58,16 +61,26 @@ else
 INC_DIR += $(call list_add,$(SRC_DIR)/example/$(EXAMPLE))
 endif
 
+BIN_DIR := ./bin
+
+ifeq ($(COVERAGE),1)
+APP_NAME := $(APP_NAME)-coverage
+BIN_DIR := $(BIN_DIR)/coverage
+endif
+
 ifeq ($(DEBUG),1)
-BIN_DIR := ./bin/debug
+BIN_DIR := $(BIN_DIR)/debug
 else
-BIN_DIR := ./bin/release
+BIN_DIR := $(BIN_DIR)/release
 endif
 OBJ_DIR := $(BIN_DIR)/obj
 
 C_FILES := $(wildcard $(addsuffix /*.cpp,$(call list_get,,$(INC_DIR),)))
 O_FILES := $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%,$(C_FILES:.cpp=.o))
 D_FILES := $(O_FILES:.o=.d)
+ifeq ($(COVERAGE),1)
+GCX_FILES := $(O_FILES:.o=.gcno) $(O_FILES:.o=.gcda)
+endif
 
 ifeq ($(DEBUG),1)
 BUILD_NAME := Debug
@@ -77,6 +90,10 @@ else
 BUILD_NAME := Release
 C_DEFINE += $(call list_add,RELEASE)
 C_FLAGS += -O3
+endif
+ifeq ($(COVERAGE),1)
+C_FLAGS += --coverage
+LNK_FLAGS += --coverage
 endif
 
 ifndef STD
@@ -104,7 +121,7 @@ all: $(APP)
 
 clean:
 	rm -f $(APP)
-	rm -f $(O_FILES) $(D_FILES)
+	rm -f $(O_FILES) $(D_FILES) $(GCX_FILES)
 
 vscode:
 	mkdir -p ./.vscode
@@ -117,6 +134,10 @@ vscode:
             \"cppStandard\":\"$(C_STD)\" \
         }" >$(BUILD_CFG).tmp
 	mv $(BUILD_CFG).tmp $(BUILD_CFG)
+
+coverage: $(APP)
+	$(APP)
+	gcov -n -o $(OBJ_DIR)/test $(wildcard $(addsuffix /*.cpp,$(SRC_DIR)/test))
 
 
 $(APP) : $(O_FILES)
