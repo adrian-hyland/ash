@@ -72,7 +72,7 @@ namespace Ash
 
 			constexpr Time(TimeDuration duration) : m_Hour(duration / hours), m_Minute(duration / minutes), m_Second(duration / seconds) {}
 
-			constexpr Time(const Hour &hour, const Minute &minute, const Second &second) : m_Hour(hour), m_Minute(minute), m_Second(second) {}
+			constexpr Time(Hour hour, Minute minute, Second second) : m_Hour(hour), m_Minute(minute), m_Second(second) {}
 
 			constexpr operator TimeDuration () const { return TimeDuration(m_Hour) * hours + TimeDuration(m_Minute) * minutes + TimeDuration(m_Second) * seconds; }
 
