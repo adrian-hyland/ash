@@ -62,6 +62,36 @@ namespace Ash
 
 				return {};
 			}
+
+			constexpr Ash::Test::Assertion isLessThan()
+			{
+				TEST_IS_LT(0, 1);
+
+				return {};
+			}
+
+			constexpr Ash::Test::Assertion isLessThanOrEqual()
+			{
+				TEST_IS_LTE(0, 1);
+				TEST_IS_LTE(1, 1);
+
+				return {};
+			}
+
+			constexpr Ash::Test::Assertion isGreaterThan()
+			{
+				TEST_IS_GT(1, 0);
+
+				return {};
+			}
+
+			constexpr Ash::Test::Assertion isGreaterThanOrEqual()
+			{
+				TEST_IS_GTE(1, 0);
+				TEST_IS_GTE(1, 1);
+
+				return {};
+			}
 		}
 
 		TEST_UNIT
@@ -75,6 +105,10 @@ namespace Ash
 			TEST_CASE(Ash::Test::Test::isNotZero),
 			TEST_CASE(Ash::Test::Test::isEqual),
 			TEST_CASE(Ash::Test::Test::isNotEqual),
+			TEST_CASE(Ash::Test::Test::isLessThan),
+			TEST_CASE(Ash::Test::Test::isLessThanOrEqual),
+			TEST_CASE(Ash::Test::Test::isGreaterThan),
+			TEST_CASE(Ash::Test::Test::isGreaterThanOrEqual),
 		);
 	}
 }

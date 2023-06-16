@@ -39,31 +39,39 @@ namespace Ash
 		class Assertion
 		{
 		public:
-			constexpr Assertion() : m_IsValid(true), m_Location(), m_IsConditionEqual(false), m_Actual(nullptr), m_Expected(nullptr) {}
+			constexpr Assertion() : m_IsValid(true), m_Condition(nullptr), m_Actual(nullptr), m_Expected(nullptr), m_Location() {}
 
-			constexpr Assertion(const char *actual, const char *expected, bool isConditionEqual, const Location &location) : m_IsValid(false), m_IsConditionEqual(isConditionEqual), m_Actual(actual), m_Expected(expected), m_Location(location) {}
+			constexpr Assertion(const char *actual, const char *condition, const char *expected, const Location &location) : m_IsValid(false), m_Condition(condition), m_Actual(actual), m_Expected(expected), m_Location(location) {}
 
 			#ifdef DEBUG
-			#define TEST_ASSERTION(predicate, actual, expected, equal) if (!(predicate)) { return __builtin_trap(), Ash::Test::Assertion(actual, expected, equal, Ash::Test::Location(__FILE__, __LINE__)); }
+			#define TEST_ASSERTION(predicate, actual, condition, expected) if (!(predicate)) { return __builtin_trap(), Ash::Test::Assertion(actual, condition, expected, Ash::Test::Location(__FILE__, __LINE__)); }
 			#else
-			#define TEST_ASSERTION(predicate, actual, expected, equal) if (!(predicate)) { return Ash::Test::Assertion(actual, expected, equal, Ash::Test::Location(__FILE__, __LINE__)); }
+			#define TEST_ASSERTION(predicate, actual, condition, expected) if (!(predicate)) { return Ash::Test::Assertion(actual, condition, expected, Ash::Test::Location(__FILE__, __LINE__)); }
 			#endif
 
-			#define TEST_IS_TRUE(value) TEST_ASSERTION((value) == true, #value, "true", true)
+			#define TEST_IS_EQ(actual, expected) TEST_ASSERTION((actual) == (expected), #actual, "equal to", #expected)
 
-			#define TEST_IS_FALSE(value) TEST_ASSERTION((value) == false, #value, "false", true)
+			#define TEST_IS_NOT_EQ(actual, expected) TEST_ASSERTION((actual) != (expected), #actual, "not equal to", #expected)
 
-			#define TEST_IS_NULL(value) TEST_ASSERTION((value) == nullptr, #value, "nullptr", true)
+			#define TEST_IS_LT(actual, expected) TEST_ASSERTION((actual) < (expected), #actual, "less than", #expected)
 
-			#define TEST_IS_NOT_NULL(value) TEST_ASSERTION((value) != nullptr, #value, "nullptr", false)
+			#define TEST_IS_LTE(actual, expected) TEST_ASSERTION((actual) <= (expected), #actual, "less than or equal to", #expected)
 
-			#define TEST_IS_ZERO(value) TEST_ASSERTION((value) == 0, #value, "zero", true)
+			#define TEST_IS_GT(actual, expected) TEST_ASSERTION((actual) > (expected), #actual, "greater than", #expected)
 
-			#define TEST_IS_NOT_ZERO(value) TEST_ASSERTION((value) != 0, #value, "zero", false)
+			#define TEST_IS_GTE(actual, expected) TEST_ASSERTION((actual) >= (expected), #actual, "greater than or equal to", #expected)
 
-			#define TEST_IS_EQ(actual, expected) TEST_ASSERTION((actual) == (expected), #actual, #expected, true)
+			#define TEST_IS_TRUE(value) TEST_IS_EQ(value, true)
 
-			#define TEST_IS_NOT_EQ(actual, expected) TEST_ASSERTION((actual) != (expected), #actual, #expected, false)
+			#define TEST_IS_FALSE(value) TEST_IS_EQ(value, false)
+
+			#define TEST_IS_NULL(value) TEST_IS_EQ(value, nullptr)
+
+			#define TEST_IS_NOT_NULL(value) TEST_IS_NOT_EQ(value, nullptr)
+
+			#define TEST_IS_ZERO(value) TEST_IS_EQ(value, 0)
+
+			#define TEST_IS_NOT_ZERO(value) TEST_IS_NOT_EQ(value, 0)
 
 			#define TEST(function) { Ash::Test::Assertion assertion = function(); if (!(assertion).isValid()) { return assertion; } }
 
@@ -71,7 +79,7 @@ namespace Ash
 
 			constexpr bool isValid() const { return m_IsValid; }
 
-			constexpr bool isConditionEqual() const { return m_IsConditionEqual; }
+			constexpr bool getCondition() const { return m_Condition; }
 
 			constexpr const char *getActual() const { return m_Actual; }
 
@@ -89,7 +97,7 @@ namespace Ash
 				{
 					stream << "FAIL: Expected ";
 					stream << '\'' << m_Actual << '\'';
-					stream << ' ' << (m_IsConditionEqual ? "to be equal to " : "to not be equal to ");
+					stream << " to be " << m_Condition << ' ';
 					stream << '\'' << m_Expected << '\'';
 					stream << " - see ";
 					stream << '\'' << m_Location << '\'';
@@ -99,7 +107,7 @@ namespace Ash
 
 		private:
 			bool        m_IsValid;
-			bool        m_IsConditionEqual;
+			const char *m_Condition;
 			const char *m_Actual;
 			const char *m_Expected;
 			Location    m_Location;
