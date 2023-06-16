@@ -13,7 +13,7 @@ int main()
 		Ash::Test::testTest,
 		Ash::Test::testSize,
 		Ash::Test::testInteger,
-		Ash::Test::testDate,
+		Ash::Test::testCalendar,
 	);
 
 	Ash::Test::Result result = Ash::Test::Unit::run({ testSuite });
