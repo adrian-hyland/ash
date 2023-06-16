@@ -35,12 +35,7 @@ namespace Ash
 			{
 				time_t timeNow = time(nullptr);
 
-				struct tm localNow;
-#ifdef __WIN32__
-				localtime_s(&localNow, &timeNow);
-#else
-				localtime_r(&timeNow, &localNow);
-#endif
+				struct tm localNow = getLocalTime(timeNow);
 
 				return { getSystemEpoch() + timeNow, TimeDuration(-timezone), (localNow.tm_isdst == 0) ? 0 : Time::hours * 1 };
 			}
@@ -54,16 +49,35 @@ namespace Ash
 			constexpr DateTime operator -- (int) { DateTime date = *this; --(*this); return date; }
 
 		protected:
+			static struct tm getGmtTime(time_t systemTime)
+			{
+				struct tm gmtTime;
+
+				#ifdef __WIN32__
+				gmtime_s(&gmtTime, &systemTime);
+				#else
+				gmtime_r(&systemTime, &gmtTime);
+				#endif
+
+				return gmtTime;
+			}
+
+			static struct tm getLocalTime(time_t systemTime)
+			{
+				struct tm localTime;
+
+				#ifdef __WIN32__
+				localtime_s(&localTime, &systemTime);
+				#else
+				localtime_r(&systemTime, &localTime);
+				#endif
+
+				return localTime;
+			}
+
 			static DateTimeDuration getSystemEpoch()
 			{
-				time_t timeEpoch = 0;
-				struct tm gmtEpoch;
-
-#ifdef __WIN32__
-				gmtime_s(&gmtEpoch, &timeEpoch);
-#else
-				gmtime_r(&timeEpoch, &gmtEpoch);
-#endif
+				struct tm gmtEpoch = getGmtTime(0);
 
 				Gregorian::Date date;
 				date.setYearMonthDay(gmtEpoch.tm_year + 1900, Month(gmtEpoch.tm_mon + 1), Day(gmtEpoch.tm_mday));
