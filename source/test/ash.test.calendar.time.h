@@ -16,6 +16,12 @@ namespace Ash
 				TEST_IS_EQ(Ash::Calendar::Hour::minValue, 0);
 				TEST_IS_EQ(Ash::Calendar::Hour::maxValue, 23);
 
+				Ash::Calendar::Hour expected = 0;
+				for (Ash::Calendar::TimeDuration hour = -Ash::Calendar::Hour::hoursPerDay; hour <= Ash::Calendar::Hour::hoursPerDay; hour++)
+				{
+					TEST_IS_EQ(Ash::Calendar::Hour(hour), expected++);
+				}
+
 				return {};
 			}
 
@@ -25,6 +31,12 @@ namespace Ash
 				TEST_IS_EQ(Ash::Calendar::Minute::minValue, 0);
 				TEST_IS_EQ(Ash::Calendar::Minute::maxValue, 59);
 
+				Ash::Calendar::Minute expected = 0;
+				for (Ash::Calendar::TimeDuration minute = -Ash::Calendar::Minute::minutesPerHour; minute <= Ash::Calendar::Minute::minutesPerHour; minute++)
+				{
+					TEST_IS_EQ(Ash::Calendar::Minute(minute), expected++);
+				}
+
 				return {};
 			}
 
@@ -33,6 +45,12 @@ namespace Ash
 				TEST_IS_EQ(Ash::Calendar::Second::secondsPerMinute, 60);
 				TEST_IS_EQ(Ash::Calendar::Second::minValue, 0);
 				TEST_IS_EQ(Ash::Calendar::Second::maxValue, 59);
+
+				Ash::Calendar::Second expected = 0;
+				for (Ash::Calendar::TimeDuration second = -Ash::Calendar::Second::secondsPerMinute; second <= Ash::Calendar::Second::secondsPerMinute; second++)
+				{
+					TEST_IS_EQ(Ash::Calendar::Second(second), expected++);
+				}
 
 				return {};
 			}
@@ -45,6 +63,23 @@ namespace Ash
 				TEST_IS_EQ(Ash::Calendar::Time::days, 24 * 60 * 60);
 				TEST_IS_EQ(Ash::Calendar::Time::midnight, 0);
 				TEST_IS_EQ(Ash::Calendar::Time::midday, 12 * 60 * 60);
+
+				Ash::Calendar::Hour expectedHour = 0;
+				Ash::Calendar::Minute expectedMinute = 0;
+				Ash::Calendar::Second expectedSecond = 0;
+				for (Ash::Calendar::TimeDuration time = -Ash::Calendar::Time::days; time <= Ash::Calendar::Time::days; time++)
+				{
+					TEST_IS_EQ(Ash::Calendar::Time(time).getHour(), expectedHour);
+					TEST_IS_EQ(Ash::Calendar::Time(time).getMinute(), expectedMinute);
+					TEST_IS_EQ(Ash::Calendar::Time(time).getSecond(), expectedSecond);
+					if (++expectedSecond == 0)
+					{
+						if (++expectedMinute == 0)
+						{
+							++expectedHour;
+						}
+					}
+				}
 
 				return {};
 			}
