@@ -70,7 +70,11 @@ namespace Ash
 
 			constexpr Time() : m_Hour(), m_Minute(), m_Second() {}
 
-			constexpr Time(TimeDuration duration) : m_Hour(duration / hours), m_Minute(duration / minutes), m_Second(duration / seconds) {}
+			template <typename VALUE>
+			constexpr Time(VALUE duration) : Time()
+			{
+				set<VALUE>(duration);
+			}
 
 			constexpr Time(Hour hour, Minute minute, Second second) : m_Hour(hour), m_Minute(minute), m_Second(second) {}
 
@@ -93,6 +97,15 @@ namespace Ash
 			constexpr Time operator ++ (int) { Time result = *this; ++(*this); return result; }
 
 			constexpr Time operator -- (int) { Time result = *this; --(*this); return result; }
+
+		protected:
+			template <typename VALUE>
+			constexpr void set(Ash::Integer::Cycle<VALUE, days - 1> value)
+			{
+				 m_Hour = value / hours;
+				 m_Minute = value / minutes;
+				 m_Second = value / seconds;
+			}
 
 		private:
 			Hour   m_Hour;
