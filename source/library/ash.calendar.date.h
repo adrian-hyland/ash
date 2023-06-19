@@ -162,8 +162,8 @@ namespace Ash
 			template <typename YEAR_CYCLE>
 			constexpr Day getDays(YEAR_CYCLE yearCycle) const
 			{
-				//                       Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec
-				const Day monthDays[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+				//                           Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec
+				constexpr Day monthDays[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
 				return (yearCycle.isLeapYear() && (*this == February)) ? monthDays[*this - January] + 1 : monthDays[*this - January];
 			}
@@ -171,9 +171,9 @@ namespace Ash
 			template <typename YEAR_CYCLE>
 			constexpr Ordinal getFirstDayOrdinal(YEAR_CYCLE yearCycle) const
 			{
-				//                              Jan   Feb   Mar   Apr   May   Jun   Jul   Aug   Sep   Oct   Nov   Dec
-				//                                 +31   +28   +31   +30   +31   +30   +31   +31   +30   +31   +30   +31
-				const Ordinal monthDays[] = {     1,   32,   60,   91,  121,  152,  182,  213,  244,  274,  305,  335  };
+				//                                  Jan   Feb   Mar   Apr   May   Jun   Jul   Aug   Sep   Oct   Nov   Dec
+				//                                     +31   +28   +31   +30   +31   +30   +31   +31   +30   +31   +30   +31
+				constexpr Ordinal monthDays[] = {     1,   32,   60,   91,  121,  152,  182,  213,  244,  274,  305,  335  };
 
 				return (yearCycle.isLeapYear() && (*this > February)) ? monthDays[*this - January] + 1 : monthDays[*this - January];
 			}
@@ -181,9 +181,9 @@ namespace Ash
 			template <typename YEAR_CYCLE>
 			constexpr Ordinal getLastDayOrdinal(YEAR_CYCLE yearCycle) const
 			{
-				//                              Jan   Feb   Mar   Apr   May   Jun   Jul   Aug   Sep   Oct   Nov   Dec
-				//                           +31   +28   +31   +30   +31   +30   +31   +31   +30   +31   +30   +31
-				const Ordinal monthDays[] = {    31,   59,   90,  120,  151,  181,  212,  243,  273,  304,  334,  365  };
+				//                                  Jan   Feb   Mar   Apr   May   Jun   Jul   Aug   Sep   Oct   Nov   Dec
+				//                               +31   +28   +31   +30   +31   +30   +31   +31   +30   +31   +30   +31
+				constexpr Ordinal monthDays[] = {    31,   59,   90,  120,  151,  181,  212,  243,  273,  304,  334,  365  };
 
 				return (yearCycle.isLeapYear() && (*this >= February)) ? monthDays[*this - January] + 1 : monthDays[*this - January];
 			}
@@ -386,5 +386,9 @@ namespace Ash
 		using Gregorian = Proleptic<GregorianCycle>;
 
 		using Julian = Proleptic<JulianCycle>;
+
+		using Date = Gregorian::Date;
+
+		using Year = Gregorian::Year;
 	}
 }
