@@ -2,6 +2,7 @@
 
 #include "ash.test.calendar.date.h"
 #include "ash.test.calendar.time.h"
+#include "ash.test.calendar.datetime.h"
 
 
 namespace Ash
@@ -12,7 +13,8 @@ namespace Ash
 		(
 			testCalendar,
 			Ash::Test::testDate,
-			Ash::Test::testTime
+			Ash::Test::testTime,
+			Ash::Test::testDateTime
 		);
 	}
 }
