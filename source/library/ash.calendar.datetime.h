@@ -37,8 +37,8 @@ namespace Ash
 
 				DateTime dateTime;
 				dateTime.m_UtcTime = getSystemEpoch() + timeNow;
-				dateTime.m_UtcOffset = -timezone;
 				dateTime.m_DstOffset = (getLocalTime(timeNow).tm_isdst == 0) ? 0 : daylightSaving;
+				dateTime.m_UtcOffset = -timezone;
 
 				return dateTime;
 			}
