@@ -15,38 +15,33 @@ namespace Ash
 		class DateTime
 		{
 		public:
+			static constexpr TimeDuration daylightSaving = Time::hours;
+
 			constexpr DateTime() : m_UtcTime(0), m_UtcOffset(0), m_DstOffset(0) {}
 
 			constexpr DateTime(DateDuration dateDuration, TimeDuration timeDuration, TimeDuration utcOffset = 0, TimeDuration dstOffset = 0) : m_UtcTime(DateTimeDuration(dateDuration) * Time::days + DateTimeDuration(timeDuration)), m_UtcOffset(utcOffset), m_DstOffset(dstOffset) {}
 
-			constexpr DateTime(DateTimeDuration duration, TimeDuration utcOffset = 0, TimeDuration dstOffset = 0) : m_UtcTime(duration), m_UtcOffset(utcOffset), m_DstOffset(dstOffset) {}
+			constexpr DateDuration getUtcDate() const { return getDate(m_UtcTime); }
 
-			constexpr operator DateTimeDuration () const { return m_UtcTime; }
+			constexpr TimeDuration getUtcTime() const { return getTime(m_UtcTime); }
 
-			constexpr DateDuration getUtcDate() const { return m_UtcTime / Time::days; }
+			constexpr DateDuration getLocalDate() const { return getDate(m_UtcTime + m_UtcOffset + m_DstOffset); }
 
-			constexpr DateDuration getUtcTime() const { return m_UtcTime % Time::days; }
+			constexpr TimeDuration getLocalTime() const { return getTime(m_UtcTime + m_UtcOffset + m_DstOffset); }
 
-			constexpr DateDuration getLocalDate() const { return (m_UtcTime + m_UtcOffset + m_DstOffset) / Time::days; }
-
-			constexpr TimeDuration getLocalTime() const { return (m_UtcTime + m_UtcOffset + m_DstOffset) % Time::days; }
+			constexpr TimeDuration getUtcOffset() const { return m_UtcOffset; }
 
 			static DateTime getNow()
 			{
 				time_t timeNow = time(nullptr);
 
-				struct tm localNow = getLocalTime(timeNow);
+				DateTime dateTime;
+				dateTime.m_UtcTime = getSystemEpoch() + timeNow;
+				dateTime.m_UtcOffset = -timezone;
+				dateTime.m_DstOffset = (getLocalTime(timeNow).tm_isdst == 0) ? 0 : daylightSaving;
 
-				return { getSystemEpoch() + timeNow, TimeDuration(-timezone), (localNow.tm_isdst == 0) ? 0 : Time::hours * 1 };
+				return dateTime;
 			}
-
-			constexpr DateTime &operator ++ () { *this = *this + 1; return *this; }
-
-			constexpr DateTime &operator -- () { *this = *this - 1; return *this; }
-
-			constexpr DateTime operator ++ (int) { DateTime date = *this; ++(*this); return date; }
-
-			constexpr DateTime operator -- (int) { DateTime date = *this; --(*this); return date; }
 
 		protected:
 			static struct tm getGmtTime(time_t systemTime)
@@ -79,11 +74,23 @@ namespace Ash
 			{
 				struct tm gmtEpoch = getGmtTime(0);
 
-				Gregorian::Date date;
+				Date date;
 				date.setYearMonthDay(gmtEpoch.tm_year + 1900, Month(gmtEpoch.tm_mon + 1), Day(gmtEpoch.tm_mday));
 				Time time(gmtEpoch.tm_hour, gmtEpoch.tm_min, gmtEpoch.tm_sec);
 
-				return DateTime(date, time);
+				return DateTimeDuration(date) * Time::days + time;
+			}
+
+			static constexpr DateDuration getDate(DateTimeDuration duration)
+			{
+				duration = (duration < 0) ? duration - Time::days + 1 : duration;
+				return duration / Time::days;
+			}
+
+			static constexpr TimeDuration getTime(DateTimeDuration duration)
+			{
+				duration = duration % Time::days;
+				return (duration < 0) ? duration + Time::days : duration;
 			}
 
 		private:
