@@ -1,4 +1,4 @@
-# make [all | clean | coverage | vscode] [DEBUG=1] [EXAMPLE=name] [STD=11,14,17,20] [COVERAGE=1]
+# make [all | clean | coverage | vscode] [DEBUG=1] [INTERMEDIATE=1] [COVERAGE=1] [EXAMPLE=name] [STD=11,14,17,20]
 
 # Rules:
 #   all       - builds the application (default rule)
@@ -7,10 +7,11 @@
 #   vscode    - add a build configuration to VS Code
 
 # Options:
-#   DEBUG=1       - enables a debug build of the application (default is a release build with no debug information)
-#   EXAMPLE=name  - name of the example application to build (unit test application is built if no example is given)
-#   STD=nn        - sets which C++ standard should be used to build the application (default is 17)
-#   COVERAGE=1    - enables coverage to get added to the application
+#   DEBUG=1         - enables a debug build of the application (default is a release build with no debug information)
+#   INTERMEDIATE=1  - saves generated intermediate pre-processor and assembly files (default is not to save files)
+#   COVERAGE=1      - enables coverage to get added to the application
+#   EXAMPLE=name    - name of the example application to build (unit test application is built if no example is given)
+#   STD=nn          - sets which C++ standard should be used to build the application (default is 17)
 
 
 ifndef EXAMPLE
@@ -77,6 +78,8 @@ OBJ_DIR := $(BIN_DIR)/obj
 
 C_FILES := $(wildcard $(addsuffix /*.cpp,$(call list_get,,$(INC_DIR),)))
 O_FILES := $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%,$(C_FILES:.cpp=.o))
+S_FILES := $(O_FILES:.o=.s)
+II_FILES := $(O_FILES:.o=.ii)
 D_FILES := $(O_FILES:.o=.d)
 ifeq ($(COVERAGE),1)
 GCX_FILES := $(O_FILES:.o=.gcno) $(O_FILES:.o=.gcda)
@@ -90,6 +93,9 @@ else
 BUILD_NAME := Release
 C_DEFINE += $(call list_add,RELEASE)
 C_FLAGS += -O3
+endif
+ifeq ($(INTERMEDIATE),1)
+C_FLAGS += -save-temps=obj -fverbose-asm
 endif
 ifeq ($(COVERAGE),1)
 C_FLAGS += --coverage
@@ -121,7 +127,7 @@ all: $(APP)
 
 clean:
 	rm -f $(APP)
-	rm -f $(O_FILES) $(D_FILES) $(GCX_FILES)
+	rm -f $(O_FILES) $(D_FILES) $(S_FILES) $(II_FILES) $(GCX_FILES)
 
 vscode:
 	mkdir -p ./.vscode
@@ -151,4 +157,3 @@ $(OBJ_DIR)/%.o : $(SRC_DIR)/%.cpp
 	@echo -- COMPILING $<
 	mkdir -p $(@D)
 	$(CC) $< $(C_FLAGS) -MMD -o $@
-#	$(CC) $< $(C_FLAGS) -MMD -S -fverbose-asm -o $@
