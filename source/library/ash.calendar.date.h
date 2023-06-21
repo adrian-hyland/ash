@@ -187,6 +187,24 @@ namespace Ash
 
 				return (yearCycle.isLeapYear() && (*this >= February)) ? monthDays[*this - January] + 1 : monthDays[*this - January];
 			}
+
+			template <typename YEAR_CYCLE>
+			static constexpr Month getMonthDay(YEAR_CYCLE yearCycle, Ordinal ordinal, Day &day)
+			{
+				Ordinal startOfMarch = Month(Month::March).getFirstDayOrdinal(yearCycle);
+
+				if (ordinal < startOfMarch)
+				{
+					ordinal = ordinal + yearCycle.getDays();
+				}
+				ordinal = (ordinal - startOfMarch) * 5 + 461;
+
+				Month::Cycle::Type month = ordinal / 153;
+
+				day = (ordinal - month * 153) / 5 + 1;
+
+				return month;
+			}
 		};
 
 
@@ -273,13 +291,7 @@ namespace Ash
 					}
 
 					m_Year = year;
-
-					for (m_Month = Month::January; (m_Month < Month::December) && (ordinal > m_Month.getDays(m_Year)); m_Month++)
-					{
-						ordinal = ordinal - m_Month.getDays(m_Year);
-					}
-
-					m_Day = ordinal;
+					m_Month = Month::getMonthDay(m_Year, ordinal, m_Day);
 					return true;
 				}
 
