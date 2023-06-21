@@ -59,6 +59,19 @@ namespace Ash
 					{
 						TEST_IS_EQ(month.getLastDayOrdinal(year) - month.getDays(year), Ash::Calendar::Month(month - 1).getLastDayOrdinal(year));
 					}
+
+					Ash::Calendar::Ordinal ordinal = 1;
+					for (Ash::Calendar::Month expectedMonth : Ash::Calendar::Month::getRange())
+					{
+						for (Ash::Calendar::Day expectedDay = 1; expectedDay <= expectedMonth.getDays(year); expectedDay++)
+						{
+							Ash::Calendar::Day day;
+							Ash::Calendar::Month month = Ash::Calendar::Month::getMonthDay(year, ordinal, day);
+							TEST_IS_EQ(month, expectedMonth);
+							TEST_IS_EQ(day, expectedDay);
+							ordinal++;
+						}
+					}
 				}
 
 				return {};
