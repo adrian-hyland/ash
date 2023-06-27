@@ -22,8 +22,6 @@ namespace Ash
 
 			static constexpr Type size = maxValue - minValue + 1;
 
-			static constexpr Type identity = Cycle::reduce(size);
-
 			constexpr Cycle() : m_Value(minValue) {}
 
 			template <typename VALUE>
@@ -31,7 +29,7 @@ namespace Ash
 
 			constexpr operator Type () const { return m_Value; }
 
-			constexpr Cycle inverse() const { return identity - m_Value; }
+			constexpr Cycle inverse() const { return identity() - m_Value; }
 
 			constexpr Cycle &operator ++ () { m_Value = (m_Value < maxValue) ? m_Value + 1 : minValue; return *this; }
 
@@ -40,6 +38,8 @@ namespace Ash
 			constexpr Cycle operator ++ (int) { Cycle result = *this; ++(*this); return result; }
 
 			constexpr Cycle operator -- (int) { Cycle result = *this; --(*this); return result; }
+
+			static constexpr Type identity() { return reduce(size); }
 
 			using Iterate = Type (*)(Type);
 

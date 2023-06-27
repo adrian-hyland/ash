@@ -15,12 +15,12 @@ namespace Ash
 
 				if ((TestCycle::minValue <= 0) && (TestCycle::maxValue >= 0))
 				{
-					TEST_IS_EQ(TestCycle::identity, 0);
+					TEST_IS_EQ(TestCycle::identity(), 0);
 				}
 
 				for (TestCycle n : TestCycle::getRange())
 				{
-					TEST_IS_EQ(TestCycle(n + TestCycle::identity), n);
+					TEST_IS_EQ(TestCycle(n + TestCycle::identity()), n);
 				}
 
 				return {};
@@ -33,7 +33,7 @@ namespace Ash
 
 				for (TestCycle n : TestCycle::getRange())
 				{
-					TEST_IS_EQ(TestCycle(n + n.inverse()), TestCycle::identity);
+					TEST_IS_EQ(TestCycle(n + n.inverse()), TestCycle::identity());
 				}
 
 				return {};
