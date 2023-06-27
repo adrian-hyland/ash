@@ -273,7 +273,7 @@ namespace Ash
 
 				constexpr bool set(DateDuration days)
 				{
-					Ordinal ordinal;
+					Ordinal ordinal = 1;
 					Year year = Year::getYearOrdinal(days, ordinal);
 					return setYearOrdinal(year, ordinal);
 				}
