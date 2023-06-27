@@ -111,7 +111,7 @@ C_STD=c++$(STD)
 
 C_DEFINE += $(call list_add,APP_NAME="$(APP_NAME) ($(BUILD_NAME) $(BUILD_STD))")
 C_DEFINE += $(call list_add,STD=$(STD))
-C_FLAGS += -c -std=$(C_STD) $(call list_get,-I",$(INC_DIR),") $(call list_get,-D",$(C_DEFINE),")
+C_FLAGS += -c -std=$(C_STD) -Wall -Werror $(call list_get,-I",$(INC_DIR),") $(call list_get,-D",$(C_DEFINE),")
 
 BUILD_CFG := ./.vscode/c_cpp_properties.json
 BUILD_DEFINE := $(call list_get_csv,$(C_DEFINE))
