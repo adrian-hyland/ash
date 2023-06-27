@@ -30,7 +30,6 @@ namespace Ash
 			constexpr Ash::Test::Assertion month()
 			{
 				using Calendar = CALENDAR;
-				using Date = typename Calendar::Date;
 				using Year = typename Calendar::Year;
 
 				TEST_IS_EQ(Ash::Calendar::Month::monthsPerYear, 12);
@@ -65,7 +64,7 @@ namespace Ash
 					{
 						for (Ash::Calendar::Day expectedDay = 1; expectedDay <= expectedMonth.getDays(year); expectedDay++)
 						{
-							Ash::Calendar::Day day;
+							Ash::Calendar::Day day = 1;
 							Ash::Calendar::Month month = Ash::Calendar::Month::getMonthDay(year, ordinal, day);
 							TEST_IS_EQ(month, expectedMonth);
 							TEST_IS_EQ(day, expectedDay);
