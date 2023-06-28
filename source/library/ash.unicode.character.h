@@ -13,13 +13,13 @@ namespace Ash
 		public:
 			using Value = uint32_t;
 
-			constexpr Character(Value value) : m_Value(value) {}
+			static constexpr Value maximum = 0x10FFFF;
+
+			static constexpr Value replacement = 0xFFFD;
+
+			constexpr Character(Value value) : m_Value(value <= maximum ? value : replacement) {}
 
 			constexpr operator Value () const { return m_Value; }
-
-			static constexpr Value Maximum = 0x10FFFF;
-
-			static constexpr Value Replacement = 0xFFFD;
 
 			static constexpr bool contains(std::initializer_list<Character> characterList, Character character)
 			{
