@@ -3,6 +3,7 @@
 #include "ash.test.size.h"
 #include "ash.test.integer.h"
 #include "ash.test.calendar.h"
+#include "ash.test.unicode.h"
 
 
 int main()
@@ -14,6 +15,7 @@ int main()
 		Ash::Test::testSize,
 		Ash::Test::testInteger,
 		Ash::Test::testCalendar,
+		Ash::Test::testUnicode,
 	);
 
 	Ash::Test::Result result = Ash::Test::Unit::run({ testSuite });
