@@ -100,11 +100,11 @@ namespace Ash
 
 		protected:
 			template <typename VALUE>
-			constexpr void set(Ash::Integer::Cycle<VALUE, days - 1> value)
+			void set(Ash::Integer::Cycle<VALUE, days - 1> value)
 			{
-				 m_Hour = value / hours;
-				 m_Minute = value / minutes;
-				 m_Second = value / seconds;
+				m_Hour = value / hours;
+				m_Minute = value / minutes;
+				m_Second = value / seconds;
 			}
 
 		private:
