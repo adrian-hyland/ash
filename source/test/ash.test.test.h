@@ -28,9 +28,9 @@ namespace Ash
 				return {};
 			}
 
-			constexpr Ash::Test::Assertion isNotNull()
+			static Ash::Test::Assertion isNotNull()
 			{
-				TEST_IS_NOT_NULL(isNotNull);
+				TEST_IS_NOT_NULL((volatile void *)isNotNull);
 
 				return {};
 			}
