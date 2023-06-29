@@ -49,21 +49,18 @@ namespace Ash
 			protected:
 				constexpr bool set(Ash::Unicode::Character value)
 				{
-					if (value < 0x110000)
+					if ((value >= 0xD800) && (value <= 0xDFFF))
 					{
-						if ((value < 0xD800) || (value > 0xDFFF))
-						{
-							setLength(4);
-							(*this)[0] = value & 0xFF;
-							(*this)[1] = value >> 8;
-							(*this)[2] = value >> 16;
-							(*this)[3] = value >> 24;
-							return true;
-						}
+						clear();
+						return false;
 					}
 
-					clear();
-					return false;
+					setLength(4);
+					(*this)[0] = value & 0xFF;
+					(*this)[1] = value >> 8;
+					(*this)[2] = value >> 16;
+					(*this)[3] = value >> 24;
+					return true;
 				}
 
 				constexpr size_t set(Code code1, Code code2, Code code3, Code code4)

@@ -53,35 +53,26 @@ namespace Ash
 			protected:
 				constexpr bool set(Ash::Unicode::Character value)
 				{
-					if ((value < 0xD800) || (value > 0xDFFF))
+					if ((value >= 0xD800) && (value <= 0xDFFF))
 					{
-						if (value < 0x10000)
-						{
-							setLength(1);
-							(*this)[0] = value;
-							return true;
-						}
-						else if (value < 0x110000)
-						{
-							if (maxSize == 1)
-							{
-								setLength(1);
-								(*this)[0] = value;
-								return true;
-							}
-							else if (maxSize == 2)
-							{
-								value = value - 0x10000;
-								setLength(2);
-								(*this)[0] = (value >> 10) | 0xD800;
-								(*this)[1] = (value & 0x3FF) | 0xDC00;
-								return true;
-							}
-						}
+						clear();
+						return false;
 					}
-					
-					clear();
-					return false;
+
+					if ((maxSize == 1) || (value < 0x10000))
+					{
+						setLength(1);
+						(*this)[0] = value;
+					}
+					else
+					{
+						value = value - 0x10000;
+						setLength(2);
+						(*this)[0] = (value >> 10) | 0xD800;
+						(*this)[1] = (value & 0x3FF) | 0xDC00;
+					}
+
+					return true;
 				}
 
 				constexpr size_t set(Code code1)

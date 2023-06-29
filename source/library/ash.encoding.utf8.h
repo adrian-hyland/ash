@@ -65,38 +65,36 @@ namespace Ash
 					{
 						setLength(1);
 						(*this)[0] = value;
-						return true;
 					}
 					else if (value < 0x0800)
 					{
 						setLength(2);
 						(*this)[0] = (value >> 6) | 0xC0;
 						(*this)[1] = (value & 0x3F) | 0x80;
-						return true;
 					}
 					else if (value < 0x10000)
 					{
-						if ((value < 0xD800) || (value > 0xDFFF))
+						if ((value >= 0xD800) && (value <= 0xDFFF))
 						{
-							setLength(3);
-							(*this)[0] = (value >> 12) | 0xE0;
-							(*this)[1] = ((value >> 6) & 0x3F) | 0x80;
-							(*this)[2] = (value & 0x3F) | 0x80;
-							return true;
+							clear();
+							return false;
 						}
+							
+						setLength(3);
+						(*this)[0] = (value >> 12) | 0xE0;
+						(*this)[1] = ((value >> 6) & 0x3F) | 0x80;
+						(*this)[2] = (value & 0x3F) | 0x80;
 					}
-					else if (value < 0x110000)
+					else
 					{
 						setLength(4);
 						(*this)[0] = (value >> 18) | 0xF0;
 						(*this)[1] = ((value >> 12) & 0x3F) | 0x80;
 						(*this)[2] = ((value >> 6) & 0x3F) | 0x80;
 						(*this)[3] = (value & 0x3F) | 0x80;
-						return true;
 					}
 
-					clear();
-					return false;
+					return true;
 				}
 
 				constexpr size_t set(Code code1)
