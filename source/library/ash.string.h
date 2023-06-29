@@ -13,10 +13,10 @@ namespace Ash
 		class Value;
 
 		template <typename ENCODING>
-		using View = Value<Memory::Allocation::Area<const typename ENCODING::Code>, ENCODING>;
+		using View = Value<Memory::Allocation::Reference<const typename ENCODING::Code>, ENCODING>;
 
-		template <typename ENCODING, size_t N>
-		using Buffer = Value<Memory::Allocation::Fixed<typename ENCODING::Code, N>, ENCODING>;
+		template <typename ENCODING, size_t CAPACITY>
+		using Buffer = Value<Memory::Allocation::VariableLength<typename ENCODING::Code, CAPACITY>, ENCODING>;
 
 		template <typename ENCODING, size_t MINIMUM_CAPACITY=32, size_t PERCENTAGE_INCREASE=50, size_t BLOCK_SIZE=32>
 		using Array = Value<Memory::Allocation::Dynamic<typename ENCODING::Code, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>, ENCODING>;

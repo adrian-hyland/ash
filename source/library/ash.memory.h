@@ -198,8 +198,8 @@ namespace Ash
 				size_t m_Capacity;
 			};
 
-			template <typename TYPE, size_t N>
-			class Fixed
+			template <typename TYPE, size_t CAPACITY>
+			class VariableLength
 			{
 			public:
 				using Type = TYPE;
@@ -208,13 +208,13 @@ namespace Ash
 
 				static constexpr bool isFixedCapacity = true;
 
-				constexpr size_t getCapacity() const { return N; }
+				constexpr size_t getCapacity() const { return CAPACITY; }
 
 				constexpr size_t getLength() const { return m_Length; }
 
 				constexpr bool setLength(size_t length)
 				{
-					if ((length > N) || (m_Length > N))
+					if ((length > CAPACITY) || (m_Length > CAPACITY))
 					{
 						return false;
 					}
@@ -231,7 +231,7 @@ namespace Ash
 
 				constexpr bool increaseLength(size_t length)
 				{
-					if ((length > N) || (m_Length > N - length))
+					if ((length > CAPACITY) || (m_Length > CAPACITY - length))
 					{
 						return false;
 					}
@@ -269,25 +269,25 @@ namespace Ash
 				}
 
 			protected:
-				constexpr Fixed() : m_Content(), m_Length(0) {}
+				constexpr VariableLength() : m_Content(), m_Length(0) {}
 
 				constexpr const Type *getContent() const { return m_Content; }
 
 				constexpr Type *getContent() { return m_Content; }
 
-				constexpr void copy(const Fixed &value)
+				constexpr void copy(const VariableLength &value)
 				{
 					copy(value.m_Content, value.m_Length);
 				}
 
-				constexpr void move(Fixed &value)
+				constexpr void move(VariableLength &value)
 				{
 					move(value.m_Content, value.m_Length);
 				}
 
 				constexpr void copy(const Type *content, size_t length)
 				{
-					setLength((length < N) ? length : N);
+					setLength((length < CAPACITY) ? length : CAPACITY);
 
 					for (size_t n = 0; n < m_Length; n++)
 					{
@@ -297,7 +297,7 @@ namespace Ash
 
 				constexpr void move(Type *content, size_t length)
 				{
-					setLength((length < N) ? length : N);
+					setLength((length < CAPACITY) ? length : CAPACITY);
 
 					for (size_t n = 0; n < m_Length; n++)
 					{
@@ -306,13 +306,13 @@ namespace Ash
 				}
 
 			private:
-				Type   m_Content[N];
+				Type   m_Content[CAPACITY];
 				size_t m_Length;
 			};
 
 
-			template <typename TYPE, size_t N>
-			class Constant
+			template <typename TYPE, size_t CAPACITY>
+			class FixedLength
 			{
 			public:
 				using Type = TYPE;
@@ -321,11 +321,11 @@ namespace Ash
 
 				static constexpr bool isFixedCapacity = true;
 
-				constexpr size_t getCapacity() const { return N; }
+				constexpr size_t getCapacity() const { return CAPACITY; }
 
-				constexpr size_t getLength() const { return N; }
+				constexpr size_t getLength() const { return CAPACITY; }
 
-				constexpr bool setLength(size_t length) const { return length == N; }
+				constexpr bool setLength(size_t length) const { return length == CAPACITY; }
 
 				constexpr bool decreaseLength(size_t length) { return false; }
 
@@ -333,14 +333,14 @@ namespace Ash
 
 				constexpr void clear()
 				{
-					for (size_t n = 0; n < N; n++)
+					for (size_t n = 0; n < CAPACITY; n++)
 					{
 						m_Content[n] = Type();
 					}
 				}
 
 			protected:
-				constexpr Constant() : m_Content() {}
+				constexpr FixedLength() : m_Content() {}
 
 				constexpr const Type *getContent() const
 				{
@@ -352,28 +352,28 @@ namespace Ash
 					return m_Content;
 				}
 
-				constexpr void copy(const Constant &value)
+				constexpr void copy(const FixedLength &value)
 				{
-					copy(value.m_Content, N);
+					copy(value.m_Content, CAPACITY);
 				}
 
-				constexpr void move(Constant &value)
+				constexpr void move(FixedLength &value)
 				{
-					move(value.m_Content, N);
+					move(value.m_Content, CAPACITY);
 				}
 
 				constexpr void copy(const Type *content, size_t length)
 				{
-					if (length > N)
+					if (length > CAPACITY)
 					{
-						length = N;
+						length = CAPACITY;
 					}
 
 					for (size_t n = 0; n < length; n++)
 					{
 						m_Content[n] = content[n];
 					}
-					for (size_t n = length; n < N; n++)
+					for (size_t n = length; n < CAPACITY; n++)
 					{
 						m_Content[n] = Type();
 					}
@@ -381,28 +381,28 @@ namespace Ash
 
 				constexpr void move(Type *content, size_t length)
 				{
-					if (length > N)
+					if (length > CAPACITY)
 					{
-						length = N;
+						length = CAPACITY;
 					}
 
 					for (size_t n = 0; n < length; n++)
 					{
 						m_Content[n] = std::move(content[n]);
 					}
-					for (size_t n = length; n < N; n++)
+					for (size_t n = length; n < CAPACITY; n++)
 					{
 						m_Content[n] = Type();
 					}
 				}
 
 			private:
-				Type m_Content[N];
+				Type m_Content[CAPACITY];
 			};
 
 
 			template <typename TYPE>
-			class Area
+			class Reference
 			{
 			public:
 				using Type = TYPE;
@@ -430,18 +430,18 @@ namespace Ash
 				}
 
 			protected:
-				constexpr Area() : m_Content(nullptr), m_Length(0) {}
+				constexpr Reference() : m_Content(nullptr), m_Length(0) {}
 
 				constexpr const Type *getContent() const { return m_Content; }
 
 				constexpr Type *getContent() { return m_Content; }
 
-				constexpr void copy(const Area &value)
+				constexpr void copy(const Reference &value)
 				{
 					copy(value.m_Content, value.m_Length);
 				}
 
-				constexpr void move(Area &value)
+				constexpr void move(Reference &value)
 				{
 					move(value.m_Content, value.m_Length);
 				}
@@ -470,17 +470,17 @@ namespace Ash
 		template <typename TYPE, size_t MINIMUM_CAPACITY=32, size_t PERCENTAGE_INCREASE=50, size_t BLOCK_SIZE=32>
 		using Array = Value<Allocation::Dynamic<TYPE, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>>;
 
-		template <typename TYPE, size_t N>
-		using Buffer = Value<Allocation::Fixed<TYPE, N>>;
+		template <typename TYPE, size_t CAPACITY>
+		using Buffer = Value<Allocation::VariableLength<TYPE, CAPACITY>>;
 
-		template <typename TYPE, size_t N>
-		using Vector = Value<Allocation::Constant<TYPE, N>>;
-
-		template <typename TYPE>
-		using Area = Value<Allocation::Area<TYPE>>;
+		template <typename TYPE, size_t CAPACITY>
+		using Vector = Value<Allocation::FixedLength<TYPE, CAPACITY>>;
 
 		template <typename TYPE>
-		using View = Value<Allocation::Area<const TYPE>>;
+		using Area = Value<Allocation::Reference<TYPE>>;
+
+		template <typename TYPE>
+		using View = Value<Allocation::Reference<const TYPE>>;
 
 		template <typename ALLOCATION, typename TYPE>
 		class Value : public ALLOCATION
