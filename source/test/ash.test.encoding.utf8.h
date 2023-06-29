@@ -133,7 +133,7 @@ namespace Ash
 
 					for (Ash::Unicode::Character::Value code = 0x80; code < 0x100; code++)
 					{
-						Memory::Vector<Ash::Encoding::Utf8::Code, 1> invalidContent;
+						Ash::Memory::Vector<Ash::Encoding::Utf8::Code, 1> invalidContent;
 
 						TEST_IS_TRUE(invalidContent.set(0, code));
 
