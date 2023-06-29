@@ -63,17 +63,6 @@ namespace Ash
 			};
 
 			template <typename ALLOCATION>
-			using Value = String::Value<ALLOCATION, Ascii>;
-
-			template <size_t N>
-			using Buffer = String::Buffer<Ascii, N>;
-
-			using View = String::View<Ascii>;
-
-			template <size_t MINIMUM_CAPACITY=32, size_t PERCENTAGE_INCREASE=50, size_t BLOCK_SIZE=32>
-			using String = String::Array<Ascii, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
-
-			template <typename ALLOCATION>
 			static constexpr size_t decodeNext(const Memory::Value<ALLOCATION, Code> &value, size_t offset, Character &character)
 			{
 				Code code = 0;
@@ -104,6 +93,17 @@ namespace Ash
 					return 0;
 				}
 			}
+
+			template <typename ALLOCATION>
+			using Value = String::Value<ALLOCATION, Ascii>;
+
+			template <size_t CAPACITY>
+			using Buffer = String::Buffer<Ascii, CAPACITY>;
+
+			using View = String::View<Ascii>;
+
+			template <size_t MINIMUM_CAPACITY=32, size_t PERCENTAGE_INCREASE=50, size_t BLOCK_SIZE=32>
+			using String = String::Array<Ascii, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
 
 		private:
 			Ascii();

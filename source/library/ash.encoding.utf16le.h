@@ -162,8 +162,8 @@ namespace Ash
 			template <typename ALLOCATION>
 			using Value = String::Value<ALLOCATION, Utf16le>;
 
-			template <size_t N>
-			using Buffer = String::Buffer<Utf16le, N>;
+			template <size_t CAPACITY>
+			using Buffer = String::Buffer<Utf16le, CAPACITY>;
 
 			using View = String::View<Utf16le>;
 

@@ -172,8 +172,8 @@ namespace Ash
 			template <typename ALLOCATION>
 			using Value = String::Value<ALLOCATION, Wide>;
 		
-			template <size_t N>
-			using Buffer = String::Buffer<Wide, N>;
+			template <size_t CAPACITY>
+			using Buffer = String::Buffer<Wide, CAPACITY>;
 
 			using View = String::View<Wide>;
 
