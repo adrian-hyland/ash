@@ -11,7 +11,7 @@ namespace Ash
 	{
 		namespace Unicode
 		{
-			constexpr Ash::Test::Assertion testCharacter()
+			constexpr Ash::Test::Assertion character()
 			{
 				TEST_IS_EQ(Ash::Unicode::Character(0), 0);
 
@@ -24,7 +24,7 @@ namespace Ash
 				return {};
 			}
 
-			constexpr Ash::Test::Assertion testCharacterContains()
+			constexpr Ash::Test::Assertion characterContains()
 			{
 				TEST_IS_FALSE(Ash::Unicode::Character::contains({}, ' '));
 
@@ -41,8 +41,8 @@ namespace Ash
 		TEST_UNIT
 		(
 			testUnicode,
-			TEST_CASE(Ash::Test::Unicode::testCharacter),
-			TEST_CASE(Ash::Test::Unicode::testCharacterContains)
+			TEST_CASE(Ash::Test::Unicode::character),
+			TEST_CASE(Ash::Test::Unicode::characterContains)
 		);
 	}
 }
