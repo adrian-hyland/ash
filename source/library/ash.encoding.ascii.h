@@ -95,15 +95,15 @@ namespace Ash
 			}
 
 			template <typename ALLOCATION>
-			using Value = String::Value<ALLOCATION, Ascii>;
+			using Value = Ash::String::Value<ALLOCATION, Ascii>;
 
 			template <size_t CAPACITY>
-			using Buffer = String::Buffer<Ascii, CAPACITY>;
+			using Buffer = Ash::String::Buffer<Ascii, CAPACITY>;
 
-			using View = String::View<Ascii>;
+			using View = Ash::String::View<Ascii>;
 
 			template <size_t MINIMUM_CAPACITY=32, size_t PERCENTAGE_INCREASE=50, size_t BLOCK_SIZE=32>
-			using String = String::Array<Ascii, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+			using String = Ash::String::Array<Ascii, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
 
 		private:
 			Ascii();

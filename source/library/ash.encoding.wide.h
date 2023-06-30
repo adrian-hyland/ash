@@ -170,15 +170,15 @@ namespace Ash
 			}
 
 			template <typename ALLOCATION>
-			using Value = String::Value<ALLOCATION, Wide>;
+			using Value = Ash::String::Value<ALLOCATION, Wide>;
 		
 			template <size_t CAPACITY>
-			using Buffer = String::Buffer<Wide, CAPACITY>;
+			using Buffer = Ash::String::Buffer<Wide, CAPACITY>;
 
-			using View = String::View<Wide>;
+			using View = Ash::String::View<Wide>;
 
 			template <size_t MINIMUM_CAPACITY=32, size_t PERCENTAGE_INCREASE=50, size_t BLOCK_SIZE=32>
-			using String = String::Array<Wide, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+			using String = Ash::String::Array<Wide, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
 
 		private:	
 			Wide();

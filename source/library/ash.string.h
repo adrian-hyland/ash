@@ -13,23 +13,23 @@ namespace Ash
 		class Value;
 
 		template <typename ENCODING>
-		using View = Value<Memory::Allocation::Reference<const typename ENCODING::Code>, ENCODING>;
+		using View = Value<Ash::Memory::Allocation::Reference<const typename ENCODING::Code>, ENCODING>;
 
 		template <typename ENCODING, size_t CAPACITY>
-		using Buffer = Value<Memory::Allocation::VariableLength<typename ENCODING::Code, CAPACITY>, ENCODING>;
+		using Buffer = Value<Ash::Memory::Allocation::VariableLength<typename ENCODING::Code, CAPACITY>, ENCODING>;
 
 		template <typename ENCODING, size_t MINIMUM_CAPACITY=32, size_t PERCENTAGE_INCREASE=50, size_t BLOCK_SIZE=32>
-		using Array = Value<Memory::Allocation::Dynamic<typename ENCODING::Code, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>, ENCODING>;
+		using Array = Value<Ash::Memory::Allocation::Dynamic<typename ENCODING::Code, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>, ENCODING>;
 
 		template <typename ALLOCATION, typename ENCODING>
-		class Value : public Memory::Value<ALLOCATION, typename ENCODING::Code>
+		class Value : public Ash::Memory::Value<ALLOCATION, typename ENCODING::Code>
 		{
 		public:
 			using Allocation = ALLOCATION;
 			using Encoding = ENCODING;
 			using Code = typename Encoding::Code;
 			using Character = typename Encoding::Character;
-			using Memory = Memory::Value<Allocation, Code>;
+			using Memory = Ash::Memory::Value<Allocation, Code>;
 
 			constexpr Value() : Memory() {}
 

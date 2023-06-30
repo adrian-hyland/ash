@@ -9,7 +9,7 @@ namespace Ash
 	namespace Encoding
 	{
 		template <typename FROM_ENCODING, typename TO_ENCODING, typename FROM_ALLOCATION, typename TO_ALLOCATION>
-		constexpr size_t convert(const Memory::Value<FROM_ALLOCATION, typename FROM_ENCODING::Code> &from, Memory::Value<TO_ALLOCATION> &to, Ash::Unicode::Character replacementCharacter = TO_ENCODING::Character::replacement)
+		constexpr size_t convert(const Ash::Memory::Value<FROM_ALLOCATION, typename FROM_ENCODING::Code> &from, Ash::Memory::Value<TO_ALLOCATION> &to, Ash::Unicode::Character replacementCharacter = TO_ENCODING::Character::replacement)
 		{
 			size_t offset = 0;
 
@@ -42,7 +42,7 @@ namespace Ash
 		}
 
 		template <typename ENCODING, typename ALLOCATION>
-		constexpr size_t find(const Memory::Value<ALLOCATION, typename ENCODING::Code> &value, size_t offset, Ash::Unicode::Character character)
+		constexpr size_t find(const Ash::Memory::Value<ALLOCATION, typename ENCODING::Code> &value, size_t offset, Ash::Unicode::Character character)
 		{
 			typename ENCODING::Character valueCharacter;
 			size_t decodeLength = 0;
@@ -67,13 +67,13 @@ namespace Ash
 		}
 
 		template <typename ENCODING, typename ALLOCATION>
-		constexpr bool contains(const Memory::Value<ALLOCATION, typename ENCODING::Code> &value, Ash::Unicode::Character character)
+		constexpr bool contains(const Ash::Memory::Value<ALLOCATION, typename ENCODING::Code> &value, Ash::Unicode::Character character)
 		{
 			return find<ENCODING>(value, 0, character) < value.getLength();
 		}
 
 		template <typename ENCODING, typename ALLOCATION>
-		constexpr size_t skipAnyOf(const Memory::Value<ALLOCATION, typename ENCODING::Code> &value, size_t offset, std::initializer_list<Ash::Unicode::Character> characterList)
+		constexpr size_t skipAnyOf(const Ash::Memory::Value<ALLOCATION, typename ENCODING::Code> &value, size_t offset, std::initializer_list<Ash::Unicode::Character> characterList)
 		{
 			typename ENCODING::Character character;
 			size_t decodeLength = 0;
@@ -98,7 +98,7 @@ namespace Ash
 		}
 
 		template <typename ENCODING, typename ALLOCATION>
-		constexpr size_t skipNoneOf(const Memory::Value<ALLOCATION, typename ENCODING::Code> &value, size_t offset, std::initializer_list<Ash::Unicode::Character> characterList)
+		constexpr size_t skipNoneOf(const Ash::Memory::Value<ALLOCATION, typename ENCODING::Code> &value, size_t offset, std::initializer_list<Ash::Unicode::Character> characterList)
 		{
 			typename ENCODING::Character character;
 			size_t decodeLength = 0;
@@ -123,12 +123,12 @@ namespace Ash
 		}
 
 		template <typename ENCODING, typename VALUE_ALLOCATION, typename TOKEN_ALLOCATION>
-		constexpr size_t token(const Memory::Value<VALUE_ALLOCATION, typename ENCODING::Code> &value, size_t offset, std::initializer_list<Ash::Unicode::Character> delimiters, Memory::Value<TOKEN_ALLOCATION, typename ENCODING::Code> &tokenValue)
+		constexpr size_t token(const Ash::Memory::Value<VALUE_ALLOCATION, typename ENCODING::Code> &value, size_t offset, std::initializer_list<Ash::Unicode::Character> delimiters, Ash::Memory::Value<TOKEN_ALLOCATION, typename ENCODING::Code> &tokenValue)
 		{
 			size_t start = skipAnyOf<ENCODING>(value, offset, delimiters);
 			size_t end = skipNoneOf<ENCODING>(value, start, delimiters);
 
-			tokenValue = Memory::Value<TOKEN_ALLOCATION, typename ENCODING::Code>(value.at(start), end - start);
+			tokenValue = Ash::Memory::Value<TOKEN_ALLOCATION, typename ENCODING::Code>(value.at(start), end - start);
 
 			return end;
 		}

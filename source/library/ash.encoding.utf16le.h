@@ -160,15 +160,15 @@ namespace Ash
 			}
 
 			template <typename ALLOCATION>
-			using Value = String::Value<ALLOCATION, Utf16le>;
+			using Value = Ash::String::Value<ALLOCATION, Utf16le>;
 
 			template <size_t CAPACITY>
-			using Buffer = String::Buffer<Utf16le, CAPACITY>;
+			using Buffer = Ash::String::Buffer<Utf16le, CAPACITY>;
 
-			using View = String::View<Utf16le>;
+			using View = Ash::String::View<Utf16le>;
 
 			template <size_t MINIMUM_CAPACITY=32, size_t PERCENTAGE_INCREASE=50, size_t BLOCK_SIZE=32>
-			using String = String::Array<Utf16le, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+			using String = Ash::String::Array<Utf16le, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
 
 		private:
 			Utf16le();
