@@ -327,9 +327,9 @@ namespace Ash
 
 				constexpr bool setLength(size_t length) const { return length == CAPACITY; }
 
-				constexpr bool decreaseLength(size_t length) { return false; }
+				constexpr bool decreaseLength(size_t length) { return length == 0; }
 
-				constexpr bool increaseLength(size_t length) { return false; }
+				constexpr bool increaseLength(size_t length) { return length == 0; }
 
 				constexpr void clear()
 				{
@@ -417,9 +417,9 @@ namespace Ash
 
 				constexpr bool setLength(size_t length) const { return length == m_Length; }
 
-				constexpr bool decreaseLength(size_t length) { return false; }
+				constexpr bool decreaseLength(size_t length) { return length == 0; }
 
-				constexpr bool increaseLength(size_t length) { return false; }
+				constexpr bool increaseLength(size_t length) { return length == 0; }
 
 				constexpr void clear()
 				{
