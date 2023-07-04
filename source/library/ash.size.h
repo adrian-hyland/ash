@@ -123,7 +123,15 @@ namespace Ash
 			result.m_IsValid = m_IsValid && (size != 0);
 			if (result.m_IsValid)
 			{
-				result = add(size - m_Value % size);
+				if (m_Value == 0)
+				{
+					result = size;
+				}
+				else
+				{
+					size_t remainder = m_Value % size;
+					result = (remainder == 0) ? m_Value : add(size - remainder);
+				}
 			}
 			return result;
 		}
