@@ -348,7 +348,27 @@ namespace Ash
 				size_t sizeValue = 0;
 
 				// valid roundup constant -> valid
+				size = Ash::Size(0).roundUp(32);
+				TEST_IS_TRUE(size.isValid());
+				TEST_IS_TRUE(size.getValue(sizeValue));
+				TEST_IS_EQ(sizeValue, 32);
+				size = Ash::Size(31).roundUp(32);
+				TEST_IS_TRUE(size.isValid());
+				TEST_IS_TRUE(size.getValue(sizeValue));
+				TEST_IS_EQ(sizeValue, 32);
+				size = Ash::Size(32).roundUp(32);
+				TEST_IS_TRUE(size.isValid());
+				TEST_IS_TRUE(size.getValue(sizeValue));
+				TEST_IS_EQ(sizeValue, 32);
 				size = Ash::Size(33).roundUp(32);
+				TEST_IS_TRUE(size.isValid());
+				TEST_IS_TRUE(size.getValue(sizeValue));
+				TEST_IS_EQ(sizeValue, 64);
+				size = Ash::Size(63).roundUp(32);
+				TEST_IS_TRUE(size.isValid());
+				TEST_IS_TRUE(size.getValue(sizeValue));
+				TEST_IS_EQ(sizeValue, 64);
+				size = Ash::Size(64).roundUp(32);
 				TEST_IS_TRUE(size.isValid());
 				TEST_IS_TRUE(size.getValue(sizeValue));
 				TEST_IS_EQ(sizeValue, 64);
@@ -357,7 +377,7 @@ namespace Ash
 				size = MaximumSize.roundUp(0);
 				TEST_IS_FALSE(size.isValid());
 				TEST_IS_FALSE(size.getValue(sizeValue));
-				size = MaximumSize.roundUp(1);
+				size = MaximumSize.roundUp(2);
 				TEST_IS_FALSE(size.isValid());
 				TEST_IS_FALSE(size.getValue(sizeValue));
 
@@ -376,7 +396,7 @@ namespace Ash
 				size = Ash::Size(1).roundUp(Ash::Size(0));
 				TEST_IS_FALSE(size.isValid());
 				TEST_IS_FALSE(size.getValue(sizeValue));
-				size = MaximumSize.roundUp(Ash::Size(1));
+				size = MaximumSize.roundUp(Ash::Size(2));
 				TEST_IS_FALSE(size.isValid());
 				TEST_IS_FALSE(size.getValue(sizeValue));
 
