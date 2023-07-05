@@ -347,7 +347,7 @@ namespace Ash
 				Ash::Size size;
 				size_t sizeValue = 0;
 
-				// valid roundup constant -> valid
+				// valid roundUp constant -> valid
 				size = Ash::Size(0).roundUp(32);
 				TEST_IS_TRUE(size.isValid());
 				TEST_IS_TRUE(size.getValue(sizeValue));
@@ -373,7 +373,7 @@ namespace Ash
 				TEST_IS_TRUE(size.getValue(sizeValue));
 				TEST_IS_EQ(sizeValue, 64);
 
-				// valid roundup constant -> invalid
+				// valid roundUp constant -> invalid
 				size = MaximumSize.roundUp(0);
 				TEST_IS_FALSE(size.isValid());
 				TEST_IS_FALSE(size.getValue(sizeValue));
@@ -417,6 +417,76 @@ namespace Ash
 
 				return {};
 			}
+
+			constexpr Ash::Test::Assertion roundDown()
+			{
+				Ash::Size size;
+				size_t sizeValue = 0;
+
+				// valid roundDown constant -> valid
+				size = Ash::Size(0).roundDown(32);
+				TEST_IS_TRUE(size.isValid());
+				TEST_IS_TRUE(size.getValue(sizeValue));
+				TEST_IS_EQ(sizeValue, 0);
+				size = Ash::Size(31).roundDown(32);
+				TEST_IS_TRUE(size.isValid());
+				TEST_IS_TRUE(size.getValue(sizeValue));
+				TEST_IS_EQ(sizeValue, 0);
+				size = Ash::Size(32).roundDown(32);
+				TEST_IS_TRUE(size.isValid());
+				TEST_IS_TRUE(size.getValue(sizeValue));
+				TEST_IS_EQ(sizeValue, 32);
+				size = Ash::Size(33).roundDown(32);
+				TEST_IS_TRUE(size.isValid());
+				TEST_IS_TRUE(size.getValue(sizeValue));
+				TEST_IS_EQ(sizeValue, 32);
+				size = Ash::Size(63).roundDown(32);
+				TEST_IS_TRUE(size.isValid());
+				TEST_IS_TRUE(size.getValue(sizeValue));
+				TEST_IS_EQ(sizeValue, 32);
+				size = Ash::Size(64).roundDown(32);
+				TEST_IS_TRUE(size.isValid());
+				TEST_IS_TRUE(size.getValue(sizeValue));
+				TEST_IS_EQ(sizeValue, 64);
+
+				// valid roundDown constant -> invalid
+				size = MaximumSize.roundDown(0);
+				TEST_IS_FALSE(size.isValid());
+				TEST_IS_FALSE(size.getValue(sizeValue));
+
+				// invalid roundDown constant -> invalid
+				size = InvalidSize.roundDown(1);
+				TEST_IS_FALSE(size.isValid());
+				TEST_IS_FALSE(size.getValue(sizeValue));
+
+				// valid roundDown valid -> valid
+				size = Ash::Size(43).roundDown(Ash::Size(8));
+				TEST_IS_TRUE(size.isValid());
+				TEST_IS_TRUE(size.getValue(sizeValue));
+				TEST_IS_EQ(sizeValue, 40);
+
+				// valid roundDown valid -> invalid
+				size = Ash::Size(1).roundDown(Ash::Size(0));
+				TEST_IS_FALSE(size.isValid());
+				TEST_IS_FALSE(size.getValue(sizeValue));
+
+				// invalid roundDown valid -> invalid
+				size = InvalidSize.roundDown(Ash::Size(1));
+				TEST_IS_FALSE(size.isValid());
+				TEST_IS_FALSE(size.getValue(sizeValue));
+
+				// invalid roundDown invalid -> invalid
+				size = InvalidSize.roundDown(InvalidSize);
+				TEST_IS_FALSE(size.isValid());
+				TEST_IS_FALSE(size.getValue(sizeValue));
+
+				// valid roundDown invalid -> invalid
+				size = MaximumSize.roundDown(InvalidSize);
+				TEST_IS_FALSE(size.isValid());
+				TEST_IS_FALSE(size.getValue(sizeValue));
+
+				return {};
+			}
 		}
 
 		TEST_UNIT
@@ -428,7 +498,8 @@ namespace Ash
 			TEST_CASE(Ash::Test::Size::multiply),
 			TEST_CASE(Ash::Test::Size::divide),
 			TEST_CASE(Ash::Test::Size::remainder),
-			TEST_CASE(Ash::Test::Size::roundUp)
+			TEST_CASE(Ash::Test::Size::roundUp),
+			TEST_CASE(Ash::Test::Size::roundDown)
 		);
 	}
 }
