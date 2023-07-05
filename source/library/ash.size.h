@@ -141,6 +141,22 @@ namespace Ash
 			return size.m_IsValid ? roundUp(size.m_Value) : size;
 		}
 
+		constexpr Size roundDown(size_t size) const
+		{
+			Size result;
+			result.m_IsValid = m_IsValid && (size != 0);
+			if (result.m_IsValid)
+			{
+				result.m_Value = m_Value - m_Value % size;
+			}
+			return result;
+		}
+
+		constexpr Size roundDown(const Size &size) const
+		{
+			return size.m_IsValid ? roundDown(size.m_Value) : size;
+		}
+
 	private:
 		size_t m_Value;
 		bool   m_IsValid;
