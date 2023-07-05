@@ -142,13 +142,16 @@ namespace Ash
 
 					Size capacity(length);
 
-					if (length < 100 * PERCENTAGE_INCREASE)
+					if (PERCENTAGE_INCREASE != 0)
 					{
-						capacity = capacity.multiply(100 + PERCENTAGE_INCREASE).divide(100);
-					}
-					else
-					{
-						capacity = capacity.divide(100).multiply(100 + PERCENTAGE_INCREASE);
+						if (length < 100 * PERCENTAGE_INCREASE)
+						{
+							capacity = capacity.multiply(100 + PERCENTAGE_INCREASE).divide(100);
+						}
+						else
+						{
+							capacity = capacity.divide(100).multiply(100 + PERCENTAGE_INCREASE);
+						}
 					}
 
 					return capacity.roundUp(BLOCK_SIZE).getValueOr(length);
@@ -163,13 +166,16 @@ namespace Ash
 
 					Size capacity(length);
 
-					if (length < PERCENTAGE_INCREASE * (100 + PERCENTAGE_INCREASE))
+					if (PERCENTAGE_INCREASE != 0)
 					{
-						capacity = capacity.multiply(100).divide(100 + PERCENTAGE_INCREASE);
-					}
-					else
-					{
-						capacity = capacity.divide(100 + PERCENTAGE_INCREASE).multiply(100);
+						if (length < PERCENTAGE_INCREASE * (100 + PERCENTAGE_INCREASE))
+						{
+							capacity = capacity.multiply(100).divide(100 + PERCENTAGE_INCREASE);
+						}
+						else
+						{
+							capacity = capacity.divide(100 + PERCENTAGE_INCREASE).multiply(100);
+						}
 					}
 
 					return capacity.roundUp(BLOCK_SIZE).getValueOr(length);
