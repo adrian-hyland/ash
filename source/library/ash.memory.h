@@ -61,7 +61,7 @@ namespace Ash
 
 					if (length == 0)
 					{
-						clear();
+						deleteContent();
 						return true;
 					}
 					
@@ -81,21 +81,12 @@ namespace Ash
 					return true;
 				}
 
-				constexpr void clear()
-				{
-					delete [] m_Content;
-
-					m_Content = nullptr;
-					m_Capacity = 0;
-					m_Length = 0;
-				}
-
 			protected:
 				constexpr Dynamic() : m_Content(nullptr), m_Length(0), m_Capacity(0) {}
 
 				inline ~Dynamic()
 				{
-					delete [] m_Content;
+					deleteContent();
 				}
 
 				constexpr const Type *getContent() const { return m_Content; }
@@ -130,7 +121,6 @@ namespace Ash
 					}
 				}
 
-			private:
 				static constexpr size_t minimumCapacity = Size(MINIMUM_CAPACITY).roundUp(BLOCK_SIZE).getValueOr(MINIMUM_CAPACITY);
 
 				static constexpr size_t getIncreaseCapacity(size_t length)
@@ -199,6 +189,16 @@ namespace Ash
 					return true;
 				}
 
+				constexpr void deleteContent()
+				{
+					delete [] m_Content;
+
+					m_Content = nullptr;
+					m_Capacity = 0;
+					m_Length = 0;
+				}
+
+			private:
 				Type  *m_Content;
 				size_t m_Length;
 				size_t m_Capacity;
@@ -264,16 +264,6 @@ namespace Ash
 					return true;
 				}
 
-				constexpr void clear()
-				{
-					for (size_t n = 0; n < m_Length; n++)
-					{
-						m_Content[n] = Type();
-					}
-
-					m_Length = 0;
-				}
-
 			protected:
 				constexpr VariableLength() : m_Content(), m_Length(0) {}
 
@@ -336,14 +326,6 @@ namespace Ash
 				constexpr bool decreaseLength(size_t length) { return length == 0; }
 
 				constexpr bool increaseLength(size_t length) { return length == 0; }
-
-				constexpr void clear()
-				{
-					for (size_t n = 0; n < CAPACITY; n++)
-					{
-						m_Content[n] = Type();
-					}
-				}
 
 			protected:
 				constexpr FixedLength() : m_Content() {}
@@ -426,14 +408,6 @@ namespace Ash
 				constexpr bool decreaseLength(size_t length) { return length == 0; }
 
 				constexpr bool increaseLength(size_t length) { return length == 0; }
-
-				constexpr void clear()
-				{
-					for (size_t n = 0; n < m_Length; n++)
-					{
-						m_Content[n] = Type();
-					}
-				}
 
 			protected:
 				constexpr Reference() : m_Content(nullptr), m_Length(0) {}
@@ -643,6 +617,17 @@ namespace Ash
 				else
 				{
 					return false;
+				}
+			}
+
+			constexpr void clear()
+			{
+				if (!Allocation::setLength(0))
+				{
+					for (size_t n = 0; n < Allocation::getLength(); n++)
+					{
+						(*this)[n] = Type();
+					}
 				}
 			}
 
