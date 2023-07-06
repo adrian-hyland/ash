@@ -4,6 +4,7 @@
 #include "ash.test.integer.h"
 #include "ash.test.calendar.h"
 #include "ash.test.unicode.h"
+#include "ash.test.memory.h"
 #include "ash.test.encoding.h"
 
 
@@ -17,6 +18,7 @@ int main()
 		Ash::Test::testInteger,
 		Ash::Test::testCalendar,
 		Ash::Test::testUnicode,
+		Ash::Test::testMemory,
 		Ash::Test::testEncoding
 	);
 
