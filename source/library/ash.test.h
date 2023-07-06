@@ -77,6 +77,8 @@ namespace Ash
 
 			#define TEST_GENERIC(function, ...) { Ash::Test::Assertion assertion = function<__VA_ARGS__>(); if (!(assertion).isValid()) { return assertion; } }
 
+			#define TEST_CLASS_GENERIC(class, function, ...) { Ash::Test::Assertion assertion = class<__VA_ARGS__>::function(); if (!(assertion).isValid()) { return assertion; } }
+
 			constexpr bool isValid() const { return m_IsValid; }
 
 			constexpr bool getCondition() const { return m_Condition; }
