@@ -86,7 +86,7 @@ namespace Ash
 				Ash::Calendar::DateDuration expected = Year::epoch;
 				Date date(expected);
 
-				for (Year year = 1; year < std::numeric_limits<typename Year::Value>::max(); year++)
+				for (Year year = 1; year < std::numeric_limits<typename Year::Type>::max(); year++)
 				{
 					for (Ash::Calendar::Month month : Ash::Calendar::Month::getRange())
 					{
@@ -106,7 +106,7 @@ namespace Ash
 				expected = Year::epoch;
 				date = expected;
 
-				for (Year year = 0; year > std::numeric_limits<typename Year::Value>::min(); year--)
+				for (Year year = 0; year > std::numeric_limits<typename Year::Type>::min(); year--)
 				{
 					for (Ash::Calendar::Month month : Ash::Calendar::Month::getRangeReversed())
 					{
@@ -439,7 +439,7 @@ namespace Ash
 				Year year = 1;
 				Ash::Calendar::Week week = 1;
 
-				while (year < std::numeric_limits<typename Year::Value>::max() - 1)
+				while (year < std::numeric_limits<typename Year::Type>::max() - 1)
 				{
 					Year weekYear;
 					TEST_IS_EQ(date.getYearWeek(weekYear), week);
@@ -460,7 +460,7 @@ namespace Ash
 				week = 1;
 				year = 1;
 
-				while (year > std::numeric_limits<typename Year::Value>::min() + 1)
+				while (year > std::numeric_limits<typename Year::Type>::min() + 1)
 				{
 					Year weekYear;
 					date--;

@@ -22,7 +22,7 @@ namespace Ash
 		public:
 			using SubCycle = SUBCYCLE;
 
-			using Value = typename SubCycle::Value;
+			using Type = typename SubCycle::Type;
 
 			static constexpr DateDuration epoch = EPOCH;
 
@@ -36,27 +36,27 @@ namespace Ash
 
 			static constexpr DateDuration daysPerCycleStep = (daysPerCycle - 1) / cycleCount;
 
-			constexpr YearCycle(Value year = 0) : SubCycle(year) {}
+			constexpr YearCycle(Type year = 0) : SubCycle(year) {}
 
 			constexpr bool isLeapYear() const
 			{
-				return (Value(*this) % cycleStep == 0) ? (Value(*this) / cycleStep) % cycleCount == 0 : SubCycle::isLeapYear();
+				return (Type(*this) % cycleStep == 0) ? (Type(*this) / cycleStep) % cycleCount == 0 : SubCycle::isLeapYear();
 			}
 
 			constexpr Ordinal getDays() const { return isLeapYear() ? SubCycle::leapYearDays : SubCycle::commonYearDays; }
 
 			constexpr DateDuration getDaysSinceEpoch(Ordinal ordinal = 1) const
 			{
-				Value year = ((Value(*this) > 0) ? Value(*this) - 1 : Value(*this)) / cycleStep;
+				Type year = ((Type(*this) > 0) ? Type(*this) - 1 : Type(*this)) / cycleStep;
 				return year / cycleCount - year + epoch - SubCycle::epoch + SubCycle::getDaysSinceEpoch(ordinal);
 			}
 
-			static constexpr Value getYearOrdinal(DateDuration days, Ordinal &ordinal)
+			static constexpr Type getYearOrdinal(DateDuration days, Ordinal &ordinal)
 			{
 				days = days - epoch;
 
 				DateDuration period = days / daysPerCycle;
-				Value year = period * yearsPerCycle;
+				Type year = period * yearsPerCycle;
 				days = days % daysPerCycle;
 				if (days == 0)
 				{
@@ -82,7 +82,7 @@ namespace Ash
 		class OrbitalCycle
 		{
 		public:
-			using Value = TYPE;
+			using Type = TYPE;
 
 			static constexpr Ordinal yearsPerCycle = 1;
 
@@ -94,9 +94,9 @@ namespace Ash
 
 			static constexpr DateDuration epoch = 0;
 
-			constexpr OrbitalCycle(Value year = 0) : m_Value(year) {}
+			constexpr OrbitalCycle(Type year = 0) : m_Value(year) {}
 
-			constexpr operator Value () const { return m_Value; }
+			constexpr operator Type () const { return m_Value; }
 
 			constexpr bool isLeapYear() const { return false; }
 
@@ -116,11 +116,11 @@ namespace Ash
 
 			constexpr DateDuration getDaysSinceEpoch(Ordinal ordinal = 1) const
 			{
-				return (Value(*this) - 1) * leapYearDays + ordinal;
+				return (Type(*this) - 1) * leapYearDays + ordinal;
 			}
 
 		private:
-			Value m_Value;
+			Type m_Value;
 		};
 
 
@@ -239,13 +239,13 @@ namespace Ash
 		public:
 			using Cycle = YEAR_CYCLE;
 
-			using Value = typename Cycle::Value;
+			using Type = typename Cycle::Type;
 
 
 			class Year : public Cycle
 			{
 			public:
-				constexpr Year(Value year = 0) : Cycle(year) {}
+				constexpr Year(Type year = 0) : Cycle(year) {}
 
 				constexpr Week getWeeks() const
 				{
