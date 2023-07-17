@@ -19,7 +19,7 @@ namespace Ash
 			class Character : public Memory::Buffer<Code, maxSize>
 			{
 			public:
-				static constexpr Ash::Unicode::Character::Value replacement = '?';
+				static constexpr Ash::Unicode::Character replacement = '?';
 
 				constexpr Character() : Memory::Buffer<Code, maxSize>() {}
 
