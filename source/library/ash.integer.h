@@ -39,7 +39,7 @@ namespace Ash
 
 			constexpr Cycle operator -- (int) { Cycle result = *this; --(*this); return result; }
 
-			static constexpr Type identity() { return reduce(size); }
+			static constexpr Cycle identity() { return reduce(size); }
 
 			using Iterate = Type (*)(Type);
 
