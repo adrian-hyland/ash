@@ -12,7 +12,7 @@ namespace Ash
 
 		constexpr Size(size_t value) : m_Value(value), m_IsValid(true) {}
 
-		constexpr bool isValid() { return m_IsValid; }
+		constexpr bool isValid() const { return m_IsValid; }
 
 		constexpr bool getValue(size_t &value) const
 		{
