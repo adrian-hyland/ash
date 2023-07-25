@@ -2,6 +2,7 @@
 #include "ash.test.test.h"
 #include "ash.test.size.h"
 #include "ash.test.integer.h"
+#include "ash.test.real.h"
 #include "ash.test.calendar.h"
 #include "ash.test.unicode.h"
 #include "ash.test.memory.h"
@@ -16,6 +17,7 @@ int main()
 		Ash::Test::testTest,
 		Ash::Test::testSize,
 		Ash::Test::testInteger,
+		Ash::Test::testReal,
 		Ash::Test::testCalendar,
 		Ash::Test::testUnicode,
 		Ash::Test::testMemory,
