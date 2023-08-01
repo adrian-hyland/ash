@@ -16,7 +16,7 @@ namespace Ash
 		public:
 			using Cycle = Ash::Integer::Cycle<uint8_t, 0, 23>;
 
-			static constexpr Type hoursPerDay = Cycle::size;
+			static constexpr Type perDay = Cycle::size;
 
 			constexpr Hour() : Cycle() {}
 
@@ -30,7 +30,7 @@ namespace Ash
 		public:
 			using Cycle = Ash::Integer::Cycle<uint8_t, 0, 59>;
 
-			static constexpr Type minutesPerHour = Cycle::size;
+			static constexpr Type perHour = Cycle::size;
 
 			constexpr Minute() : Cycle() {}
 
@@ -44,7 +44,7 @@ namespace Ash
 		public:
 			using Cycle = Ash::Integer::Cycle<uint8_t, 0, 59>;
 
-			static constexpr Type secondsPerMinute = Cycle::size;
+			static constexpr Type perMinute = Cycle::size;
 
 			constexpr Second() : Cycle() {}
 
@@ -56,17 +56,17 @@ namespace Ash
 		class Time
 		{
 		public:
-			static constexpr TimeDuration seconds = 1;
+			static constexpr TimeDuration second = 1;
 
-			static constexpr TimeDuration minutes = seconds * Second::secondsPerMinute;
+			static constexpr TimeDuration minute = second * Second::perMinute;
 
-			static constexpr TimeDuration hours = minutes * Minute::minutesPerHour;
+			static constexpr TimeDuration hour = minute * Minute::perHour;
 
-			static constexpr TimeDuration days = hours * Hour::hoursPerDay;
+			static constexpr TimeDuration day = hour * Hour::perDay;
 
 			static constexpr TimeDuration midnight = 0;
 
-			static constexpr TimeDuration midday = days / 2;
+			static constexpr TimeDuration midday = day / 2;
 
 			constexpr Time() : m_Hour(), m_Minute(), m_Second() {}
 
@@ -78,7 +78,7 @@ namespace Ash
 
 			constexpr Time(Hour hour, Minute minute, Second second) : m_Hour(hour), m_Minute(minute), m_Second(second) {}
 
-			constexpr operator TimeDuration () const { return TimeDuration(m_Hour) * hours + TimeDuration(m_Minute) * minutes + TimeDuration(m_Second) * seconds; }
+			constexpr operator TimeDuration () const { return TimeDuration(m_Hour) * hour + TimeDuration(m_Minute) * minute + TimeDuration(m_Second) * second; }
 
 			constexpr Hour getHour() const { return m_Hour; }
 
@@ -100,11 +100,11 @@ namespace Ash
 
 		protected:
 			template <typename VALUE>
-			void set(Ash::Integer::Cycle<VALUE, days - 1> value)
+			void set(Ash::Integer::Cycle<VALUE, day - 1> value)
 			{
-				m_Hour = value / hours;
-				m_Minute = value / minutes;
-				m_Second = value / seconds;
+				m_Hour = value / hour;
+				m_Minute = value / minute;
+				m_Second = value / second;
 			}
 
 		private:
