@@ -39,7 +39,7 @@ namespace Ash
 
 		static constexpr Real minSubNormal = std::numeric_limits<Type>::denorm_min();
 
-		static constexpr Real pi = 3.1415926535897932385L;
+		static constexpr Real pi = 3.1415926535897932384626433832795029L;
 
 		constexpr Real() : m_Value(0.0) {}
 
@@ -81,10 +81,11 @@ namespace Ash
 			return error.isValid() && (error <= tolerance);
 		}
 
-		constexpr Real squareRoot() const
-		{
-			return std::sqrt(m_Value);
-		}
+		constexpr Real squareRoot() const { return std::sqrt(m_Value); }
+
+		constexpr Real modulus(Real n) const { return std::fmod(m_Value, n); }
+
+		constexpr Real reciprocal() const { return 1 / m_Value; }
 
 	protected:
 		constexpr Real matchAbsolute(Real value) const
@@ -111,13 +112,13 @@ namespace Ash
 			}
 			else
 			{
-				Exponent thisExponent;
-				Exponent valueExponent;
-				Exponent exponent;
+				Exponent thisExponent = 0;
+				Exponent valueExponent = 0;
+				Exponent exponent = 0;
 
 				Real thisFraction = std::frexp(m_Value, &thisExponent);
 				Real valueFraction = std::frexp(value, &valueExponent);
-				Real fraction;
+				Real fraction = 0;
 
 				if (thisExponent == valueExponent + 1)
 				{
