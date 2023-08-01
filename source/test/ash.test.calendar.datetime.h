@@ -12,9 +12,9 @@ namespace Ash
 		{
 			constexpr Ash::Test::Assertion dateTime()
 			{
-				for (Ash::Calendar::TimeDuration dstOffset = 0; dstOffset <= Ash::Calendar::DateTime::daylightSaving; dstOffset = dstOffset + Ash::Calendar::Time::hours)
+				for (Ash::Calendar::TimeDuration dstOffset = 0; dstOffset <= Ash::Calendar::DateTime::daylightSaving; dstOffset = dstOffset + Ash::Calendar::Time::hour)
 				{
-					for (Ash::Calendar::TimeDuration utcOffset = -12 * Ash::Calendar::Time::hours; utcOffset <= 12 * Ash::Calendar::Time::hours; utcOffset = utcOffset + Ash::Calendar::Time::hours)
+					for (Ash::Calendar::TimeDuration utcOffset = -12 * Ash::Calendar::Time::hour; utcOffset <= 12 * Ash::Calendar::Time::hour; utcOffset = utcOffset + Ash::Calendar::Time::hour)
 					{
 						Ash::Calendar::Date utcDate;
 
