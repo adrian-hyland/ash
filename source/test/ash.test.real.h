@@ -390,6 +390,64 @@ namespace Ash
 
 				return {};
 			}
+
+			template <typename TYPE>
+			constexpr Ash::Test::Assertion modulus()
+			{
+				using Real = Ash::Real<TYPE>;
+
+				TEST_IS_FALSE(Real(3.4).modulus(Real(0)).isValid());
+				TEST_IS_FALSE(Real(3.4).modulus(Real(0).negate()).isValid());
+				TEST_IS_FALSE(Real(3.4).negate().modulus(Real(0)).isValid());
+				TEST_IS_FALSE(Real(3.4).negate().modulus(Real(0).negate()).isValid());
+
+				TEST_IS_FALSE(Real::infinity.modulus(Real(0)).isValid());
+				TEST_IS_FALSE(Real::infinity.modulus(Real(0).negate()).isValid());
+				TEST_IS_FALSE(Real::infinity.negate().modulus(Real(0)).isValid());
+				TEST_IS_FALSE(Real::infinity.negate().modulus(Real(0).negate()).isValid());
+
+				TEST_IS_FALSE(Real::invalid.modulus(Real(1.2)).isValid());
+				TEST_IS_FALSE(Real(3.4).modulus(Real::invalid).isValid());
+
+				TEST_IS_EQ(Real(0.0).modulus(Real(1.2)), Real(0.0));
+				TEST_IS_EQ(Real(0.0).negate().modulus(Real(1.2)), Real(0.0).negate());
+
+				TEST_IS_EQ(Real(3.4).modulus(Real::infinity), Real(3.4));
+				TEST_IS_EQ(Real(3.4).modulus(Real::infinity.negate()), Real(3.4));
+				TEST_IS_EQ(Real(3.4).negate().modulus(Real::infinity), Real(3.4).negate());
+				TEST_IS_EQ(Real(3.4).negate().modulus(Real::infinity.negate()), Real(3.4).negate());
+
+				TEST_IS_EQ(Real(3.4).modulus(Real(1.2)), Real(1.0));
+				TEST_IS_EQ(Real(3.4).negate().modulus(1.2), Real(1.0).negate());
+				TEST_IS_EQ(Real(3.4).negate().modulus(Real(1.2).negate()), Real(1.0).negate());
+				TEST_IS_EQ(Real(3.4).modulus(Real(1.2).negate()), Real(1.0));
+
+				return {};
+			}
+
+			template <typename TYPE>
+			constexpr Ash::Test::Assertion reciprocal()
+			{
+				using Real = Ash::Real<TYPE>;
+
+				TEST_IS_FALSE(Real::invalid.reciprocal().isValid());
+
+				TEST_IS_EQ(Real(0.0).reciprocal(), Real::infinity);
+				TEST_IS_EQ(Real(0.0).negate().reciprocal(), Real::infinity.negate());
+
+				TEST_IS_EQ(Real::infinity.reciprocal(), Real(0.0));
+				TEST_IS_EQ(Real::infinity.negate().reciprocal(), Real(0.0).negate());
+
+				TEST_IS_EQ(Real(1.0).reciprocal(), Real(1.0));
+				TEST_IS_EQ(Real(1.0).negate().reciprocal(), Real(1.0).negate());
+
+				TEST_IS_EQ(Real(8.0).reciprocal(), Real(0.125));
+				TEST_IS_EQ(Real(0.125).reciprocal(), Real(8.0));
+				TEST_IS_EQ(Real(8.0).negate().reciprocal(), Real(0.125).negate());
+				TEST_IS_EQ(Real(0.125).negate().reciprocal(), Real(8.0).negate());
+
+				return {};
+			}
 		}
 
 		TEST_UNIT
@@ -407,6 +465,8 @@ namespace Ash
 			TEST_CASE_GENERIC(Ash::Test::Real::isEqualAbsolute, float),
 			TEST_CASE_GENERIC(Ash::Test::Real::isEqualRelative, float),
 			TEST_CASE_GENERIC(Ash::Test::Real::squareRoot, float),
+			TEST_CASE_GENERIC(Ash::Test::Real::modulus, float),
+			TEST_CASE_GENERIC(Ash::Test::Real::reciprocal, float),
 
 			TEST_CASE_GENERIC(Ash::Test::Real::isValid, double),
 			TEST_CASE_GENERIC(Ash::Test::Real::isInfinite, double),
@@ -419,6 +479,8 @@ namespace Ash
 			TEST_CASE_GENERIC(Ash::Test::Real::isEqualAbsolute, double),
 			TEST_CASE_GENERIC(Ash::Test::Real::isEqualRelative, double),
 			TEST_CASE_GENERIC(Ash::Test::Real::squareRoot, double),
+			TEST_CASE_GENERIC(Ash::Test::Real::modulus, double),
+			TEST_CASE_GENERIC(Ash::Test::Real::reciprocal, double),
 
 			TEST_CASE_GENERIC(Ash::Test::Real::isValid, long double),
 			TEST_CASE_GENERIC(Ash::Test::Real::isInfinite, long double),
@@ -431,6 +493,8 @@ namespace Ash
 			TEST_CASE_GENERIC(Ash::Test::Real::isEqualAbsolute, long double),
 			TEST_CASE_GENERIC(Ash::Test::Real::isEqualRelative, long double),
 			TEST_CASE_GENERIC(Ash::Test::Real::squareRoot, long double),
+			TEST_CASE_GENERIC(Ash::Test::Real::modulus, long double),
+			TEST_CASE_GENERIC(Ash::Test::Real::reciprocal, long double),
 		);
 	}
 }
