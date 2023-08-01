@@ -15,11 +15,11 @@ namespace Ash
 		class DateTime
 		{
 		public:
-			static constexpr TimeDuration daylightSaving = Time::hours;
+			static constexpr TimeDuration daylightSaving = Time::hour;
 
 			constexpr DateTime() : m_UtcTime(0), m_UtcOffset(0), m_DstOffset(0) {}
 
-			constexpr DateTime(DateDuration dateDuration, TimeDuration timeDuration, TimeDuration utcOffset = 0, TimeDuration dstOffset = 0) : m_UtcTime(DateTimeDuration(dateDuration) * Time::days + DateTimeDuration(timeDuration)), m_UtcOffset(utcOffset), m_DstOffset(dstOffset) {}
+			constexpr DateTime(DateDuration dateDuration, TimeDuration timeDuration, TimeDuration utcOffset = 0, TimeDuration dstOffset = 0) : m_UtcTime(DateTimeDuration(dateDuration) * Time::day + DateTimeDuration(timeDuration)), m_UtcOffset(utcOffset), m_DstOffset(dstOffset) {}
 
 			constexpr DateDuration getUtcDate() const { return getDate(m_UtcTime); }
 
@@ -78,19 +78,19 @@ namespace Ash
 				date.setYearMonthDay(gmtEpoch.tm_year + 1900, Month(gmtEpoch.tm_mon + 1), Day(gmtEpoch.tm_mday));
 				Time time(gmtEpoch.tm_hour, gmtEpoch.tm_min, gmtEpoch.tm_sec);
 
-				return DateTimeDuration(date) * Time::days + time;
+				return DateTimeDuration(date) * Time::day + time;
 			}
 
 			static constexpr DateDuration getDate(DateTimeDuration duration)
 			{
-				duration = (duration < 0) ? duration - Time::days + 1 : duration;
-				return duration / Time::days;
+				duration = (duration < 0) ? duration - Time::day + 1 : duration;
+				return duration / Time::day;
 			}
 
 			static constexpr TimeDuration getTime(DateTimeDuration duration)
 			{
-				duration = duration % Time::days;
-				return (duration < 0) ? duration + Time::days : duration;
+				duration = duration % Time::day;
+				return (duration < 0) ? duration + Time::day : duration;
 			}
 
 		private:
