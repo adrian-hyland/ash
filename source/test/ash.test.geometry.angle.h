@@ -133,7 +133,7 @@ namespace Ash
 
 				return {};
 			}
-
+			
 			template <template<typename> typename ANGLE, typename REAL>
 			constexpr Ash::Test::Assertion angle()
 			{
@@ -144,6 +144,38 @@ namespace Ash
 				TEST_GENERIC(Ash::Test::Geometry::tangent, ANGLE,  REAL);
 
 				TEST_GENERIC(Ash::Test::Geometry::arcTangent, ANGLE,  REAL);
+
+				return {};
+			}
+
+			template <template<typename> typename FROM_ANGLE, template<typename> typename TO_ANGLE, typename REAL>
+			constexpr Ash::Test::Assertion convert()
+			{
+				using FromAngle = FROM_ANGLE<REAL>;
+				using ToAngle = TO_ANGLE<REAL>;
+				using Real = REAL;
+
+				for (int n = -24; n <= 24; n++)
+				{
+					FromAngle from = FromAngle(FromAngle::perRotation / 48 * n);
+					ToAngle to(from);
+					TEST_IS_TRUE(from.isEqual(FromAngle(to), Real::MatchRelative));
+				}
+
+				return {};
+			}
+
+			template <typename REAL>
+			constexpr Ash::Test::Assertion convert()
+			{
+				TEST_GENERIC(Ash::Test::Geometry::convert, Ash::Geometry::Radian, Ash::Geometry::Degree,  REAL);
+				TEST_GENERIC(Ash::Test::Geometry::convert, Ash::Geometry::Radian, Ash::Geometry::Gradian, REAL);
+
+				TEST_GENERIC(Ash::Test::Geometry::convert, Ash::Geometry::Degree, Ash::Geometry::Radian,  REAL);
+				TEST_GENERIC(Ash::Test::Geometry::convert, Ash::Geometry::Degree, Ash::Geometry::Gradian, REAL);
+
+				TEST_GENERIC(Ash::Test::Geometry::convert, Ash::Geometry::Gradian, Ash::Geometry::Radian, REAL);
+				TEST_GENERIC(Ash::Test::Geometry::convert, Ash::Geometry::Gradian, Ash::Geometry::Degree, REAL);
 
 				return {};
 			}
@@ -164,6 +196,10 @@ namespace Ash
 			TEST_CASE_GENERIC(Ash::Test::Geometry::angle, Ash::Geometry::Gradian, Ash::Float),
 			TEST_CASE_GENERIC(Ash::Test::Geometry::angle, Ash::Geometry::Gradian, Ash::Double),
 			TEST_CASE_GENERIC(Ash::Test::Geometry::angle, Ash::Geometry::Gradian, Ash::LongDouble),
+
+			TEST_CASE_GENERIC(Ash::Test::Geometry::convert, Ash::Float),
+			TEST_CASE_GENERIC(Ash::Test::Geometry::convert, Ash::Double),
+			TEST_CASE_GENERIC(Ash::Test::Geometry::convert, Ash::LongDouble),
 		);
 	}
 }
