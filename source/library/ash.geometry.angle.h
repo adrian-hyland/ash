@@ -8,6 +8,18 @@ namespace Ash
 	namespace Geometry
 	{
 		template <typename REAL, int PER_ROTATION=0>
+		class Angle;
+
+		template <typename REAL>
+		using Radian = Angle<REAL>;
+
+		template <typename REAL>
+		using Degree = Angle<REAL, 360>;
+
+		template <typename REAL>
+		using Gradian = Angle<REAL, 400>;
+
+		template <typename REAL, int PER_ROTATION>
 		class Angle : public REAL
 		{
 		public:
@@ -23,7 +35,7 @@ namespace Ash
 			constexpr Angle(VALUE value) : Real(normalise(value)) {}
 
 			template <int VALUE_ROTATION>
-			constexpr Angle(const Angle<REAL, VALUE_ROTATION> &angle) : Real(normalise(angle / angle.perRotation * perRotation)) {}
+			constexpr Angle(const Angle<REAL, VALUE_ROTATION> &angle) : Real(normalise(angle * perRotation / angle.perRotation)) {}
 
 			constexpr Real sine() const { return std::sin(toRadian(*this)); }
 
@@ -72,7 +84,7 @@ namespace Ash
 			{
 				if (!isRadian)
 				{
-					angle = angle * Real::pi / (perRotation / 2);
+					angle = angle * Radian<Real>::perRotation / perRotation;
 				}
 
 				return angle;
@@ -82,20 +94,11 @@ namespace Ash
 			{
 				if (!isRadian)
 				{
-					angle = angle * (perRotation / 2) / Real::pi;
+					angle = angle * perRotation / Radian<Real>::perRotation;
 				}
 				
 				return angle;
 			}
 		};
-
-		template <typename REAL>
-		using Radian = Angle<REAL>;
-
-		template <typename REAL>
-		using Degree = Angle<REAL, 360>;
-
-		template <typename REAL>
-		using Gradian = Angle<REAL, 400>;
 	}
 }
