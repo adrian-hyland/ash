@@ -389,7 +389,7 @@ namespace Ash
 			}
 
 			template <template<typename> typename FROM_ANGLE, template<typename> typename TO_ANGLE, typename REAL>
-			constexpr Ash::Test::Assertion convert()
+			constexpr Ash::Test::Assertion convertAngle()
 			{
 				using FromAngle = FROM_ANGLE<REAL>;
 				using ToAngle = TO_ANGLE<REAL>;
@@ -406,16 +406,16 @@ namespace Ash
 			}
 
 			template <typename REAL>
-			constexpr Ash::Test::Assertion convert()
+			constexpr Ash::Test::Assertion convertAngle()
 			{
-				TEST_GENERIC(Ash::Test::Geometry::convert, Ash::Geometry::Radian, Ash::Geometry::Degree,  REAL);
-				TEST_GENERIC(Ash::Test::Geometry::convert, Ash::Geometry::Radian, Ash::Geometry::Gradian, REAL);
+				TEST_GENERIC(Ash::Test::Geometry::convertAngle, Ash::Geometry::Radian, Ash::Geometry::Degree,  REAL);
+				TEST_GENERIC(Ash::Test::Geometry::convertAngle, Ash::Geometry::Radian, Ash::Geometry::Gradian, REAL);
 
-				TEST_GENERIC(Ash::Test::Geometry::convert, Ash::Geometry::Degree, Ash::Geometry::Radian,  REAL);
-				TEST_GENERIC(Ash::Test::Geometry::convert, Ash::Geometry::Degree, Ash::Geometry::Gradian, REAL);
+				TEST_GENERIC(Ash::Test::Geometry::convertAngle, Ash::Geometry::Degree, Ash::Geometry::Radian,  REAL);
+				TEST_GENERIC(Ash::Test::Geometry::convertAngle, Ash::Geometry::Degree, Ash::Geometry::Gradian, REAL);
 
-				TEST_GENERIC(Ash::Test::Geometry::convert, Ash::Geometry::Gradian, Ash::Geometry::Radian, REAL);
-				TEST_GENERIC(Ash::Test::Geometry::convert, Ash::Geometry::Gradian, Ash::Geometry::Degree, REAL);
+				TEST_GENERIC(Ash::Test::Geometry::convertAngle, Ash::Geometry::Gradian, Ash::Geometry::Radian, REAL);
+				TEST_GENERIC(Ash::Test::Geometry::convertAngle, Ash::Geometry::Gradian, Ash::Geometry::Degree, REAL);
 
 				return {};
 			}
@@ -437,9 +437,9 @@ namespace Ash
 			TEST_CASE_GENERIC(Ash::Test::Geometry::angle, Ash::Geometry::Gradian, Ash::Double),
 			TEST_CASE_GENERIC(Ash::Test::Geometry::angle, Ash::Geometry::Gradian, Ash::LongDouble),
 
-			TEST_CASE_GENERIC(Ash::Test::Geometry::convert, Ash::Float),
-			TEST_CASE_GENERIC(Ash::Test::Geometry::convert, Ash::Double),
-			TEST_CASE_GENERIC(Ash::Test::Geometry::convert, Ash::LongDouble),
+			TEST_CASE_GENERIC(Ash::Test::Geometry::convertAngle, Ash::Float),
+			TEST_CASE_GENERIC(Ash::Test::Geometry::convertAngle, Ash::Double),
+			TEST_CASE_GENERIC(Ash::Test::Geometry::convertAngle, Ash::LongDouble),
 		);
 	}
 }
