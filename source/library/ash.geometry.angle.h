@@ -25,6 +25,8 @@ namespace Ash
 		public:
 			using Real = REAL;
 
+			using MatchType = typename Real::MatchType;
+
 			static constexpr bool isRadian = (PER_ROTATION == 0);
 
 			static constexpr Real perRotation = (isRadian) ? 2 * Real::pi : PER_ROTATION;
@@ -36,6 +38,35 @@ namespace Ash
 
 			template <int VALUE_ROTATION>
 			constexpr Angle(const Angle<REAL, VALUE_ROTATION> &angle) : Real(normalise(angle * perRotation / angle.perRotation)) {}
+
+			constexpr Real match(Angle angle, MatchType matchType = MatchType::MatchRelative) const
+			{
+				Real thisValue = *this;
+
+				if ((thisValue != 0) && (angle != 0))
+				{
+					if (thisValue.isPositive())
+					{
+						if (angle.isNegative())
+						{
+							thisValue = thisValue - perRotation;
+						}
+					}
+					else if (angle.isPositive())
+					{
+						thisValue = thisValue + perRotation;
+					}
+				}
+
+				return thisValue.match(angle, matchType);
+			}
+
+			constexpr bool isEqual(Angle angle, MatchType matchType = MatchType::MatchRelative, Real tolerance = 1.0) const
+			{
+				Real error = match(angle, matchType);
+			
+				return error.isValid() && (error <= tolerance);
+			}
 
 			constexpr Real sine() const { return std::sin(toRadian(*this)); }
 
@@ -65,16 +96,13 @@ namespace Ash
 		protected:
 			static constexpr Real normalise(Real angle)
 			{
-				if (!isRadian)
+				if (angle < -perRotation / 2)
 				{
-					if (angle < -perRotation / 2)
-					{
-						return Real(angle - perRotation / 2).modulus(perRotation) + perRotation / 2;
-					}
-					else if (angle > perRotation / 2)
-					{
-						return Real(angle + perRotation / 2).modulus(perRotation) - perRotation / 2;
-					}
+					return Real(angle - perRotation / 2).modulus(perRotation) + perRotation / 2;
+				}
+				else if (angle > perRotation / 2)
+				{
+					return Real(angle + perRotation / 2).modulus(perRotation) - perRotation / 2;
 				}
 
 				return angle;
