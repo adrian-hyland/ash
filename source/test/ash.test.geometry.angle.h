@@ -133,7 +133,239 @@ namespace Ash
 
 				return {};
 			}
-			
+
+			template <template<typename> typename ANGLE, typename REAL>
+			constexpr Ash::Test::Assertion matchAbsolute()
+			{
+				using Angle = ANGLE<REAL>;
+				using Real = REAL;
+
+				Angle angle = Angle::perRotation / 2;
+				size_t exponent = Ash::Integer::getBitSize<unsigned int>(angle) - 1;
+				Real error = Real(1, -Real::fractionSize + exponent);
+				TEST_IS_LTE(angle.match(angle + error, Angle::MatchAbsolute), Real(1.0));
+				TEST_IS_EQ(angle.match(angle - error, Angle::MatchAbsolute), Real(0.5));
+
+				for (int n = -15; n < 0; n++)
+				{
+					angle = Angle::perRotation * n / 32;
+					if (angle <= -1.0)
+					{
+						exponent = Ash::Integer::getBitSize<unsigned int>(-angle) - 1;
+					}
+					else
+					{
+						exponent = -Ash::Integer::getBitSize<unsigned int>(-angle.reciprocal());
+					}
+					error = Real(1, -Real::fractionSize + exponent);
+					TEST_IS_EQ(angle.match(angle + error, Angle::MatchAbsolute), Real(0.5));
+					TEST_IS_EQ(angle.match(angle - error, Angle::MatchAbsolute), Real(0.5));
+				}
+
+				angle = 0.0;
+				error = Real::minSubNormal;
+				TEST_IS_EQ(angle.match(error, Angle::MatchAbsolute), Real(0.5));
+				TEST_IS_EQ(angle.match(error, Angle::MatchAbsolute), Real(0.5));
+
+				for (int n = 1; n <= 15; n++)
+				{
+					angle = Angle::perRotation * n / 32;
+					if (angle >= 1.0)
+					{
+						exponent = Ash::Integer::getBitSize<unsigned int>(angle) - 1;
+					}
+					else
+					{
+						exponent = -Ash::Integer::getBitSize<unsigned int>(angle.reciprocal());
+					}
+					error = Real(1, -Real::fractionSize + exponent);
+					TEST_IS_EQ(angle.match(angle + error, Angle::MatchAbsolute), Real(0.5));
+					TEST_IS_EQ(angle.match(angle - error, Angle::MatchAbsolute), Real(0.5));
+				}
+
+				angle = -Angle::perRotation / 2;
+				exponent = Ash::Integer::getBitSize<unsigned int>(-angle) - 1;
+				error = Real(1, -Real::fractionSize + exponent);
+				TEST_IS_EQ(angle.match(angle + error, Angle::MatchAbsolute), Real(0.5));
+				TEST_IS_LTE(angle.match(angle - error, Angle::MatchAbsolute), Real(1.0));
+
+				return {};
+			}
+
+			template <template<typename> typename ANGLE, typename REAL>
+			constexpr Ash::Test::Assertion matchRelative()
+			{
+				using Angle = ANGLE<REAL>;
+				using Real = REAL;
+
+				Angle angle = Angle::perRotation / 2;
+				size_t exponent = Ash::Integer::getBitSize<unsigned int>(angle) - 1;
+				Real error = Real(1, -Real::fractionSize + exponent);
+				TEST_IS_LTE(angle.match(angle + error, Angle::MatchAbsolute), Real(1.5));
+				TEST_IS_EQ(angle.match(angle - error, Angle::MatchAbsolute), Real(0.5));
+
+				for (int n = -15; n < 0; n++)
+				{
+					angle = Angle::perRotation * n / 32;
+					if (angle <= -1.0)
+					{
+						exponent = Ash::Integer::getBitSize<unsigned int>(-angle) - 1;
+					}
+					else
+					{
+						exponent = -Ash::Integer::getBitSize<unsigned int>(-angle.reciprocal());
+					}
+					error = Real(1, -Real::fractionSize + exponent);
+					TEST_IS_LTE(angle.match(angle + error, Angle::MatchRelative), Real(1.0));
+					TEST_IS_LTE(angle.match(angle - error, Angle::MatchRelative), Real(1.0));
+				}
+
+				angle = 0.0;
+				error = Real(1, -Real::fractionSize);
+				TEST_IS_EQ(angle.match(error, Angle::MatchRelative), Real(0.5));
+				TEST_IS_EQ(angle.match(error, Angle::MatchRelative), Real(0.5));
+
+				for (int n = 1; n <= 15; n++)
+				{
+					angle = Angle::perRotation * n / 32;
+					if (angle >= 1.0)
+					{
+						exponent = Ash::Integer::getBitSize<unsigned int>(angle) - 1;
+					}
+					else
+					{
+						exponent = -Ash::Integer::getBitSize<unsigned int>(angle.reciprocal());
+					}
+					error = Real(1, -Real::fractionSize + exponent);
+					TEST_IS_LTE(angle.match(angle + error, Angle::MatchRelative), Real(1.0));
+					TEST_IS_LTE(angle.match(angle - error, Angle::MatchRelative), Real(1.0));
+				}
+
+				angle = -Angle::perRotation / 2;
+				exponent = Ash::Integer::getBitSize<unsigned int>(-angle) - 1;
+				error = Real(1, -Real::fractionSize + exponent);
+				TEST_IS_EQ(angle.match(angle + error, Angle::MatchAbsolute), Real(0.5));
+				TEST_IS_LTE(angle.match(angle - error, Angle::MatchAbsolute), Real(1.5));
+
+				return {};
+			}
+
+			template <template<typename> typename ANGLE, typename REAL>
+			constexpr Ash::Test::Assertion isEqualAbsolute()
+			{
+				using Angle = ANGLE<REAL>;
+				using Real = REAL;
+
+				Angle angle = Angle::perRotation / 2;
+				size_t exponent = Ash::Integer::getBitSize<unsigned int>(angle) - 1;
+				Real error = Real(1, -Real::fractionSize + exponent);
+				TEST_IS_TRUE(angle.isEqual(angle + error, Angle::MatchAbsolute, Real(1.0)));
+				TEST_IS_TRUE(angle.isEqual(angle - error, Angle::MatchAbsolute, Real(0.5)));
+
+				for (int n = -15; n < 0; n++)
+				{
+					angle = Angle::perRotation * n / 32;
+					if (angle <= -1.0)
+					{
+						exponent = Ash::Integer::getBitSize<unsigned int>(-angle) - 1;
+					}
+					else
+					{
+						exponent = -Ash::Integer::getBitSize<unsigned int>(-angle.reciprocal());
+					}
+					error = Real(1, -Real::fractionSize + exponent);
+					TEST_IS_TRUE(angle.isEqual(angle + error, Angle::MatchAbsolute, Real(0.5)));
+					TEST_IS_TRUE(angle.isEqual(angle - error, Angle::MatchAbsolute, Real(0.5)));
+				}
+
+				angle = 0.0;
+				error = Real::minSubNormal;
+				TEST_IS_TRUE(angle.isEqual(error, Angle::MatchAbsolute, Real(0.5)));
+				TEST_IS_TRUE(angle.isEqual(error, Angle::MatchAbsolute, Real(0.5)));
+
+				for (int n = 1; n <= 15; n++)
+				{
+					angle = Angle::perRotation * n / 32;
+					if (angle >= 1.0)
+					{
+						exponent = Ash::Integer::getBitSize<unsigned int>(angle) - 1;
+					}
+					else
+					{
+						exponent = -Ash::Integer::getBitSize<unsigned int>(angle.reciprocal());
+					}
+					error = Real(1, -Real::fractionSize + exponent);
+					TEST_IS_TRUE(angle.isEqual(angle + error, Angle::MatchAbsolute, Real(0.5)));
+					TEST_IS_TRUE(angle.isEqual(angle - error, Angle::MatchAbsolute, Real(0.5)));
+				}
+
+				angle = -Angle::perRotation / 2;
+				exponent = Ash::Integer::getBitSize<unsigned int>(-angle) - 1;
+				error = Real(1, -Real::fractionSize + exponent);
+				TEST_IS_TRUE(angle.isEqual(angle + error, Angle::MatchAbsolute, Real(0.5)));
+				TEST_IS_TRUE(angle.isEqual(angle - error, Angle::MatchAbsolute, Real(1.0)));
+
+				return {};
+			}
+
+			template <template<typename> typename ANGLE, typename REAL>
+			constexpr Ash::Test::Assertion isEqualRelative()
+			{
+				using Angle = ANGLE<REAL>;
+				using Real = REAL;
+
+				Angle angle = Angle::perRotation / 2;
+				size_t exponent = Ash::Integer::getBitSize<unsigned int>(angle) - 1;
+				Real error = Real(1, -Real::fractionSize + exponent);
+				TEST_IS_TRUE(angle.isEqual(angle + error, Angle::MatchAbsolute, Real(1.5)));
+				TEST_IS_TRUE(angle.isEqual(angle - error, Angle::MatchAbsolute, Real(0.5)));
+
+				for (int n = -15; n < 0; n++)
+				{
+					angle = Angle::perRotation * n / 32;
+					if (angle <= -1.0)
+					{
+						exponent = Ash::Integer::getBitSize<unsigned int>(-angle) - 1;
+					}
+					else
+					{
+						exponent = -Ash::Integer::getBitSize<unsigned int>(-angle.reciprocal());
+					}
+					error = Real(1, -Real::fractionSize + exponent);
+					TEST_IS_TRUE(angle.isEqual(angle + error, Angle::MatchRelative, Real(1.0)));
+					TEST_IS_TRUE(angle.isEqual(angle - error, Angle::MatchRelative, Real(1.0)));
+				}
+
+				angle = 0.0;
+				error = Real(1, -Real::fractionSize);
+				TEST_IS_TRUE(angle.isEqual(error, Angle::MatchRelative, Real(0.5)));
+				TEST_IS_TRUE(angle.isEqual(error, Angle::MatchRelative, Real(0.5)));
+
+				for (int n = 1; n <= 15; n++)
+				{
+					angle = Angle::perRotation * n / 32;
+					if (angle >= 1.0)
+					{
+						exponent = Ash::Integer::getBitSize<unsigned int>(angle) - 1;
+					}
+					else
+					{
+						exponent = -Ash::Integer::getBitSize<unsigned int>(angle.reciprocal());
+					}
+					error = Real(1, -Real::fractionSize + exponent);
+					TEST_IS_TRUE(angle.isEqual(angle + error, Angle::MatchRelative, Real(1.0)));
+					TEST_IS_TRUE(angle.isEqual(angle - error, Angle::MatchRelative, Real(1.0)));
+				}
+
+				angle = -Angle::perRotation / 2;
+				exponent = Ash::Integer::getBitSize<unsigned int>(-angle) - 1;
+				error = Real(1, -Real::fractionSize + exponent);
+				TEST_IS_TRUE(angle.isEqual(angle + error, Angle::MatchAbsolute, Real(0.5)));
+				TEST_IS_TRUE(angle.isEqual(angle - error, Angle::MatchAbsolute, Real(1.5)));
+
+				return {};
+			}
+
 			template <template<typename> typename ANGLE, typename REAL>
 			constexpr Ash::Test::Assertion angle()
 			{
@@ -144,6 +376,14 @@ namespace Ash
 				TEST_GENERIC(Ash::Test::Geometry::tangent, ANGLE,  REAL);
 
 				TEST_GENERIC(Ash::Test::Geometry::arcTangent, ANGLE,  REAL);
+
+				TEST_GENERIC(Ash::Test::Geometry::matchAbsolute, ANGLE,  REAL);
+
+				TEST_GENERIC(Ash::Test::Geometry::matchRelative, ANGLE,  REAL);
+
+				TEST_GENERIC(Ash::Test::Geometry::isEqualAbsolute, ANGLE,  REAL);
+
+				TEST_GENERIC(Ash::Test::Geometry::isEqualRelative, ANGLE,  REAL);
 
 				return {};
 			}
