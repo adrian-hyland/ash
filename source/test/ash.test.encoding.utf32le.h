@@ -101,7 +101,7 @@ namespace Ash
 
 					for (Ash::Unicode::Character::Value code = 0; code < 0x100; code++)
 					{
-						Ash::Memory::Vector<Ash::Encoding::Utf32le::Code, 1> invalidContent;
+						Ash::Memory::Sequence<Ash::Encoding::Utf32le::Code, 1> invalidContent;
 
 						TEST_IS_TRUE(invalidContent.set(0, code));
 
@@ -112,7 +112,7 @@ namespace Ash
 
 					for (Ash::Unicode::Character::Value code = 0x100; code < 0x10000; code++)
 					{
-						Ash::Memory::Vector<Ash::Encoding::Utf32le::Code, 2> invalidContent;
+						Ash::Memory::Sequence<Ash::Encoding::Utf32le::Code, 2> invalidContent;
 
 						TEST_IS_TRUE(invalidContent.set(0, code));
 						TEST_IS_TRUE(invalidContent.set(1, code >> 8));
@@ -124,7 +124,7 @@ namespace Ash
 
 					for (Ash::Unicode::Character::Value code = 0x10000; code < 0x1000000; code++)
 					{
-						Ash::Memory::Vector<Ash::Encoding::Utf32le::Code, 3> invalidContent;
+						Ash::Memory::Sequence<Ash::Encoding::Utf32le::Code, 3> invalidContent;
 
 						TEST_IS_TRUE(invalidContent.set(0, code));
 						TEST_IS_TRUE(invalidContent.set(1, code >> 8));
@@ -137,7 +137,7 @@ namespace Ash
 
 					for (Ash::Unicode::Character::Value code = 0x110000; code != 0; code++)
 					{
-						Ash::Memory::Vector<Ash::Encoding::Utf32le::Code, 4> invalidContent;
+						Ash::Memory::Sequence<Ash::Encoding::Utf32le::Code, 4> invalidContent;
 
 						TEST_IS_TRUE(invalidContent.set(0, code));
 						TEST_IS_TRUE(invalidContent.set(1, code >> 8));
@@ -195,7 +195,7 @@ namespace Ash
 
 					for (Ash::Unicode::Character::Value code = 0; code < 0x100; code++)
 					{
-						Ash::Memory::Vector<Ash::Encoding::Utf32le::Code, 1> invalidContent;
+						Ash::Memory::Sequence<Ash::Encoding::Utf32le::Code, 1> invalidContent;
 
 						TEST_IS_TRUE(invalidContent.set(0, code));
 
@@ -206,7 +206,7 @@ namespace Ash
 
 					for (Ash::Unicode::Character::Value code = 0x100; code < 0x10000; code++)
 					{
-						Ash::Memory::Vector<Ash::Encoding::Utf32le::Code, 2> invalidContent;
+						Ash::Memory::Sequence<Ash::Encoding::Utf32le::Code, 2> invalidContent;
 
 						TEST_IS_TRUE(invalidContent.set(0, code));
 						TEST_IS_TRUE(invalidContent.set(1, code >> 8));
@@ -218,7 +218,7 @@ namespace Ash
 
 					for (Ash::Unicode::Character::Value code = 0x10000; code < 0x1000000; code++)
 					{
-						Ash::Memory::Vector<Ash::Encoding::Utf32le::Code, 3> invalidContent;
+						Ash::Memory::Sequence<Ash::Encoding::Utf32le::Code, 3> invalidContent;
 
 						TEST_IS_TRUE(invalidContent.set(0, code));
 						TEST_IS_TRUE(invalidContent.set(1, code >> 8));
@@ -231,7 +231,7 @@ namespace Ash
 
 					for (Ash::Unicode::Character::Value code = 0x110000; code != 0; code++)
 					{
-						Ash::Memory::Vector<Ash::Encoding::Utf32le::Code, 4> invalidContent;
+						Ash::Memory::Sequence<Ash::Encoding::Utf32le::Code, 4> invalidContent;
 
 						TEST_IS_TRUE(invalidContent.set(0, code));
 						TEST_IS_TRUE(invalidContent.set(1, code >> 8));

@@ -74,7 +74,7 @@ namespace Ash
 
 					for (Ash::Unicode::Character::Value code = 0x80; code < 0x100; code++)
 					{
-						Ash::Memory::Vector<Ash::Encoding::Ascii::Code, 1> invalidContent;
+						Ash::Memory::Sequence<Ash::Encoding::Ascii::Code, 1> invalidContent;
 
 						TEST_IS_TRUE(invalidContent.set(0, code));
 
@@ -122,7 +122,7 @@ namespace Ash
 
 					for (Ash::Unicode::Character::Value code = 0x80; code < 0x100; code++)
 					{
-						Ash::Memory::Vector<Ash::Encoding::Ascii::Code, 1> invalidContent;
+						Ash::Memory::Sequence<Ash::Encoding::Ascii::Code, 1> invalidContent;
 
 						TEST_IS_TRUE(invalidContent.set(0, code));
 

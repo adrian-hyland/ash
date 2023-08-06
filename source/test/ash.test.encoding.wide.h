@@ -115,7 +115,7 @@ namespace Ash
 					{
 						for (Ash::Unicode::Character::Value code = 0xD8000000; code < 0xE0000000; code++)
 						{
-							Ash::Memory::Vector<Ash::Encoding::Wide::Code, 2> invalidContent;
+							Ash::Memory::Sequence<Ash::Encoding::Wide::Code, 2> invalidContent;
 
 							if ((code & 0xFC00FC00) == 0xD800DC00)
 							{
@@ -134,7 +134,7 @@ namespace Ash
 					{
 						for (Ash::Unicode::Character::Value code = 0x110000; code != 0; code++)
 						{
-							Ash::Memory::Vector<Ash::Encoding::Wide::Code, 1> invalidContent;
+							Ash::Memory::Sequence<Ash::Encoding::Wide::Code, 1> invalidContent;
 
 							TEST_IS_TRUE(invalidContent.set(0, code));
 
@@ -192,7 +192,7 @@ namespace Ash
 					{
 						for (Ash::Unicode::Character::Value code = 0xD8000000; code < 0xE0000000; code++)
 						{
-							Ash::Memory::Vector<Ash::Encoding::Wide::Code, 2> invalidContent;
+							Ash::Memory::Sequence<Ash::Encoding::Wide::Code, 2> invalidContent;
 
 							if (((code & 0xFFFF) < 0xD800) || ((code & 0xFFFF) > 0xDFFF) || ((code & 0xFC00FC00) == 0xD800DC00))
 							{
@@ -211,7 +211,7 @@ namespace Ash
 					{
 						for (Ash::Unicode::Character::Value code = 0x110000; code != 0; code++)
 						{
-							Ash::Memory::Vector<Ash::Encoding::Wide::Code, 1> invalidContent;
+							Ash::Memory::Sequence<Ash::Encoding::Wide::Code, 1> invalidContent;
 
 							TEST_IS_TRUE(invalidContent.set(0, code));
 

@@ -454,7 +454,7 @@ namespace Ash
 		using Buffer = Value<Allocation::VariableLength<TYPE, CAPACITY>>;
 
 		template <typename TYPE, size_t CAPACITY>
-		using Vector = Value<Allocation::FixedLength<TYPE, CAPACITY>>;
+		using Sequence = Value<Allocation::FixedLength<TYPE, CAPACITY>>;
 
 		template <typename TYPE>
 		using Area = Value<Allocation::Reference<TYPE>>;

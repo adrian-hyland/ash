@@ -108,7 +108,7 @@ namespace Ash
 
 					for (Ash::Unicode::Character::Value code = 0; code < 0x100; code++)
 					{
-						Ash::Memory::Vector<Ash::Encoding::Utf16le::Code, 1> invalidContent;
+						Ash::Memory::Sequence<Ash::Encoding::Utf16le::Code, 1> invalidContent;
 
 						TEST_IS_TRUE(invalidContent.set(0, code));
 
@@ -119,7 +119,7 @@ namespace Ash
 
 					for (Ash::Unicode::Character::Value code = 0xD80000; code < 0xDC0000; code++)
 					{
-						Ash::Memory::Vector<Ash::Encoding::Utf16le::Code, 3> invalidContent;
+						Ash::Memory::Sequence<Ash::Encoding::Utf16le::Code, 3> invalidContent;
 
 						TEST_IS_TRUE(invalidContent.set(0, code >> 8));
 						TEST_IS_TRUE(invalidContent.set(1, code >> 16));
@@ -132,7 +132,7 @@ namespace Ash
 
 					for (Ash::Unicode::Character::Value code = 0xD8000000; code < 0xE0000000; code++)
 					{
-						Ash::Memory::Vector<Ash::Encoding::Utf16le::Code, 4> invalidContent;
+						Ash::Memory::Sequence<Ash::Encoding::Utf16le::Code, 4> invalidContent;
 
 						if ((code & 0xFC00FC00) == 0xD800DC00)
 						{
@@ -195,7 +195,7 @@ namespace Ash
 
 					for (Ash::Unicode::Character::Value code = 0; code < 0x100; code++)
 					{
-						Ash::Memory::Vector<Ash::Encoding::Utf16le::Code, 1> invalidContent;
+						Ash::Memory::Sequence<Ash::Encoding::Utf16le::Code, 1> invalidContent;
 
 						TEST_IS_TRUE(invalidContent.set(0, code));
 
@@ -206,7 +206,7 @@ namespace Ash
 
 					for (Ash::Unicode::Character::Value code = 0xDC0000; code < 0xE00000; code++)
 					{
-						Ash::Memory::Vector<Ash::Encoding::Utf16le::Code, 3> invalidContent;
+						Ash::Memory::Sequence<Ash::Encoding::Utf16le::Code, 3> invalidContent;
 
 						TEST_IS_TRUE(invalidContent.set(0, code));
 						TEST_IS_TRUE(invalidContent.set(1, code >> 8));
@@ -219,7 +219,7 @@ namespace Ash
 
 					for (Ash::Unicode::Character::Value code = 0xD8000000; code < 0xE0000000; code++)
 					{
-						Ash::Memory::Vector<Ash::Encoding::Utf16le::Code, 4> invalidContent;
+						Ash::Memory::Sequence<Ash::Encoding::Utf16le::Code, 4> invalidContent;
 
 						if (((code & 0xFFFF) < 0xD800) || ((code & 0xFFFF) > 0xDFFF) || ((code & 0xFC00FC00) == 0xD800DC00))
 						{
