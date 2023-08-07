@@ -12,7 +12,11 @@ namespace Ash
 		{
 			using Real = REAL;
 
+			using MatchType = typename Real::MatchType;
+
 			using Angle = Ash::Geometry::Radian<Real>;
+
+			constexpr Coordinate2D() : x(Real(0.0)), y(Real(0.0)) {}
 
 			constexpr Coordinate2D(Real xValue, Real yValue) : x(xValue), y(yValue) {}
 
@@ -23,7 +27,13 @@ namespace Ash
 
 			constexpr Real getRadius() const { return std::hypot(x, y); }
 
-			constexpr bool isEqual(Coordinate2D coordinate, typename Real::MatchType matchType = Real::MatchAbsolute, Real tolerance = 1.0) const { return x.isEqual(coordinate.x, matchType, tolerance) && y.isEqual(coordinate.y, matchType, tolerance); }
+			constexpr bool isEqual(Coordinate2D coordinate, MatchType matchType = MatchType::MatchRelative, Real tolerance = 1.0) const { return x.isEqual(coordinate.x, matchType, tolerance) && y.isEqual(coordinate.y, matchType, tolerance); }
+
+			template <int PER_ROTATION>
+			constexpr Coordinate2D rotate(Ash::Geometry::Angle<Real, PER_ROTATION> angle) const
+			{
+				return { x * angle.cosine() - y * angle.sine(), y * angle.cosine() + x * angle.sine() };
+			}
 
 			Real x;
 
