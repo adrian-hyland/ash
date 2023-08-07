@@ -101,6 +101,79 @@ namespace Ash
 				
 				return {};
 			}
+
+			template <template<typename> typename ANGLE, typename REAL>
+			constexpr Ash::Test::Assertion rotateCoordinate2D()
+			{
+				using Real = REAL;
+				using Angle = ANGLE<Real>;
+				using Coordinate = Ash::Geometry::Coordinate2D<Real>;
+
+				Coordinate coordinate(5.0, Angle(0.0));
+				Coordinate rotatedCoordinate = coordinate;
+				Angle angle;
+
+				TEST_IS_TRUE(rotatedCoordinate.x.isEqual(Real(5.0), Real::MatchRelative));
+				TEST_IS_TRUE(rotatedCoordinate.y.isEqual(Real(0.0), Real::MatchRelative));
+
+				for (int n = 0; n < 8; n++)
+				{
+					angle = Angle::perRotation * n / 32;
+					rotatedCoordinate = coordinate.rotate(angle);
+					TEST_IS_TRUE(rotatedCoordinate.getAngle().isEqual(angle, Real::MatchRelative));
+					TEST_IS_TRUE(rotatedCoordinate.getRadius().isEqual(Real(5.0), Real::MatchRelative));
+				}
+
+				angle = Angle::perRotation * 8 / 32;
+				rotatedCoordinate = coordinate.rotate(angle);
+				TEST_IS_TRUE(rotatedCoordinate.getAngle().isEqual(angle, Real::MatchRelative));
+				TEST_IS_TRUE(rotatedCoordinate.getRadius().isEqual(Real(5.0), Real::MatchRelative));
+				TEST_IS_TRUE(rotatedCoordinate.isEqual(Coordinate(coordinate.y, coordinate.x), Real::MatchRelative));
+
+				for (int n = 9; n < 16; n++)
+				{
+					angle = Angle::perRotation * n / 32;
+					rotatedCoordinate = coordinate.rotate(angle);
+					TEST_IS_TRUE(rotatedCoordinate.getAngle().isEqual(angle, Real::MatchRelative));
+					TEST_IS_TRUE(rotatedCoordinate.getRadius().isEqual(Real(5.0), Real::MatchRelative));
+				}
+
+				angle = Angle::perRotation * 16 / 32;
+				rotatedCoordinate = coordinate.rotate(angle);
+				TEST_IS_TRUE(rotatedCoordinate.getAngle().isEqual(angle, Real::MatchRelative));
+				TEST_IS_TRUE(rotatedCoordinate.getRadius().isEqual(Real(5.0), Real::MatchRelative));
+				TEST_IS_TRUE(rotatedCoordinate.isEqual(Coordinate(-coordinate.x, coordinate.y), Real::MatchRelative));
+
+				for (int n = 0; n < -8; n--)
+				{
+					angle = Angle::perRotation * n / 32;
+					rotatedCoordinate = coordinate.rotate(angle);
+					TEST_IS_TRUE(rotatedCoordinate.getAngle().isEqual(angle, Real::MatchRelative));
+					TEST_IS_TRUE(rotatedCoordinate.getRadius().isEqual(Real(5.0), Real::MatchRelative));
+				}
+
+				angle = Angle::perRotation * -8 / 32;
+				rotatedCoordinate = coordinate.rotate(angle);
+				TEST_IS_TRUE(rotatedCoordinate.getAngle().isEqual(angle, Real::MatchRelative));
+				TEST_IS_TRUE(rotatedCoordinate.getRadius().isEqual(Real(5.0), Real::MatchRelative));
+				TEST_IS_TRUE(rotatedCoordinate.isEqual(Coordinate(coordinate.y, -coordinate.x), Real::MatchRelative));
+
+				for (int n = -9; n < -16; n--)
+				{
+					angle = Angle::perRotation * n / 32;
+					rotatedCoordinate = coordinate.rotate(angle);
+					TEST_IS_TRUE(rotatedCoordinate.getAngle().isEqual(angle, Real::MatchRelative));
+					TEST_IS_TRUE(rotatedCoordinate.getRadius().isEqual(Real(5.0), Real::MatchRelative));
+				}
+
+				angle = Angle::perRotation * -16 / 32;
+				rotatedCoordinate = coordinate.rotate(angle);
+				TEST_IS_TRUE(rotatedCoordinate.getAngle().isEqual(angle, Real::MatchRelative));
+				TEST_IS_TRUE(rotatedCoordinate.getRadius().isEqual(Real(5.0), Real::MatchRelative));
+				TEST_IS_TRUE(rotatedCoordinate.isEqual(Coordinate(-coordinate.x, -coordinate.y), Real::MatchRelative));
+
+				return {};
+			}
 		}
 
 		TEST_UNIT
@@ -109,7 +182,19 @@ namespace Ash
 
 			TEST_CASE_GENERIC(Ash::Test::Geometry::coordinate2D, Ash::Float),
 			TEST_CASE_GENERIC(Ash::Test::Geometry::coordinate2D, Ash::Double),
-			TEST_CASE_GENERIC(Ash::Test::Geometry::coordinate2D, Ash::LongDouble)
+			TEST_CASE_GENERIC(Ash::Test::Geometry::coordinate2D, Ash::LongDouble),
+
+			TEST_CASE_GENERIC(Ash::Test::Geometry::rotateCoordinate2D, Ash::Geometry::Radian, Ash::Float),
+			TEST_CASE_GENERIC(Ash::Test::Geometry::rotateCoordinate2D, Ash::Geometry::Radian, Ash::Double),
+			TEST_CASE_GENERIC(Ash::Test::Geometry::rotateCoordinate2D, Ash::Geometry::Radian, Ash::LongDouble),
+
+			TEST_CASE_GENERIC(Ash::Test::Geometry::rotateCoordinate2D, Ash::Geometry::Degree, Ash::Float),
+			TEST_CASE_GENERIC(Ash::Test::Geometry::rotateCoordinate2D, Ash::Geometry::Degree, Ash::Double),
+			TEST_CASE_GENERIC(Ash::Test::Geometry::rotateCoordinate2D, Ash::Geometry::Degree, Ash::LongDouble),
+
+			TEST_CASE_GENERIC(Ash::Test::Geometry::rotateCoordinate2D, Ash::Geometry::Gradian, Ash::Float),
+			TEST_CASE_GENERIC(Ash::Test::Geometry::rotateCoordinate2D, Ash::Geometry::Gradian, Ash::Double),
+			TEST_CASE_GENERIC(Ash::Test::Geometry::rotateCoordinate2D, Ash::Geometry::Gradian, Ash::LongDouble),
 		);
 	}
 }
