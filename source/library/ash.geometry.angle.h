@@ -68,9 +68,53 @@ namespace Ash
 				return error.isValid() && (error <= tolerance);
 			}
 
-			constexpr Real sine() const { return std::sin(toRadian(*this)); }
+			constexpr Real sine() const
+			{
+				if (*this <= -perRotation * 3 / 8)
+				{
+					return -std::sin(toRadian(*this + perRotation / 2));
+				}
+				else if (*this >= perRotation * 3 / 8)
+				{
+					return -std::sin(toRadian(*this - perRotation / 2));
+				}
+				else if (*this < -perRotation / 8)
+				{
+					return -std::cos(toRadian(*this + perRotation / 4));
+				}
+				else if (*this > perRotation / 8)
+				{
+					return std::cos(toRadian(*this - perRotation / 4));
+				}
+				else
+				{
+					return std::sin(toRadian(*this));
+				}
+			}
 
-			constexpr Real cosine() const { return std::cos(toRadian(*this)); }
+			constexpr Real cosine() const
+			{
+				if (*this <= -perRotation * 3 / 8)
+				{
+					return -std::cos(toRadian(*this + perRotation / 2));
+				}
+				else if (*this >= perRotation * 3 / 8)
+				{
+					return -std::cos(toRadian(*this - perRotation / 2));
+				}
+				else if (*this < -perRotation / 8)
+				{
+					return std::sin(toRadian(*this + perRotation / 4));
+				}
+				else if (*this > perRotation / 8)
+				{
+					return -std::sin(toRadian(*this - perRotation / 4));
+				}
+				else
+				{
+					return std::cos(toRadian(*this));
+				}
+			}
 
 			constexpr Real tangent() const
 			{
