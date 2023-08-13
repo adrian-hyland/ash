@@ -470,12 +470,15 @@ namespace Ash
 
 			using Type = TYPE;
 
+			template <typename T=typename Allocation::Type>
+			using enable_if_not_const = std::enable_if_t<!std::is_const<T>::value, T>;
+
 			constexpr Value() : Allocation() {}
 
 			constexpr Value(std::initializer_list<Type> content) : Allocation() { Allocation::copy(content.begin(), content.size()); }
 
-			template <typename T=typename Allocation::Type>
-			constexpr Value(std::enable_if_t<!std::is_const<T>::value, T> *content, size_t length) : Allocation() { Allocation::copy(content, length); }
+			template <typename T=typename Allocation::Type, typename _=enable_if_not_const<T>>
+			constexpr Value(Type *content, size_t length) : Allocation() { Allocation::copy(content, length); }
 
 			constexpr Value(const Type *content, size_t length) : Allocation() { Allocation::copy(content, length); }
 
@@ -555,6 +558,7 @@ namespace Ash
 				return { &(*this)[offset], Allocation::getLength() - offset };
 			}
 
+			template <typename T=typename Allocation::Type, typename _=enable_if_not_const<T>>
 			constexpr Type *at(size_t offset)
 			{
 				return (offset < Allocation::getLength()) ? &(*this)[offset] : nullptr;
