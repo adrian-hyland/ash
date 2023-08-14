@@ -13,6 +13,111 @@ namespace Ash
 			namespace Line2D
 			{
 				template <typename REAL>
+				constexpr Ash::Test::Assertion vector()
+				{
+					using Real = REAL;
+					using Line = Ash::Geometry::Line2D<Real>;
+					using Point = Ash::Geometry::Point2D<Real>;
+					using Vector = Ash::Geometry::Vector2D<Real>;
+
+					Line line;
+					Vector vector;
+
+					line = Line(Point(1, 1), Point(-1, -1));
+					vector = line;
+					TEST_IS_TRUE(vector.x.isEqual(-2));
+					TEST_IS_TRUE(vector.y.isEqual(-2));
+
+					line = Line(Point(1, -1), Point(-1, 1));
+					vector = line;
+					TEST_IS_TRUE(vector.x.isEqual(-2));
+					TEST_IS_TRUE(vector.y.isEqual(2));
+
+					line = Line(Point(-1, -1), Point(1, 1));
+					vector = line;
+					TEST_IS_TRUE(vector.x.isEqual(2));
+					TEST_IS_TRUE(vector.y.isEqual(2));
+
+					line = Line(Point(-1, 1), Point(1, -1));
+					vector = line;
+					TEST_IS_TRUE(vector.x.isEqual(2));
+					TEST_IS_TRUE(vector.y.isEqual(-2));
+
+					return {};
+				}
+
+				template <typename REAL>
+				constexpr Ash::Test::Assertion getAngle()
+				{
+					using Real = REAL;
+					using Line = Ash::Geometry::Line2D<Real>;
+					using Point = Ash::Geometry::Point2D<Real>;
+					using Angle = Ash::Geometry::Degree<Real>;
+
+					Line line;
+					Angle angle;
+
+					line = Line(Point(1, 1), Point(-1, -1));
+					angle = line.getAngle();
+					TEST_IS_TRUE(angle.isEqual(-135));
+
+					line = Line(Point(1, -1), Point(-1, 1));
+					angle = line.getAngle();
+					TEST_IS_TRUE(angle.isEqual(135));
+
+					line = Line(Point(-1, -1), Point(1, 1));
+					angle = line.getAngle();
+					TEST_IS_TRUE(angle.isEqual(45));
+
+					line = Line(Point(-1, 1), Point(1, -1));
+					angle = line.getAngle();
+					TEST_IS_TRUE(angle.isEqual(-45));
+
+					return {};
+				}
+
+				template <typename REAL>
+				constexpr Ash::Test::Assertion getLength()
+				{
+					using Real = REAL;
+					using Line = Ash::Geometry::Line2D<Real>;
+					using Point = Ash::Geometry::Point2D<Real>;
+
+					Line line;
+
+					line = Line(Point(1, 1), Point(-1, -1));
+					TEST_IS_TRUE(line.getLength().isEqual(Real(8).squareRoot()));
+
+					line = Line(Point(1, -1), Point(-1, 1));
+					TEST_IS_TRUE(line.getLength().isEqual(Real(8).squareRoot()));
+
+					line = Line(Point(-1, -1), Point(1, 1));
+					TEST_IS_TRUE(line.getLength().isEqual(Real(8).squareRoot()));
+
+					line = Line(Point(-1, 1), Point(1, -1));
+					TEST_IS_TRUE(line.getLength().isEqual(Real(8).squareRoot()));
+
+					return {};
+				}
+
+				template <typename REAL>
+				constexpr Ash::Test::Assertion getPoint()
+				{
+					using Real = REAL;
+					using Line = Ash::Geometry::Line2D<Real>;
+					using Point = Ash::Geometry::Point2D<Real>;
+
+					Line line;
+
+					line = Line(Point(1, 1), Point(-1, -1));
+					TEST_IS_TRUE(line.getPoint(0).isEqual(line.startPoint));
+					TEST_IS_TRUE(line.getPoint(1).isEqual(line.endPoint));
+					TEST_IS_TRUE(line.getPoint(0.5).isEqual(Point(0, 0)));
+
+					return {};
+				}
+
+				template <typename REAL>
 				constexpr Ash::Test::Assertion add()
 				{
 					using Real = REAL;
@@ -186,40 +291,40 @@ namespace Ash
 					Point point;
 					Vector lineDirection;
 					Vector pointDirection;
-					Point linePoint;
 					Point collisionPoint;
-					Real distance;
+					Real lineDistance;
+					Real pointDistance;
 
 					line = Line(Point(0, 2), Point(2, 0));
 					point = Point(5, 5);
 					pointDirection = Vector(-1, -3);
 					lineDirection = Vector(3, 1);
 
-					TEST_IS_TRUE(line.collides(lineDirection, point, pointDirection, 1, linePoint, collisionPoint, distance));
-					TEST_IS_TRUE(linePoint.isEqual(Point(1, 1)));
+					TEST_IS_TRUE(line.collides(lineDirection, point, pointDirection, 1, collisionPoint, lineDistance, pointDistance));
 					TEST_IS_TRUE(collisionPoint.isEqual(Point(4, 2)));
-					TEST_IS_TRUE(distance.isEqual(1));
+					TEST_IS_TRUE(lineDistance.isEqual(0.5));
+					TEST_IS_TRUE(pointDistance.isEqual(1));
 
 					line = Line(Point(1, 1), Point(3, -1));
-					TEST_IS_TRUE(line.collides(lineDirection, point, pointDirection, 1, linePoint, collisionPoint, distance));
-					TEST_IS_TRUE(linePoint.isEqual(Point(1, 1)));
+					TEST_IS_TRUE(line.collides(lineDirection, point, pointDirection, 1, collisionPoint, lineDistance, pointDistance));
 					TEST_IS_TRUE(collisionPoint.isEqual(Point(4, 2)));
-					TEST_IS_TRUE(distance.isEqual(1));
+					TEST_IS_TRUE(lineDistance.isEqual(0));
+					TEST_IS_TRUE(pointDistance.isEqual(1));
 
 					line = Line(Point(-1, 3), Point(1, 1));
-					TEST_IS_TRUE(line.collides(lineDirection, point, pointDirection, 1, linePoint, collisionPoint, distance));
-					TEST_IS_TRUE(linePoint.isEqual(Point(1, 1)));
+					TEST_IS_TRUE(line.collides(lineDirection, point, pointDirection, 1, collisionPoint, lineDistance, pointDistance));
 					TEST_IS_TRUE(collisionPoint.isEqual(Point(4, 2)));
-					TEST_IS_TRUE(distance.isEqual(1));
+					TEST_IS_TRUE(lineDistance.isEqual(1));
+					TEST_IS_TRUE(pointDistance.isEqual(1));
 
 					line = Line(Point(1, 1), Point(3, -1));
-					TEST_IS_FALSE(line.collides(lineDirection, point, pointDirection, 1 - Real(1, -Real::fractionSize), linePoint, collisionPoint, distance));
+					TEST_IS_FALSE(line.collides(lineDirection, point, pointDirection, 1 - Real(1, -Real::fractionSize), collisionPoint, lineDistance, pointDistance));
 
 					line = Line(Point(-1, 3), Point(1, 1)) + Vector(-Real(1, -Real::fractionSize), Real(1, -Real::fractionSize)) * 3;
-					TEST_IS_FALSE(line.collides(lineDirection, point, pointDirection, 2, linePoint, collisionPoint, distance));
+					TEST_IS_FALSE(line.collides(lineDirection, point, pointDirection, 2, collisionPoint, lineDistance, pointDistance));
 
 					line = Line(Point(1, 1), Point(3, -1)) + Vector(Real(1, -Real::fractionSize), -Real(1, -Real::fractionSize)) * 3;
-					TEST_IS_FALSE(line.collides(lineDirection, point, pointDirection, 2, linePoint, collisionPoint, distance));
+					TEST_IS_FALSE(line.collides(lineDirection, point, pointDirection, 2, collisionPoint, lineDistance, pointDistance));
 
 					return {};
 				}
@@ -249,11 +354,45 @@ namespace Ash
 
 					return {};
 				}
+
+				template <typename REAL>
+				constexpr Ash::Test::Assertion invalid()
+				{
+					using Real = REAL;
+					using Point = Ash::Geometry::Point2D<Real>;
+					using Vector = Ash::Geometry::Vector2D<Real>;
+					using Line = Ash::Geometry::Line2D<Real>;
+
+					Line line = Line::invalid;
+					Point point;
+					Real lineDistance;
+					Real pointDistance;
+
+					TEST_IS_FALSE(Vector(line).isValid());
+					TEST_IS_FALSE(line.getAngle().isValid());
+					TEST_IS_FALSE(line.getLength().isValid());
+					TEST_IS_FALSE(line.getPoint(0).isValid());
+					TEST_IS_FALSE((line + Vector(1, 1)).isValid());
+					TEST_IS_FALSE((line - Vector(1, 1)).isValid());
+					TEST_IS_FALSE(line.intersects(Point(0,0), Vector(1, 1), point, pointDistance));
+					TEST_IS_FALSE(line.collides(Vector(1, 0), Point(0, 0), Vector(0, 1), Real::infinity, point, lineDistance, pointDistance));
+					TEST_IS_FALSE(line.overlaps(line));
+
+					return {};
+				}
 			}
 
 			template <typename REAL>
 			constexpr Ash::Test::Assertion line2D()
 			{
+				TEST_GENERIC(Ash::Test::Geometry::Line2D::vector, REAL);
+
+				TEST_GENERIC(Ash::Test::Geometry::Line2D::getAngle, REAL);
+
+				TEST_GENERIC(Ash::Test::Geometry::Line2D::getLength, REAL);
+
+				TEST_GENERIC(Ash::Test::Geometry::Line2D::getPoint, REAL);
+
 				TEST_GENERIC(Ash::Test::Geometry::Line2D::add, REAL);
 
 				TEST_GENERIC(Ash::Test::Geometry::Line2D::subtract, REAL);
@@ -263,6 +402,8 @@ namespace Ash
 				TEST_GENERIC(Ash::Test::Geometry::Line2D::collides, REAL);
 
 				TEST_GENERIC(Ash::Test::Geometry::Line2D::overlaps, REAL);
+
+				TEST_GENERIC(Ash::Test::Geometry::Line2D::invalid, REAL);
 
 				return {};
 			}
