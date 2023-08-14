@@ -167,6 +167,25 @@ namespace Ash
 
 					return {};
 				}
+
+				template <typename REAL>
+				constexpr Ash::Test::Assertion invalid()
+				{
+					using Real = REAL;
+					using Vector = Ash::Geometry::Vector2D<Real>;
+
+					Vector vector = Vector::invalid;
+
+					TEST_IS_FALSE((vector + Vector(1, 1)).isValid());
+					TEST_IS_FALSE((vector - Vector(1, 1)).isValid());
+					TEST_IS_FALSE((vector * 2).isValid());
+					TEST_IS_FALSE((vector / 2).isValid());
+					TEST_IS_FALSE((-vector).isValid());
+					TEST_IS_FALSE(vector.normalise().isValid());
+					TEST_IS_FALSE(vector.crossProduct(Vector(1, 1)).isValid());
+
+					return {};
+				}
 			}
 
 			template <typename REAL>
@@ -185,6 +204,8 @@ namespace Ash
 				TEST_GENERIC(Ash::Test::Geometry::Vector2D::normalise, REAL);
 
 				TEST_GENERIC(Ash::Test::Geometry::Vector2D::crossProduct, REAL);
+
+				TEST_GENERIC(Ash::Test::Geometry::Vector2D::invalid, REAL);
 
 				return {};
 			}
