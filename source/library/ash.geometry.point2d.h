@@ -52,7 +52,7 @@ namespace Ash
 					distance1 = &discard;
 				}
 				*distance1 = direction2.crossProduct(point1 - point2) / divisor;
-				if ((*distance1 < minDistance1) || (*distance1 > maxDistance1))
+				if (!distance1->isValid() || (*distance1 < minDistance1) || (*distance1 > maxDistance1))
 				{
 					return false;
 				}
@@ -62,7 +62,7 @@ namespace Ash
 					distance2 = &discard;
 				}
 				*distance2 = (point2 - point1).crossProduct(direction1) / divisor;
-				if ((*distance2 < minDistance2) || (*distance2 > maxDistance2))
+				if (!distance2->isValid() || (*distance2 < minDistance2) || (*distance2 > maxDistance2))
 				{
 					return false;
 				}
