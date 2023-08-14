@@ -16,44 +16,55 @@ namespace Ash
 
 			using Vector = Ash::Geometry::Vector2D<Real>;
 
+			using Angle = typename Vector::Angle;
+
+			static constexpr Line2D invalid = Line2D(Point::invalid, Point::invalid);
+
 			constexpr Line2D() : startPoint(), endPoint() {};
 
 			constexpr Line2D(Point startPointValue, Point endPointValue) : startPoint(startPointValue), endPoint(endPointValue) {};
+
+			constexpr bool isValid() const { return startPoint.isValid() && endPoint.isValid(); }
 
 			constexpr Line2D operator + (Vector vector) const { return { startPoint + vector, endPoint + vector }; }
 
 			constexpr Line2D operator - (Vector vector) const { return { startPoint - vector, endPoint - vector }; }
 
-			constexpr bool intersects(Point point, Vector direction, Point &intersection, Real &distance) const
+			constexpr operator Vector () const { return endPoint - startPoint; }
+
+			constexpr Angle getAngle() const { return Vector(*this).getAngle(); }
+
+			constexpr Real getLength() const { return Vector(*this).getRadius(); }
+
+			constexpr Point getPoint(Real distance) const { return startPoint + Vector(*this) * distance; }
+
+			constexpr bool intersects(Point point, Vector pointDirection, Point &intersection, Real &pointDistance) const
 			{
-				if (!Point::intersects(startPoint, endPoint - startPoint, point, direction, 0, 1, &distance))
+				if (!Point::intersects(startPoint, *this, point, pointDirection, 0, 1, &pointDistance))
 				{
 					return false;
 				}
 				
-				intersection = point + direction * distance;
+				intersection = point + pointDirection * pointDistance;
 
 				return true;
 			}
 
-			constexpr bool collides(Vector lineDirection, Point point, Vector pointDirection, Real maxPointDistance, Point &linePoint, Point &collisionPoint, Real &pointDistance) const
+			constexpr bool collides(Vector lineDirection, Point point, Vector pointDirection, Real maxPointDistance, Point &collision, Real &lineDistance, Real &pointDistance) const
 			{
-				Real lineDistance;
-
-				if (!Point::intersects(startPoint, endPoint - startPoint, point, pointDirection - lineDirection, 0, 1, 0, maxPointDistance, &lineDistance, &pointDistance))
+				if (!Point::intersects(startPoint, *this, point, pointDirection - lineDirection, 0, 1, 0, maxPointDistance, &lineDistance, &pointDistance))
 				{
 					return false;
 				}
 
-				linePoint = startPoint + (endPoint - startPoint) * lineDistance;
-				collisionPoint = point + pointDirection * pointDistance;
+				collision = point + pointDirection * pointDistance;
 
 				return true;
 			}
 
 			constexpr bool overlaps(Line2D line) const
 			{
-				return Point::intersects(startPoint, endPoint - startPoint, line.startPoint, line.endPoint - line.startPoint, 0, 1, 0, 1);
+				return Point::intersects(startPoint, *this, line.startPoint, line, 0, 1, 0, 1);
 			}
 
 			Point startPoint;
