@@ -192,6 +192,23 @@ namespace Ash
 
 					return {};
 				}
+
+				template <typename REAL>
+				constexpr Ash::Test::Assertion invalid()
+				{
+					using Real = REAL;
+					using Point = Ash::Geometry::Point2D<Real>;
+					using Vector = Ash::Geometry::Vector2D<Real>;
+
+					Point point = Point::invalid;
+
+					TEST_IS_FALSE((point + Vector(1, 1)).isValid());
+					TEST_IS_FALSE((point - Point(1, 1)).isValid());
+					TEST_IS_FALSE((-point).isValid());
+					TEST_IS_FALSE(Point::intersects(point, Vector(1, 0), Point(1, 1), Vector(0, 1)));
+
+					return {};
+				}
 			}
 
 			template <typename REAL>
@@ -204,6 +221,8 @@ namespace Ash
 				TEST_GENERIC(Ash::Test::Geometry::Point2D::negate, REAL);
 
 				TEST_GENERIC(Ash::Test::Geometry::Point2D::intersects, REAL);
+
+				TEST_GENERIC(Ash::Test::Geometry::Point2D::invalid, REAL);
 
 				return {};
 			}
