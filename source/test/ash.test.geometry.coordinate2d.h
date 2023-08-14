@@ -104,6 +104,26 @@ namespace Ash
 					return {};
 				}
 
+				template <typename REAL>
+				constexpr Ash::Test::Assertion invalid()
+				{
+					using Real = REAL;
+					using Coordinate = Ash::Geometry::Coordinate2D<Real>;
+
+					Coordinate coordinate;
+
+					coordinate = Coordinate(0, 0);
+					TEST_IS_TRUE(coordinate.isValid());
+
+					coordinate = Coordinate::invalid;
+					TEST_IS_FALSE(coordinate.isValid());
+					TEST_IS_FALSE(coordinate.getRadius().isValid());
+					TEST_IS_FALSE(coordinate.getAngle().isValid());
+					TEST_IS_FALSE(coordinate.rotate(Ash::Geometry::Degree<Real>(90)).isValid());
+
+					return {};
+				}
+
 				template <template<typename> typename ANGLE, typename REAL>
 				constexpr Ash::Test::Assertion rotate()
 				{
@@ -186,6 +206,10 @@ namespace Ash
 			TEST_CASE_GENERIC(Ash::Test::Geometry::Coordinate2D::construct, Ash::Float),
 			TEST_CASE_GENERIC(Ash::Test::Geometry::Coordinate2D::construct, Ash::Double),
 			TEST_CASE_GENERIC(Ash::Test::Geometry::Coordinate2D::construct, Ash::LongDouble),
+
+			TEST_CASE_GENERIC(Ash::Test::Geometry::Coordinate2D::invalid, Ash::Float),
+			TEST_CASE_GENERIC(Ash::Test::Geometry::Coordinate2D::invalid, Ash::Double),
+			TEST_CASE_GENERIC(Ash::Test::Geometry::Coordinate2D::invalid, Ash::LongDouble),
 
 			TEST_CASE_GENERIC(Ash::Test::Geometry::Coordinate2D::rotate, Ash::Geometry::Radian, Ash::Float),
 			TEST_CASE_GENERIC(Ash::Test::Geometry::Coordinate2D::rotate, Ash::Geometry::Radian, Ash::Double),
