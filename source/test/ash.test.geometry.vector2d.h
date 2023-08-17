@@ -127,6 +127,51 @@ namespace Ash
 				}
 
 				template <typename REAL>
+				constexpr Ash::Test::Assertion dotProduct()
+				{
+					using Real = REAL;
+					using Vector = Ash::Geometry::Vector2D<Real>;
+
+					Vector vector1;
+					Vector vector2;
+
+					vector1 = Vector(3, 4);
+					TEST_IS_TRUE(vector1.dotProduct(vector1).isEqual(25));
+
+					vector1 = Vector(3, 4);
+					vector2 = Vector(5, 6);
+					TEST_IS_TRUE(vector1.dotProduct(vector2).isEqual(39));
+					TEST_IS_TRUE(vector2.dotProduct(vector1).isEqual(39));
+
+					vector1 = Vector(-3, 4);
+					vector2 = Vector(-5, 6);
+					TEST_IS_TRUE(vector1.dotProduct(vector2).isEqual(39));
+					TEST_IS_TRUE(vector2.dotProduct(vector1).isEqual(39));
+
+					vector1 = Vector(3, -4);
+					vector2 = Vector(5, -6);
+					TEST_IS_TRUE(vector1.dotProduct(vector2).isEqual(39));
+					TEST_IS_TRUE(vector2.dotProduct(vector1).isEqual(39));
+
+					vector1 = Vector(-3, 4);
+					vector2 = Vector(5, -6);
+					TEST_IS_TRUE(vector1.dotProduct(vector2).isEqual(-39));
+					TEST_IS_TRUE(vector2.dotProduct(vector1).isEqual(-39));
+
+					vector1 = Vector(3, -4);
+					vector2 = Vector(-5, 6);
+					TEST_IS_TRUE(vector1.dotProduct(vector2).isEqual(-39));
+					TEST_IS_TRUE(vector2.dotProduct(vector1).isEqual(-39));
+
+					vector1 = Vector(-3, -4);
+					vector2 = Vector(-5, -6);
+					TEST_IS_TRUE(vector1.dotProduct(vector2).isEqual(39));
+					TEST_IS_TRUE(vector2.dotProduct(vector1).isEqual(39));
+
+					return {};
+				}
+
+				template <typename REAL>
 				constexpr Ash::Test::Assertion crossProduct()
 				{
 					using Real = REAL;
@@ -134,6 +179,9 @@ namespace Ash
 
 					Vector vector1;
 					Vector vector2;
+
+					vector1 = Vector(3, 4);
+					TEST_IS_TRUE(vector1.crossProduct(vector1).isEqual(0));
 
 					vector1 = Vector(3, 4);
 					vector2 = Vector(5, 6);
@@ -169,6 +217,32 @@ namespace Ash
 				}
 
 				template <typename REAL>
+				constexpr Ash::Test::Assertion reflect()
+				{
+					using Real = REAL;
+					using Angle = Ash::Geometry::Degree<Real>;
+					using Vector = Ash::Geometry::Vector2D<Real>;
+
+					for (Angle reflectorAngle = -180; reflectorAngle < 180; reflectorAngle = reflectorAngle + 10)
+					{
+						Vector reflector = Vector(10, reflectorAngle);
+						for (Angle angle = -180; angle < 180; angle = angle + 10)
+						{
+							Vector vector = Vector(10, angle);
+							Vector reflection = reflector.reflect(vector);
+
+							vector = vector.rotate(Angle(-reflectorAngle));
+							reflection = reflection.rotate(Angle(-reflectorAngle));
+
+							TEST_IS_TRUE(vector.x.isEqual(reflection.x, Real::MatchRelative, 5));
+							TEST_IS_TRUE(vector.y.isEqual(reflection.y.negate(), Real::MatchRelative, 5));
+						}
+					}
+
+					return {};
+				}
+
+				template <typename REAL>
 				constexpr Ash::Test::Assertion invalid()
 				{
 					using Real = REAL;
@@ -182,7 +256,9 @@ namespace Ash
 					TEST_IS_FALSE((vector / 2).isValid());
 					TEST_IS_FALSE((-vector).isValid());
 					TEST_IS_FALSE(vector.normalise().isValid());
+					TEST_IS_FALSE(vector.dotProduct(Vector(1, 1)).isValid());
 					TEST_IS_FALSE(vector.crossProduct(Vector(1, 1)).isValid());
+					TEST_IS_FALSE(vector.reflect(Vector(1, 1)).isValid());
 
 					return {};
 				}
@@ -203,7 +279,11 @@ namespace Ash
 
 				TEST_GENERIC(Ash::Test::Geometry::Vector2D::normalise, REAL);
 
+				TEST_GENERIC(Ash::Test::Geometry::Vector2D::dotProduct, REAL);
+
 				TEST_GENERIC(Ash::Test::Geometry::Vector2D::crossProduct, REAL);
+
+				TEST_GENERIC(Ash::Test::Geometry::Vector2D::reflect, REAL);
 
 				TEST_GENERIC(Ash::Test::Geometry::Vector2D::invalid, REAL);
 
