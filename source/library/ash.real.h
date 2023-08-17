@@ -98,13 +98,9 @@ namespace Ash
 			{
 				return invalid;
 			}
-			else if (m_Value == 0)
+			else if ((getAbsolute() < min) && (value.getAbsolute() < min))
 			{
-				return (value.getAbsolute() < min) ? Real(value.getAbsolute() / minSubNormal / 2) : invalid;
-			}
-			else if (value == 0)
-			{
-				return (getAbsolute() < min) ? Real(getAbsolute() / minSubNormal / 2) : invalid;
+				return Real(m_Value - value).getAbsolute() / minSubNormal / 2;
 			}
 			else if (isPositive() ? value.isNegative() : value.isPositive())
 			{
@@ -151,13 +147,9 @@ namespace Ash
 			{
 				return invalid;
 			}
-			else if (m_Value == 0)
+			else if ((getAbsolute() < 1) && (value.getAbsolute() < 1))
 			{
-				return value.getAbsolute() / epsilon / 2;
-			}
-			else if (value == 0)
-			{
-				return getAbsolute() / epsilon / 2;
+				return Real(m_Value - value).getAbsolute() / epsilon / 2;
 			}
 			else if (isPositive() ? value.isNegative() : value.isPositive())
 			{
