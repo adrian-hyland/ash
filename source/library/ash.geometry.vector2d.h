@@ -35,6 +35,10 @@ namespace Ash
 
 			constexpr Vector2D normalise() const { return *this / Coordinate::getRadius(); }
 
+			constexpr Vector2D reflect(Vector2D vector) const { return (*this * 2 * dotProduct(vector) / dotProduct(*this)) - vector; }
+
+			constexpr Real dotProduct(Vector2D vector) const { return Coordinate::x * vector.x + Coordinate::y * vector.y; }
+
 			constexpr Real crossProduct(Vector2D vector) const { return Coordinate::x * vector.y - Coordinate::y * vector.x; }
 		};
 	}
