@@ -133,9 +133,12 @@ namespace Ash
 				TEST_IS_EQ(Real(0.0).negate().match(Real(0.0).negate(), Real::MatchAbsolute), Real(0.0));
 				TEST_IS_EQ(Real(0.0).negate().match(Real::minSubNormal.negate(), Real::MatchAbsolute), Real(0.5));
 
+				TEST_IS_EQ(Real::minSubNormal.match(Real::minSubNormal.negate(), Real::MatchAbsolute), Real(1.0));
+
 				TEST_IS_EQ(Real::max.match(Real::max - Real(1, Real::maxExponent - Real::fractionSize), Real::MatchAbsolute), Real(0.5));
 				TEST_IS_EQ(Real::max.match(Real::max - 2 * Real(1, Real::maxExponent - Real::fractionSize), Real::MatchAbsolute), Real(1.0));
 				TEST_IS_EQ(Real::max.match(Real::max - 4 * Real(1, Real::maxExponent - Real::fractionSize), Real::MatchAbsolute), Real(2.0));
+
 				TEST_IS_EQ(Real::min.match(Real::min + Real(1, Real::minExponent - Real::fractionSize), Real::MatchAbsolute), Real(0.5));
 				TEST_IS_EQ(Real::min.match(Real::min + 2 * Real(1, Real::minExponent - Real::fractionSize), Real::MatchAbsolute), Real(1.0));
 				TEST_IS_EQ(Real::min.match(Real::min + 4 * Real(1, Real::minExponent - Real::fractionSize), Real::MatchAbsolute), Real(2.0));
@@ -143,6 +146,7 @@ namespace Ash
 				TEST_IS_EQ(Real::max.negate().match(Real::max.negate() + Real(1, Real::maxExponent - Real::fractionSize), Real::MatchAbsolute), Real(0.5));
 				TEST_IS_EQ(Real::max.negate().match(Real::max.negate() + 2 * Real(1, Real::maxExponent - Real::fractionSize), Real::MatchAbsolute), Real(1.0));
 				TEST_IS_EQ(Real::max.negate().match(Real::max.negate() + 4 * Real(1, Real::maxExponent - Real::fractionSize), Real::MatchAbsolute), Real(2.0));
+
 				TEST_IS_EQ(Real::min.negate().match(Real::min.negate() - Real(1, Real::minExponent - Real::fractionSize), Real::MatchAbsolute), Real(0.5));
 				TEST_IS_EQ(Real::min.negate().match(Real::min.negate() - 2 * Real(1, Real::minExponent - Real::fractionSize), Real::MatchAbsolute), Real(1.0));
 				TEST_IS_EQ(Real::min.negate().match(Real::min.negate() - 4 * Real(1, Real::minExponent - Real::fractionSize), Real::MatchAbsolute), Real(2.0));
@@ -162,7 +166,6 @@ namespace Ash
 				TEST_IS_FALSE(Real(1, Real::minExponent).match(Real(1, Real::minExponent + 2), Real::MatchAbsolute).isValid());
 				TEST_IS_FALSE(Real(1, Real::minExponent).negate().match(Real(1, Real::minExponent + 2).negate(), Real::MatchAbsolute).isValid());
 				TEST_IS_FALSE(Real::min.match(Real::min.negate(), Real::MatchAbsolute).isValid());
-				TEST_IS_FALSE(Real::minSubNormal.match(Real::minSubNormal.negate(), Real::MatchAbsolute).isValid());
 
 				return {};
 			}
@@ -193,32 +196,51 @@ namespace Ash
 				TEST_IS_EQ(Real(0.0).negate().match(Real(0.0).negate(), Real::MatchRelative), Real(0.0));
 				TEST_IS_EQ(Real(0.0).negate().match(Real(1, -Real::fractionSize).negate(), Real::MatchRelative), Real(0.5));
 
+				TEST_IS_EQ(Real(1, -Real::fractionSize).match(Real(1, -Real::fractionSize).negate(), Real::MatchRelative), Real(1.0));
+				TEST_IS_EQ(Real(1, Real::minExponent).match(Real(1, Real::minExponent).negate(), Real::MatchRelative), Real(1, Real::minExponent + Real::fractionSize));
+				TEST_IS_EQ(Real(1, Real::minSubNormalExponent).match(Real(1, Real::minSubNormalExponent).negate(), Real::MatchRelative), Real(1, Real::minSubNormalExponent + Real::fractionSize));
+
 				TEST_IS_EQ(Real::max.match(Real::max - Real(1, Real::maxExponent - Real::fractionSize), Real::MatchRelative), Real(0.5));
 				TEST_IS_EQ(Real::max.match(Real::max - 2 * Real(1, Real::maxExponent - Real::fractionSize), Real::MatchRelative), Real(1.0));
 				TEST_IS_EQ(Real::max.match(Real::max - 4 * Real(1, Real::maxExponent - Real::fractionSize), Real::MatchRelative), Real(2.0));
-				TEST_IS_EQ(Real::min.match(Real::min + Real(1, Real::minExponent - Real::fractionSize), Real::MatchRelative), Real(1.0));
-				TEST_IS_EQ(Real::min.match(Real::min + 2 * Real(1, Real::minExponent - Real::fractionSize), Real::MatchRelative), Real(2.0));
-				TEST_IS_EQ(Real::min.match(Real::min + 4 * Real(1, Real::minExponent - Real::fractionSize), Real::MatchRelative), Real(4.0));
+
+				TEST_IS_EQ(Real::min.match(Real::epsilon, Real::MatchRelative), Real(0.5));
+				TEST_IS_EQ(Real::min.match(2 * Real::epsilon, Real::MatchRelative), Real(1.0));
+				TEST_IS_EQ(Real::min.match(4 * Real::epsilon, Real::MatchRelative), Real(2.0));
+				TEST_IS_EQ(Real::min.match(Real::min + Real(1, Real::minExponent - Real::fractionSize), Real::MatchRelative), Real::min / 2);
+				TEST_IS_EQ(Real::min.match(Real::min + 2 * Real(1, Real::minExponent - Real::fractionSize), Real::MatchRelative), Real::min);
+				TEST_IS_EQ(Real::min.match(Real::min + 4 * Real(1, Real::minExponent - Real::fractionSize), Real::MatchRelative), 2 * Real::min);
 
 				TEST_IS_EQ(Real::max.negate().match(Real::max.negate() + Real(1, Real::maxExponent - Real::fractionSize), Real::MatchRelative), Real(0.5));
 				TEST_IS_EQ(Real::max.negate().match(Real::max.negate() + 2 * Real(1, Real::maxExponent - Real::fractionSize), Real::MatchRelative), Real(1.0));
 				TEST_IS_EQ(Real::max.negate().match(Real::max.negate() + 4 * Real(1, Real::maxExponent - Real::fractionSize), Real::MatchRelative), Real(2.0));
-				TEST_IS_EQ(Real::min.negate().match(Real::min.negate() - Real(1, Real::minExponent - Real::fractionSize), Real::MatchRelative), Real(1.0));
-				TEST_IS_EQ(Real::min.negate().match(Real::min.negate() - 2 * Real(1, Real::minExponent - Real::fractionSize), Real::MatchRelative), Real(2.0));
-				TEST_IS_EQ(Real::min.negate().match(Real::min.negate() - 4 * Real(1, Real::minExponent - Real::fractionSize), Real::MatchRelative), Real(4.0));
+
+				TEST_IS_EQ(Real::min.negate().match(Real::epsilon.negate(), Real::MatchRelative), Real(0.5));
+				TEST_IS_EQ(Real::min.negate().match(2 * Real::epsilon.negate(), Real::MatchRelative), Real(1.0));
+				TEST_IS_EQ(Real::min.negate().match(4 * Real::epsilon.negate(), Real::MatchRelative), Real(2.0));
+				TEST_IS_EQ(Real::min.negate().match(Real::min.negate() - Real(1, Real::minExponent - Real::fractionSize), Real::MatchRelative), Real::min / 2);
+				TEST_IS_EQ(Real::min.negate().match(Real::min.negate() - 2 * Real(1, Real::minExponent - Real::fractionSize), Real::MatchRelative), Real::min);
+				TEST_IS_EQ(Real::min.negate().match(Real::min.negate() - 4 * Real(1, Real::minExponent - Real::fractionSize), Real::MatchRelative), 2 * Real::min);
 
 				for (typename Real::Exponent exponent = Real::minExponent; exponent > Real::minExponent - Real::fractionSize; exponent--)
 				{
-					TEST_IS_GTE(Real(1, exponent).match(Real(1, exponent) + Real(1, Real::minExponent - Real::fractionSize), Real::MatchRelative), Real(1.0));
+					TEST_IS_EQ(Real(1, exponent).match(Real(1, exponent) + Real(1, Real::minExponent - Real::fractionSize), Real::MatchRelative), Real::min / 2);
 				}
 
 				for (typename Real::Exponent exponent = Real::minExponent; exponent > Real::minExponent - Real::fractionSize; exponent--)
 				{
-					TEST_IS_GTE(Real(1, exponent).negate().match(Real(1, exponent).negate() - Real(1, Real::minExponent - Real::fractionSize), Real::MatchRelative), Real(1.0));
+					TEST_IS_EQ(Real(1, exponent).negate().match(Real(1, exponent).negate() - Real(1, Real::minExponent - Real::fractionSize), Real::MatchRelative), Real::min / 2);
 				}
 
-				TEST_IS_FALSE(Real::min.match(Real::min.negate(), Real::MatchRelative).isValid());
-				TEST_IS_FALSE(Real::minSubNormal.match(Real::minSubNormal.negate(), Real::MatchRelative).isValid());
+				for (typename Real::Exponent exponent = -1; exponent > -Real::fractionSize; exponent--)
+				{
+					TEST_IS_EQ(Real(1, exponent).match(Real(1, exponent) + Real(1, exponent - Real::fractionSize), Real::MatchRelative), Real(1, exponent) / 2);
+				}
+
+				for (typename Real::Exponent exponent = -1; exponent > -Real::fractionSize; exponent--)
+				{
+					TEST_IS_EQ(Real(1, exponent).negate().match(Real(1, exponent).negate() - Real(1, exponent - Real::fractionSize), Real::MatchRelative), Real(1, exponent) / 2);
+				}
 
 				return {};
 			}
@@ -253,12 +275,15 @@ namespace Ash
 				TEST_IS_TRUE(Real(0.0).negate().isEqual(Real::minSubNormal.negate(), Real::MatchAbsolute, Real(0.5)));
 				TEST_IS_FALSE(Real(0.0).negate().isEqual(Real::minSubNormal.negate(), Real::MatchAbsolute, Real(0.0)));
 
+				TEST_IS_TRUE(Real::minSubNormal.isEqual(Real::minSubNormal.negate(), Real::MatchAbsolute));
+
 				TEST_IS_TRUE(Real::max.isEqual(Real::max - Real(1, Real::maxExponent - Real::fractionSize), Real::MatchAbsolute, Real(0.5)));
 				TEST_IS_FALSE(Real::max.isEqual(Real::max - Real(1, Real::maxExponent - Real::fractionSize), Real::MatchAbsolute, Real(0.0)));
 				TEST_IS_TRUE(Real::max.isEqual(Real::max - 2 * Real(1, Real::maxExponent - Real::fractionSize), Real::MatchAbsolute, Real(1.0)));
 				TEST_IS_FALSE(Real::max.isEqual(Real::max - 2 * Real(1, Real::maxExponent - Real::fractionSize), Real::MatchAbsolute, Real(0.5)));
 				TEST_IS_TRUE(Real::max.isEqual(Real::max - 4 * Real(1, Real::maxExponent - Real::fractionSize), Real::MatchAbsolute, Real(2.0)));
 				TEST_IS_FALSE(Real::max.isEqual(Real::max - 4 * Real(1, Real::maxExponent - Real::fractionSize), Real::MatchAbsolute, Real(1.5)));
+
 				TEST_IS_TRUE(Real::min.isEqual(Real::min + Real(1, Real::minExponent - Real::fractionSize), Real::MatchAbsolute, Real(0.5)));
 				TEST_IS_FALSE(Real::min.isEqual(Real::min + Real(1, Real::minExponent - Real::fractionSize), Real::MatchAbsolute, Real(0.0)));
 				TEST_IS_TRUE(Real::min.isEqual(Real::min + 2 * Real(1, Real::minExponent - Real::fractionSize), Real::MatchAbsolute, Real(1.0)));
@@ -272,6 +297,7 @@ namespace Ash
 				TEST_IS_FALSE(Real::max.negate().isEqual(Real::max.negate() + 2 * Real(1, Real::maxExponent - Real::fractionSize), Real::MatchAbsolute, Real(0.5)));
 				TEST_IS_TRUE(Real::max.negate().isEqual(Real::max.negate() + 4 * Real(1, Real::maxExponent - Real::fractionSize), Real::MatchAbsolute, Real(2.0)));
 				TEST_IS_FALSE(Real::max.negate().isEqual(Real::max.negate() + 4 * Real(1, Real::maxExponent - Real::fractionSize), Real::MatchAbsolute, Real(1.5)));
+
 				TEST_IS_TRUE(Real::min.negate().isEqual(Real::min.negate() - Real(1, Real::minExponent - Real::fractionSize), Real::MatchAbsolute, Real(0.5)));
 				TEST_IS_FALSE(Real::min.negate().isEqual(Real::min.negate() - Real(1, Real::minExponent - Real::fractionSize), Real::MatchAbsolute, Real(0.0)));
 				TEST_IS_TRUE(Real::min.negate().isEqual(Real::min.negate() - 2 * Real(1, Real::minExponent - Real::fractionSize), Real::MatchAbsolute, Real(1.0)));
@@ -296,7 +322,6 @@ namespace Ash
 				TEST_IS_FALSE(Real(1, Real::minExponent).isEqual(Real(1, Real::minExponent + 2), Real::MatchAbsolute));
 				TEST_IS_FALSE(Real(1, Real::minExponent).negate().isEqual(Real(1, Real::minExponent + 2).negate(), Real::MatchAbsolute));
 				TEST_IS_FALSE(Real::min.isEqual(Real::min.negate(), Real::MatchAbsolute));
-				TEST_IS_FALSE(Real::minSubNormal.isEqual(Real::minSubNormal.negate(), Real::MatchAbsolute));
 
 				return {};
 			}
@@ -331,18 +356,26 @@ namespace Ash
 				TEST_IS_TRUE(Real(0.0).negate().isEqual(Real(1, -Real::fractionSize).negate(), Real::MatchRelative, Real(0.5)));
 				TEST_IS_FALSE(Real(0.0).negate().isEqual(Real(1, -Real::fractionSize).negate(), Real::MatchRelative, Real(0.0)));
 
+				TEST_IS_TRUE(Real(1, -Real::fractionSize).isEqual(Real(1, -Real::fractionSize).negate(), Real::MatchRelative, Real(1.0)));
+				TEST_IS_TRUE(Real(1, Real::minExponent).isEqual(Real(1, Real::minExponent).negate(), Real::MatchRelative, Real(1, Real::minExponent + Real::fractionSize)));
+				TEST_IS_TRUE(Real(1, Real::minSubNormalExponent).isEqual(Real(1, Real::minSubNormalExponent).negate(), Real::MatchRelative, Real(1, Real::minSubNormalExponent + Real::fractionSize)));
+
 				TEST_IS_TRUE(Real::max.isEqual(Real::max - Real(1, Real::maxExponent - Real::fractionSize), Real::MatchRelative, Real(0.5)));
 				TEST_IS_FALSE(Real::max.isEqual(Real::max - Real(1, Real::maxExponent - Real::fractionSize), Real::MatchRelative, Real(0.0)));
 				TEST_IS_TRUE(Real::max.isEqual(Real::max - 2 * Real(1, Real::maxExponent - Real::fractionSize), Real::MatchRelative, Real(1.0)));
 				TEST_IS_FALSE(Real::max.isEqual(Real::max - 2 * Real(1, Real::maxExponent - Real::fractionSize), Real::MatchRelative, Real(0.5)));
 				TEST_IS_TRUE(Real::max.isEqual(Real::max - 4 * Real(1, Real::maxExponent - Real::fractionSize), Real::MatchRelative, Real(2.0)));
 				TEST_IS_FALSE(Real::max.isEqual(Real::max - 4 * Real(1, Real::maxExponent - Real::fractionSize), Real::MatchRelative, Real(1.5)));
-				TEST_IS_TRUE(Real::min.isEqual(Real::min + Real(1, Real::minExponent - Real::fractionSize), Real::MatchRelative, Real(1.0)));
-				TEST_IS_FALSE(Real::min.isEqual(Real::min + Real(1, Real::minExponent - Real::fractionSize), Real::MatchRelative, Real(0.5)));
-				TEST_IS_TRUE(Real::min.isEqual(Real::min + 2 * Real(1, Real::minExponent - Real::fractionSize), Real::MatchRelative, Real(2.0)));
-				TEST_IS_FALSE(Real::min.isEqual(Real::min + 2 * Real(1, Real::minExponent - Real::fractionSize), Real::MatchRelative, Real(1.5)));
-				TEST_IS_TRUE(Real::min.isEqual(Real::min + 4 * Real(1, Real::minExponent - Real::fractionSize), Real::MatchRelative, Real(4.0)));
-				TEST_IS_FALSE(Real::min.isEqual(Real::min + 4 * Real(1, Real::minExponent - Real::fractionSize), Real::MatchRelative, Real(3.5)));
+
+				TEST_IS_TRUE(Real::min.isEqual(Real::epsilon, Real::MatchRelative, Real(0.5)));
+				TEST_IS_FALSE(Real::min.isEqual(Real::epsilon, Real::MatchRelative, Real(0.0)));
+				TEST_IS_TRUE(Real::min.isEqual(2 * Real::epsilon, Real::MatchRelative, Real(1.0)));
+				TEST_IS_FALSE(Real::min.isEqual(2 * Real::epsilon, Real::MatchRelative, Real(0.5)));
+				TEST_IS_TRUE(Real::min.isEqual(4 * Real::epsilon, Real::MatchRelative, Real(2.0)));
+				TEST_IS_FALSE(Real::min.isEqual(4 * Real::epsilon, Real::MatchRelative, Real(1.5)));
+				TEST_IS_TRUE(Real::min.isEqual(Real::min + Real(1, Real::minExponent - Real::fractionSize), Real::MatchRelative, Real::min / 2));
+				TEST_IS_TRUE(Real::min.isEqual(Real::min + 2 * Real(1, Real::minExponent - Real::fractionSize), Real::MatchRelative, Real::min));
+				TEST_IS_TRUE(Real::min.isEqual(Real::min + 4 * Real(1, Real::minExponent - Real::fractionSize), Real::MatchRelative, 2 * Real::min));
 
 				TEST_IS_TRUE(Real::max.negate().isEqual(Real::max.negate() + Real(1, Real::maxExponent - Real::fractionSize), Real::MatchRelative, Real(0.5)));
 				TEST_IS_FALSE(Real::max.negate().isEqual(Real::max.negate() + Real(1, Real::maxExponent - Real::fractionSize), Real::MatchRelative, Real(0.0)));
@@ -350,25 +383,36 @@ namespace Ash
 				TEST_IS_FALSE(Real::max.negate().isEqual(Real::max.negate() + 2 * Real(1, Real::maxExponent - Real::fractionSize), Real::MatchRelative, Real(0.5)));
 				TEST_IS_TRUE(Real::max.negate().isEqual(Real::max.negate() + 4 * Real(1, Real::maxExponent - Real::fractionSize), Real::MatchRelative, Real(2.0)));
 				TEST_IS_FALSE(Real::max.negate().isEqual(Real::max.negate() + 4 * Real(1, Real::maxExponent - Real::fractionSize), Real::MatchRelative, Real(1.5)));
-				TEST_IS_TRUE(Real::min.negate().isEqual(Real::min.negate() - Real(1, Real::minExponent - Real::fractionSize), Real::MatchRelative, Real(1.0)));
-				TEST_IS_FALSE(Real::min.negate().isEqual(Real::min.negate() - Real(1, Real::minExponent - Real::fractionSize), Real::MatchRelative, Real(0.5)));
-				TEST_IS_TRUE(Real::min.negate().isEqual(Real::min.negate() - 2 * Real(1, Real::minExponent - Real::fractionSize), Real::MatchRelative, Real(2.0)));
-				TEST_IS_FALSE(Real::min.negate().isEqual(Real::min.negate() - 2 * Real(1, Real::minExponent - Real::fractionSize), Real::MatchRelative, Real(1.5)));
-				TEST_IS_TRUE(Real::min.negate().isEqual(Real::min.negate() - 4 * Real(1, Real::minExponent - Real::fractionSize), Real::MatchRelative, Real(4.0)));
-				TEST_IS_FALSE(Real::min.negate().isEqual(Real::min.negate() - 4 * Real(1, Real::minExponent - Real::fractionSize), Real::MatchRelative, Real(3.5)));
+
+				TEST_IS_TRUE(Real::min.negate().isEqual(Real::epsilon.negate(), Real::MatchRelative, Real(0.5)));
+				TEST_IS_FALSE(Real::min.negate().isEqual(Real::epsilon.negate(), Real::MatchRelative, Real(0.0)));
+				TEST_IS_TRUE(Real::min.negate().isEqual(2 * Real::epsilon.negate(), Real::MatchRelative, Real(1.0)));
+				TEST_IS_FALSE(Real::min.negate().isEqual(2 * Real::epsilon.negate(), Real::MatchRelative, Real(0.5)));
+				TEST_IS_TRUE(Real::min.negate().isEqual(4 * Real::epsilon.negate(), Real::MatchRelative, Real(2.0)));
+				TEST_IS_FALSE(Real::min.negate().isEqual(4 * Real::epsilon.negate(), Real::MatchRelative, Real(1.5)));
+				TEST_IS_TRUE(Real::min.negate().isEqual(Real::min.negate() - Real(1, Real::minExponent - Real::fractionSize), Real::MatchRelative, Real::min / 2));
+				TEST_IS_TRUE(Real::min.negate().isEqual(Real::min.negate() - 2 * Real(1, Real::minExponent - Real::fractionSize), Real::MatchRelative, Real::min));
+				TEST_IS_TRUE(Real::min.negate().isEqual(Real::min.negate() - 4 * Real(1, Real::minExponent - Real::fractionSize), Real::MatchRelative, 2 * Real::min));
 
 				for (typename Real::Exponent exponent = Real::minExponent; exponent > Real::minExponent - Real::fractionSize; exponent--)
 				{
-					TEST_IS_FALSE(Real(1, exponent).isEqual(Real(1, exponent) + Real(1, Real::minExponent - Real::fractionSize), Real::MatchRelative, Real(0.5)));
+					TEST_IS_TRUE(Real(1, exponent).isEqual(Real(1, exponent) + Real(1, Real::minExponent - Real::fractionSize), Real::MatchRelative, Real::min / 2));
 				}
 
 				for (typename Real::Exponent exponent = Real::minExponent; exponent > Real::minExponent - Real::fractionSize; exponent--)
 				{
-					TEST_IS_FALSE(Real(1, exponent).negate().isEqual(Real(1, exponent).negate() - Real(1, Real::minExponent - Real::fractionSize), Real::MatchRelative, Real(0.5)));
+					TEST_IS_TRUE(Real(1, exponent).negate().isEqual(Real(1, exponent).negate() - Real(1, Real::minExponent - Real::fractionSize), Real::MatchRelative, Real::min / 2));
 				}
 
-				TEST_IS_FALSE(Real::min.isEqual(Real::min.negate(), Real::MatchRelative));
-				TEST_IS_FALSE(Real::minSubNormal.isEqual(Real::minSubNormal.negate(), Real::MatchRelative));
+				for (typename Real::Exponent exponent = -1; exponent > -Real::fractionSize; exponent--)
+				{
+					TEST_IS_TRUE(Real(1, exponent).isEqual(Real(1, exponent) + Real(1, exponent - Real::fractionSize), Real::MatchRelative, Real(1, exponent) / 2));
+				}
+
+				for (typename Real::Exponent exponent = -1; exponent > -Real::fractionSize; exponent--)
+				{
+					TEST_IS_TRUE(Real(1, exponent).negate().isEqual(Real(1, exponent).negate() - Real(1, exponent - Real::fractionSize), Real::MatchRelative, Real(1, exponent) / 2));
+				}
 
 				return {};
 			}
