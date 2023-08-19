@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ash.type.h"
 #include "ash.geometry.coordinate2d.h"
 
 
@@ -7,7 +8,11 @@ namespace Ash
 {
 	namespace Geometry
 	{
-		template <typename REAL>
+		template
+		<
+			typename REAL,
+			typename = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+		>
 		struct Vector2D : Coordinate2D<REAL>
 		{
 			using Real = REAL;
@@ -20,8 +25,12 @@ namespace Ash
 
 			constexpr Vector2D(Coordinate coordinate) : Coordinate(coordinate) {}
 
-			template <int PER_ROTATION>
-			constexpr Vector2D(Real radius, Ash::Geometry::Angle<Real, PER_ROTATION> angle) : Coordinate(radius, angle) {}
+			template
+			<
+				typename ANGLE,
+				typename = Ash::Type::IsClass<ANGLE, Ash::Geometry::Generic::Angle>
+			>
+			constexpr Vector2D(Real radius, ANGLE angle) : Coordinate(radius, angle) {}
 
 			constexpr Vector2D operator + (Vector2D vector) const { return { Coordinate::x + vector.x, Coordinate::y + vector.y }; }
 

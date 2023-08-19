@@ -2,17 +2,29 @@
 
 #include <algorithm>
 #include <limits>
+#include "ash.type.h"
 
 
 namespace Ash
 {
 	namespace Integer
 	{
-		template <typename INTEGER_TYPE, INTEGER_TYPE START, INTEGER_TYPE END=0>
-		class Cycle
+		namespace Generic
+		{
+			class Cycle {};
+		}
+
+		template
+		<
+			typename INTEGER,
+			INTEGER  START,
+			INTEGER  END = 0,
+			typename = Ash::Type::IsInteger<INTEGER>
+		>
+		class Cycle : Ash::Integer::Generic::Cycle
 		{
 		public:
-			using Type = INTEGER_TYPE;
+			using Type = INTEGER;
 
 			static constexpr Type minValue = std::min(START, END);
 
@@ -24,7 +36,13 @@ namespace Ash
 
 			constexpr Cycle() : m_Value(minValue) {}
 
-			template <typename VALUE>
+			constexpr Cycle(const Cycle &cycle) : m_Value(cycle.m_Value) {}
+
+			template
+			<
+				typename VALUE,
+				typename = Ash::Type::IsInteger<VALUE>
+			>
 			constexpr Cycle(VALUE value) : m_Value(reduce(value)) {}
 
 			constexpr operator Type () const { return m_Value; }
@@ -43,7 +61,10 @@ namespace Ash
 
 			using Iterate = Type (*)(Type);
 
-			template <Iterate ITERATE>
+			template
+			<
+				Iterate ITERATE
+			>
 			class Range
 			{
 			public:
@@ -68,10 +89,16 @@ namespace Ash
 				bool  m_IsAtEnd;
 			};
 
-			template <Iterate ITERATE>
+			template
+			<
+				Iterate ITERATE
+			>
 			static constexpr Range<ITERATE> getRange(Cycle startValue = minValue) { return Range<ITERATE>(startValue, startValue); }
 
-			template <Iterate ITERATE>
+			template
+			<
+				Iterate ITERATE
+			>
 			static constexpr Range<ITERATE> getRange(Cycle startValue, Cycle endValue) { return Range<ITERATE>(startValue, ITERATE(endValue)); }
 
 			static constexpr Type forward(Type value) { return value + 1; };
@@ -87,7 +114,11 @@ namespace Ash
 			static constexpr Range<backward> getRangeReversed(Cycle startValue, Cycle endValue) { return getRange<backward>(startValue, endValue); }
 
 		protected:
-			template <typename VALUE>
+			template
+			<
+				typename VALUE,
+				typename = Ash::Type::IsInteger<VALUE>
+			>
 			static constexpr Type reduce(VALUE value)
 			{
 				if (value < minValue)

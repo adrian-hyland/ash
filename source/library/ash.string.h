@@ -2,6 +2,7 @@
 
 #include <initializer_list>
 #include <algorithm>
+#include "ash.type.h"
 #include "ash.encoding.h"
 
 
@@ -9,19 +10,47 @@ namespace Ash
 {
 	namespace String
 	{
-		template <typename ALLOCATION, typename ENCODING>
+		template
+		<
+			typename ALLOCATION,
+			typename ENCODING,
+			typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>,
+			typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
+		>
 		class Value;
 
-		template <typename ENCODING>
+		template
+		<
+			typename ENCODING,
+			typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
+		>
 		using View = Value<Ash::Memory::Allocation::Reference<const typename ENCODING::Code>, ENCODING>;
 
-		template <typename ENCODING, size_t CAPACITY>
+		template
+		<
+			typename ENCODING,
+			size_t   CAPACITY,
+			typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
+		>
 		using Buffer = Value<Ash::Memory::Allocation::VariableLength<typename ENCODING::Code, CAPACITY>, ENCODING>;
 
-		template <typename ENCODING, size_t MINIMUM_CAPACITY=32, size_t PERCENTAGE_INCREASE=50, size_t BLOCK_SIZE=32>
+		template
+		<
+			typename ENCODING,
+			size_t   MINIMUM_CAPACITY    = 32,
+			size_t   PERCENTAGE_INCREASE = 50,
+			size_t   BLOCK_SIZE          = 32,
+			typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
+		>
 		using Array = Value<Ash::Memory::Allocation::Dynamic<typename ENCODING::Code, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>, ENCODING>;
 
-		template <typename ALLOCATION, typename ENCODING>
+		template
+		<
+			typename ALLOCATION,
+			typename ENCODING,
+			typename,
+			typename
+		>
 		class Value : public Ash::Memory::Value<ALLOCATION, typename ENCODING::Code>
 		{
 		public:
@@ -67,7 +96,13 @@ namespace Ash
 				return Encoding::decodePrevious(*this, offset, character);
 			}
 
-			template <typename TO_ALLOCATION, typename TO_ENCODING>
+			template
+			<
+				typename TO_ALLOCATION,
+				typename TO_ENCODING,
+				typename = Ash::Type::IsClass<TO_ALLOCATION, Ash::Memory::Generic::Allocation>,
+				typename = Ash::Type::IsClass<TO_ENCODING, Ash::Generic::Encoding>
+			>
 			constexpr size_t convertTo(Value<TO_ALLOCATION, TO_ENCODING> &value, Ash::Unicode::Character replacementCharacter = TO_ENCODING::Character::replacement) const
 			{
 				return Ash::Encoding::convert<ENCODING, TO_ENCODING>(*this, value, replacementCharacter);
@@ -93,7 +128,11 @@ namespace Ash
 				return Ash::Encoding::skipNoneOf<ENCODING>(*this, offset, characterList);
 			}
 
-			template <typename TOKEN_ALLOCATION>
+			template
+			<
+				typename TOKEN_ALLOCATION,
+				typename = Ash::Type::IsClass<TOKEN_ALLOCATION, Ash::Memory::Generic::Allocation>
+			>
 			constexpr size_t token(size_t offset, std::initializer_list<Ash::Unicode::Character> delimiters, Ash::String::Value<TOKEN_ALLOCATION, ENCODING> &tokenString) const
 			{
 				return Ash::Encoding::token<ENCODING>(*this, offset, delimiters, tokenString);

@@ -16,7 +16,19 @@ namespace Ash
 
 		using Week = unsigned char;
 
-		template <typename SUBCYCLE, DateDuration STEP, DateDuration COUNT, DateDuration EPOCH=0>
+		namespace Generic
+		{
+			class YearCycle {};
+		}
+
+		template
+		<
+			typename     SUBCYCLE,
+			DateDuration STEP,
+			DateDuration COUNT,
+			DateDuration EPOCH = 0,
+			typename     = Ash::Type::IsClass<SUBCYCLE, Ash::Calendar::Generic::YearCycle>
+		>
 		class YearCycle : public SUBCYCLE
 		{
 		public:
@@ -78,8 +90,13 @@ namespace Ash
 		};
 
 
-		template <typename TYPE, Ordinal DAYS>
-		class OrbitalCycle
+		template
+		<
+			typename TYPE,
+			Ordinal  DAYS,
+			typename = Ash::Type::IsInteger<TYPE>
+		>
+		class OrbitalCycle : Ash::Calendar::Generic::YearCycle
 		{
 		public:
 			using Type = TYPE;
@@ -136,30 +153,37 @@ namespace Ash
 		public:
 			using Cycle = Ash::Integer::Cycle<uint8_t, 1, 12>;
 
-			enum Value
-			{
-				January = Cycle::minValue,
-				February,
-				March,
-				April,
-				May,
-				June,
-				July,
-				August,
-				September,
-				October,
-				November,
-				December
-			};
+			static constexpr Type January   = 1;
+			static constexpr Type February  = 2;
+			static constexpr Type March     = 3;
+			static constexpr Type April     = 4;
+			static constexpr Type May       = 5;
+			static constexpr Type June      = 6;
+			static constexpr Type July      = 7;
+			static constexpr Type August    = 8;
+			static constexpr Type September = 9;
+			static constexpr Type October   = 10;
+			static constexpr Type November  = 11;
+			static constexpr Type December  = 12;
 
 			static constexpr Type monthsPerYear = Cycle::size;
 
 			constexpr Month() : Cycle() {}
 
-			template <typename VALUE>
+			constexpr Month(const Cycle &value) : Cycle(value) {}
+
+			template
+			<
+				typename VALUE,
+				typename = Ash::Type::IsInteger<VALUE>
+			>
 			constexpr Month(VALUE value) : Cycle(value) {}
 
-			template <typename YEAR_CYCLE>
+			template
+			<
+				typename YEAR_CYCLE,
+				typename = Ash::Type::IsClass<YEAR_CYCLE, Ash::Calendar::Generic::YearCycle>
+			>
 			constexpr Day getDays(YEAR_CYCLE yearCycle) const
 			{
 				//                           Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec
@@ -168,7 +192,11 @@ namespace Ash
 				return (yearCycle.isLeapYear() && (*this == February)) ? monthDays[*this - January] + 1 : monthDays[*this - January];
 			}
 
-			template <typename YEAR_CYCLE>
+			template
+			<
+				typename YEAR_CYCLE,
+				typename = Ash::Type::IsClass<YEAR_CYCLE, Ash::Calendar::Generic::YearCycle>
+			>
 			constexpr Ordinal getFirstDayOrdinal(YEAR_CYCLE yearCycle) const
 			{
 				//                                  Jan   Feb   Mar   Apr   May   Jun   Jul   Aug   Sep   Oct   Nov   Dec
@@ -178,7 +206,11 @@ namespace Ash
 				return (yearCycle.isLeapYear() && (*this > February)) ? monthDays[*this - January] + 1 : monthDays[*this - January];
 			}
 
-			template <typename YEAR_CYCLE>
+			template
+			<
+				typename YEAR_CYCLE,
+				typename = Ash::Type::IsClass<YEAR_CYCLE, Ash::Calendar::Generic::YearCycle>
+			>
 			constexpr Ordinal getLastDayOrdinal(YEAR_CYCLE yearCycle) const
 			{
 				//                                  Jan   Feb   Mar   Apr   May   Jun   Jul   Aug   Sep   Oct   Nov   Dec
@@ -188,7 +220,11 @@ namespace Ash
 				return (yearCycle.isLeapYear() && (*this >= February)) ? monthDays[*this - January] + 1 : monthDays[*this - January];
 			}
 
-			template <typename YEAR_CYCLE>
+			template
+			<
+				typename YEAR_CYCLE,
+				typename = Ash::Type::IsClass<YEAR_CYCLE, Ash::Calendar::Generic::YearCycle>
+			>
 			static constexpr Month getMonthDay(YEAR_CYCLE yearCycle, Ordinal ordinal, Day &day)
 			{
 				Ordinal startOfMarch = Month(Month::March).getFirstDayOrdinal(yearCycle);
@@ -213,49 +249,61 @@ namespace Ash
 		public:
 			using Cycle = Ash::Integer::Cycle<uint8_t, 1, 7>;
 
-			enum Value
-			{
-				Monday = Cycle::minValue,
-				Tuesday,
-				Wednesday,
-				Thursday,
-				Friday,
-				Saturday,
-				Sunday
-			};
+			static constexpr Type Monday    = 1;
+			static constexpr Type Tuesday   = 2;
+			static constexpr Type Wednesday = 3;
+			static constexpr Type Thursday  = 4;
+			static constexpr Type Friday    = 5;
+			static constexpr Type Saturday  = 6;
+			static constexpr Type Sunday    = 7;
 
 			static constexpr Type daysPerWeek = Cycle::size;
 
 			constexpr Weekday() : Cycle() {}
 
-			template <typename VALUE>
+			constexpr Weekday(const Cycle &value) : Cycle(value) {}
+
+			template
+			<
+				typename VALUE,
+				typename = Ash::Type::IsInteger<VALUE>
+			>
 			constexpr Weekday(VALUE value) : Cycle(value) {}
 		};
 
 
-		template <typename YEAR_CYCLE>
-		class Proleptic
+		namespace Generic
+		{
+			class Proleptic {};
+		};
+
+		template
+		<
+			typename YEAR_CYCLE,
+			typename = Ash::Type::IsClass<YEAR_CYCLE, Ash::Calendar::Generic::YearCycle>
+		>
+		class Proleptic : Ash::Calendar::Generic::Proleptic
 		{
 		public:
-			using Cycle = YEAR_CYCLE;
+			using YearCycle = YEAR_CYCLE;
 
-			using Type = typename Cycle::Type;
+			using Type = typename YearCycle::Type;
 
 
-			class Year : public Cycle
+			class Year : public YearCycle
 			{
 			public:
-				constexpr Year(Type year = 0) : Cycle(year) {}
+				constexpr Year(Type year = 0) : YearCycle(year) {}
 
 				constexpr Week getWeeks() const
 				{
-					Weekday weekday = Weekday(Cycle::getDaysSinceEpoch());
-					return ((weekday == Weekday::Thursday) || (Cycle::isLeapYear() && (weekday == Weekday::Wednesday))) ? 53 : 52;
+					Weekday weekday = Weekday(YearCycle::getDaysSinceEpoch());
+					return ((weekday == Weekday::Thursday) || (YearCycle::isLeapYear() && (weekday == Weekday::Wednesday))) ? 53 : 52;
 				}
 
 				constexpr DateDuration getFirstWeek() const
 				{
-					DateDuration days = Cycle::getDaysSinceEpoch(4);
+					DateDuration days = YearCycle::getDaysSinceEpoch(4);
 					return days - Weekday(days) + 1;
 				}
 			};
@@ -360,7 +408,7 @@ namespace Ash
 
 				constexpr Ordinal getOrdinal() const { return m_Month.getFirstDayOrdinal(m_Year) + m_Day - 1; }
 
-				constexpr Weekday getWeekday() const { return Weekday(*this); }
+				constexpr Weekday getWeekday() const { return Weekday(DateDuration(*this)); }
 
 				constexpr Week getYearWeek(Year &year) const
 				{

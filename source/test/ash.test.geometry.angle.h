@@ -12,7 +12,13 @@ namespace Ash
 		{
 			namespace Angle
 			{
-				template <template<typename> typename ANGLE, typename REAL>
+				template
+				<
+					template <typename> typename ANGLE,
+					typename                     REAL,
+					typename                     = Ash::Type::IsClass<ANGLE<REAL>, Ash::Geometry::Generic::Angle>,
+					typename                     = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+				>
 				constexpr Ash::Test::Assertion sine()
 				{
 					using Angle = ANGLE<REAL>;
@@ -39,7 +45,13 @@ namespace Ash
 					return {};
 				}
 
-				template <template<typename> typename ANGLE, typename REAL>
+				template
+				<
+					template <typename> typename ANGLE,
+					typename                     REAL,
+					typename                     = Ash::Type::IsClass<ANGLE<REAL>, Ash::Geometry::Generic::Angle>,
+					typename                     = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+				>
 				constexpr Ash::Test::Assertion cosine()
 				{
 					using Angle = ANGLE<REAL>;
@@ -66,7 +78,13 @@ namespace Ash
 					return {};
 				}
 
-				template <template<typename> typename ANGLE, typename REAL>
+				template
+				<
+					template <typename> typename ANGLE,
+					typename                     REAL,
+					typename                     = Ash::Type::IsClass<ANGLE<REAL>, Ash::Geometry::Generic::Angle>,
+					typename                     = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+				>
 				constexpr Ash::Test::Assertion tangent()
 				{
 					using Angle = ANGLE<REAL>;
@@ -99,7 +117,13 @@ namespace Ash
 					return {};
 				}
 
-				template <template<typename> typename ANGLE, typename REAL>
+				template
+				<
+					template <typename> typename ANGLE,
+					typename                     REAL,
+					typename                     = Ash::Type::IsClass<ANGLE<REAL>, Ash::Geometry::Generic::Angle>,
+					typename                     = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+				>
 				constexpr Ash::Test::Assertion arcTangent()
 				{
 					using Angle = ANGLE<REAL>;
@@ -136,7 +160,13 @@ namespace Ash
 					return {};
 				}
 
-				template <template<typename> typename ANGLE, typename REAL>
+				template
+				<
+					template <typename> typename ANGLE,
+					typename                     REAL,
+					typename                     = Ash::Type::IsClass<ANGLE<REAL>, Ash::Geometry::Generic::Angle>,
+					typename                     = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+				>
 				constexpr Ash::Test::Assertion matchAbsolute()
 				{
 					using Angle = ANGLE<REAL>;
@@ -194,7 +224,13 @@ namespace Ash
 					return {};
 				}
 
-				template <template<typename> typename ANGLE, typename REAL>
+				template
+				<
+					template <typename> typename ANGLE,
+					typename                     REAL,
+					typename                     = Ash::Type::IsClass<ANGLE<REAL>, Ash::Geometry::Generic::Angle>,
+					typename                     = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+				>
 				constexpr Ash::Test::Assertion matchRelative()
 				{
 					using Angle = ANGLE<REAL>;
@@ -252,7 +288,13 @@ namespace Ash
 					return {};
 				}
 
-				template <template<typename> typename ANGLE, typename REAL>
+				template
+				<
+					template <typename> typename ANGLE,
+					typename                     REAL,
+					typename                     = Ash::Type::IsClass<ANGLE<REAL>, Ash::Geometry::Generic::Angle>,
+					typename                     = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+				>
 				constexpr Ash::Test::Assertion isEqualAbsolute()
 				{
 					using Angle = ANGLE<REAL>;
@@ -310,7 +352,13 @@ namespace Ash
 					return {};
 				}
 
-				template <template<typename> typename ANGLE, typename REAL>
+				template
+				<
+					template <typename> typename ANGLE,
+					typename                     REAL,
+					typename                     = Ash::Type::IsClass<ANGLE<REAL>, Ash::Geometry::Generic::Angle>,
+					typename                     = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+				>
 				constexpr Ash::Test::Assertion isEqualRelative()
 				{
 					using Angle = ANGLE<REAL>;
@@ -368,7 +416,15 @@ namespace Ash
 					return {};
 				}
 
-				template <template<typename> typename FROM_ANGLE, template<typename> typename TO_ANGLE, typename REAL>
+				template
+				<
+					template <typename> typename FROM_ANGLE,
+					template <typename> typename TO_ANGLE,
+					typename                     REAL,
+					typename                     = Ash::Type::IsClass<FROM_ANGLE<REAL>, Ash::Geometry::Generic::Angle>,
+					typename                     = Ash::Type::IsClass<TO_ANGLE<REAL>, Ash::Geometry::Generic::Angle>,
+					typename                     = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+				>
 				constexpr Ash::Test::Assertion convert()
 				{
 					using FromAngle = FROM_ANGLE<REAL>;
@@ -385,7 +441,11 @@ namespace Ash
 					return {};
 				}
 
-				template <typename REAL>
+				template
+				<
+					typename REAL,
+					typename = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+				>
 				constexpr Ash::Test::Assertion convert()
 				{
 					TEST_GENERIC(Ash::Test::Geometry::Angle::convert, Ash::Geometry::Radian, Ash::Geometry::Degree,  REAL);
@@ -401,7 +461,13 @@ namespace Ash
 				}
 			}
 
-			template <template<typename> typename ANGLE, typename REAL>
+			template
+			<
+				template <typename> typename ANGLE,
+				typename                     REAL,
+				typename                     = Ash::Type::IsClass<ANGLE<REAL>, Ash::Geometry::Generic::Angle>,
+				typename                     = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+			>
 			constexpr Ash::Test::Assertion angle()
 			{
 				TEST_GENERIC(Ash::Test::Geometry::Angle::sine, ANGLE,  REAL);

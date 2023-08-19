@@ -2,16 +2,26 @@
 
 #include <cmath>
 #include <limits>
+#include "ash.type.h"
 #include "ash.integer.bit.h"
 
 
 namespace Ash
 {
-	template <typename FLOAT_TYPE>
-	class Real
+	namespace Generic
+	{
+		class Real {};
+	}
+
+	template
+	<
+		typename FLOAT,
+		typename = Ash::Type::IsFloatingPoint<FLOAT>
+	>
+	class Real : Ash::Generic::Real
 	{
 	public:
-		using Type = FLOAT_TYPE;
+		using Type = FLOAT;
 
 		using Exponent = int;
 
@@ -43,10 +53,22 @@ namespace Ash
 
 		constexpr Real() : m_Value(0.0) {}
 
-		template <typename VALUE>
+		constexpr Real(const Real &real) : m_Value(real.m_Value) {}
+
+		template
+		<
+			typename VALUE,
+			typename = Ash::Type::IsNumeric<VALUE>
+		>
 		constexpr Real(VALUE value) : m_Value(value) {}
 
-		template <typename VALUE>
+		constexpr Real(const Real &real, Exponent exponent) : m_Value(std::ldexp(real.m_Value, exponent)) {}
+
+		template
+		<
+			typename VALUE,
+			typename = Ash::Type::IsNumeric<VALUE>
+		>
 		constexpr Real(VALUE value, Exponent exponent) : m_Value(std::ldexp(Type(value), exponent)) {}
 
 		constexpr operator Type () const { return m_Value; }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ash.type.h"
 #include "ash.geometry.vector2d.h"
 
 
@@ -7,7 +8,11 @@ namespace Ash
 {
 	namespace Geometry
 	{
-		template <typename REAL>
+		template
+		<
+			typename REAL,
+			typename = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+		>
 		struct Point2D : Coordinate2D<REAL>
 		{
 			using Real = REAL;

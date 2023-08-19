@@ -12,7 +12,11 @@ namespace Ash
 		{
 			namespace Vector2D
 			{
-				template <typename REAL>
+				template
+				<
+					typename REAL,
+					typename = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+				>
 				constexpr Ash::Test::Assertion add()
 				{
 					using Real = REAL;
@@ -30,7 +34,11 @@ namespace Ash
 					return {};
 				}
 
-				template <typename REAL>
+				template
+				<
+					typename REAL,
+					typename = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+				>
 				constexpr Ash::Test::Assertion subtract()
 				{
 					using Real = REAL;
@@ -48,7 +56,11 @@ namespace Ash
 					return {};
 				}
 
-				template <typename REAL>
+				template
+				<
+					typename REAL,
+					typename = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+				>
 				constexpr Ash::Test::Assertion multiply()
 				{
 					using Real = REAL;
@@ -73,7 +85,11 @@ namespace Ash
 					return {};
 				}
 
-				template <typename REAL>
+				template
+				<
+					typename REAL,
+					typename = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+				>
 				constexpr Ash::Test::Assertion divide()
 				{
 					using Real = REAL;
@@ -94,7 +110,11 @@ namespace Ash
 					return {};
 				}
 
-				template <typename REAL>
+				template
+				<
+					typename REAL,
+					typename = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+				>
 				constexpr Ash::Test::Assertion negate()
 				{
 					using Real = REAL;
@@ -111,7 +131,11 @@ namespace Ash
 					return {};
 				}
 
-				template <typename REAL>
+				template
+				<
+					typename REAL,
+					typename = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+				>
 				constexpr Ash::Test::Assertion normalise()
 				{
 					using Real = REAL;
@@ -126,7 +150,11 @@ namespace Ash
 					return {};
 				}
 
-				template <typename REAL>
+				template
+				<
+					typename REAL,
+					typename = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+				>
 				constexpr Ash::Test::Assertion dotProduct()
 				{
 					using Real = REAL;
@@ -171,7 +199,11 @@ namespace Ash
 					return {};
 				}
 
-				template <typename REAL>
+				template
+				<
+					typename REAL,
+					typename = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+				>
 				constexpr Ash::Test::Assertion crossProduct()
 				{
 					using Real = REAL;
@@ -216,7 +248,11 @@ namespace Ash
 					return {};
 				}
 
-				template <typename REAL>
+				template
+				<
+					typename REAL,
+					typename = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+				>
 				constexpr Ash::Test::Assertion reflect()
 				{
 					using Real = REAL;
@@ -242,7 +278,11 @@ namespace Ash
 					return {};
 				}
 
-				template <typename REAL>
+				template
+				<
+					typename REAL,
+					typename = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+				>
 				constexpr Ash::Test::Assertion invalid()
 				{
 					using Real = REAL;
@@ -264,7 +304,11 @@ namespace Ash
 				}
 			}
 
-			template <typename REAL>
+			template
+			<
+				typename REAL,
+				typename = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+			>
 			constexpr Ash::Test::Assertion vector2D()
 			{
 				TEST_GENERIC(Ash::Test::Geometry::Vector2D::add, REAL);

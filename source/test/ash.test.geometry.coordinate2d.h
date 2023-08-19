@@ -12,7 +12,11 @@ namespace Ash
 		{
 			namespace Coordinate2D
 			{
-				template <typename REAL>
+				template
+				<
+					typename REAL,
+					typename = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+				>
 				constexpr Ash::Test::Assertion construct()
 				{
 					using Real = REAL;
@@ -104,7 +108,11 @@ namespace Ash
 					return {};
 				}
 
-				template <typename REAL>
+				template
+				<
+					typename REAL,
+					typename = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+				>
 				constexpr Ash::Test::Assertion invalid()
 				{
 					using Real = REAL;
@@ -124,7 +132,13 @@ namespace Ash
 					return {};
 				}
 
-				template <template<typename> typename ANGLE, typename REAL>
+				template
+				<
+					template <typename> typename ANGLE,
+					typename                     REAL,
+					typename                     = Ash::Type::IsClass<ANGLE<REAL>, Ash::Geometry::Generic::Angle>,
+					typename                     = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+				>
 				constexpr Ash::Test::Assertion rotate()
 				{
 					using Real = REAL;

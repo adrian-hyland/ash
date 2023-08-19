@@ -10,10 +10,14 @@ namespace Ash
 	{
 		namespace Real
 		{
-			template <typename TYPE>
+			template
+			<
+				typename FLOAT,
+				typename = Ash::Type::IsFloatingPoint<FLOAT>
+			>
 			constexpr Ash::Test::Assertion isValid()
 			{
-				using Real = Ash::Real<TYPE>;
+				using Real = Ash::Real<FLOAT>;
 
 				TEST_IS_FALSE(Real::invalid.isValid());
 				TEST_IS_TRUE(Real::infinity.isValid());
@@ -24,10 +28,14 @@ namespace Ash
 				return {};
 			}
 
-			template <typename TYPE>
+			template
+			<
+				typename FLOAT,
+				typename = Ash::Type::IsFloatingPoint<FLOAT>
+			>
 			constexpr Ash::Test::Assertion isInfinite()
 			{
-				using Real = Ash::Real<TYPE>;
+				using Real = Ash::Real<FLOAT>;
 
 				TEST_IS_TRUE(Real::infinity.isInfinite());
 				TEST_IS_TRUE(Real::infinity.negate().isInfinite());
@@ -39,10 +47,14 @@ namespace Ash
 				return {};
 			}
 
-			template <typename TYPE>
+			template
+			<
+				typename FLOAT,
+				typename = Ash::Type::IsFloatingPoint<FLOAT>
+			>
 			constexpr Ash::Test::Assertion isNegative()
 			{
-				using Real = Ash::Real<TYPE>;
+				using Real = Ash::Real<FLOAT>;
 
 				TEST_IS_FALSE(Real::infinity.isNegative());
 				TEST_IS_TRUE(Real::infinity.negate().isNegative());
@@ -56,10 +68,14 @@ namespace Ash
 				return {};
 			}
 
-			template <typename TYPE>
+			template
+			<
+				typename FLOAT,
+				typename = Ash::Type::IsFloatingPoint<FLOAT>
+			>
 			constexpr Ash::Test::Assertion isPositive()
 			{
-				using Real = Ash::Real<TYPE>;
+				using Real = Ash::Real<FLOAT>;
 
 				TEST_IS_TRUE(Real::infinity.isPositive());
 				TEST_IS_FALSE(Real::infinity.negate().isPositive());
@@ -73,10 +89,14 @@ namespace Ash
 				return {};
 			}
 
-			template <typename TYPE>
+			template
+			<
+				typename FLOAT,
+				typename = Ash::Type::IsFloatingPoint<FLOAT>
+			>
 			constexpr Ash::Test::Assertion negate()
 			{
-				using Real = Ash::Real<TYPE>;
+				using Real = Ash::Real<FLOAT>;
 
 				TEST_IS_TRUE(Real::infinity.negate().isNegative());
 				TEST_IS_TRUE(Real::max.negate().isNegative());
@@ -90,10 +110,14 @@ namespace Ash
 				return {};
 			}
 
-			template <typename TYPE>
+			template
+			<
+				typename FLOAT,
+				typename = Ash::Type::IsFloatingPoint<FLOAT>
+			>
 			constexpr Ash::Test::Assertion getAbsolute()
 			{
-				using Real = Ash::Real<TYPE>;
+				using Real = Ash::Real<FLOAT>;
 
 				TEST_IS_EQ(Real::infinity.getAbsolute(), Real::infinity);
 				TEST_IS_EQ(Real::max.getAbsolute(), Real::max);
@@ -107,10 +131,14 @@ namespace Ash
 				return {};
 			}
 
-			template <typename TYPE>
+			template
+			<
+				typename FLOAT,
+				typename = Ash::Type::IsFloatingPoint<FLOAT>
+			>
 			constexpr Ash::Test::Assertion matchAbsolute()
 			{
-				using Real = Ash::Real<TYPE>;
+				using Real = Ash::Real<FLOAT>;
 
 				TEST_IS_FALSE(Real::invalid.match(Real::invalid, Real::MatchAbsolute).isValid());
 				TEST_IS_FALSE(Real::invalid.match(Real::infinity, Real::MatchAbsolute).isValid());
@@ -170,10 +198,14 @@ namespace Ash
 				return {};
 			}
 
-			template <typename TYPE>
+			template
+			<
+				typename FLOAT,
+				typename = Ash::Type::IsFloatingPoint<FLOAT>
+			>
 			constexpr Ash::Test::Assertion matchRelative()
 			{
-				using Real = Ash::Real<TYPE>;
+				using Real = Ash::Real<FLOAT>;
 
 				TEST_IS_FALSE(Real::invalid.match(Real::invalid, Real::MatchRelative).isValid());
 				TEST_IS_FALSE(Real::invalid.match(Real::infinity, Real::MatchRelative).isValid());
@@ -245,10 +277,14 @@ namespace Ash
 				return {};
 			}
 
-			template <typename TYPE>
+			template
+			<
+				typename FLOAT,
+				typename = Ash::Type::IsFloatingPoint<FLOAT>
+			>
 			constexpr Ash::Test::Assertion isEqualAbsolute()
 			{
-				using Real = Ash::Real<TYPE>;
+				using Real = Ash::Real<FLOAT>;
 
 				TEST_IS_FALSE(Real::invalid.isEqual(Real::invalid, Real::MatchAbsolute));
 				TEST_IS_FALSE(Real::invalid.isEqual(Real::infinity, Real::MatchAbsolute));
@@ -326,10 +362,14 @@ namespace Ash
 				return {};
 			}
 
-			template <typename TYPE>
+			template
+			<
+				typename FLOAT,
+				typename = Ash::Type::IsFloatingPoint<FLOAT>
+			>
 			constexpr Ash::Test::Assertion isEqualRelative()
 			{
-				using Real = Ash::Real<TYPE>;
+				using Real = Ash::Real<FLOAT>;
 
 				TEST_IS_FALSE(Real::invalid.isEqual(Real::invalid, Real::MatchRelative));
 				TEST_IS_FALSE(Real::invalid.isEqual(Real::infinity, Real::MatchRelative));
@@ -417,10 +457,14 @@ namespace Ash
 				return {};
 			}
 
-			template <typename TYPE>
+			template
+			<
+				typename FLOAT,
+				typename = Ash::Type::IsFloatingPoint<FLOAT>
+			>
 			constexpr Ash::Test::Assertion squareRoot()
 			{
-				using Real = Ash::Real<TYPE>;
+				using Real = Ash::Real<FLOAT>;
 
 				Real root = Real::min.squareRoot();
 				TEST_IS_TRUE(Real::min.isEqual(root * root, Real::MatchAbsolute, 0.5));
@@ -435,10 +479,14 @@ namespace Ash
 				return {};
 			}
 
-			template <typename TYPE>
+			template
+			<
+				typename FLOAT,
+				typename = Ash::Type::IsFloatingPoint<FLOAT>
+			>
 			constexpr Ash::Test::Assertion modulus()
 			{
-				using Real = Ash::Real<TYPE>;
+				using Real = Ash::Real<FLOAT>;
 
 				TEST_IS_FALSE(Real(3.4).modulus(Real(0)).isValid());
 				TEST_IS_FALSE(Real(3.4).modulus(Real(0).negate()).isValid());
@@ -469,10 +517,14 @@ namespace Ash
 				return {};
 			}
 
-			template <typename TYPE>
+			template
+			<
+				typename FLOAT,
+				typename = Ash::Type::IsFloatingPoint<FLOAT>
+			>
 			constexpr Ash::Test::Assertion reciprocal()
 			{
-				using Real = Ash::Real<TYPE>;
+				using Real = Ash::Real<FLOAT>;
 
 				TEST_IS_FALSE(Real::invalid.reciprocal().isValid());
 

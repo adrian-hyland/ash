@@ -10,7 +10,10 @@ namespace Ash
 	{
 		namespace Memory
 		{
-			template <typename TYPE>
+			template
+			<
+				typename TYPE
+			>
 			class TraceAllocation;
 
 			struct Trace
@@ -66,12 +69,18 @@ namespace Ash
 
 				static Node *m_Head;
 
-				template <typename TYPE>
+				template
+				<
+					typename TYPE
+				>
 				friend class TraceAllocation;
 			};
 
 
-			template <typename TYPE>
+			template
+			<
+				typename TYPE
+			>
 			class TraceAllocation
 			{
 			public:
@@ -111,7 +120,10 @@ namespace Ash
 			};
 
 
-			template <typename TYPE>
+			template
+			<
+				typename TYPE
+			>
 			class TraceValue
 			{
 			public:
@@ -166,7 +178,12 @@ namespace Ash
 			};
 
 
-			template <size_t MINIMUM_CAPACITY=32, size_t PERCENTAGE_INCREASE=50, size_t BLOCK_SIZE=32>
+			template
+			<
+				size_t MINIMUM_CAPACITY    = 32,
+				size_t PERCENTAGE_INCREASE = 50,
+				size_t BLOCK_SIZE          = 32
+			>
 			class TestDynamic : public Ash::Memory::Allocation::Dynamic<TraceValue<int>, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>
 			{
 			public:
@@ -351,7 +368,12 @@ namespace Ash
 				}
 			};
 
-			template <size_t MINIMUM_CAPACITY=32, size_t PERCENTAGE_INCREASE=50, size_t BLOCK_SIZE=32>
+			template
+			<
+				size_t MINIMUM_CAPACITY    = 32,
+				size_t PERCENTAGE_INCREASE = 50,
+				size_t BLOCK_SIZE          = 32
+			>
 			static constexpr Ash::Test::Assertion dynamic()
 			{
 				TEST_CLASS_GENERIC(TestDynamic, testCore, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE);
@@ -364,7 +386,10 @@ namespace Ash
 				return {};
 			}
 
-			template <size_t CAPACITY>
+			template
+			<
+				size_t CAPACITY
+			>
 			class TestVariableLength : public Ash::Memory::Allocation::VariableLength<TraceValue<int>, CAPACITY>
 			{
 			public:
@@ -520,7 +545,10 @@ namespace Ash
 				}
 			};
 
-			template <size_t CAPACITY>
+			template
+			<
+				size_t CAPACITY
+			>
 			static constexpr Ash::Test::Assertion variableLength()
 			{
 				TEST(TestVariableLength<CAPACITY>::testCore);
@@ -533,7 +561,10 @@ namespace Ash
 				return {};
 			}
 
-			template <size_t CAPACITY>
+			template
+			<
+				size_t CAPACITY
+			>
 			class TestFixedLength : public Ash::Memory::Allocation::FixedLength<TraceValue<int>, CAPACITY>
 			{
 			public:
@@ -681,7 +712,10 @@ namespace Ash
 				}
 			};
 
-			template <size_t CAPACITY>
+			template
+			<
+				size_t CAPACITY
+			>
 			static constexpr Ash::Test::Assertion fixedLength()
 			{
 				TEST(TestFixedLength<CAPACITY>::testCore);

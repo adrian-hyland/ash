@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ash.type.h"
 #include "ash.geometry.angle.h"
 
 
@@ -7,8 +8,17 @@ namespace Ash
 {
 	namespace Geometry
 	{
-		template <typename REAL>
-		struct Coordinate2D
+		namespace Generic
+		{
+			struct Coordinate2D {};
+		}
+		
+		template
+		<
+			typename REAL,
+			typename = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+		>
+		struct Coordinate2D : Ash::Geometry::Generic::Coordinate2D
 		{
 			using Real = REAL;
 
@@ -22,8 +32,12 @@ namespace Ash
 
 			constexpr Coordinate2D(Real xValue, Real yValue) : x(xValue), y(yValue) {}
 
-			template <int PER_ROTATION>
-			constexpr Coordinate2D(Real radius, Ash::Geometry::Angle<Real, PER_ROTATION> angle) : x(radius * angle.cosine()), y(radius * angle.sine()) {}
+			template
+			<
+				typename ANGLE,
+				typename = Ash::Type::IsClass<ANGLE, Ash::Geometry::Generic::Angle>
+			>
+			constexpr Coordinate2D(Real radius, ANGLE angle) : x(radius * angle.cosine()), y(radius * angle.sine()) {}
 
 			constexpr Angle getAngle() const { return Angle::arcTangent(y, x); }
 
@@ -33,8 +47,12 @@ namespace Ash
 
 			constexpr bool isEqual(Coordinate2D coordinate, MatchType matchType = MatchType::MatchRelative, Real tolerance = 1.0) const { return x.isEqual(coordinate.x, matchType, tolerance) && y.isEqual(coordinate.y, matchType, tolerance); }
 
-			template <int PER_ROTATION>
-			constexpr Coordinate2D rotate(Ash::Geometry::Angle<Real, PER_ROTATION> angle) const
+			template
+			<
+				typename ANGLE,
+				typename = Ash::Type::IsClass<ANGLE, Ash::Geometry::Generic::Angle>
+			>
+			constexpr Coordinate2D rotate(ANGLE angle) const
 			{
 				return { x * angle.cosine() - y * angle.sine(), y * angle.cosine() + x * angle.sine() };
 			}

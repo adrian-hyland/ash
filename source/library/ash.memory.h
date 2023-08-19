@@ -2,7 +2,7 @@
 
 #include <utility>
 #include <algorithm>
-#include <type_traits>
+#include "ash.type.h"
 #include "ash.size.h"
 
 
@@ -10,10 +10,21 @@ namespace Ash
 {
 	namespace Memory
 	{
+		namespace Generic
+		{
+			class Allocation {};
+		}
+
 		namespace Allocation
 		{
-			template <typename TYPE, size_t MINIMUM_CAPACITY=32, size_t PERCENTAGE_INCREASE=50, size_t BLOCK_SIZE=32>
-			class Dynamic
+			template
+			<
+				typename TYPE,
+				size_t   MINIMUM_CAPACITY    = 32,
+				size_t   PERCENTAGE_INCREASE = 50,
+				size_t   BLOCK_SIZE          = 32
+			>
+			class Dynamic : Ash::Memory::Generic::Allocation
 			{
 			public:
 				using Type = TYPE;
@@ -204,8 +215,12 @@ namespace Ash
 				size_t m_Capacity;
 			};
 
-			template <typename TYPE, size_t CAPACITY>
-			class VariableLength
+			template
+			<
+				typename TYPE,
+				size_t   CAPACITY
+			>
+			class VariableLength : Ash::Memory::Generic::Allocation
 			{
 			public:
 				using Type = TYPE;
@@ -307,8 +322,12 @@ namespace Ash
 			};
 
 
-			template <typename TYPE, size_t CAPACITY>
-			class FixedLength
+			template
+			<
+				typename TYPE,
+				size_t   CAPACITY
+			>
+			class FixedLength : Ash::Memory::Generic::Allocation
 			{
 			public:
 				using Type = TYPE;
@@ -389,8 +408,11 @@ namespace Ash
 			};
 
 
-			template <typename TYPE>
-			class Reference
+			template
+			<
+				typename TYPE
+			>
+			class Reference : Ash::Memory::Generic::Allocation
 			{
 			public:
 				using Type = TYPE;
@@ -444,25 +466,55 @@ namespace Ash
 			};
 		}
 
-		template <typename ALLOCATION, typename TYPE=std::remove_cv_t<typename ALLOCATION::Type>>
+		template
+		<
+			typename ALLOCATION,
+			typename TYPE = std::remove_cv_t<typename ALLOCATION::Type>,
+			typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>
+		>
 		class Value;
 
-		template <typename TYPE, size_t MINIMUM_CAPACITY=32, size_t PERCENTAGE_INCREASE=50, size_t BLOCK_SIZE=32>
+		template
+		<
+			typename TYPE,
+			size_t   MINIMUM_CAPACITY    = 32,
+			size_t   PERCENTAGE_INCREASE = 50,
+			size_t   BLOCK_SIZE          = 32
+		>
 		using Array = Value<Allocation::Dynamic<TYPE, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>>;
 
-		template <typename TYPE, size_t CAPACITY>
+		template
+		<
+			typename TYPE,
+			size_t   CAPACITY
+		>
 		using Buffer = Value<Allocation::VariableLength<TYPE, CAPACITY>>;
 
-		template <typename TYPE, size_t CAPACITY>
+		template
+		<
+			typename TYPE,
+			size_t   CAPACITY
+		>
 		using Sequence = Value<Allocation::FixedLength<TYPE, CAPACITY>>;
 
-		template <typename TYPE>
+		template
+		<
+			typename TYPE
+		>
 		using Area = Value<Allocation::Reference<TYPE>>;
 
-		template <typename TYPE>
+		template
+		<
+			typename TYPE
+		>
 		using View = Value<Allocation::Reference<const TYPE>>;
 
-		template <typename ALLOCATION, typename TYPE>
+		template
+		<
+			typename ALLOCATION,
+			typename TYPE,
+			typename
+		>
 		class Value : public ALLOCATION
 		{
 		public:
@@ -470,14 +522,15 @@ namespace Ash
 
 			using Type = TYPE;
 
-			template <typename T=typename Allocation::Type>
-			using enable_if_not_const = std::enable_if_t<!std::is_const<T>::value, T>;
-
 			constexpr Value() : Allocation() {}
 
 			constexpr Value(std::initializer_list<Type> content) : Allocation() { Allocation::copy(content.begin(), content.size()); }
 
-			template <typename T=typename Allocation::Type, typename _=enable_if_not_const<T>>
+			template
+			<
+				typename ALLOCATION_TYPE = typename Allocation::Type,
+				typename = Ash::Type::IsNotConstant<ALLOCATION_TYPE>
+			>
 			constexpr Value(Type *content, size_t length) : Allocation() { Allocation::copy(content, length); }
 
 			constexpr Value(const Type *content, size_t length) : Allocation() { Allocation::copy(content, length); }
@@ -558,7 +611,11 @@ namespace Ash
 				return { &(*this)[offset], Allocation::getLength() - offset };
 			}
 
-			template <typename T=typename Allocation::Type, typename _=enable_if_not_const<T>>
+			template
+			<
+				typename ALLOCATION_TYPE = typename Allocation::Type,
+				typename = Ash::Type::IsNotConstant<ALLOCATION_TYPE>
+			>
 			constexpr Type *at(size_t offset)
 			{
 				return (offset < Allocation::getLength()) ? &(*this)[offset] : nullptr;
@@ -608,7 +665,11 @@ namespace Ash
 				}
 			}
 
-			template <typename VALUE_ALLOCATION>
+			template
+			<
+				typename VALUE_ALLOCATION,
+				typename = Ash::Type::IsClass<VALUE_ALLOCATION, Ash::Memory::Generic::Allocation>
+			>
 			constexpr bool set(size_t offset, const Memory::Value<VALUE_ALLOCATION, Type> &value)
 			{
 				size_t valueLength = value.getLength();
@@ -663,7 +724,11 @@ namespace Ash
 				}
 			}
 
-			template <typename VALUE_ALLOCATION>
+			template
+			<
+				typename VALUE_ALLOCATION,
+				typename = Ash::Type::IsClass<VALUE_ALLOCATION, Ash::Memory::Generic::Allocation>
+			>
 			constexpr bool insert(size_t offset, const Memory::Value<VALUE_ALLOCATION, Type> &value)
 			{
 				size_t valueLength = value.getLength();
@@ -694,7 +759,11 @@ namespace Ash
 				return set(Allocation::getLength(), value);
 			}
 
-			template <typename VALUE_ALLOCATION>
+			template
+			<
+				typename VALUE_ALLOCATION,
+				typename = Ash::Type::IsClass<VALUE_ALLOCATION, Ash::Memory::Generic::Allocation>
+			>
 			constexpr bool append(const Value<VALUE_ALLOCATION, Type> &value)
 			{
 				return set(Allocation::getLength(), value);
@@ -731,7 +800,11 @@ namespace Ash
 				return remove(offset);
 			}
 
-			template <typename VALUE_ALLOCATION>
+			template
+			<
+				typename VALUE_ALLOCATION,
+				typename = Ash::Type::IsClass<VALUE_ALLOCATION, Ash::Memory::Generic::Allocation>
+			>
 			constexpr size_t match(size_t offset, const Value<VALUE_ALLOCATION, Type> &value) const
 			{
 				size_t length = 0;
@@ -751,7 +824,11 @@ namespace Ash
 				return length;
 			}
 
-			template <typename VALUE_ALLOCATION>
+			template
+			<
+				typename VALUE_ALLOCATION,
+				typename = Ash::Type::IsClass<VALUE_ALLOCATION, Ash::Memory::Generic::Allocation>
+			>
 			constexpr size_t find(size_t offset, const Value<VALUE_ALLOCATION, Type> &value) const
 			{
 				if (value.getLength() <= Allocation::getLength())
@@ -861,7 +938,11 @@ namespace Ash
 				return Allocation::getContent()[offset];
 			}
 
-			template <typename FROM_ALLOCATION>
+			template
+			<
+				typename FROM_ALLOCATION,
+				typename = Ash::Type::IsClass<FROM_ALLOCATION, Ash::Memory::Generic::Allocation>
+			>
 			constexpr void copy(size_t offset, const Memory::Value<FROM_ALLOCATION, Type> &value)
 			{
 				std::copy(value.begin(), value.end(), &(*this)[offset]);

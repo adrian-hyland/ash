@@ -1,56 +1,65 @@
 #pragma once
 
 #include <cstdint>
-#include <type_traits>
+#include "ash.type.h"
 
 
 namespace Ash
 {
 	namespace Integer
 	{
-		template <typename INTEGER_TYPE>
+		template
+		<
+			typename INTEGER,
+			typename = Ash::Type::IsInteger<INTEGER>
+		>
 		constexpr size_t getBitSize()
 		{
-			return sizeof(INTEGER_TYPE) * 8;
+			return sizeof(INTEGER) * 8;
 		}
 
-		template <typename INTEGER_TYPE>
-		using enable_if_unsigned = std::enable_if_t<std::is_unsigned<INTEGER_TYPE>::value, INTEGER_TYPE>;
-
-		template <typename INTEGER_TYPE, typename _=enable_if_unsigned<INTEGER_TYPE>>
-		constexpr INTEGER_TYPE getBitMask(size_t from, size_t to = getBitSize<INTEGER_TYPE>())
+		template
+		<
+			typename INTEGER,
+			typename = Ash::Type::IsUnsignedInteger<INTEGER>
+		>
+		constexpr INTEGER getBitMask(size_t from, size_t to = getBitSize<INTEGER>())
 		{
 			if (from > to)
 			{
 				std::swap(from, to);
 			}
 
-			if (from >= getBitSize<INTEGER_TYPE>())
+			if (from >= getBitSize<INTEGER>())
 			{
 				return 0;
 			}
-			else if (to >= getBitSize<INTEGER_TYPE>() - 1)
+			else if (to >= getBitSize<INTEGER>() - 1)
 			{
-				return (from == 0) ? INTEGER_TYPE(-1) : INTEGER_TYPE(-1) << from;
+				return (from == 0) ? INTEGER(-1) : INTEGER(-1) << from;
 			}
 			else if (from == 0)
 			{
-				return (to == 0) ? ~INTEGER_TYPE(-2) : ~(INTEGER_TYPE(-2) << to);
+				return (to == 0) ? ~INTEGER(-2) : ~(INTEGER(-2) << to);
 			}
 			else
 			{
-				return (INTEGER_TYPE(-1) << from) & ~(INTEGER_TYPE(-2) << to);
+				return (INTEGER(-1) << from) & ~(INTEGER(-2) << to);
 			}
 		}
 
-		template <typename INTEGER_TYPE, typename _=enable_if_unsigned<INTEGER_TYPE>>
-		constexpr size_t getBitSize(INTEGER_TYPE value)
+		template
+		<
+			typename INTEGER,
+			typename = Ash::Type::IsUnsignedInteger<INTEGER>
+		>
+		constexpr size_t getBitSize(INTEGER value)
 		{
-			size_t size = getBitSize<INTEGER_TYPE>() / 2;
+			size_t size = getBitSize<INTEGER>() / 2;
 
 			for (size_t n = size; n > 0; n = n / 2)
 			{
-				if ((value & getBitMask<INTEGER_TYPE>(size)) == 0)
+				if ((value & getBitMask<INTEGER>(size)) == 0)
 				{
 					size = size - n / 2;
 				}
@@ -63,22 +72,34 @@ namespace Ash
 			return size;
 		}
 
-		template <typename INTEGER_TYPE, typename _=enable_if_unsigned<INTEGER_TYPE>>
-		constexpr INTEGER_TYPE setBit(INTEGER_TYPE value, size_t bit)
+		template
+		<
+			typename INTEGER,
+			typename = Ash::Type::IsUnsignedInteger<INTEGER>
+		>
+		constexpr INTEGER setBit(INTEGER value, size_t bit)
 		{
-			return value | getBitMask<INTEGER_TYPE>(bit, bit);
+			return value | getBitMask<INTEGER>(bit, bit);
 		}
 
-		template <typename INTEGER_TYPE, typename _=enable_if_unsigned<INTEGER_TYPE>>
-		constexpr INTEGER_TYPE clearBit(INTEGER_TYPE value, size_t bit)
+		template
+		<
+			typename INTEGER,
+			typename = Ash::Type::IsUnsignedInteger<INTEGER>
+		>
+		constexpr INTEGER clearBit(INTEGER value, size_t bit)
 		{
-			return value & ~getBitMask<INTEGER_TYPE>(bit, bit);
+			return value & ~getBitMask<INTEGER>(bit, bit);
 		}
 
-		template <typename INTEGER_TYPE, typename _=enable_if_unsigned<INTEGER_TYPE>>
-		constexpr bool hasBitSet(INTEGER_TYPE value, size_t bit)
+		template
+		<
+			typename INTEGER,
+			typename = Ash::Type::IsUnsignedInteger<INTEGER>
+		>
+		constexpr bool hasBitSet(INTEGER value, size_t bit)
 		{
-			return (value & getBitMask<INTEGER_TYPE>(bit, bit)) != 0;
+			return (value & getBitMask<INTEGER>(bit, bit)) != 0;
 		}
 	}
 }

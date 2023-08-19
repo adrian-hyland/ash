@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ash.type.h"
 #include "ash.geometry.point2d.h"
 
 
@@ -7,7 +8,11 @@ namespace Ash
 {
 	namespace Geometry
 	{
-		template <typename REAL>
+		template
+		<
+			typename REAL,
+			typename = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+		>
 		struct Line2D
 		{
 			using Real = REAL;

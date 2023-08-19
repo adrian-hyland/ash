@@ -20,7 +20,13 @@ namespace Ash
 
 			constexpr Hour() : Cycle() {}
 
-			template <typename VALUE>
+			constexpr Hour(const Cycle &value) : Cycle(value) {}
+
+			template
+			<
+				typename VALUE,
+				typename = Ash::Type::IsInteger<VALUE>
+			>
 			constexpr Hour(VALUE value) : Cycle(value) {}
 		};
 
@@ -34,7 +40,13 @@ namespace Ash
 
 			constexpr Minute() : Cycle() {}
 
-			template <typename VALUE>
+			constexpr Minute(const Cycle &value) : Cycle(value) {}
+
+			template
+			<
+				typename VALUE,
+				typename = Ash::Type::IsInteger<VALUE>
+			>
 			constexpr Minute(VALUE value) : Cycle(value) {}
 		};
 
@@ -48,7 +60,13 @@ namespace Ash
 
 			constexpr Second() : Cycle() {}
 
-			template <typename VALUE>
+			constexpr Second(const Cycle &value) : Cycle(value) {}
+
+			template
+			<
+				typename VALUE,
+				typename = Ash::Type::IsInteger<VALUE>
+			>
 			constexpr Second(VALUE value) : Cycle(value) {}
 		};
 
@@ -70,7 +88,11 @@ namespace Ash
 
 			constexpr Time() : m_Hour(), m_Minute(), m_Second() {}
 
-			template <typename VALUE>
+			template
+			<
+				typename VALUE,
+				typename = Ash::Type::IsInteger<VALUE>
+			>
 			constexpr Time(VALUE duration) : Time()
 			{
 				set<VALUE>(duration);
@@ -99,7 +121,11 @@ namespace Ash
 			constexpr Time operator -- (int) { Time result = *this; --(*this); return result; }
 
 		protected:
-			template <typename VALUE>
+			template
+			<
+				typename VALUE,
+				typename = Ash::Type::IsInteger<VALUE>
+			>
 			void set(Ash::Integer::Cycle<VALUE, day - 1> value)
 			{
 				m_Hour = value / hour;

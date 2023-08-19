@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ash.type.h"
 #include "ash.real.h"
 
 
@@ -7,20 +8,47 @@ namespace Ash
 {
 	namespace Geometry
 	{
-		template <typename REAL, int PER_ROTATION=0>
+		namespace Generic
+		{
+			class Angle {};
+		}
+
+		template
+		<
+			typename REAL,
+			int      PER_ROTATION = 0,
+			typename = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+		>
 		class Angle;
 
-		template <typename REAL>
+		template
+		<
+			typename REAL,
+			typename = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+		>
 		using Radian = Angle<REAL>;
 
-		template <typename REAL>
+		template
+		<
+			typename REAL,
+			typename = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+		>
 		using Degree = Angle<REAL, 360>;
 
-		template <typename REAL>
+		template
+		<
+			typename REAL,
+			typename = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+		>
 		using Gradian = Angle<REAL, 400>;
 
-		template <typename REAL, int PER_ROTATION>
-		class Angle : public REAL
+		template
+		<
+			typename REAL,
+			int      PER_ROTATION,
+			typename
+		>
+		class Angle : public REAL, Ash::Geometry::Generic::Angle
 		{
 		public:
 			using Real = REAL;
@@ -33,11 +61,21 @@ namespace Ash
 
 			constexpr Angle() : Real(0) {}
 
-			template <typename VALUE>
+			constexpr Angle(Real value) : Real(normalise(value)) {}
+
+			template
+			<
+				typename VALUE,
+				typename = Ash::Type::IsNumeric<VALUE>
+			>
 			constexpr Angle(VALUE value) : Real(normalise(value)) {}
 
-			template <int VALUE_ROTATION>
-			constexpr Angle(const Angle<REAL, VALUE_ROTATION> &angle) : Real(normalise(angle * perRotation / angle.perRotation)) {}
+			template
+			<
+				typename ANGLE,
+				typename = Ash::Type::IsClass<ANGLE, Ash::Geometry::Generic::Angle>
+			>
+			constexpr Angle(const ANGLE &angle) : Real(normalise(angle * perRotation / angle.perRotation)) {}
 
 			constexpr Real match(Angle angle, MatchType matchType = MatchType::MatchRelative) const
 			{

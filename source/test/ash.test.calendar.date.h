@@ -26,7 +26,11 @@ namespace Ash
 				return {};
 			}
 
-			template <typename CALENDAR>
+			template
+			<
+				typename CALENDAR,
+				typename = Ash::Type::IsClass<CALENDAR, Ash::Calendar::Generic::Proleptic>
+			>
 			constexpr Ash::Test::Assertion month()
 			{
 				using Calendar = CALENDAR;
@@ -76,7 +80,11 @@ namespace Ash
 				return {};
 			}
 
-			template <typename CALENDAR>
+			template
+			<
+				typename CALENDAR,
+				typename = Ash::Type::IsClass<CALENDAR, Ash::Calendar::Generic::Proleptic>
+			>
 			constexpr Ash::Test::Assertion date()
 			{
 				using Calendar = CALENDAR;
@@ -126,7 +134,11 @@ namespace Ash
 				return {};
 			}
 
-			template <typename CALENDAR>
+			template
+			<
+				typename CALENDAR,
+				typename = Ash::Type::IsClass<CALENDAR, Ash::Calendar::Generic::Proleptic>
+			>
 			constexpr Ash::Test::Assertion isYearOrdinalValid()
 			{
 				using Calendar = CALENDAR;
@@ -146,7 +158,11 @@ namespace Ash
 				return {};
 			}
 
-			template <typename CALENDAR>
+			template
+			<
+				typename CALENDAR,
+				typename = Ash::Type::IsClass<CALENDAR, Ash::Calendar::Generic::Proleptic>
+			>
 			constexpr Ash::Test::Assertion setYearOrdinal()
 			{
 				using Calendar = CALENDAR;
@@ -170,7 +186,11 @@ namespace Ash
 				return {};
 			}
 
-			template <typename CALENDAR>
+			template
+			<
+				typename CALENDAR,
+				typename = Ash::Type::IsClass<CALENDAR, Ash::Calendar::Generic::Proleptic>
+			>
 			constexpr Ash::Test::Assertion isYearMonthDayValid()
 			{
 				using Calendar = CALENDAR;
@@ -193,7 +213,11 @@ namespace Ash
 				return {};
 			}
 
-			template <typename CALENDAR>
+			template
+			<
+				typename CALENDAR,
+				typename = Ash::Type::IsClass<CALENDAR, Ash::Calendar::Generic::Proleptic>
+			>
 			constexpr Ash::Test::Assertion setYearMonthDay()
 			{
 				using Calendar = CALENDAR;
@@ -220,7 +244,11 @@ namespace Ash
 				return {};
 			}
 
-			template <typename CALENDAR>
+			template
+			<
+				typename CALENDAR,
+				typename = Ash::Type::IsClass<CALENDAR, Ash::Calendar::Generic::Proleptic>
+			>
 			constexpr Ash::Test::Assertion isYearWeekValid()
 			{
 				using Calendar = CALENDAR;
@@ -240,7 +268,11 @@ namespace Ash
 				return {};
 			}
 
-			template <typename CALENDAR>
+			template
+			<
+				typename CALENDAR,
+				typename = Ash::Type::IsClass<CALENDAR, Ash::Calendar::Generic::Proleptic>
+			>
 			constexpr Ash::Test::Assertion setYearWeekDay()
 			{
 				using Calendar = CALENDAR;
@@ -267,7 +299,11 @@ namespace Ash
 				return {};
 			}
 
-			template <typename CALENDAR>
+			template
+			<
+				typename CALENDAR,
+				typename = Ash::Type::IsClass<CALENDAR, Ash::Calendar::Generic::Proleptic>
+			>
 			constexpr Ash::Test::Assertion setYearMonthFirstWeekday()
 			{
 				using Calendar = CALENDAR;
@@ -296,7 +332,11 @@ namespace Ash
 				return {};
 			}
 
-			template <typename CALENDAR>
+			template
+			<
+				typename CALENDAR,
+				typename = Ash::Type::IsClass<CALENDAR, Ash::Calendar::Generic::Proleptic>
+			>
 			constexpr Ash::Test::Assertion setYearMonthLastWeekday()
 			{
 				using Calendar = CALENDAR;
@@ -325,7 +365,11 @@ namespace Ash
 				return {};
 			}
 
-			template <typename CALENDAR>
+			template
+			<
+				typename CALENDAR,
+				typename = Ash::Type::IsClass<CALENDAR, Ash::Calendar::Generic::Proleptic>
+			>
 			constexpr Ash::Test::Assertion getYear()
 			{
 				using Calendar = CALENDAR;
@@ -343,7 +387,11 @@ namespace Ash
 				return {};
 			}
 
-			template <typename CALENDAR>
+			template
+			<
+				typename CALENDAR,
+				typename = Ash::Type::IsClass<CALENDAR, Ash::Calendar::Generic::Proleptic>
+			>
 			constexpr Ash::Test::Assertion getMonth()
 			{
 				using Calendar = CALENDAR;
@@ -364,7 +412,11 @@ namespace Ash
 				return {};
 			}
 
-			template <typename CALENDAR>
+			template
+			<
+				typename CALENDAR,
+				typename = Ash::Type::IsClass<CALENDAR, Ash::Calendar::Generic::Proleptic>
+			>
 			constexpr Ash::Test::Assertion getDay()
 			{
 				using Calendar = CALENDAR;
@@ -387,7 +439,11 @@ namespace Ash
 				return {};
 			}
 
-			template <typename CALENDAR>
+			template
+			<
+				typename CALENDAR,
+				typename = Ash::Type::IsClass<CALENDAR, Ash::Calendar::Generic::Proleptic>
+			>
 			constexpr Ash::Test::Assertion getOrdinal()
 			{
 				using Calendar = CALENDAR;
@@ -408,7 +464,11 @@ namespace Ash
 				return {};
 			}
 
-			template <typename CALENDAR>
+			template
+			<
+				typename CALENDAR,
+				typename = Ash::Type::IsClass<CALENDAR, Ash::Calendar::Generic::Proleptic>
+			>
 			constexpr Ash::Test::Assertion getWeekday()
 			{
 				using Calendar = CALENDAR;
@@ -416,7 +476,7 @@ namespace Ash
 				using Year = typename Calendar::Year;
 
 				Date date = Year::epoch - Year::daysPerCycle;
-				Ash::Calendar::Weekday weekday = Ash::Calendar::Weekday(date);
+				Ash::Calendar::Weekday weekday = date.getWeekday();
 				
 				while (date < Year::epoch + Year::daysPerCycle)
 				{
@@ -428,7 +488,11 @@ namespace Ash
 				return {};
 			}
 
-			template <typename CALENDAR>
+			template
+			<
+				typename CALENDAR,
+				typename = Ash::Type::IsClass<CALENDAR, Ash::Calendar::Generic::Proleptic>
+			>
 			constexpr Ash::Test::Assertion getYearWeek()
 			{
 				using Calendar = CALENDAR;
