@@ -1,13 +1,14 @@
 #pragma once
 
-#include "ash.string.h"
+#include "ash.type.h"
+#include "ash.encoding.h"
 
 
 namespace Ash
 {
 	namespace Encoding
 	{
-		class Utf16le
+		class Utf16le : Ash::Generic::Encoding
 		{
 		public:
 			using Code = uint8_t;
@@ -99,7 +100,11 @@ namespace Ash
 				friend Utf16le;
 			};
 
-			template <typename ALLOCATION>
+			template
+			<
+				typename ALLOCATION,
+				typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>
+			>
 			static constexpr size_t decodeNext(const Memory::Value<ALLOCATION, Code> &value, size_t offset, Character &character)
 			{
 				Code code1 = 0;
@@ -129,7 +134,11 @@ namespace Ash
 				return 0;
 			}
 
-			template <typename ALLOCATION>
+			template
+			<
+				typename ALLOCATION,
+				typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>
+			>
 			static constexpr size_t decodePrevious(const Memory::Value<ALLOCATION, Code> &value, size_t offset, Character &character)
 			{
 				Code code1 = 0;
@@ -158,17 +167,6 @@ namespace Ash
 				character.clear();
 				return 0;
 			}
-
-			template <typename ALLOCATION>
-			using Value = Ash::String::Value<ALLOCATION, Utf16le>;
-
-			template <size_t CAPACITY>
-			using Buffer = Ash::String::Buffer<Utf16le, CAPACITY>;
-
-			using View = Ash::String::View<Utf16le>;
-
-			template <size_t MINIMUM_CAPACITY=32, size_t PERCENTAGE_INCREASE=50, size_t BLOCK_SIZE=32>
-			using String = Ash::String::Array<Utf16le, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
 
 		private:
 			Utf16le();

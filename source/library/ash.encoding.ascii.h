@@ -1,13 +1,14 @@
 #pragma once
 
-#include "ash.string.h"
+#include "ash.type.h"
+#include "ash.encoding.h"
 
 
 namespace Ash
 {
 	namespace Encoding
 	{
-		class Ascii
+		class Ascii : Ash::Generic::Encoding
 		{
 		public:		
 			using Code = char;
@@ -62,7 +63,11 @@ namespace Ash
 				friend Ascii;
 			};
 
-			template <typename ALLOCATION>
+			template
+			<
+				typename ALLOCATION,
+				typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>
+			>
 			static constexpr size_t decodeNext(const Memory::Value<ALLOCATION, Code> &value, size_t offset, Character &character)
 			{
 				Code code = 0;
@@ -78,7 +83,11 @@ namespace Ash
 				}
 			}
 
-			template <typename ALLOCATION>
+			template
+			<
+				typename ALLOCATION,
+				typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>
+			>
 			static constexpr size_t decodePrevious(const Memory::Value<ALLOCATION, Code> &value, size_t offset, Character &character)
 			{
 				Code code = 0;
@@ -93,17 +102,6 @@ namespace Ash
 					return 0;
 				}
 			}
-
-			template <typename ALLOCATION>
-			using Value = Ash::String::Value<ALLOCATION, Ascii>;
-
-			template <size_t CAPACITY>
-			using Buffer = Ash::String::Buffer<Ascii, CAPACITY>;
-
-			using View = Ash::String::View<Ascii>;
-
-			template <size_t MINIMUM_CAPACITY=32, size_t PERCENTAGE_INCREASE=50, size_t BLOCK_SIZE=32>
-			using String = Ash::String::Array<Ascii, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
 
 		private:
 			Ascii();
