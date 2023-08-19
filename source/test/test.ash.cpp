@@ -1,5 +1,6 @@
 #include <iostream>
 #include "ash.test.test.h"
+#include "ash.test.type.h"
 #include "ash.test.size.h"
 #include "ash.test.integer.h"
 #include "ash.test.real.h"
@@ -16,6 +17,7 @@ int main()
 	(
 		testSuite,
 		Ash::Test::testTest,
+		Ash::Test::testType,
 		Ash::Test::testSize,
 		Ash::Test::testInteger,
 		Ash::Test::testReal,
