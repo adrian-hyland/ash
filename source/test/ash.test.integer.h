@@ -1,3 +1,5 @@
+#pragma once
+
 #include "ash.test.h"
 #include "ash.integer.h"
 
@@ -10,14 +12,12 @@ namespace Ash
 		{
 			template
 			<
-				typename INTEGER,
-				INTEGER  START,
-				INTEGER  END,
-				typename = Ash::Type::IsInteger<INTEGER>
+				auto START,
+				auto END
 			>
 			constexpr Ash::Test::Assertion cycleIdentity()
 			{
-				using TestCycle = Ash::Integer::Cycle<INTEGER, START, END>;
+				using TestCycle = Ash::Integer::Cycle<START, END>;
 
 				if ((TestCycle::minValue <= 0) && (TestCycle::maxValue >= 0))
 				{
@@ -34,14 +34,12 @@ namespace Ash
 
 			template
 			<
-				typename INTEGER,
-				INTEGER  START,
-				INTEGER  END,
-				typename = Ash::Type::IsInteger<INTEGER>
+				auto START,
+				auto END
 			>
 			constexpr Ash::Test::Assertion cycleInverse()
 			{
-				using TestCycle = Ash::Integer::Cycle<INTEGER, START, END>;
+				using TestCycle = Ash::Integer::Cycle<START, END>;
 
 				for (TestCycle n : TestCycle::getRange())
 				{
@@ -53,64 +51,107 @@ namespace Ash
 
 			template
 			<
-				typename INTEGER,
-				INTEGER  START,
-				INTEGER  END,
-				typename = Ash::Type::IsInteger<INTEGER>
+				auto START,
+				auto END
 			>
 			constexpr Ash::Test::Assertion cycleRange()
 			{
-				using TestCycle = Ash::Integer::Cycle<INTEGER, START, END>;
+				using TestCycle = Ash::Integer::Cycle<START, END>;
 
-				int count = 0;
-				for (TestCycle start : TestCycle::getRange())
+				typename TestCycle::Size count = 0;
+				TestCycle expected = TestCycle::minValue;
+				TestCycle previous = expected - 1;
+				for (TestCycle n : TestCycle::getRange())
 				{
-					TestCycle expected = start;
-					TestCycle previous = start - 1;
-					for (TestCycle n : TestCycle::getRange(start))
-					{
-						TEST_IS_EQ(n, expected);
-						TEST_IS_EQ(TestCycle(n - 1), previous);
-						expected++;
-						previous = n;
-						count++;
-					}
+					TEST_IS_EQ(n, expected);
+					TEST_IS_EQ(TestCycle(n - 1), previous);
+					expected++;
+					previous = n;
+					count++;
 				}
-				TEST_IS_EQ(count, TestCycle::size * TestCycle::size);
+				TEST_IS_EQ(count, TestCycle::size);
 
 				count = 0;
-				for (TestCycle end : TestCycle::getRangeReversed())
+				expected = TestCycle::minValue - 1;
+				previous = expected - 1;
+				for (TestCycle n : TestCycle::getRange(TestCycle::minValue - 1))
 				{
-					TestCycle expected = end;
-					TestCycle previous = end + 1;
-					for (TestCycle n : TestCycle::getRangeReversed(end))
-					{
-						TEST_IS_EQ(n, expected);
-						TEST_IS_EQ(TestCycle(n + 1), previous);
-						expected--;
-						previous = n;
-						count++;
-					}
+					TEST_IS_EQ(n, expected);
+					TEST_IS_EQ(TestCycle(n - 1), previous);
+					expected++;
+					previous = n;
+					count++;
 				}
-				TEST_IS_EQ(count, TestCycle::size * TestCycle::size);
+				TEST_IS_EQ(count, TestCycle::size);
+
+				count = 0;
+				expected = TestCycle::minValue + 1;
+				previous = expected - 1;
+				for (TestCycle n : TestCycle::getRange(TestCycle::minValue + 1))
+				{
+					TEST_IS_EQ(n, expected);
+					TEST_IS_EQ(TestCycle(n - 1), previous);
+					expected++;
+					previous = n;
+					count++;
+				}
+				TEST_IS_EQ(count, TestCycle::size);
+
+
+				count = 0;
+				expected = TestCycle::maxValue;
+				previous = expected + 1;
+				for (TestCycle n : TestCycle::getRangeReversed())
+				{
+					TEST_IS_EQ(n, expected);
+					TEST_IS_EQ(TestCycle(n + 1), previous);
+					expected--;
+					previous = n;
+					count++;
+				}
+				TEST_IS_EQ(count, TestCycle::size);
+
+				count = 0;
+				expected = TestCycle::maxValue - 1;
+				previous = expected + 1;
+				for (TestCycle n : TestCycle::getRangeReversed(TestCycle::maxValue - 1))
+				{
+					TEST_IS_EQ(n, expected);
+					TEST_IS_EQ(TestCycle(n + 1), previous);
+					expected--;
+					previous = n;
+					count++;
+				}
+				TEST_IS_EQ(count, TestCycle::size);
+
+				count = 0;
+				expected = TestCycle::maxValue + 1;
+				previous = expected + 1;
+				for (TestCycle n : TestCycle::getRangeReversed(TestCycle::maxValue + 1))
+				{
+					TEST_IS_EQ(n, expected);
+					TEST_IS_EQ(TestCycle(n + 1), previous);
+					expected--;
+					previous = n;
+					count++;
+				}
+				TEST_IS_EQ(count, TestCycle::size);
 
 				return {};
 			}
 
 			template
 			<
-				typename INTEGER,
-				INTEGER  START,
-				INTEGER  END,
-				typename = Ash::Type::IsInteger<INTEGER>
+				auto START,
+				auto END
 			>
 			constexpr Ash::Test::Assertion cycle()
 			{
-				TEST_GENERIC(cycleIdentity, INTEGER, START, END);
+				TEST_GENERIC(cycleIdentity, START, END);
 
-				TEST_GENERIC(cycleInverse, INTEGER, START, END);
+				TEST_GENERIC(cycleInverse, START, END);
 
-				TEST_GENERIC(cycleRange, INTEGER, START, END);
+				TEST_GENERIC(cycleRange, START, END);
 
 				return {};
 			}
@@ -338,13 +379,35 @@ namespace Ash
 		TEST_UNIT
 		(
 			testInteger,
-			TEST_CASE_GENERIC(Ash::Test::Integer::cycle, int, 0, 128),
-			TEST_CASE_GENERIC(Ash::Test::Integer::cycle, int, 113, 409),
-			TEST_CASE_GENERIC(Ash::Test::Integer::cycle, int, 661, 809),
-			TEST_CASE_GENERIC(Ash::Test::Integer::cycle, int, -128, 128),
-			TEST_CASE_GENERIC(Ash::Test::Integer::cycle, int, -128, 0),
-			TEST_CASE_GENERIC(Ash::Test::Integer::cycle, int, -409, -113),
-			TEST_CASE_GENERIC(Ash::Test::Integer::cycle, int, -809, -661),
+
+			TEST_CASE_GENERIC(Ash::Test::Integer::cycle, std::numeric_limits<uint8_t>::min(), std::numeric_limits<uint8_t>::max()),
+			TEST_CASE_GENERIC(Ash::Test::Integer::cycle, std::numeric_limits<uint8_t>::min(), std::numeric_limits<uint8_t>::max() - 1),
+			TEST_CASE_GENERIC(Ash::Test::Integer::cycle, std::numeric_limits<uint8_t>::min() + 1, std::numeric_limits<uint8_t>::max()),
+			TEST_CASE_GENERIC(Ash::Test::Integer::cycle, std::numeric_limits<uint16_t>::min(), std::numeric_limits<uint16_t>::max()),
+			TEST_CASE_GENERIC(Ash::Test::Integer::cycle, std::numeric_limits<uint16_t>::min(), std::numeric_limits<uint16_t>::max() - 1),
+			TEST_CASE_GENERIC(Ash::Test::Integer::cycle, std::numeric_limits<uint16_t>::min() + 1, std::numeric_limits<uint16_t>::max()),
+			TEST_CASE_GENERIC(Ash::Test::Integer::cycle, std::numeric_limits<uint32_t>::min(), std::numeric_limits<uint32_t>::max()),
+			TEST_CASE_GENERIC(Ash::Test::Integer::cycle, std::numeric_limits<uint32_t>::min(), std::numeric_limits<uint32_t>::max() - 1),
+			TEST_CASE_GENERIC(Ash::Test::Integer::cycle, std::numeric_limits<uint32_t>::min() + 1, std::numeric_limits<uint32_t>::max()),
+
+			TEST_CASE_GENERIC(Ash::Test::Integer::cycle, std::numeric_limits<int8_t>::min(), std::numeric_limits<int8_t>::max()),
+			TEST_CASE_GENERIC(Ash::Test::Integer::cycle, std::numeric_limits<int8_t>::min(), std::numeric_limits<int8_t>::max() - 1),
+			TEST_CASE_GENERIC(Ash::Test::Integer::cycle, std::numeric_limits<int8_t>::min() + 1, std::numeric_limits<int8_t>::max()),
+			TEST_CASE_GENERIC(Ash::Test::Integer::cycle, std::numeric_limits<int16_t>::min(), std::numeric_limits<int16_t>::max()),
+			TEST_CASE_GENERIC(Ash::Test::Integer::cycle, std::numeric_limits<int16_t>::min(), std::numeric_limits<int16_t>::max() - 1),
+			TEST_CASE_GENERIC(Ash::Test::Integer::cycle, std::numeric_limits<int16_t>::min() + 1, std::numeric_limits<int16_t>::max()),
+			TEST_CASE_GENERIC(Ash::Test::Integer::cycle, std::numeric_limits<int32_t>::min(), std::numeric_limits<int32_t>::max()),
+			TEST_CASE_GENERIC(Ash::Test::Integer::cycle, std::numeric_limits<int32_t>::min(), std::numeric_limits<int32_t>::max() - 1),
+			TEST_CASE_GENERIC(Ash::Test::Integer::cycle, std::numeric_limits<int32_t>::min() + 1, std::numeric_limits<int32_t>::max()),
+
+			TEST_CASE_GENERIC(Ash::Test::Integer::cycle, 0, 128),
+			TEST_CASE_GENERIC(Ash::Test::Integer::cycle, 113, 409),
+			TEST_CASE_GENERIC(Ash::Test::Integer::cycle, 661, 809),
+			TEST_CASE_GENERIC(Ash::Test::Integer::cycle, -128, 128),
+			TEST_CASE_GENERIC(Ash::Test::Integer::cycle, -128, 0),
+			TEST_CASE_GENERIC(Ash::Test::Integer::cycle, -409, -113),
+			TEST_CASE_GENERIC(Ash::Test::Integer::cycle, -809, -661),
+
 			TEST_CASE_GENERIC(Ash::Test::Integer::bit, uint8_t),
 			TEST_CASE_GENERIC(Ash::Test::Integer::bit, uint16_t),
 			TEST_CASE_GENERIC(Ash::Test::Integer::bit, uint32_t),
