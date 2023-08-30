@@ -237,10 +237,6 @@ namespace Ash
 
 		#define TEST_CASE_GENERIC(name, ...) Ash::Test::Case(#name "<" #__VA_ARGS__ ">", name<__VA_ARGS__>)
 
-		#if STD >= 17
-		#define TEST_UNIT(name, ...) constexpr Ash::Test::Unit name( [](Ash::Test::Capture capture) { return Ash::Test::Unit::run({ __VA_ARGS__ }, capture); } )
-		#else
-		#define TEST_UNIT(name, ...) static Ash::Test::Unit name( [](Ash::Test::Capture capture) { return Ash::Test::Unit::run({ __VA_ARGS__ }, capture); } )
-		#endif
+		#define TEST_UNIT(name, ...) Ash::Test::Unit name( [](Ash::Test::Capture capture) { return Ash::Test::Unit::run({ __VA_ARGS__ }, capture); } )
 	}
 }
