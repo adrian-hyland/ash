@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <limits>
 #include "ash.type.h"
+#include "ash.integer.value.h"
 
 
 namespace Ash
@@ -16,42 +17,37 @@ namespace Ash
 
 		template
 		<
-			typename INTEGER,
-			INTEGER  START,
-			INTEGER  END = 0,
-			typename = Ash::Type::IsInteger<INTEGER>
+			auto START,
+			auto END
 		>
 		class Cycle : Ash::Integer::Generic::Cycle
 		{
 		public:
-			using Type = INTEGER;
+			using Type = Ash::Integer::Value<START, END>;
 
-			static constexpr Type minValue = std::min(START, END);
+			using Size = Ash::Integer::Value<0, ((START > END) ? size_t(START) - size_t(END) : size_t(END) - size_t(START)) + 1>;
 
-			static constexpr Type maxValue = std::max(START, END);
+			using Value = Ash::Type::Option<int, intmax_t, sizeof(Type) < sizeof(int)>;
 
-			static_assert(Type(maxValue - minValue) <= std::numeric_limits<Type>::max() - 1, "Size of the integer cycle is too large");
+			static constexpr Value minValue = (START > END) ? END : START;
 
-			static constexpr Type size = maxValue - minValue + 1;
+			static constexpr Value maxValue = (START > END) ? START : END;
+
+			static constexpr Size size = maxValue - minValue + 1;
 
 			constexpr Cycle() : m_Value(minValue) {}
 
 			constexpr Cycle(const Cycle &cycle) : m_Value(cycle.m_Value) {}
 
-			template
-			<
-				typename VALUE,
-				typename = Ash::Type::IsInteger<VALUE>
-			>
-			constexpr Cycle(VALUE value) : m_Value(reduce(value)) {}
+			constexpr Cycle(Value value) : m_Value(reduce(value)) {}
 
-			constexpr operator Type () const { return m_Value; }
+			constexpr operator Value () const { return m_Value; }
 
 			constexpr Cycle inverse() const { return identity() - m_Value; }
 
-			constexpr Cycle &operator ++ () { m_Value = (m_Value < maxValue) ? m_Value + 1 : minValue; return *this; }
+			constexpr Cycle &operator ++ () { m_Value = (Value(m_Value) < maxValue) ? m_Value + 1 : minValue; return *this; }
 
-			constexpr Cycle &operator -- () { m_Value = (m_Value > minValue) ? m_Value - 1 : maxValue; return *this; }
+			constexpr Cycle &operator -- () { m_Value = (Value(m_Value) > minValue) ? m_Value - 1 : maxValue; return *this; }
 
 			constexpr Cycle operator ++ (int) { Cycle result = *this; ++(*this); return result; }
 
@@ -59,7 +55,7 @@ namespace Ash
 
 			static constexpr Cycle identity() { return reduce(size); }
 
-			using Iterate = Type (*)(Type);
+			using Iterate = Value (*)(Value);
 
 			template
 			<
@@ -101,31 +97,26 @@ namespace Ash
 			>
 			static constexpr Range<ITERATE> getRange(Cycle startValue, Cycle endValue) { return Range<ITERATE>(startValue, ITERATE(endValue)); }
 
-			static constexpr Type forward(Type value) { return value + 1; };
+			static constexpr Value forward(Value value) { return value + 1; };
 
 			static constexpr Range<forward> getRange(Cycle startValue = minValue) { return getRange<forward>(startValue); }
 
 			static constexpr Range<forward> getRange(Cycle startValue, Cycle endValue) { return getRange<forward>(startValue, endValue); }
 
-			static constexpr Type backward(Type value) { return value - 1; };
+			static constexpr Value backward(Value value) { return value - 1; };
 
 			static constexpr Range<backward> getRangeReversed(Cycle startValue = maxValue) { return getRange<backward>(startValue); }
 
 			static constexpr Range<backward> getRangeReversed(Cycle startValue, Cycle endValue) { return getRange<backward>(startValue, endValue); }
 
 		protected:
-			template
-			<
-				typename VALUE,
-				typename = Ash::Type::IsInteger<VALUE>
-			>
-			static constexpr Type reduce(VALUE value)
+			static constexpr Type reduce(Value value)
 			{
-				if (value < minValue)
+				if (value < Value(minValue))
 				{
 					return Type(maxValue - (maxValue - value) % size);
 				}
-				else if (value > maxValue)
+				else if (value > Value(maxValue))
 				{
 					return Type(minValue + (value - minValue) % size);
 				}
