@@ -148,10 +148,10 @@ namespace Ash
 		using GregorianCycle = YearCycle<JulianCycle, 100, 4>;
 
 
-		class Month : public Ash::Integer::Cycle<uint8_t, 1, 12>
+		class Month : public Ash::Integer::Cycle<1, 12>
 		{
 		public:
-			using Cycle = Ash::Integer::Cycle<uint8_t, 1, 12>;
+			using Cycle = Ash::Integer::Cycle<1, 12>;
 
 			static constexpr Type January   = 1;
 			static constexpr Type February  = 2;
@@ -244,10 +244,10 @@ namespace Ash
 		};
 
 
-		class Weekday : public Ash::Integer::Cycle<uint8_t, 1, 7>
+		class Weekday : public Ash::Integer::Cycle<1, 7>
 		{
 		public:
-			using Cycle = Ash::Integer::Cycle<uint8_t, 1, 7>;
+			using Cycle = Ash::Integer::Cycle<1, 7>;
 
 			static constexpr Type Monday    = 1;
 			static constexpr Type Tuesday   = 2;

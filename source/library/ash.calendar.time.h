@@ -11,10 +11,10 @@ namespace Ash
 		using TimeDuration = int32_t;
 
 
-		class Hour : public Ash::Integer::Cycle<uint8_t, 0, 23>
+		class Hour : public Ash::Integer::Cycle<0, 23>
 		{
 		public:
-			using Cycle = Ash::Integer::Cycle<uint8_t, 0, 23>;
+			using Cycle = Ash::Integer::Cycle<0, 23>;
 
 			static constexpr Type perDay = Cycle::size;
 
@@ -31,10 +31,10 @@ namespace Ash
 		};
 
 
-		class Minute : public Ash::Integer::Cycle<uint8_t, 0, 59>
+		class Minute : public Ash::Integer::Cycle<0, 59>
 		{
 		public:
-			using Cycle = Ash::Integer::Cycle<uint8_t, 0, 59>;
+			using Cycle = Ash::Integer::Cycle<0, 59>;
 
 			static constexpr Type perHour = Cycle::size;
 
@@ -51,10 +51,10 @@ namespace Ash
 		};
 
 
-		class Second : public Ash::Integer::Cycle<uint8_t, 0, 59>
+		class Second : public Ash::Integer::Cycle<0, 59>
 		{
 		public:
-			using Cycle = Ash::Integer::Cycle<uint8_t, 0, 59>;
+			using Cycle = Ash::Integer::Cycle<0, 59>;
 
 			static constexpr Type perMinute = Cycle::size;
 
@@ -88,14 +88,9 @@ namespace Ash
 
 			constexpr Time() : m_Hour(), m_Minute(), m_Second() {}
 
-			template
-			<
-				typename VALUE,
-				typename = Ash::Type::IsInteger<VALUE>
-			>
-			constexpr Time(VALUE duration) : Time()
+			constexpr Time(TimeDuration duration) : Time()
 			{
-				set<VALUE>(duration);
+				set(duration);
 			}
 
 			constexpr Time(Hour hour, Minute minute, Second second) : m_Hour(hour), m_Minute(minute), m_Second(second) {}
@@ -121,12 +116,7 @@ namespace Ash
 			constexpr Time operator -- (int) { Time result = *this; --(*this); return result; }
 
 		protected:
-			template
-			<
-				typename VALUE,
-				typename = Ash::Type::IsInteger<VALUE>
-			>
-			void set(Ash::Integer::Cycle<VALUE, day - 1> value)
+			constexpr void set(Ash::Integer::Cycle<0, day - 1> value)
 			{
 				m_Hour = value / hour;
 				m_Minute = value / minute;
