@@ -626,6 +626,11 @@ namespace Ash
 				return (offset < Allocation::getLength()) ? &(*this)[offset] : nullptr;
 			}
 
+			constexpr const Type &getOr(size_t offset, const Type &defaultValue) const
+			{
+				return (offset < Allocation::getLength()) ? (*this)[offset] : defaultValue;
+			}
+
 			constexpr bool get(size_t offset, Type &value) const
 			{
 				if (offset < Allocation::getLength())
