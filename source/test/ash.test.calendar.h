@@ -9,7 +9,7 @@ namespace Ash
 {
 	namespace Test
 	{
-		TEST_UNIT
+		constexpr TEST_UNIT
 		(
 			testCalendar,
 			Ash::Test::testDate,

@@ -7,7 +7,7 @@ namespace Ash
 {
 	namespace Test
 	{
-		TEST_UNIT
+		constexpr TEST_UNIT
 		(
 			testMemory,
 			Ash::Test::testMemoryAllocation
