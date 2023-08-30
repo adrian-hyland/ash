@@ -117,7 +117,7 @@ namespace Ash
 				TEST_IS_TRUE(Ash::Type::isUnsignedInteger<bool>());
 				TEST_IS_TRUE(Ash::Type::isUnsignedInteger<char16_t>());
 				TEST_IS_TRUE(Ash::Type::isUnsignedInteger<char32_t>());
-				TEST_IS_TRUE(Ash::Type::isUnsignedInteger<wchar_t>());
+				TEST_IS_EQ(Ash::Type::isUnsignedInteger<wchar_t>(), sizeof(wchar_t) == 2);
 				TEST_IS_TRUE(Ash::Type::isUnsignedInteger<unsigned char>());
 				TEST_IS_TRUE(Ash::Type::isUnsignedInteger<unsigned short>());
 				TEST_IS_TRUE(Ash::Type::isUnsignedInteger<unsigned long>());
