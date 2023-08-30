@@ -154,5 +154,41 @@ namespace Ash
 			typename TYPE
 		>
 		using IsNotConstant = Ash::Type::Requirement::Check<TYPE, Ash::Type::Requirement::IsNotConstant>;
+
+		template
+		<
+			typename TYPE_OPTION_TRUE,
+			typename TYPE_OPTION_FALSE,
+			bool     OPTION
+		>
+		struct OptionType {};
+
+		template
+		<
+			typename TYPE_OPTION_TRUE,
+			typename TYPE_OPTION_FALSE
+		>
+		struct OptionType<TYPE_OPTION_TRUE, TYPE_OPTION_FALSE, true>
+		{
+			using Type = TYPE_OPTION_TRUE;
+		};
+
+		template
+		<
+			typename TYPE_OPTION_TRUE,
+			typename TYPE_OPTION_FALSE
+		>
+		struct OptionType<TYPE_OPTION_TRUE, TYPE_OPTION_FALSE, false>
+		{
+			using Type = TYPE_OPTION_FALSE;
+		};
+
+		template
+		<
+			typename TYPE_OPTION_TRUE,
+			typename TYPE_OPTION_FALSE,
+			bool     OPTION
+		>
+		using Option = typename OptionType<TYPE_OPTION_TRUE, TYPE_OPTION_FALSE, OPTION>::Type;
 	}
 }
