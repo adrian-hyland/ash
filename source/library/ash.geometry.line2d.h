@@ -43,28 +43,14 @@ namespace Ash
 
 			constexpr Point getPoint(Real distance) const { return startPoint + Vector(*this) * distance; }
 
-			constexpr bool intersects(Point point, Vector pointDirection, Point &intersection, Real &pointDistance) const
+			constexpr bool intersects(Point point, Vector pointDirection, Real &pointDistance) const
 			{
-				if (!Point::intersects(startPoint, *this, point, pointDirection, 0, 1, &pointDistance))
-				{
-					return false;
-				}
-				
-				intersection = point + pointDirection * pointDistance;
-
-				return true;
+				return Point::intersects(startPoint, *this, point, pointDirection, 0, 1, &pointDistance);
 			}
 
-			constexpr bool collides(Vector lineDirection, Point point, Vector pointDirection, Real maxPointDistance, Point &collision, Real &lineDistance, Real &pointDistance) const
+			constexpr bool collides(Vector lineDirection, Point point, Vector pointDirection, Real maxPointDistance, Real &lineDistance, Real &pointDistance) const
 			{
-				if (!Point::intersects(startPoint, *this, point, pointDirection - lineDirection, 0, 1, 0, maxPointDistance, &lineDistance, &pointDistance))
-				{
-					return false;
-				}
-
-				collision = point + pointDirection * pointDistance;
-
-				return true;
+				return Point::intersects(startPoint, *this, point, pointDirection - lineDirection, 0, 1, 0, maxPointDistance, &lineDistance, &pointDistance);
 			}
 
 			constexpr bool overlaps(Line2D line) const

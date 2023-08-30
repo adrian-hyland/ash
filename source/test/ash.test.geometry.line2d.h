@@ -198,111 +198,98 @@ namespace Ash
 					Line line;
 					Point point;
 					Vector direction;
-					Point intersection;
 					Real distance;
 
 					line = Line(Point(2, 2), Point(10, 10));
 					point = Point(line.endPoint.x, line.startPoint.y);
 					direction = Vector(-1, 1);
-					TEST_IS_TRUE(line.intersects(point, direction, intersection, distance));
-					TEST_IS_TRUE(intersection.isEqual(Point(6, 6)));
+					TEST_IS_TRUE(line.intersects(point, direction, distance));
 					TEST_IS_TRUE(distance.isEqual(4));
 
 					direction = Vector(-1, 0);
-					TEST_IS_TRUE(line.intersects(point, direction, intersection, distance));
-					TEST_IS_TRUE(intersection.isEqual(Point(2, 2)));
+					TEST_IS_TRUE(line.intersects(point, direction, distance));
 					TEST_IS_TRUE(distance.isEqual(8));
 
 					direction = Vector(0, 1);
-					TEST_IS_TRUE(line.intersects(point, direction, intersection, distance));
-					TEST_IS_TRUE(intersection.isEqual(Point(10, 10)));
+					TEST_IS_TRUE(line.intersects(point, direction, distance));
 					TEST_IS_TRUE(distance.isEqual(8));
 
 					point.x = point.x + Real(1, -Real::fractionSize + 3);
 					point.y = point.y - Real(1, -Real::fractionSize);
 					direction = Vector(-1, 0);
-					TEST_IS_FALSE(line.intersects(point, direction, intersection, distance));
+					TEST_IS_FALSE(line.intersects(point, direction, distance));
 
 					direction = Vector(0, 1);
-					TEST_IS_FALSE(line.intersects(point, direction, intersection, distance));
+					TEST_IS_FALSE(line.intersects(point, direction, distance));
 
 
 					line = Line(Point(-2, 2), Point(-10, 10));
 					point = Point(line.endPoint.x, line.startPoint.y);
 					direction = Vector(1, 1);
-					TEST_IS_TRUE(line.intersects(point, direction, intersection, distance));
-					TEST_IS_TRUE(intersection.isEqual(Point(-6, 6)));
+					TEST_IS_TRUE(line.intersects(point, direction, distance));
 					TEST_IS_TRUE(distance.isEqual(4));
 
 					direction = Vector(1, 0);
-					TEST_IS_TRUE(line.intersects(point, direction, intersection, distance));
-					TEST_IS_TRUE(intersection.isEqual(Point(-2, 2)));
+					TEST_IS_TRUE(line.intersects(point, direction, distance));
 					TEST_IS_TRUE(distance.isEqual(8));
 
 					direction = Vector(0, 1);
-					TEST_IS_TRUE(line.intersects(point, direction, intersection, distance));
-					TEST_IS_TRUE(intersection.isEqual(Point(-10, 10)));
+					TEST_IS_TRUE(line.intersects(point, direction, distance));
 					TEST_IS_TRUE(distance.isEqual(8));
 
 					point.x = point.x - Real(1, -Real::fractionSize + 3);
 					point.y = point.y - Real(1, -Real::fractionSize);
 					direction = Vector(-1, 0);
-					TEST_IS_FALSE(line.intersects(point, direction, intersection, distance));
+					TEST_IS_FALSE(line.intersects(point, direction, distance));
 
 					direction = Vector(0, 1);
-					TEST_IS_FALSE(line.intersects(point, direction, intersection, distance));
+					TEST_IS_FALSE(line.intersects(point, direction, distance));
 
 
 					line = Line(Point(-2, -2), Point(-10, -10));
 					point = Point(line.endPoint.x, line.startPoint.y);
 					direction = Vector(1, -1);
-					TEST_IS_TRUE(line.intersects(point, direction, intersection, distance));
-					TEST_IS_TRUE(intersection.isEqual(Point(-6, -6)));
+					TEST_IS_TRUE(line.intersects(point, direction, distance));
 					TEST_IS_TRUE(distance.isEqual(4));
 
 					direction = Vector(1, 0);
-					TEST_IS_TRUE(line.intersects(point, direction, intersection, distance));
-					TEST_IS_TRUE(intersection.isEqual(Point(-2, -2)));
+					TEST_IS_TRUE(line.intersects(point, direction, distance));
 					TEST_IS_TRUE(distance.isEqual(8));
 
 					direction = Vector(0, -1);
-					TEST_IS_TRUE(line.intersects(point, direction, intersection, distance));
-					TEST_IS_TRUE(intersection.isEqual(Point(-10, -10)));
+					TEST_IS_TRUE(line.intersects(point, direction, distance));
 					TEST_IS_TRUE(distance.isEqual(8));
 
 					point.x = point.x - Real(1, -Real::fractionSize + 3);
 					point.y = point.y + Real(1, -Real::fractionSize);
 					direction = Vector(1, 0);
-					TEST_IS_FALSE(line.intersects(point, direction, intersection, distance));
+					TEST_IS_FALSE(line.intersects(point, direction, distance));
 
 					direction = Vector(0, -1);
-					TEST_IS_FALSE(line.intersects(point, direction, intersection, distance));
+					TEST_IS_FALSE(line.intersects(point, direction, distance));
 
 
 					line = Line(Point(2, -2), Point(10, -10));
 					point = Point(line.endPoint.x, line.startPoint.y);
 					direction = Vector(-1, -1);
-					TEST_IS_TRUE(line.intersects(point, direction, intersection, distance));
-					TEST_IS_TRUE(intersection.isEqual(Point(6, -6)));
+					TEST_IS_TRUE(line.intersects(point, direction, distance));
 					TEST_IS_TRUE(distance.isEqual(4));
 
 					direction = Vector(-1, 0);
-					TEST_IS_TRUE(line.intersects(point, direction, intersection, distance));
-					TEST_IS_TRUE(intersection.isEqual(Point(2, -2)));
+					TEST_IS_TRUE(line.intersects(point, direction, distance));
 					TEST_IS_TRUE(distance.isEqual(8));
 
 					direction = Vector(0, -1);
-					TEST_IS_TRUE(line.intersects(point, direction, intersection, distance));
-					TEST_IS_TRUE(intersection.isEqual(Point(10, -10)));
+					TEST_IS_TRUE(line.intersects(point, direction, distance));
 					TEST_IS_TRUE(distance.isEqual(8));
 
 					point.x = point.x + Real(1, -Real::fractionSize + 3);
 					point.y = point.y + Real(1, -Real::fractionSize);
 					direction = Vector(-1, 0);
-					TEST_IS_FALSE(line.intersects(point, direction, intersection, distance));
+					TEST_IS_FALSE(line.intersects(point, direction, distance));
 
 					direction = Vector(0, -1);
-					TEST_IS_FALSE(line.intersects(point, direction, intersection, distance));
+					TEST_IS_FALSE(line.intersects(point, direction, distance));
 
 					return {};
 				}
@@ -323,7 +310,6 @@ namespace Ash
 					Point point;
 					Vector lineDirection;
 					Vector pointDirection;
-					Point collisionPoint;
 					Real lineDistance;
 					Real pointDistance;
 
@@ -332,31 +318,28 @@ namespace Ash
 					pointDirection = Vector(-1, -3);
 					lineDirection = Vector(3, 1);
 
-					TEST_IS_TRUE(line.collides(lineDirection, point, pointDirection, 1, collisionPoint, lineDistance, pointDistance));
-					TEST_IS_TRUE(collisionPoint.isEqual(Point(4, 2)));
+					TEST_IS_TRUE(line.collides(lineDirection, point, pointDirection, 1, lineDistance, pointDistance));
 					TEST_IS_TRUE(lineDistance.isEqual(0.5));
 					TEST_IS_TRUE(pointDistance.isEqual(1));
 
 					line = Line(Point(1, 1), Point(3, -1));
-					TEST_IS_TRUE(line.collides(lineDirection, point, pointDirection, 1, collisionPoint, lineDistance, pointDistance));
-					TEST_IS_TRUE(collisionPoint.isEqual(Point(4, 2)));
+					TEST_IS_TRUE(line.collides(lineDirection, point, pointDirection, 1, lineDistance, pointDistance));
 					TEST_IS_TRUE(lineDistance.isEqual(0));
 					TEST_IS_TRUE(pointDistance.isEqual(1));
 
 					line = Line(Point(-1, 3), Point(1, 1));
-					TEST_IS_TRUE(line.collides(lineDirection, point, pointDirection, 1, collisionPoint, lineDistance, pointDistance));
-					TEST_IS_TRUE(collisionPoint.isEqual(Point(4, 2)));
+					TEST_IS_TRUE(line.collides(lineDirection, point, pointDirection, 1, lineDistance, pointDistance));
 					TEST_IS_TRUE(lineDistance.isEqual(1));
 					TEST_IS_TRUE(pointDistance.isEqual(1));
 
 					line = Line(Point(1, 1), Point(3, -1));
-					TEST_IS_FALSE(line.collides(lineDirection, point, pointDirection, 1 - Real(1, -Real::fractionSize), collisionPoint, lineDistance, pointDistance));
+					TEST_IS_FALSE(line.collides(lineDirection, point, pointDirection, 1 - Real(1, -Real::fractionSize), lineDistance, pointDistance));
 
 					line = Line(Point(-1, 3), Point(1, 1)) + Vector(-Real(1, -Real::fractionSize), Real(1, -Real::fractionSize)) * 3;
-					TEST_IS_FALSE(line.collides(lineDirection, point, pointDirection, 2, collisionPoint, lineDistance, pointDistance));
+					TEST_IS_FALSE(line.collides(lineDirection, point, pointDirection, 2, lineDistance, pointDistance));
 
 					line = Line(Point(1, 1), Point(3, -1)) + Vector(Real(1, -Real::fractionSize), -Real(1, -Real::fractionSize)) * 3;
-					TEST_IS_FALSE(line.collides(lineDirection, point, pointDirection, 2, collisionPoint, lineDistance, pointDistance));
+					TEST_IS_FALSE(line.collides(lineDirection, point, pointDirection, 2, lineDistance, pointDistance));
 
 					return {};
 				}
@@ -404,7 +387,6 @@ namespace Ash
 					using Line = Ash::Geometry::Line2D<Real>;
 
 					Line line = Line::invalid;
-					Point point;
 					Real lineDistance;
 					Real pointDistance;
 
@@ -414,8 +396,8 @@ namespace Ash
 					TEST_IS_FALSE(line.getPoint(0).isValid());
 					TEST_IS_FALSE((line + Vector(1, 1)).isValid());
 					TEST_IS_FALSE((line - Vector(1, 1)).isValid());
-					TEST_IS_FALSE(line.intersects(Point(0,0), Vector(1, 1), point, pointDistance));
-					TEST_IS_FALSE(line.collides(Vector(1, 0), Point(0, 0), Vector(0, 1), Real::infinity, point, lineDistance, pointDistance));
+					TEST_IS_FALSE(line.intersects(Point(0,0), Vector(1, 1), pointDistance));
+					TEST_IS_FALSE(line.collides(Vector(1, 0), Point(0, 0), Vector(0, 1), Real::infinity, lineDistance, pointDistance));
 					TEST_IS_FALSE(line.overlaps(line));
 
 					return {};
