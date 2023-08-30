@@ -54,6 +54,20 @@ namespace Ash
 
 			template
 			<
+				typename LEFT_TYPE,
+				typename RIGHT_TYPE
+			>
+			using IsSame = std::is_same<LEFT_TYPE, RIGHT_TYPE>;
+
+			template
+			<
+				typename LEFT_TYPE,
+				typename RIGHT_TYPE
+			>
+			using IsNotSame = std::integral_constant<bool, !std::is_same<LEFT_TYPE, RIGHT_TYPE>::value>;
+
+			template
+			<
 				typename                         TYPE,
 				template <typename ...> typename REQUIREMENT,
 				typename                         ...PARAMS
@@ -75,6 +89,20 @@ namespace Ash
 			typename BASE_CLASS = TYPE
 		>
 		constexpr bool isClass() { return Ash::Type::Requirement::check<TYPE, Ash::Type::Requirement::IsClass, BASE_CLASS>(); }
+
+		template
+		<
+			typename LEFT_TYPE,
+			typename RIGHT_TYPE
+		>
+		constexpr bool isSame() { return Ash::Type::Requirement::check<LEFT_TYPE, Ash::Type::Requirement::IsSame, RIGHT_TYPE>(); }
+
+		template
+		<
+			typename LEFT_TYPE,
+			typename RIGHT_TYPE
+		>
+		constexpr bool isNotSame() { return Ash::Type::Requirement::check<LEFT_TYPE, Ash::Type::Requirement::IsNotSame, RIGHT_TYPE>(); }
 
 		template
 		<
@@ -118,6 +146,20 @@ namespace Ash
 			typename BASE_CLASS = TYPE
 		>
 		using IsClass = Ash::Type::Requirement::Check<TYPE, Ash::Type::Requirement::IsClass, BASE_CLASS>;
+
+		template
+		<
+			typename LEFT_TYPE,
+			typename RIGHT_TYPE
+		>
+		using IsSame = Ash::Type::Requirement::Check<LEFT_TYPE, Ash::Type::Requirement::IsSame, RIGHT_TYPE>;
+
+		template
+		<
+			typename LEFT_TYPE,
+			typename RIGHT_TYPE
+		>
+		using IsNotSame = Ash::Type::Requirement::Check<LEFT_TYPE, Ash::Type::Requirement::IsNotSame, RIGHT_TYPE>;
 
 		template
 		<
