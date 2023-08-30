@@ -13,11 +13,11 @@ namespace Ash
 			typename REAL,
 			typename = Ash::Type::IsClass<REAL, Ash::Generic::Real>
 		>
-		struct Point2D : Coordinate2D<REAL>
+		struct Point2D : Ash::Geometry::Coordinate2D<REAL>
 		{
 			using Real = REAL;
 
-			using Coordinate = Coordinate2D<Real>;
+			using Coordinate = Ash::Geometry::Coordinate2D<Real>;
 
 			using Vector = Vector2D<Real>;
 
