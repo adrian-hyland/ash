@@ -11,10 +11,12 @@ namespace Ash
 	{
 		template
 		<
-			auto MIN_VALUE,
-			auto MAX_VALUE,
-			auto SCALAR = 1,
-			auto IS_SIGNED = (MIN_VALUE < 0) || (MAX_VALUE < 0)
+			auto     MIN_VALUE,
+			auto     MAX_VALUE,
+			size_t   SCALAR = 1,
+			bool     IS_SIGNED = (MIN_VALUE < 0) || (MAX_VALUE < 0),
+			typename = Ash::Type::IsInteger<decltype(MIN_VALUE)>,
+			typename = Ash::Type::IsInteger<decltype(MAX_VALUE)>
 		>
 		constexpr size_t getValueSize()
 		{
@@ -34,7 +36,6 @@ namespace Ash
 		>
 		struct ValueProperty
 		{
-			using Type = int;
 		};
 
 		template <> struct ValueProperty<8>
@@ -87,10 +88,12 @@ namespace Ash
 
 		template
 		<
-			auto MIN_VALUE,
-			auto MAX_VALUE,
-			auto SCALAR = 1,
-			auto IS_SIGNED = (MIN_VALUE < 0) || (MAX_VALUE < 0)
+			auto     MIN_VALUE,
+			auto     MAX_VALUE,
+			size_t   SCALAR = 1,
+			bool     IS_SIGNED = (MIN_VALUE < 0) || (MAX_VALUE < 0),
+			typename = Ash::Type::IsInteger<decltype(MIN_VALUE)>,
+			typename = Ash::Type::IsInteger<decltype(MAX_VALUE)>
 		>
 		using Value = typename SignedProperty<getValueSize<MIN_VALUE, MAX_VALUE, SCALAR, IS_SIGNED>(), IS_SIGNED>::Type;
 	}
