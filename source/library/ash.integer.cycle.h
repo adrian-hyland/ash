@@ -39,7 +39,12 @@ namespace Ash
 
 			constexpr Cycle(const Cycle &cycle) : m_Value(cycle.m_Value) {}
 
-			constexpr Cycle(Value value) : m_Value(reduce(value)) {}
+			template
+			<
+				typename VALUE,
+				typename = Ash::Type::IsInteger<VALUE>
+			>
+			constexpr Cycle(VALUE value) : m_Value(reduce(value)) {}
 
 			constexpr operator Value () const { return m_Value; }
 
@@ -53,7 +58,7 @@ namespace Ash
 
 			constexpr Cycle operator -- (int) { Cycle result = *this; --(*this); return result; }
 
-			static constexpr Cycle identity() { return reduce(size); }
+			static constexpr Cycle identity() { return reduce(Value(size)); }
 
 			using Iterate = Value (*)(Value);
 
@@ -110,13 +115,18 @@ namespace Ash
 			static constexpr Range<backward> getRangeReversed(Cycle startValue, Cycle endValue) { return getRange<backward>(startValue, endValue); }
 
 		protected:
-			static constexpr Type reduce(Value value)
+			template
+			<
+				typename VALUE,
+				typename = Ash::Type::IsInteger<VALUE>
+			>
+			static constexpr Type reduce(VALUE value)
 			{
-				if (value < Value(minValue))
+				if (value < minValue)
 				{
 					return Type(maxValue - (maxValue - value) % size);
 				}
-				else if (value > Value(maxValue))
+				else if (value > maxValue)
 				{
 					return Type(minValue + (value - minValue) % size);
 				}
