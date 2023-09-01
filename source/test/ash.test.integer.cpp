@@ -474,6 +474,178 @@ namespace Ash
 				return {};
 			}
 
+			static Ash::Test::Assertion cycleConversion()
+			{
+				{
+					Ash::Integer::Cycle<0, 10> cycle;
+					uint8_t expected = 1;
+
+					for (unsigned int n = 0; n < 8; n++)
+					{
+						cycle = uint8_t(1 << n);
+						TEST_IS_EQ(cycle, expected);
+						expected = expected * 2;
+						if (expected > cycle.size)
+						{
+							expected = expected - cycle.size;
+						}
+					}
+					for (unsigned int n = 8; n < 16; n++)
+					{
+						cycle = uint16_t(1 << n);
+						TEST_IS_EQ(cycle, expected);
+						expected = expected * 2;
+						if (expected > cycle.size)
+						{
+							expected = expected - cycle.size;
+						}
+					}
+					for (unsigned int n = 16; n < 32; n++)
+					{
+						cycle = uint32_t(1 << n);
+						TEST_IS_EQ(cycle, expected);
+						expected = expected * 2;
+						if (expected > cycle.size)
+						{
+							expected = expected - cycle.size;
+						}
+					}
+					for (unsigned int n = 32; n < 64; n++)
+					{
+						cycle = uint64_t(1ULL << n);
+						TEST_IS_EQ(cycle, expected);
+						expected = expected * 2;
+						if (expected > cycle.size)
+						{
+							expected = expected - cycle.size;
+						}
+					}
+				}
+
+				{
+					Ash::Integer::Cycle<-5, 5> cycle;
+					int8_t expected = 1;
+
+					for (unsigned int n = 0; n < 7; n++)
+					{
+						cycle = int8_t(1 << n);
+						TEST_IS_EQ(cycle, expected);
+						expected = expected * 2;
+						if (expected > cycle.maxValue)
+						{
+							expected = expected - cycle.size;
+						}
+						else if (expected < cycle.minValue)
+						{
+							expected = expected + cycle.size;
+						}
+					}
+					for (unsigned int n = 7; n < 15; n++)
+					{
+						cycle = int16_t(1 << n);
+						TEST_IS_EQ(cycle, expected);
+						expected = expected * 2;
+						if (expected > cycle.maxValue)
+						{
+							expected = expected - cycle.size;
+						}
+						else if (expected < cycle.minValue)
+						{
+							expected = expected + cycle.size;
+						}
+					}
+					for (unsigned int n = 15; n < 31; n++)
+					{
+						cycle = int32_t(1 << n);
+						TEST_IS_EQ(cycle, expected);
+						expected = expected * 2;
+						if (expected > cycle.maxValue)
+						{
+							expected = expected - cycle.size;
+						}
+						else if (expected < cycle.minValue)
+						{
+							expected = expected + cycle.size;
+						}
+					}
+					for (unsigned int n = 31; n < 63; n++)
+					{
+						cycle = int64_t(1ULL << n);
+						TEST_IS_EQ(cycle, expected);
+						expected = expected * 2;
+						if (expected > cycle.maxValue)
+						{
+							expected = expected - cycle.size;
+						}
+						else if (expected < cycle.minValue)
+						{
+							expected = expected + cycle.size;
+						}
+					}
+
+					expected = -1;
+
+					for (unsigned int n = 0; n < 7; n++)
+					{
+						cycle = -int8_t(1 << n);
+						TEST_IS_EQ(cycle, expected);
+						expected = expected * 2;
+						if (expected > cycle.maxValue)
+						{
+							expected = expected - cycle.size;
+						}
+						else if (expected < cycle.minValue)
+						{
+							expected = expected + cycle.size;
+						}
+					}
+					for (unsigned int n = 7; n < 15; n++)
+					{
+						cycle = -int16_t(1 << n);
+						TEST_IS_EQ(cycle, expected);
+						expected = expected * 2;
+						if (expected > cycle.maxValue)
+						{
+							expected = expected - cycle.size;
+						}
+						else if (expected < cycle.minValue)
+						{
+							expected = expected + cycle.size;
+						}
+					}
+					for (unsigned int n = 15; n < 31; n++)
+					{
+						cycle = -int32_t(1 << n);
+						TEST_IS_EQ(cycle, expected);
+						expected = expected * 2;
+						if (expected > cycle.maxValue)
+						{
+							expected = expected - cycle.size;
+						}
+						else if (expected < cycle.minValue)
+						{
+							expected = expected + cycle.size;
+						}
+					}
+					for (unsigned int n = 31; n < 63; n++)
+					{
+						cycle = -int64_t(1ULL << n);
+						TEST_IS_EQ(cycle, expected);
+						expected = expected * 2;
+						if (expected > cycle.maxValue)
+						{
+							expected = expected - cycle.size;
+						}
+						else if (expected < cycle.minValue)
+						{
+							expected = expected + cycle.size;
+						}
+					}
+				}
+
+				return {};
+			}
+
 			template
 			<
 				typename INTEGER,
@@ -728,6 +900,8 @@ namespace Ash
 			TEST_CASE_GENERIC(Ash::Test::Integer::cycle, -128, 0),
 			TEST_CASE_GENERIC(Ash::Test::Integer::cycle, -409, -113),
 			TEST_CASE_GENERIC(Ash::Test::Integer::cycle, -809, -661),
+
+			TEST_CASE(Ash::Test::Integer::cycleConversion),
 
 			TEST_CASE_GENERIC(Ash::Test::Integer::bit, uint8_t),
 			TEST_CASE_GENERIC(Ash::Test::Integer::bit, uint16_t),
