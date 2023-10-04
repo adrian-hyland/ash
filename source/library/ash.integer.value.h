@@ -55,7 +55,7 @@ namespace Ash
 
 		template <> struct ValueProperty<64>
 		{
-			using Type = uint64_t;
+			using Type = int64_t;
 		};
 
 		template
