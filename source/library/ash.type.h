@@ -72,7 +72,7 @@ namespace Ash
 				template <typename ...> typename REQUIREMENT,
 				typename                         ...PARAMS
 			>
-			constexpr bool check() { return REQUIREMENT<TYPE, PARAMS...>::value; }
+			constexpr bool check = REQUIREMENT<TYPE, PARAMS...>::value;
 
 			template
 			<
@@ -80,7 +80,7 @@ namespace Ash
 				template <typename ...> typename REQUIREMENT,
 				typename                         ...PARAMS
 			>
-			using Check = std::enable_if_t<check<TYPE, REQUIREMENT, PARAMS...>(), TYPE>;
+			using Check = std::enable_if_t<check<TYPE, REQUIREMENT, PARAMS...>, TYPE>;
 		}
 
 		template
@@ -88,57 +88,57 @@ namespace Ash
 			typename TYPE,
 			typename BASE_CLASS = TYPE
 		>
-		constexpr bool isClass() { return Ash::Type::Requirement::check<TYPE, Ash::Type::Requirement::IsClass, BASE_CLASS>(); }
+		constexpr bool isClass = Ash::Type::Requirement::check<TYPE, Ash::Type::Requirement::IsClass, BASE_CLASS>;
 
 		template
 		<
 			typename LEFT_TYPE,
 			typename RIGHT_TYPE
 		>
-		constexpr bool isSame() { return Ash::Type::Requirement::check<LEFT_TYPE, Ash::Type::Requirement::IsSame, RIGHT_TYPE>(); }
+		constexpr bool isSame = Ash::Type::Requirement::check<LEFT_TYPE, Ash::Type::Requirement::IsSame, RIGHT_TYPE>;
 
 		template
 		<
 			typename LEFT_TYPE,
 			typename RIGHT_TYPE
 		>
-		constexpr bool isNotSame() { return Ash::Type::Requirement::check<LEFT_TYPE, Ash::Type::Requirement::IsNotSame, RIGHT_TYPE>(); }
+		constexpr bool isNotSame = Ash::Type::Requirement::check<LEFT_TYPE, Ash::Type::Requirement::IsNotSame, RIGHT_TYPE>;
 
 		template
 		<
 			typename TYPE
 		>
-		constexpr bool isFloatingPoint() { return Ash::Type::Requirement::check<TYPE, Ash::Type::Requirement::IsFloatingPoint>(); }
+		constexpr bool isFloatingPoint = Ash::Type::Requirement::check<TYPE, Ash::Type::Requirement::IsFloatingPoint>;
 
 		template
 		<
 			typename TYPE
 		>
-		constexpr bool isInteger() { return Ash::Type::Requirement::check<TYPE, Ash::Type::Requirement::IsInteger>(); }
+		constexpr bool isInteger = Ash::Type::Requirement::check<TYPE, Ash::Type::Requirement::IsInteger>;
 
 		template
 		<
 			typename TYPE
 		>
-		constexpr bool isUnsignedInteger() { return Ash::Type::Requirement::check<TYPE, Ash::Type::Requirement::IsUnsignedInteger>(); }
+		constexpr bool isUnsignedInteger = Ash::Type::Requirement::check<TYPE, Ash::Type::Requirement::IsUnsignedInteger>;
 
 		template
 		<
 			typename TYPE
 		>
-		constexpr bool isNumeric() { return Ash::Type::Requirement::check<TYPE, Ash::Type::Requirement::IsNumeric>(); }
+		constexpr bool isNumeric = Ash::Type::Requirement::check<TYPE, Ash::Type::Requirement::IsNumeric>;
 
 		template
 		<
 			typename TYPE
 		>
-		constexpr bool isConstant() { return Ash::Type::Requirement::check<TYPE, Ash::Type::Requirement::IsConstant>(); }
+		constexpr bool isConstant = Ash::Type::Requirement::check<TYPE, Ash::Type::Requirement::IsConstant>;
 
 		template
 		<
 			typename TYPE
 		>
-		constexpr bool isNotConstant() { return Ash::Type::Requirement::check<TYPE, Ash::Type::Requirement::IsNotConstant>(); }
+		constexpr bool isNotConstant = Ash::Type::Requirement::check<TYPE, Ash::Type::Requirement::IsNotConstant>;
 
 		template
 		<
