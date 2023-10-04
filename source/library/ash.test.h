@@ -20,21 +20,15 @@ namespace Ash
 
 			constexpr LineNumber getLineNumber() const { return m_LineNumber; }
 
-			std::ostream &operator << (std::ostream &stream) const
+			friend std::ostream &operator << (std::ostream &stream, const Location &location)
 			{
-				return (m_FileName != nullptr) ? stream << m_FileName << ':' << m_LineNumber : stream;
+				return (location.m_FileName != nullptr) ? stream << location.m_FileName << ':' << location.m_LineNumber : stream;
 			}
 
 		private:
 			const char *m_FileName;
 			LineNumber  m_LineNumber;
 		};
-
-		inline std::ostream &operator << (std::ostream &stream, const Location &location)
-		{
-			return location.operator << (stream);
-		}
-
 
 		class Assertion
 		{
@@ -89,20 +83,20 @@ namespace Ash
 
 			constexpr Location getLocation() const { return m_Location; }
 
-			std::ostream &operator << (std::ostream &stream) const
+			friend std::ostream &operator << (std::ostream &stream, const Assertion &assertion)
 			{
-				if (m_IsValid)
+				if (assertion.m_IsValid)
 				{
 					stream << "PASS";
 				}
 				else
 				{
 					stream << "FAIL: Expected ";
-					stream << '\'' << m_Actual << '\'';
-					stream << " to be " << m_Condition << ' ';
-					stream << '\'' << m_Expected << '\'';
+					stream << '\'' << assertion.m_Actual << '\'';
+					stream << " to be " << assertion.m_Condition << ' ';
+					stream << '\'' << assertion.m_Expected << '\'';
 					stream << " - see ";
-					stream << '\'' << m_Location << '\'';
+					stream << '\'' << assertion.m_Location << '\'';
 				}
 				return stream;
 			}
@@ -114,12 +108,6 @@ namespace Ash
 			const char *m_Expected;
 			Location    m_Location;
 		};
-
-		inline std::ostream &operator << (std::ostream &stream, const Assertion &assertion)
-		{
-			return assertion.operator << (stream);
-		}
-
 
 		class Result
 		{
@@ -141,11 +129,11 @@ namespace Ash
 
 			constexpr Count getTotalCount() const { return m_PassCount + m_FailureCount; }
 
-			std::ostream &operator << (std::ostream &stream) const
+			friend std::ostream &operator << (std::ostream &stream, const Result &result)
 			{
-				stream << "Total tests: " << (m_PassCount + m_FailureCount) << '\n';
-				stream << "Passed: " << m_PassCount << '\n';
-				stream << "Failed: " << m_FailureCount << '\n';
+				stream << "Total tests: " << (result.m_PassCount + result.m_FailureCount) << '\n';
+				stream << "Passed: " << result.m_PassCount << '\n';
+				stream << "Failed: " << result.m_FailureCount << '\n';
 				return stream;
 			}
 
@@ -157,20 +145,12 @@ namespace Ash
 			Count m_FailureCount;
 		};
 
-		inline std::ostream &operator << (std::ostream &stream, const Result &result)
-		{
-			return result.operator << (stream);
-		}
-
-
 		using Capture = void (*)(const char *name, const Assertion &assertion);
-
 
 		inline void outputCapture(const char *name, const Assertion &assertion)
 		{
 			std::cout << name << ", " << assertion << '\n';
 		}
-
 
 		class Case
 		{
@@ -194,7 +174,6 @@ namespace Ash
 			const char *m_Name;
 			Function    m_Function;
 		};
-
 
 		class Unit
 		{
