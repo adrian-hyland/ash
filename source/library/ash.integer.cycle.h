@@ -1,8 +1,7 @@
 #pragma once
 
-#include <algorithm>
-#include <limits>
 #include "ash.type.h"
+#include "ash.iterate.h"
 #include "ash.integer.value.h"
 
 
@@ -17,25 +16,29 @@ namespace Ash
 
 		template
 		<
-			auto START,
-			auto END
+			auto     START,
+			auto     END,
+			typename = Ash::Type::IsInteger<decltype(START)>,
+			typename = Ash::Type::IsInteger<decltype(END)>
 		>
 		class Cycle : Ash::Integer::Generic::Cycle
 		{
 		public:
-			using Type = Ash::Integer::Value<START, END>;
+			using Value = Ash::Integer::Value<START, END>;
 
-			using Size = Ash::Integer::Value<0, ((START > END) ? size_t(START) - size_t(END) : size_t(END) - size_t(START)) + 1>;
+			using Type = Ash::Type::Option<int, intmax_t, sizeof(Value) < sizeof(int)>;
 
-			using Value = Ash::Type::Option<int, intmax_t, sizeof(Type) < sizeof(int)>;
+			using Size = std::make_unsigned_t<Type>;
 
-			static constexpr Value minValue = (START > END) ? END : START;
+			using Iterate = Ash::Iterate<Value, true, 2>;
 
-			static constexpr Value maxValue = (START > END) ? START : END;
+			static constexpr Value minimum = (START > END) ? END : START;
 
-			static constexpr Size size = maxValue - minValue + 1;
+			static constexpr Value maximum = (START > END) ? START : END;
 
-			constexpr Cycle() : m_Value(minValue) {}
+			static constexpr Size size = Size(maximum) - minimum + 1;
+
+			constexpr Cycle() : m_Value(minimum) {}
 
 			constexpr Cycle(const Cycle &cycle) : m_Value(cycle.m_Value) {}
 
@@ -46,73 +49,38 @@ namespace Ash
 			>
 			constexpr Cycle(VALUE value) : m_Value(reduce(value)) {}
 
-			constexpr operator Value () const { return m_Value; }
+			constexpr operator Type () const { return m_Value; }
 
 			constexpr Cycle inverse() const { return identity() - m_Value; }
 
-			constexpr Cycle &operator ++ () { m_Value = (Value(m_Value) < maxValue) ? m_Value + 1 : minValue; return *this; }
+			constexpr Cycle &operator ++ () { m_Value = (m_Value < maximum) ? m_Value + 1 : minimum; return *this; }
 
-			constexpr Cycle &operator -- () { m_Value = (Value(m_Value) > minValue) ? m_Value - 1 : maxValue; return *this; }
+			constexpr Cycle &operator -- () { m_Value = (m_Value > minimum) ? m_Value - 1 : maximum; return *this; }
 
 			constexpr Cycle operator ++ (int) { Cycle result = *this; ++(*this); return result; }
 
 			constexpr Cycle operator -- (int) { Cycle result = *this; --(*this); return result; }
 
-			static constexpr Cycle identity() { return reduce(Value(size)); }
+			static constexpr Cycle identity() { return reduce(Type(size)); }
 
-			using Iterate = Value (*)(Value);
+			static constexpr Iterate iterate() { return iterateFrom(minimum); }
 
-			template
-			<
-				Iterate ITERATE
-			>
-			class Range
+			static constexpr Iterate iterateFrom(Cycle from)
 			{
-			public:
-				constexpr Range(Cycle startValue, Cycle endValue) : m_Value(startValue), m_EndValue(endValue), m_IsAtEnd(false) {}
+				return Ash::Iterate<Value>::between(from, maximum) + Ash::Iterate<Value>::from(minimum, from - minimum);
+			}
 
-				constexpr const Cycle &operator * () const { return m_Value; }
-
-				constexpr Range &operator ++ () { m_Value = ITERATE(m_Value); m_IsAtEnd = (m_Value == m_EndValue); return *this; }
-
-				friend constexpr bool operator != (const Range &left, const Range &right) { return (left.m_Value != right.m_Value) || (left.m_IsAtEnd != right.m_IsAtEnd); };
-
-				constexpr Range begin() const { return Range(m_Value, m_EndValue, false); }
-
-				constexpr Range end() const { return Range(m_EndValue, m_EndValue, true); }
-
-			protected:
-				constexpr Range(Cycle startValue, Cycle endValue, bool isAtEnd) : m_Value(startValue), m_EndValue(endValue), m_IsAtEnd(isAtEnd) {}
-
-			private:
-				Cycle m_Value;
-				Cycle m_EndValue;
-				bool  m_IsAtEnd;
-			};
-
-			template
-			<
-				Iterate ITERATE
-			>
-			static constexpr Range<ITERATE> getRange(Cycle startValue = minValue) { return Range<ITERATE>(startValue, startValue); }
-
-			template
-			<
-				Iterate ITERATE
-			>
-			static constexpr Range<ITERATE> getRange(Cycle startValue, Cycle endValue) { return Range<ITERATE>(startValue, ITERATE(endValue)); }
-
-			static constexpr Value forward(Value value) { return value + 1; };
-
-			static constexpr Range<forward> getRange(Cycle startValue = minValue) { return getRange<forward>(startValue); }
-
-			static constexpr Range<forward> getRange(Cycle startValue, Cycle endValue) { return getRange<forward>(startValue, endValue); }
-
-			static constexpr Value backward(Value value) { return value - 1; };
-
-			static constexpr Range<backward> getRangeReversed(Cycle startValue = maxValue) { return getRange<backward>(startValue); }
-
-			static constexpr Range<backward> getRangeReversed(Cycle startValue, Cycle endValue) { return getRange<backward>(startValue, endValue); }
+			static constexpr Iterate iterateBetween(Cycle from, Cycle to)
+			{
+				if (from < to)
+				{
+					return Ash::Iterate<Value>::between(from, to) + Ash::Iterate<Value>();
+				}
+				else
+				{
+					return Ash::Iterate<Value>::between(from, maximum) + Ash::Iterate<Value>::between(minimum, to);
+				}
+			}
 
 		protected:
 			template
@@ -120,24 +88,22 @@ namespace Ash
 				typename VALUE,
 				typename = Ash::Type::IsInteger<VALUE>
 			>
-			static constexpr Type reduce(VALUE value)
+			static constexpr Value reduce(VALUE value)
 			{
-				if (value < minValue)
+				if (value < Type(minimum))
 				{
-					return Type(maxValue - (maxValue - value) % size);
+					return Value(Type(maximum) - (Type(maximum) - value) % size);
 				}
-				else if (value > maxValue)
+				else if (value > Type(maximum))
 				{
-					return Type(minValue + (value - minValue) % size);
+					return Value(Type(minimum) + (value - Type(minimum)) % size);
 				}
-				else
-				{
-					return Type(value);
-				}
+				
+				return Value(value);
 			}
 
 		private:
-			Type m_Value;
+			Value m_Value;
 		};
 	}
 }
