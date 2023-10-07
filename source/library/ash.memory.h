@@ -4,6 +4,7 @@
 #include <algorithm>
 #include "ash.type.h"
 #include "ash.size.h"
+#include "ash.iterate.h"
 
 
 namespace Ash
@@ -924,15 +925,84 @@ namespace Ash
 				}
 			}
 
+			template
+			<
+				typename ALLOCATION_TYPE = typename Allocation::Type,
+				typename = Ash::Type::IsNotConstant<ALLOCATION_TYPE>
+			>
 			constexpr Type *begin() { return (Allocation::getLength() != 0) ? &(*this)[0] : nullptr; }
 
+			template
+			<
+				typename ALLOCATION_TYPE = typename Allocation::Type,
+				typename = Ash::Type::IsNotConstant<ALLOCATION_TYPE>
+			>
 			constexpr Type *end() { return (Allocation::getLength() != 0) ? &(*this)[Allocation::getLength()] : nullptr; }
 
 			constexpr const Type *begin() const { return (Allocation::getLength() != 0) ? &(*this)[0] : nullptr; }
 
 			constexpr const Type *end() const { return (Allocation::getLength() != 0) ? &(*this)[Allocation::getLength()] : nullptr; }
 
+			using Iterate = Ash::Iterate<typename Allocation::Type *>;
+
+			constexpr Iterate iterate() { return Iterate::from(&(*this)[0], Allocation::getLength()); }
+
+			constexpr Iterate iterateBetween(size_t from, size_t to)
+			{
+				size_t count = 0;
+
+				if (from < Allocation::getLength() && (from <= to))
+				{
+					count = (to < Allocation::getLength()) ? to - from + 1 : Allocation::getLength() - from + 1;
+				}
+
+				return Iterate::from(&(*this)[from], count);
+			}
+
+			constexpr Iterate iterateFrom(size_t from) { return iterateBetween(from, Allocation::getLength() - 1); }
+
+			constexpr Ash::Iterate<typename Allocation::Type *> iterateTo(size_t to) { return iterateBetween(0, to); }
+
+			using Cycle = Ash::Iterate<typename Allocation::Type *, true, 2>;
+
+			constexpr Cycle cycleBetween(size_t from, size_t to)
+			{
+				if ((from >= Allocation::getLength()) || (to >= Allocation::getLength()))
+				{
+					return Iterate() + Iterate();
+				}
+				else if (from <= to)
+				{
+					return iterateBetween(from, to) + Iterate();
+				}
+				else
+				{
+					return iterateFrom(from) + iterateTo(to);
+				}
+			}
+
+			constexpr Cycle cycleFrom(size_t from, size_t count)
+			{
+				if ((count == 0) || (from >= Allocation::getLength()) || (count > Allocation::getLength()))
+				{
+					return Iterate() + Iterate();
+				}
+				else if (from <= Allocation::getLength() - count)
+				{
+					return iterateBetween(from, from + count - 1) + Iterate();
+				}
+				else
+				{
+					return iterateFrom(from) + iterateTo(from + count - Allocation::getLength() - 1);
+				}
+			}
+
 		protected:
+			template
+			<
+				typename ALLOCATION_TYPE = typename Allocation::Type,
+				typename = Ash::Type::IsNotConstant<ALLOCATION_TYPE>
+			>
 			constexpr Type &operator [] (size_t offset)
 			{
 				return Allocation::getContent()[offset];
