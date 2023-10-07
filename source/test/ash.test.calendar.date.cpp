@@ -51,18 +51,18 @@ namespace Ash
 
 				for (Year year = 0; year < Year::yearsPerCycle; year = year + Year::cycleStep)
 				{
-					for (Ash::Calendar::Month month : Ash::Calendar::Month::getRange(Ash::Calendar::Month::January, Ash::Calendar::Month::November))
+					for (Ash::Calendar::Month month : Ash::Calendar::Month::iterateBetween(Ash::Calendar::Month::January, Ash::Calendar::Month::November))
 					{
 						TEST_IS_EQ(month.getFirstDayOrdinal(year) + month.getDays(year), Ash::Calendar::Month(month + 1).getFirstDayOrdinal(year));
 					}
 
-					for (Ash::Calendar::Month month : Ash::Calendar::Month::getRange(Ash::Calendar::Month::February, Ash::Calendar::Month::December))
+					for (Ash::Calendar::Month month : Ash::Calendar::Month::iterateBetween(Ash::Calendar::Month::February, Ash::Calendar::Month::December))
 					{
 						TEST_IS_EQ(month.getLastDayOrdinal(year) - month.getDays(year), Ash::Calendar::Month(month - 1).getLastDayOrdinal(year));
 					}
 
 					Ash::Calendar::Ordinal ordinal = 1;
-					for (Ash::Calendar::Month expectedMonth : Ash::Calendar::Month::getRange())
+					for (Ash::Calendar::Month expectedMonth : Ash::Calendar::Month::iterate())
 					{
 						for (Ash::Calendar::Day expectedDay = 1; expectedDay <= expectedMonth.getDays(year); expectedDay++)
 						{
@@ -94,7 +94,7 @@ namespace Ash
 
 				for (Year year = 1; year < std::numeric_limits<typename Year::Type>::max(); year++)
 				{
-					for (Ash::Calendar::Month month : Ash::Calendar::Month::getRange())
+					for (Ash::Calendar::Month month : Ash::Calendar::Month::iterate())
 					{
 						for (Ash::Calendar::Day day = 1; day <= month.getDays(year); day++)
 						{
@@ -114,7 +114,7 @@ namespace Ash
 
 				for (Year year = 0; year > std::numeric_limits<typename Year::Type>::min(); year--)
 				{
-					for (Ash::Calendar::Month month : Ash::Calendar::Month::getRangeReversed())
+					for (Ash::Calendar::Month month : Ash::Calendar::Month::iterate().reverse())
 					{
 						for (Ash::Calendar::Day day = Ash::Calendar::Month(month).getDays(year); day >= 1; day--)
 						{
@@ -197,7 +197,7 @@ namespace Ash
 
 				for (Year year = -Year::yearsPerCycle + 1; year < Year::yearsPerCycle; year++)
 				{
-					for (Ash::Calendar::Month month : Ash::Calendar::Month::getRange())
+					for (Ash::Calendar::Month month : Ash::Calendar::Month::iterate())
 					{
 						TEST_IS_FALSE(Date::isYearMonthDayValid(year, month, 0));
 						for (Ash::Calendar::Day day = 1; day <= month.getDays(year); day++)
@@ -227,7 +227,7 @@ namespace Ash
 
 				for (Year year = -Year::yearsPerCycle + 1; year < Year::yearsPerCycle; year++)
 				{
-					for (Ash::Calendar::Month month : Ash::Calendar::Month::getRange())
+					for (Ash::Calendar::Month month : Ash::Calendar::Month::iterate())
 					{
 						TEST_IS_FALSE(date.setYearMonthDay(year, month, 0));
 						for (Ash::Calendar::Day day = 1; day <= month.getDays(year); day++)
@@ -285,7 +285,7 @@ namespace Ash
 					TEST_IS_FALSE(date.setYearWeekDay(year, 0, Ash::Calendar::Weekday::Monday));
 					for (Ash::Calendar::Week week = 1; week <= year.getWeeks(); week++)
 					{
-						for (Ash::Calendar::Weekday weekday : Ash::Calendar::Weekday::getRange())
+						for (Ash::Calendar::Weekday weekday : Ash::Calendar::Weekday::iterate())
 						{
 							TEST_IS_TRUE(date.setYearWeekDay(year, week, weekday));
 							TEST_IS_EQ(date, expected++);
@@ -312,11 +312,11 @@ namespace Ash
 
 				for (Year year = -Year::yearsPerCycle + 1; year < Year::yearsPerCycle; year++)
 				{
-					for (Ash::Calendar::Month month : Ash::Calendar::Month::getRange())
+					for (Ash::Calendar::Month month : Ash::Calendar::Month::iterate())
 					{
 						Date start;
 						TEST_IS_TRUE(start.setYearMonthDay(year, month, 1));
-						for (Ash::Calendar::Weekday weekday : Ash::Calendar::Weekday::getRange())
+						for (Ash::Calendar::Weekday weekday : Ash::Calendar::Weekday::iterate())
 						{
 							TEST_IS_TRUE(date.setYearMonthFirstWeekday(year, month, weekday));
 							TEST_IS_EQ(date.getYear(), year);
@@ -345,11 +345,11 @@ namespace Ash
 
 				for (Year year = -Year::yearsPerCycle + 1; year < Year::yearsPerCycle; year++)
 				{
-					for (Ash::Calendar::Month month : Ash::Calendar::Month::getRange())
+					for (Ash::Calendar::Month month : Ash::Calendar::Month::iterate())
 					{
 						Date end;
 						TEST_IS_TRUE(end.setYearMonthDay(year, month, month.getDays(year)));
-						for (Ash::Calendar::Weekday weekday : Ash::Calendar::Weekday::getRange())
+						for (Ash::Calendar::Weekday weekday : Ash::Calendar::Weekday::iterate())
 						{
 							TEST_IS_TRUE(date.setYearMonthLastWeekday(year, month, weekday));
 							TEST_IS_EQ(date.getYear(), year);
@@ -400,7 +400,7 @@ namespace Ash
 
 				for (Year year = -Year::yearsPerCycle + 1; year < Year::yearsPerCycle; year++)
 				{
-					for (Ash::Calendar::Month month : Ash::Calendar::Month::getRange())
+					for (Ash::Calendar::Month month : Ash::Calendar::Month::iterate())
 					{
 						TEST_IS_EQ(date.getMonth(), month);
 						date = date + month.getDays(year);
@@ -425,7 +425,7 @@ namespace Ash
 
 				for (Year year = -Year::yearsPerCycle + 1; year < Year::yearsPerCycle; year++)
 				{
-					for (Ash::Calendar::Month month : Ash::Calendar::Month::getRange())
+					for (Ash::Calendar::Month month : Ash::Calendar::Month::iterate())
 					{
 						for (Ash::Calendar::Day day = 1; day <= month.getDays(year); day++)
 						{
