@@ -2,6 +2,7 @@
 #include "ash.test.test.h"
 #include "ash.test.type.h"
 #include "ash.test.size.h"
+#include "ash.test.iterate.h"
 #include "ash.test.integer.h"
 #include "ash.test.real.h"
 #include "ash.test.geometry.h"
@@ -19,6 +20,7 @@ int main()
 		Ash::Test::testTest,
 		Ash::Test::testType,
 		Ash::Test::testSize,
+		Ash::Test::testIterate,
 		Ash::Test::testInteger,
 		Ash::Test::testReal,
 		Ash::Test::testGeometry,
