@@ -11,8 +11,8 @@ namespace Ash
 			static Ash::Test::Assertion hour()
 			{
 				TEST_IS_EQ(Ash::Calendar::Hour::perDay, 24);
-				TEST_IS_EQ(Ash::Calendar::Hour::minValue, 0);
-				TEST_IS_EQ(Ash::Calendar::Hour::maxValue, 23);
+				TEST_IS_EQ(Ash::Calendar::Hour::minimum, 0);
+				TEST_IS_EQ(Ash::Calendar::Hour::maximum, 23);
 
 				Ash::Calendar::Hour expected = 0;
 				for (Ash::Calendar::TimeDuration hour = -Ash::Calendar::Hour::perDay; hour <= Ash::Calendar::Hour::perDay; hour++)
@@ -26,8 +26,8 @@ namespace Ash
 			static Ash::Test::Assertion minute()
 			{
 				TEST_IS_EQ(Ash::Calendar::Minute::perHour, 60);
-				TEST_IS_EQ(Ash::Calendar::Minute::minValue, 0);
-				TEST_IS_EQ(Ash::Calendar::Minute::maxValue, 59);
+				TEST_IS_EQ(Ash::Calendar::Minute::minimum, 0);
+				TEST_IS_EQ(Ash::Calendar::Minute::maximum, 59);
 
 				Ash::Calendar::Minute expected = 0;
 				for (Ash::Calendar::TimeDuration minute = -Ash::Calendar::Minute::perHour; minute <= Ash::Calendar::Minute::perHour; minute++)
@@ -41,8 +41,8 @@ namespace Ash
 			static Ash::Test::Assertion second()
 			{
 				TEST_IS_EQ(Ash::Calendar::Second::perMinute, 60);
-				TEST_IS_EQ(Ash::Calendar::Second::minValue, 0);
-				TEST_IS_EQ(Ash::Calendar::Second::maxValue, 59);
+				TEST_IS_EQ(Ash::Calendar::Second::minimum, 0);
+				TEST_IS_EQ(Ash::Calendar::Second::maximum, 59);
 
 				Ash::Calendar::Second expected = 0;
 				for (Ash::Calendar::TimeDuration second = -Ash::Calendar::Second::perMinute; second <= Ash::Calendar::Second::perMinute; second++)
@@ -84,7 +84,7 @@ namespace Ash
 
 			static Ash::Test::Assertion getHour()
 			{
-				for (Ash::Calendar::Hour hour : Ash::Calendar::Hour::getRange())
+				for (Ash::Calendar::Hour hour : Ash::Calendar::Hour::iterate())
 				{
 					Ash::Calendar::Time time = Ash::Calendar::Time::hour * hour;
 					TEST_IS_EQ(time.getHour(), hour);
@@ -95,9 +95,9 @@ namespace Ash
 
 			static Ash::Test::Assertion getMinute()
 			{
-				for (Ash::Calendar::Hour hour : Ash::Calendar::Hour::getRange())
+				for (Ash::Calendar::Hour hour : Ash::Calendar::Hour::iterate())
 				{
-					for (Ash::Calendar::Minute minute : Ash::Calendar::Minute::getRange())
+					for (Ash::Calendar::Minute minute : Ash::Calendar::Minute::iterate())
 					{
 						Ash::Calendar::Time time = Ash::Calendar::Time::hour * hour + Ash::Calendar::Time::minute * minute;
 						TEST_IS_EQ(time.getHour(), hour);
@@ -110,11 +110,11 @@ namespace Ash
 
 			static Ash::Test::Assertion getSecond()
 			{
-				for (Ash::Calendar::Hour hour : Ash::Calendar::Hour::getRange())
+				for (Ash::Calendar::Hour hour : Ash::Calendar::Hour::iterate())
 				{
-					for (Ash::Calendar::Minute minute : Ash::Calendar::Minute::getRange())
+					for (Ash::Calendar::Minute minute : Ash::Calendar::Minute::iterate())
 					{
-						for (Ash::Calendar::Second second : Ash::Calendar::Second::getRange())
+						for (Ash::Calendar::Second second : Ash::Calendar::Second::iterate())
 						{
 							Ash::Calendar::Time time = Ash::Calendar::Time::hour * hour + Ash::Calendar::Time::minute * minute + Ash::Calendar::Time::second * second;
 							TEST_IS_EQ(time.getHour(), hour);
