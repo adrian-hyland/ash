@@ -44,6 +44,12 @@ namespace Ash
 			<
 				typename TYPE
 			>
+			using IsIntegerOrPointer = std::integral_constant<bool, std::is_pointer<TYPE>::value || std::is_integral<TYPE>::value>;
+
+			template
+			<
+				typename TYPE
+			>
 			using IsConstant = std::is_const<TYPE>;
 
 			template
@@ -132,6 +138,12 @@ namespace Ash
 		<
 			typename TYPE
 		>
+		constexpr bool isIntegerOrPointer = Ash::Type::Requirement::check<TYPE, Ash::Type::Requirement::IsIntegerOrPointer>;
+
+		template
+		<
+			typename TYPE
+		>
 		constexpr bool isConstant = Ash::Type::Requirement::check<TYPE, Ash::Type::Requirement::IsConstant>;
 
 		template
@@ -184,6 +196,12 @@ namespace Ash
 			typename TYPE
 		>
 		using IsNumeric = Ash::Type::Requirement::Check<TYPE, Ash::Type::Requirement::IsNumeric>;
+
+		template
+		<
+			typename TYPE
+		>
+		using IsIntegerOrPointer = Ash::Type::Requirement::Check<TYPE, Ash::Type::Requirement::IsIntegerOrPointer>;
 
 		template
 		<
