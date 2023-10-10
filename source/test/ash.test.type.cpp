@@ -58,6 +58,7 @@ namespace Ash
 				TEST_IS_FALSE(Ash::Type::isClass<unsigned long>);
 				TEST_IS_FALSE(Ash::Type::isClass<signed long long>);
 				TEST_IS_FALSE(Ash::Type::isClass<unsigned long long>);
+				TEST_IS_FALSE(Ash::Type::isClass<void *>);
 
 				return {};
 			}
@@ -82,6 +83,7 @@ namespace Ash
 				TEST_IS_FALSE(Ash::Type::isFloatingPoint<unsigned long>);
 				TEST_IS_FALSE(Ash::Type::isFloatingPoint<signed long long>);
 				TEST_IS_FALSE(Ash::Type::isFloatingPoint<unsigned long long>);
+				TEST_IS_FALSE(Ash::Type::isFloatingPoint<void *>);
 				TEST_IS_FALSE(Ash::Type::isFloatingPoint<TestBaseClass>);
 				TEST_IS_FALSE(Ash::Type::isFloatingPoint<TestDerivedClass>);
 				TEST_IS_FALSE(Ash::Type::isFloatingPoint<TestBaseStruct>);
@@ -109,6 +111,7 @@ namespace Ash
 				TEST_IS_FALSE(Ash::Type::isInteger<float>);
 				TEST_IS_FALSE(Ash::Type::isInteger<double>);
 				TEST_IS_FALSE(Ash::Type::isInteger<long double>);
+				TEST_IS_FALSE(Ash::Type::isInteger<void *>);
 				TEST_IS_FALSE(Ash::Type::isInteger<void>);
 				TEST_IS_FALSE(Ash::Type::isInteger<TestBaseClass>);
 				TEST_IS_FALSE(Ash::Type::isInteger<TestDerivedClass>);
@@ -137,6 +140,7 @@ namespace Ash
 				TEST_IS_FALSE(Ash::Type::isUnsignedInteger<float>);
 				TEST_IS_FALSE(Ash::Type::isUnsignedInteger<double>);
 				TEST_IS_FALSE(Ash::Type::isUnsignedInteger<long double>);
+				TEST_IS_FALSE(Ash::Type::isUnsignedInteger<void *>);
 				TEST_IS_FALSE(Ash::Type::isUnsignedInteger<void>);
 				TEST_IS_FALSE(Ash::Type::isUnsignedInteger<TestBaseClass>);
 				TEST_IS_FALSE(Ash::Type::isUnsignedInteger<TestDerivedClass>);
@@ -165,11 +169,70 @@ namespace Ash
 				TEST_IS_TRUE(Ash::Type::isNumeric<float>);
 				TEST_IS_TRUE(Ash::Type::isNumeric<double>);
 				TEST_IS_TRUE(Ash::Type::isNumeric<long double>);
+				TEST_IS_FALSE(Ash::Type::isNumeric<void *>);
 				TEST_IS_FALSE(Ash::Type::isNumeric<void>);
 				TEST_IS_FALSE(Ash::Type::isNumeric<TestBaseClass>);
 				TEST_IS_FALSE(Ash::Type::isNumeric<TestDerivedClass>);
 				TEST_IS_FALSE(Ash::Type::isNumeric<TestBaseStruct>);
 				TEST_IS_FALSE(Ash::Type::isNumeric<TestDerivedStruct>);
+
+				return {};
+			}
+
+			static Ash::Test::Assertion isPointer()
+			{
+				TEST_IS_TRUE(Ash::Type::isPointer<void *>);
+				TEST_IS_FALSE(Ash::Type::isPointer<bool>);
+				TEST_IS_FALSE(Ash::Type::isPointer<char16_t>);
+				TEST_IS_FALSE(Ash::Type::isPointer<char32_t>);
+				TEST_IS_FALSE(Ash::Type::isPointer<wchar_t>);
+				TEST_IS_FALSE(Ash::Type::isPointer<unsigned char>);
+				TEST_IS_FALSE(Ash::Type::isPointer<unsigned int>);
+				TEST_IS_FALSE(Ash::Type::isPointer<unsigned short>);
+				TEST_IS_FALSE(Ash::Type::isPointer<unsigned long>);
+				TEST_IS_FALSE(Ash::Type::isPointer<unsigned long long>);
+				TEST_IS_FALSE(Ash::Type::isPointer<signed char>);
+				TEST_IS_FALSE(Ash::Type::isPointer<signed int>);
+				TEST_IS_FALSE(Ash::Type::isPointer<signed short>);
+				TEST_IS_FALSE(Ash::Type::isPointer<signed long>);
+				TEST_IS_FALSE(Ash::Type::isPointer<signed long long>);
+				TEST_IS_FALSE(Ash::Type::isPointer<float>);
+				TEST_IS_FALSE(Ash::Type::isPointer<double>);
+				TEST_IS_FALSE(Ash::Type::isPointer<long double>);
+				TEST_IS_FALSE(Ash::Type::isPointer<void>);
+				TEST_IS_FALSE(Ash::Type::isPointer<TestBaseClass>);
+				TEST_IS_FALSE(Ash::Type::isPointer<TestDerivedClass>);
+				TEST_IS_FALSE(Ash::Type::isPointer<TestBaseStruct>);
+				TEST_IS_FALSE(Ash::Type::isPointer<TestDerivedStruct>);
+
+				return {};
+			}
+
+			static Ash::Test::Assertion isIntegerOrPointer()
+			{
+				TEST_IS_TRUE(Ash::Type::isIntegerOrPointer<bool>);
+				TEST_IS_TRUE(Ash::Type::isIntegerOrPointer<char16_t>);
+				TEST_IS_TRUE(Ash::Type::isIntegerOrPointer<char32_t>);
+				TEST_IS_TRUE(Ash::Type::isIntegerOrPointer<wchar_t>);
+				TEST_IS_TRUE(Ash::Type::isIntegerOrPointer<signed char>);
+				TEST_IS_TRUE(Ash::Type::isIntegerOrPointer<unsigned char>);
+				TEST_IS_TRUE(Ash::Type::isIntegerOrPointer<signed int>);
+				TEST_IS_TRUE(Ash::Type::isIntegerOrPointer<unsigned int>);
+				TEST_IS_TRUE(Ash::Type::isIntegerOrPointer<signed short>);
+				TEST_IS_TRUE(Ash::Type::isIntegerOrPointer<unsigned short>);
+				TEST_IS_TRUE(Ash::Type::isIntegerOrPointer<signed long>);
+				TEST_IS_TRUE(Ash::Type::isIntegerOrPointer<unsigned long>);
+				TEST_IS_TRUE(Ash::Type::isIntegerOrPointer<signed long long>);
+				TEST_IS_TRUE(Ash::Type::isIntegerOrPointer<unsigned long long>);
+				TEST_IS_TRUE(Ash::Type::isIntegerOrPointer<void *>);
+				TEST_IS_FALSE(Ash::Type::isIntegerOrPointer<float>);
+				TEST_IS_FALSE(Ash::Type::isIntegerOrPointer<double>);
+				TEST_IS_FALSE(Ash::Type::isIntegerOrPointer<long double>);
+				TEST_IS_FALSE(Ash::Type::isIntegerOrPointer<void>);
+				TEST_IS_FALSE(Ash::Type::isIntegerOrPointer<TestBaseClass>);
+				TEST_IS_FALSE(Ash::Type::isIntegerOrPointer<TestDerivedClass>);
+				TEST_IS_FALSE(Ash::Type::isIntegerOrPointer<TestBaseStruct>);
+				TEST_IS_FALSE(Ash::Type::isIntegerOrPointer<TestDerivedStruct>);
 
 				return {};
 			}
@@ -193,6 +256,7 @@ namespace Ash
 				TEST_IS_TRUE(Ash::Type::isConstant<const float>);
 				TEST_IS_TRUE(Ash::Type::isConstant<const double>);
 				TEST_IS_TRUE(Ash::Type::isConstant<const long double>);
+				TEST_IS_TRUE(Ash::Type::isConstant<void * const>);
 				TEST_IS_TRUE(Ash::Type::isConstant<const void>);
 				TEST_IS_TRUE(Ash::Type::isConstant<const TestBaseClass>);
 				TEST_IS_TRUE(Ash::Type::isConstant<const TestDerivedClass>);
@@ -215,6 +279,7 @@ namespace Ash
 				TEST_IS_FALSE(Ash::Type::isConstant<float>);
 				TEST_IS_FALSE(Ash::Type::isConstant<double>);
 				TEST_IS_FALSE(Ash::Type::isConstant<long double>);
+				TEST_IS_FALSE(Ash::Type::isConstant<void *>);
 				TEST_IS_FALSE(Ash::Type::isConstant<void>);
 				TEST_IS_FALSE(Ash::Type::isConstant<TestBaseClass>);
 				TEST_IS_FALSE(Ash::Type::isConstant<TestDerivedClass>);
@@ -243,6 +308,7 @@ namespace Ash
 				TEST_IS_TRUE(Ash::Type::isNotConstant<float>);
 				TEST_IS_TRUE(Ash::Type::isNotConstant<double>);
 				TEST_IS_TRUE(Ash::Type::isNotConstant<long double>);
+				TEST_IS_TRUE(Ash::Type::isNotConstant<void *>);
 				TEST_IS_TRUE(Ash::Type::isNotConstant<void>);
 				TEST_IS_TRUE(Ash::Type::isNotConstant<TestBaseClass>);
 				TEST_IS_TRUE(Ash::Type::isNotConstant<TestDerivedClass>);
@@ -265,6 +331,7 @@ namespace Ash
 				TEST_IS_FALSE(Ash::Type::isNotConstant<const float>);
 				TEST_IS_FALSE(Ash::Type::isNotConstant<const double>);
 				TEST_IS_FALSE(Ash::Type::isNotConstant<const long double>);
+				TEST_IS_FALSE(Ash::Type::isNotConstant<void * const>);
 				TEST_IS_FALSE(Ash::Type::isNotConstant<const void>);
 				TEST_IS_FALSE(Ash::Type::isNotConstant<const TestBaseClass>);
 				TEST_IS_FALSE(Ash::Type::isNotConstant<const TestDerivedClass>);
@@ -312,6 +379,8 @@ namespace Ash
 				TEST_IS_TRUE(isSame);
 				isSame = Ash::Type::isSame<long double, long double>;
 				TEST_IS_TRUE(isSame);
+				isSame = Ash::Type::isSame<void *, void *>;
+				TEST_IS_TRUE(isSame);
 				isSame = Ash::Type::isSame<void, void>;
 				TEST_IS_TRUE(isSame);
 				isSame = Ash::Type::isSame<TestBaseClass, TestBaseClass>;
@@ -356,6 +425,8 @@ namespace Ash
 				isSame = Ash::Type::isSame<double, int>;
 				TEST_IS_FALSE(isSame);
 				isSame = Ash::Type::isSame<long double, int>;
+				TEST_IS_FALSE(isSame);
+				isSame = Ash::Type::isSame<void *, int>;
 				TEST_IS_FALSE(isSame);
 				isSame = Ash::Type::isSame<void, int>;
 				TEST_IS_FALSE(isSame);
@@ -409,6 +480,8 @@ namespace Ash
 				TEST_IS_TRUE(isNotSame);
 				isNotSame = Ash::Type::isNotSame<long double, int>;
 				TEST_IS_TRUE(isNotSame);
+				isNotSame = Ash::Type::isNotSame<void *, int>;
+				TEST_IS_TRUE(isNotSame);
 				isNotSame = Ash::Type::isNotSame<void, int>;
 				TEST_IS_TRUE(isNotSame);
 				isNotSame = Ash::Type::isNotSame<TestBaseClass, TestBaseStruct>;
@@ -454,6 +527,8 @@ namespace Ash
 				TEST_IS_FALSE(isNotSame);
 				isNotSame = Ash::Type::isNotSame<long double, long double>;
 				TEST_IS_FALSE(isNotSame);
+				isNotSame = Ash::Type::isNotSame<void *, void *>;
+				TEST_IS_FALSE(isNotSame);
 				isNotSame = Ash::Type::isNotSame<void, void>;
 				TEST_IS_FALSE(isNotSame);
 				isNotSame = Ash::Type::isNotSame<TestBaseClass, TestBaseClass>;
@@ -489,6 +564,8 @@ namespace Ash
 			TEST_CASE(Ash::Test::Type::isInteger),
 			TEST_CASE(Ash::Test::Type::isUnsignedInteger),
 			TEST_CASE(Ash::Test::Type::isNumeric),
+			TEST_CASE(Ash::Test::Type::isPointer),
+			TEST_CASE(Ash::Test::Type::isIntegerOrPointer),
 			TEST_CASE(Ash::Test::Type::isConstant),
 			TEST_CASE(Ash::Test::Type::isNotConstant),
 			TEST_CASE(Ash::Test::Type::isSame),
