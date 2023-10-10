@@ -36,11 +36,11 @@ namespace Ash
 			}
 			else if (to >= getBitSize<INTEGER>() - 1)
 			{
-				return (from == 0) ? INTEGER(-1) : INTEGER(-1) << from;
+				return INTEGER(-1) << from;
 			}
 			else if (from == 0)
 			{
-				return (to == 0) ? ~INTEGER(-2) : ~(INTEGER(-2) << to);
+				return ~(INTEGER(-2) << to);
 			}
 			else
 			{
