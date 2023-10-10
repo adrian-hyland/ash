@@ -54,26 +54,34 @@ namespace Ash
 			protected:
 				constexpr bool set(Ash::Unicode::Character value)
 				{
-					if ((value >= 0xD800) && (value <= 0xDFFF))
+					if ((value < 0xD800) || (value > 0xDFFF))
 					{
-						clear();
-						return false;
+						if constexpr (maxSize == 1)
+						{
+							setLength(1);
+							(*this)[0] = value;
+							return true;
+						}
+						else if constexpr (maxSize == 2)
+						{
+							if (value < 0x10000)
+							{
+								setLength(1);
+								(*this)[0] = value;
+							}
+							else
+							{
+								value = value - 0x10000;
+								setLength(2);
+								(*this)[0] = (value >> 10) | 0xD800;
+								(*this)[1] = (value & 0x3FF) | 0xDC00;
+							}
+							return true;
+						}
 					}
 
-					if ((maxSize == 1) || (value < 0x10000))
-					{
-						setLength(1);
-						(*this)[0] = value;
-					}
-					else
-					{
-						value = value - 0x10000;
-						setLength(2);
-						(*this)[0] = (value >> 10) | 0xD800;
-						(*this)[1] = (value & 0x3FF) | 0xDC00;
-					}
-
-					return true;
+					clear();
+					return false;
 				}
 
 				constexpr size_t set(Code code1)
@@ -104,14 +112,14 @@ namespace Ash
 				Code code1 = 0;
 				Code code2 = 0;
 
-				if (maxSize == 1)
+				if constexpr (maxSize == 1)
 				{
 					if (value.get(offset++, code1) && (code1 >= 0) && (code1 < 0x110000))
 					{
 						return character.set(code1);
 					}
 				}
-				else if (maxSize == 2)
+				else if constexpr (maxSize == 2)
 				{
 					if (value.get(offset++, code1))
 					{
@@ -146,14 +154,14 @@ namespace Ash
 				Code code1 = 0;
 				Code code2 = 0;
 
-				if (maxSize == 1)
+				if constexpr (maxSize == 1)
 				{
 					if ((offset > 0) && value.get(--offset, code1) && (code1 >= 0) && (code1 < 0x110000))
 					{
 						return character.set(code1);
 					}
 				}
-				else if (maxSize == 2)
+				else if constexpr (maxSize == 2)
 				{
 					if ((offset > 0) && value.get(--offset, code1))
 					{
