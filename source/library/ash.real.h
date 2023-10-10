@@ -37,19 +37,19 @@ namespace Ash
 
 		static constexpr Size exponentSize = Ash::Integer::getBitSize<unsigned int>(maxExponent - minExponent);
 
-		static constexpr Real epsilon = std::numeric_limits<Type>::epsilon();
+		static constexpr Type epsilon = std::numeric_limits<Type>::epsilon();
 
-		static constexpr Real infinity = std::numeric_limits<Type>::infinity();
+		static constexpr Type infinity = std::numeric_limits<Type>::infinity();
 
-		static constexpr Real invalid = std::numeric_limits<Type>::quiet_NaN();
+		static constexpr Type invalid = std::numeric_limits<Type>::quiet_NaN();
 
-		static constexpr Real min = std::numeric_limits<Type>::min();
+		static constexpr Type min = std::numeric_limits<Type>::min();
 
-		static constexpr Real max = std::numeric_limits<Type>::max();
+		static constexpr Type max = std::numeric_limits<Type>::max();
 
-		static constexpr Real minSubNormal = std::numeric_limits<Type>::denorm_min();
+		static constexpr Type minSubNormal = std::numeric_limits<Type>::denorm_min();
 
-		static constexpr Real pi = 3.1415926535897932384626433832795029L;
+		static constexpr Type pi = 3.1415926535897932384626433832795029L;
 
 		constexpr Real() : m_Value(0.0) {}
 
