@@ -48,71 +48,47 @@ namespace Ash
 				constexpr Type max = std::numeric_limits<Type>::max();
 				constexpr Type middle = min / 2 + max / 2 + 1;
 
-				ForwardIteration forwardIteration(min, 1);
+				ForwardIteration forwardIteration(min, min + 1);
 				TEST_IS_FALSE(forwardIteration.isComplete());
-				TEST_IS_EQ(forwardIteration.getCount(), 1);
 				TEST_IS_EQ(forwardIteration, min);
-				forwardIteration.advance();
-				TEST_IS_TRUE(forwardIteration.isComplete());
-				TEST_IS_EQ(forwardIteration.getCount(), 0);
-				forwardIteration.advance();
-				TEST_IS_TRUE(forwardIteration.isComplete());
-				TEST_IS_EQ(forwardIteration.getCount(), 0);
+				TEST_IS_TRUE(forwardIteration.advance());
+				TEST_IS_EQ(forwardIteration, min + 1);
+				TEST_IS_FALSE(forwardIteration.advance());
 
-				forwardIteration = ForwardIteration(middle, 1);
+				forwardIteration = ForwardIteration(middle, middle + 1);
 				TEST_IS_FALSE(forwardIteration.isComplete());
-				TEST_IS_EQ(forwardIteration.getCount(), 1);
 				TEST_IS_EQ(forwardIteration, middle);
-				forwardIteration.advance();
-				TEST_IS_TRUE(forwardIteration.isComplete());
-				TEST_IS_EQ(forwardIteration.getCount(), 0);
-				forwardIteration.advance();
-				TEST_IS_TRUE(forwardIteration.isComplete());
-				TEST_IS_EQ(forwardIteration.getCount(), 0);
+				TEST_IS_TRUE(forwardIteration.advance());
+				TEST_IS_EQ(forwardIteration, middle + 1);
+				TEST_IS_FALSE(forwardIteration.advance());
 
-				forwardIteration = ForwardIteration(max, 1);
+				forwardIteration = ForwardIteration(max - 1, max);
 				TEST_IS_FALSE(forwardIteration.isComplete());
-				TEST_IS_EQ(forwardIteration.getCount(), 1);
+				TEST_IS_EQ(forwardIteration, max - 1);
+				TEST_IS_TRUE(forwardIteration.advance());
 				TEST_IS_EQ(forwardIteration, max);
-				forwardIteration.advance();
-				TEST_IS_TRUE(forwardIteration.isComplete());
-				TEST_IS_EQ(forwardIteration.getCount(), 0);
-				forwardIteration.advance();
-				TEST_IS_TRUE(forwardIteration.isComplete());
-				TEST_IS_EQ(forwardIteration.getCount(), 0);
+				TEST_IS_FALSE(forwardIteration.advance());
 
-				ReverseIteration reverseIteration(min, 1);
+				ReverseIteration reverseIteration(min + 1, min);
 				TEST_IS_FALSE(reverseIteration.isComplete());
-				TEST_IS_EQ(reverseIteration.getCount(), 1);
+				TEST_IS_EQ(reverseIteration, min + 1);
+				TEST_IS_TRUE(reverseIteration.advance());
 				TEST_IS_EQ(reverseIteration, min);
-				reverseIteration.advance();
-				TEST_IS_TRUE(reverseIteration.isComplete());
-				TEST_IS_EQ(reverseIteration.getCount(), 0);
-				reverseIteration.advance();
-				TEST_IS_TRUE(reverseIteration.isComplete());
-				TEST_IS_EQ(reverseIteration.getCount(), 0);
+				TEST_IS_FALSE(reverseIteration.advance());
 
-				reverseIteration = ReverseIteration(middle, 1);
+				reverseIteration = ReverseIteration(middle, middle - 1);
 				TEST_IS_FALSE(reverseIteration.isComplete());
-				TEST_IS_EQ(reverseIteration.getCount(), 1);
 				TEST_IS_EQ(reverseIteration, middle);
-				reverseIteration.advance();
-				TEST_IS_TRUE(reverseIteration.isComplete());
-				TEST_IS_EQ(reverseIteration.getCount(), 0);
-				reverseIteration.advance();
-				TEST_IS_TRUE(reverseIteration.isComplete());
-				TEST_IS_EQ(reverseIteration.getCount(), 0);
+				TEST_IS_TRUE(reverseIteration.advance());
+				TEST_IS_EQ(reverseIteration, middle - 1);
+				TEST_IS_FALSE(reverseIteration.advance());
 
-				reverseIteration = ReverseIteration(max, 1);
+				reverseIteration = ReverseIteration(max, max - 1);
 				TEST_IS_FALSE(reverseIteration.isComplete());
-				TEST_IS_EQ(reverseIteration.getCount(), 1);
 				TEST_IS_EQ(reverseIteration, max);
-				reverseIteration.advance();
-				TEST_IS_TRUE(reverseIteration.isComplete());
-				TEST_IS_EQ(reverseIteration.getCount(), 0);
-				reverseIteration.advance();
-				TEST_IS_TRUE(reverseIteration.isComplete());
-				TEST_IS_EQ(reverseIteration.getCount(), 0);
+				TEST_IS_TRUE(reverseIteration.advance());
+				TEST_IS_EQ(reverseIteration, max - 1);
+				TEST_IS_FALSE(reverseIteration.advance());
 
 				return {};
 			}
@@ -131,65 +107,35 @@ namespace Ash
 				constexpr Type min = std::numeric_limits<Type>::min();
 				constexpr Type max = std::numeric_limits<Type>::max();
 
-				if constexpr (Ash::Type::isSame<std::make_unsigned_t<Type>, size_t>)
-				{
-					size_t count = size_t(max) - min;
+				ForwardIteration forwardIteration(min, max);
+				TEST_IS_TRUE(forwardIteration.isForward);
+				TEST_IS_FALSE(forwardIteration.isReverse);
+				TEST_IS_EQ(forwardIteration, min);
 
-					ForwardIteration forwardIteration(min, count);
-					TEST_IS_TRUE(forwardIteration.isForward);
-					TEST_IS_FALSE(forwardIteration.isReverse);
-					TEST_IS_EQ(forwardIteration.getCount(), count);
-					TEST_IS_EQ(forwardIteration, min);
+				ReverseIteration reverseIteration = forwardIteration.reverse();
+				TEST_IS_FALSE(reverseIteration.isForward);
+				TEST_IS_TRUE(reverseIteration.isReverse);
+				TEST_IS_EQ(reverseIteration, max);
 
-					ReverseIteration reverseIteration = forwardIteration.reverse();
-					TEST_IS_FALSE(reverseIteration.isForward);
-					TEST_IS_TRUE(reverseIteration.isReverse);
-					TEST_IS_EQ(forwardIteration.getCount(), count);
-					TEST_IS_EQ(reverseIteration, max - 1);
+				forwardIteration = reverseIteration.reverse();
+				TEST_IS_TRUE(forwardIteration.isForward);
+				TEST_IS_FALSE(forwardIteration.isReverse);
+				TEST_IS_EQ(forwardIteration, min);
 
-					forwardIteration = reverseIteration.reverse();
-					TEST_IS_TRUE(forwardIteration.isForward);
-					TEST_IS_FALSE(forwardIteration.isReverse);
-					TEST_IS_EQ(forwardIteration.getCount(), count);
-					TEST_IS_EQ(forwardIteration, min);
+				reverseIteration = ReverseIteration(max, min);
+				TEST_IS_FALSE(reverseIteration.isForward);
+				TEST_IS_TRUE(reverseIteration.isReverse);
+				TEST_IS_EQ(reverseIteration, max);
 
-					reverseIteration = ReverseIteration(max, count);
-					TEST_IS_FALSE(reverseIteration.isForward);
-					TEST_IS_TRUE(reverseIteration.isReverse);
-					TEST_IS_EQ(reverseIteration, max);
+				forwardIteration = reverseIteration.reverse();
+				TEST_IS_TRUE(forwardIteration.isForward);
+				TEST_IS_FALSE(forwardIteration.isReverse);
+				TEST_IS_EQ(forwardIteration, min);
 
-					forwardIteration = reverseIteration.reverse();
-					TEST_IS_TRUE(forwardIteration.isForward);
-					TEST_IS_FALSE(forwardIteration.isReverse);
-					TEST_IS_EQ(forwardIteration, min + 1);
-
-					reverseIteration = forwardIteration.reverse();
-					TEST_IS_FALSE(reverseIteration.isForward);
-					TEST_IS_TRUE(reverseIteration.isReverse);
-					TEST_IS_EQ(reverseIteration, max);
-				}
-				else
-				{
-					size_t count = size_t(max) - min + 1;
-
-					ForwardIteration forwardIteration(min, count);
-					TEST_IS_TRUE(forwardIteration.isForward);
-					TEST_IS_FALSE(forwardIteration.isReverse);
-					TEST_IS_EQ(forwardIteration.getCount(), count);
-					TEST_IS_EQ(forwardIteration, min);
-
-					ReverseIteration reverseIteration = forwardIteration.reverse();
-					TEST_IS_FALSE(reverseIteration.isForward);
-					TEST_IS_TRUE(reverseIteration.isReverse);
-					TEST_IS_EQ(forwardIteration.getCount(), count);
-					TEST_IS_EQ(reverseIteration, max);
-
-					forwardIteration = reverseIteration.reverse();
-					TEST_IS_TRUE(forwardIteration.isForward);
-					TEST_IS_FALSE(forwardIteration.isReverse);
-					TEST_IS_EQ(forwardIteration.getCount(), count);
-					TEST_IS_EQ(forwardIteration, min);
-				}
+				reverseIteration = forwardIteration.reverse();
+				TEST_IS_FALSE(reverseIteration.isForward);
+				TEST_IS_TRUE(reverseIteration.isReverse);
+				TEST_IS_EQ(reverseIteration, max);
 
 				return {};
 			}
@@ -212,45 +158,45 @@ namespace Ash
 				{
 					ForwardIteration forwardIteration = ForwardIteration::from(min, std::numeric_limits<size_t>::max());
 					TEST_IS_FALSE(forwardIteration.isComplete());
-					TEST_IS_EQ(forwardIteration.getCount(), size_t(max) - min);
 					TEST_IS_EQ(forwardIteration, min);
+					TEST_IS_EQ(forwardIteration.reverse(), Type(min + std::numeric_limits<size_t>::max() - 1));
 
 					forwardIteration = ForwardIteration::from(max, std::numeric_limits<size_t>::max());
 					TEST_IS_FALSE(forwardIteration.isComplete());
-					TEST_IS_EQ(forwardIteration.getCount(), 1);
 					TEST_IS_EQ(forwardIteration, max);
+					TEST_IS_EQ(forwardIteration.reverse(), max);
 
 					ReverseIteration reverseIteration = ReverseIteration::from(max, std::numeric_limits<size_t>::max());
 					TEST_IS_FALSE(reverseIteration.isComplete());
-					TEST_IS_EQ(reverseIteration.getCount(), size_t(max) - min);
 					TEST_IS_EQ(reverseIteration, max);
+					TEST_IS_EQ(reverseIteration.reverse(), Type(max - std::numeric_limits<size_t>::max() + 1));
 
 					reverseIteration = ReverseIteration::from(min, std::numeric_limits<size_t>::max());
 					TEST_IS_FALSE(reverseIteration.isComplete());
-					TEST_IS_EQ(reverseIteration.getCount(), 1);
 					TEST_IS_EQ(reverseIteration, min);
+					TEST_IS_EQ(reverseIteration.reverse(), min);
 				}
 				else
 				{
 					ForwardIteration forwardIteration = ForwardIteration::from(min, std::numeric_limits<size_t>::max());
 					TEST_IS_FALSE(forwardIteration.isComplete());
-					TEST_IS_EQ(forwardIteration.getCount(), size_t(max) - min + 1);
 					TEST_IS_EQ(forwardIteration, min);
+					TEST_IS_EQ(forwardIteration.reverse(), max);
 
 					forwardIteration = ForwardIteration::from(max, std::numeric_limits<size_t>::max());
 					TEST_IS_FALSE(forwardIteration.isComplete());
-					TEST_IS_EQ(forwardIteration.getCount(), 1);
 					TEST_IS_EQ(forwardIteration, max);
+					TEST_IS_EQ(forwardIteration.reverse(), max);
 
 					ReverseIteration reverseIteration = ReverseIteration::from(max, std::numeric_limits<size_t>::max());
 					TEST_IS_FALSE(reverseIteration.isComplete());
-					TEST_IS_EQ(reverseIteration.getCount(), size_t(max) - min + 1);
 					TEST_IS_EQ(reverseIteration, max);
+					TEST_IS_EQ(reverseIteration.reverse(), min);
 
 					reverseIteration = ReverseIteration::from(min, std::numeric_limits<size_t>::max());
 					TEST_IS_FALSE(reverseIteration.isComplete());
-					TEST_IS_EQ(reverseIteration.getCount(), 1);
 					TEST_IS_EQ(reverseIteration, min);
+					TEST_IS_EQ(reverseIteration.reverse(), min);
 				}
 
 				return {};
@@ -282,35 +228,21 @@ namespace Ash
 
 				int value[2] = { 1, 2 };
 
-				ForwardIteration forwardIteration(&value[0], 2);
+				ForwardIteration forwardIteration(&value[0], &value[1]);
 				TEST_IS_FALSE(forwardIteration.isComplete());
-				TEST_IS_EQ(forwardIteration.getCount(), 2);
 				TEST_IS_EQ(forwardIteration, &value[0]);
-				forwardIteration.advance();
+				TEST_IS_TRUE(forwardIteration.advance());
 				TEST_IS_FALSE(forwardIteration.isComplete());
-				TEST_IS_EQ(forwardIteration.getCount(), 1);
 				TEST_IS_EQ(forwardIteration, &value[1]);
-				forwardIteration.advance();
-				TEST_IS_TRUE(forwardIteration.isComplete());
-				TEST_IS_EQ(forwardIteration.getCount(), 0);
-				forwardIteration.advance();
-				TEST_IS_TRUE(forwardIteration.isComplete());
-				TEST_IS_EQ(forwardIteration.getCount(), 0);
+				TEST_IS_FALSE(forwardIteration.advance());
 
-				ReverseIteration reverseIteration(&value[1], 2);
+				ReverseIteration reverseIteration(&value[1], &value[0]);
 				TEST_IS_FALSE(reverseIteration.isComplete());
-				TEST_IS_EQ(reverseIteration.getCount(), 2);
 				TEST_IS_EQ(reverseIteration, &value[1]);
-				reverseIteration.advance();
+				TEST_IS_TRUE(reverseIteration.advance());
 				TEST_IS_FALSE(reverseIteration.isComplete());
-				TEST_IS_EQ(reverseIteration.getCount(), 1);
 				TEST_IS_EQ(reverseIteration, &value[0]);
-				reverseIteration.advance();
-				TEST_IS_TRUE(reverseIteration.isComplete());
-				TEST_IS_EQ(reverseIteration.getCount(), 0);
-				reverseIteration.advance();
-				TEST_IS_TRUE(reverseIteration.isComplete());
-				TEST_IS_EQ(reverseIteration.getCount(), 0);
+				TEST_IS_FALSE(reverseIteration.advance());
 
 				return {};
 			}
@@ -323,22 +255,19 @@ namespace Ash
 
 				int value[2] = { 1, 2 };
 
-				ForwardIteration forwardIteration(&value[0], 2);
+				ForwardIteration forwardIteration(&value[0], &value[1]);
 				TEST_IS_TRUE(forwardIteration.isForward);
 				TEST_IS_FALSE(forwardIteration.isReverse);
-				TEST_IS_EQ(forwardIteration.getCount(), 2);
 				TEST_IS_EQ(forwardIteration, &value[0]);
 
 				ReverseIteration reverseIteration = forwardIteration.reverse();
 				TEST_IS_FALSE(reverseIteration.isForward);
 				TEST_IS_TRUE(reverseIteration.isReverse);
-				TEST_IS_EQ(forwardIteration.getCount(), 2);
 				TEST_IS_EQ(reverseIteration, &value[1]);
 
 				forwardIteration = reverseIteration.reverse();
 				TEST_IS_TRUE(forwardIteration.isForward);
 				TEST_IS_FALSE(forwardIteration.isReverse);
-				TEST_IS_EQ(forwardIteration.getCount(), 2);
 				TEST_IS_EQ(forwardIteration, &value[0]);
 
 				return {};
@@ -354,13 +283,13 @@ namespace Ash
 
 				ForwardIteration forwardIteration = ForwardIteration::from(&value[0], 2);
 				TEST_IS_FALSE(forwardIteration.isComplete());
-				TEST_IS_EQ(forwardIteration.getCount(), 2);
 				TEST_IS_EQ(forwardIteration, &value[0]);
+				TEST_IS_EQ(forwardIteration.reverse(), &value[1]);
 
 				ReverseIteration reverseIteration = ReverseIteration::from(&value[1], 2);
 				TEST_IS_FALSE(reverseIteration.isComplete());
-				TEST_IS_EQ(reverseIteration.getCount(), 2);
 				TEST_IS_EQ(reverseIteration, &value[1]);
+				TEST_IS_EQ(reverseIteration.reverse(), &value[0]);
 
 				return {};
 			}
@@ -395,7 +324,7 @@ namespace Ash
 				TEST_IS_TRUE(forwardIterate.isForward);
 				TEST_IS_FALSE(forwardIterate.isReverse);
 				TEST_IS_FALSE(forwardIterate.hasNext);
-				TEST_IS_EQ(forwardIterate.getIteration().getCount(), 0);
+				TEST_IS_TRUE(forwardIterate.getIteration().isComplete());
 
 				size_t count = 0;
 				for (Type n : forwardIterate)
@@ -411,7 +340,7 @@ namespace Ash
 				TEST_IS_TRUE(reverseIterate.isReverse);
 				TEST_IS_FALSE(reverseIterate.isForward);
 				TEST_IS_FALSE(reverseIterate.hasNext);
-				TEST_IS_EQ(forwardIterate.getIteration().getCount(), 0);
+				TEST_IS_TRUE(forwardIterate.getIteration().isComplete());
 
 				count = 0;
 				for (Type n : reverseIterate)
@@ -442,7 +371,7 @@ namespace Ash
 				size_t count = 0;
 				for (Type n : ForwardIterate::between(min, min + 1))
 				{
-					TEST_IS_EQ(n, Type(min + count));
+					TEST_IS_EQ(Type(n - count), min);
 					count++;
 				}
 				TEST_IS_EQ(count, 2);
@@ -450,7 +379,7 @@ namespace Ash
 				count = 0;
 				for (Type n : ForwardIterate::between(middle - 1, middle + 1))
 				{
-					TEST_IS_EQ(n, Type(middle - 1 + count));
+					TEST_IS_EQ(Type(n - count), middle - 1);
 					count++;
 				}
 				TEST_IS_EQ(count, 3);
@@ -458,7 +387,7 @@ namespace Ash
 				count = 0;
 				for (Type n : ForwardIterate::between(max - 1, max))
 				{
-					TEST_IS_EQ(n, Type(max - 1 + count));
+					TEST_IS_EQ(Type(n - count), max - 1);
 					count++;
 				}
 				TEST_IS_EQ(count, 2);
@@ -466,7 +395,7 @@ namespace Ash
 				count = 0;
 				for (Type n : ReverseIterate::between(min + 1, min))
 				{
-					TEST_IS_EQ(n, Type(min + 1 - count));
+					TEST_IS_EQ(Type(n + count), min + 1);
 					count++;
 				}
 				TEST_IS_EQ(count, 2);
@@ -474,7 +403,7 @@ namespace Ash
 				count = 0;
 				for (Type n : ReverseIterate::between(middle + 1, middle - 1))
 				{
-					TEST_IS_EQ(n, Type(middle + 1 - count));
+					TEST_IS_EQ(Type(n + count), middle + 1);
 					count++;
 				}
 				TEST_IS_EQ(count, 3);
@@ -482,7 +411,7 @@ namespace Ash
 				count = 0;
 				for (Type n : ReverseIterate::between(max, max - 1))
 				{
-					TEST_IS_EQ(n, Type(max - count));
+					TEST_IS_EQ(Type(n + count), max);
 					count++;
 				}
 				TEST_IS_EQ(count, 2);

@@ -2,6 +2,7 @@
 
 #include <limits>
 #include <cstddef>
+#include <cstdint>
 #include "ash.type.h"
 
 
@@ -29,73 +30,108 @@ namespace Ash
 
 		using Reverse = Iteration<Type, isReverse>;
 
-		constexpr Iteration() : m_Value(), m_Count(0) {}
+		constexpr Iteration() : m_Start(), m_End(), m_IsComplete(true) {}
 
-		constexpr Iteration(Type value, size_t count) : m_Value(value), m_Count(count) {}
+		constexpr Iteration(Type start, Type end, bool isComplete = false) : m_Start(start), m_End(end), m_IsComplete(isComplete)
+		{
+			if constexpr (Ash::Type::isPointer<Type>)
+			{
+				m_IsComplete = m_IsComplete || (m_Start == nullptr) || (m_End == nullptr);
+			}
+		}
 
-		constexpr operator Type () const { return m_Value; }
+		constexpr operator Type () const { return m_Start; }
 
-		constexpr size_t getCount() const { return m_Count; }
-
-		constexpr bool isComplete() const { return m_Count == 0; }
+		constexpr bool isComplete() const { return m_IsComplete; }
 
 		constexpr bool advance()
 		{
-			if (m_Count != 0)
+			bool isAtEnd = (m_Start == m_End);
+
+			if constexpr (!Ash::Type::isPointer<Type> && !Ash::Type::isUnsignedInteger<Type>)
 			{
 				if constexpr (isForward)
 				{
-					m_Value++;
+					m_Start = m_Start + std::uintmax_t(1);
 				}
 				else
 				{
-					m_Value--;
+					m_Start = m_Start - std::uintmax_t(1);
 				}
-
-				m_Count--;
+			}
+			else
+			{
+				if constexpr (isForward)
+				{
+					m_Start++;
+				}
+				else
+				{
+					m_Start--;
+				}
 			}
 
-			return !isComplete();
+			return !isAtEnd;
 		}
 
 		constexpr Reverse reverse() const
 		{
+			return Reverse(m_End, m_Start, m_IsComplete);
+		}
+
+		static constexpr Iteration between(Type start, Type end)
+		{
 			if constexpr (isForward)
 			{
-				return Reverse(Type(m_Value + m_Count - 1), m_Count);
+				return Iteration(start, end, start > end);
 			}
 			else
 			{
-				return Reverse(Type(m_Value - m_Count + 1), m_Count);
+				return Iteration(start, end, start < end);
 			}
 		}
 
 		static constexpr Iteration from(Type value, size_t count)
 		{
-			if constexpr (Ash::Type::isInteger<Type> && isForward)
+			if (count == 0)
 			{
-				size_t max = size_t(std::numeric_limits<Type>::max()) - value;
-				if ((count > 0) && (count - 1 > max))
-				{
-					count = max + 1;
-				}
+				return { value, 0, true };
 			}
 
-			if constexpr (Ash::Type::isInteger<Type> && isReverse)
-			{
-				size_t max = (std::numeric_limits<Type>::min() < 0) ? size_t(-(std::numeric_limits<Type>::min() + 1)) + value + 1 : value;
-				if ((count > 0) & (count - 1 > max))
-				{
-					count = max + 1;
-				}
-			}
+			count--;
 
-			return { value, count };
+			if constexpr (isForward)
+			{
+				if constexpr (Ash::Type::isInteger<Type>)
+				{
+					size_t max = size_t(std::numeric_limits<Type>::max()) - value;
+					if (count > max)
+					{
+						return { value, std::numeric_limits<Type>::max() };
+					}
+				}
+
+				return { value, Type(value + count) };
+			}
+			else
+			{
+				if constexpr (Ash::Type::isInteger<Type>)
+				{
+					size_t max = (std::numeric_limits<Type>::min() < 0) ? size_t(-(std::numeric_limits<Type>::min() + 1)) + value + 1 : value;
+					if (count > max)
+					{
+						return { value, std::numeric_limits<Type>::min() };
+					}
+				}
+
+				return { value, Type(value - count) };
+			}
 		}
 
 	private:
-		Type   m_Value;
-		size_t m_Count;
+		Type m_Start;
+		Type m_End;
+		bool m_IsComplete;
 	};
 
 	template
@@ -152,17 +188,7 @@ namespace Ash
 			typename ITERATE_NEXT = Next,
 			typename = Ash::Type::IsSame<ITERATE_NEXT, End>
 		>
-		static constexpr Iterate between(Type start, Type end)
-		{
-			if constexpr (isForward)
-			{
-				return Iterate(Iteration::from(start, (start <= end) ? end - start + 1 : 0));
-			}
-			else
-			{
-				return Iterate(Iteration::from(start, (start >= end) ? start - end + 1 : 0));
-			}
-		}
+		static constexpr Iterate between(Type from, Type to) { return Iterate(Iteration::between(from, to)); }
 
 		template
 		<
@@ -226,7 +252,11 @@ namespace Ash
 			return *this;
 		}
 
-		constexpr bool operator != (const Iterate &value) const { return !m_Iteration.isComplete(); }
+		constexpr bool operator != (const Iterate &value) const
+		{
+			(void)value;
+			return !m_Iteration.isComplete();
+		}
 
 		constexpr Iterate begin() const { return *this; }
 
