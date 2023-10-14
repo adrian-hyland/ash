@@ -218,7 +218,7 @@ namespace Ash
 					using Point = Ash::Geometry::Point2D<Real>;
 					using Vector = Ash::Geometry::Vector2D<Real>;
 
-					Point point = Point::invalid;
+					Point point = Point::invalid();
 
 					TEST_IS_FALSE((point + Vector(1, 1)).isValid());
 					TEST_IS_FALSE((point - Point(1, 1)).isValid());

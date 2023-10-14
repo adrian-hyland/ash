@@ -286,7 +286,7 @@ namespace Ash
 					using Real = REAL;
 					using Vector = Ash::Geometry::Vector2D<Real>;
 
-					Vector vector = Vector::invalid;
+					Vector vector = Vector::invalid();
 
 					TEST_IS_FALSE((vector + Vector(1, 1)).isValid());
 					TEST_IS_FALSE((vector - Vector(1, 1)).isValid());
