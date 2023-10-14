@@ -121,6 +121,35 @@ namespace Ash
 				return {};
 			}
 
+			static Ash::Test::Assertion isSignedInteger()
+			{
+				TEST_IS_TRUE(Ash::Type::isSignedInteger<signed char>);
+				TEST_IS_TRUE(Ash::Type::isSignedInteger<signed int>);
+				TEST_IS_TRUE(Ash::Type::isSignedInteger<signed short>);
+				TEST_IS_TRUE(Ash::Type::isSignedInteger<signed long>);
+				TEST_IS_TRUE(Ash::Type::isSignedInteger<signed long long>);
+				TEST_IS_EQ(Ash::Type::isSignedInteger<wchar_t>, sizeof(wchar_t) != 2);
+				TEST_IS_FALSE(Ash::Type::isSignedInteger<bool>);
+				TEST_IS_FALSE(Ash::Type::isSignedInteger<char16_t>);
+				TEST_IS_FALSE(Ash::Type::isSignedInteger<char32_t>);
+				TEST_IS_FALSE(Ash::Type::isSignedInteger<unsigned char>);
+				TEST_IS_FALSE(Ash::Type::isSignedInteger<unsigned int>);
+				TEST_IS_FALSE(Ash::Type::isSignedInteger<unsigned short>);
+				TEST_IS_FALSE(Ash::Type::isSignedInteger<unsigned long>);
+				TEST_IS_FALSE(Ash::Type::isSignedInteger<unsigned long long>);
+				TEST_IS_FALSE(Ash::Type::isSignedInteger<float>);
+				TEST_IS_FALSE(Ash::Type::isSignedInteger<double>);
+				TEST_IS_FALSE(Ash::Type::isSignedInteger<long double>);
+				TEST_IS_FALSE(Ash::Type::isSignedInteger<void *>);
+				TEST_IS_FALSE(Ash::Type::isSignedInteger<void>);
+				TEST_IS_FALSE(Ash::Type::isSignedInteger<TestBaseClass>);
+				TEST_IS_FALSE(Ash::Type::isSignedInteger<TestDerivedClass>);
+				TEST_IS_FALSE(Ash::Type::isSignedInteger<TestBaseStruct>);
+				TEST_IS_FALSE(Ash::Type::isSignedInteger<TestDerivedStruct>);
+
+				return {};
+			}
+
 			static Ash::Test::Assertion isUnsignedInteger()
 			{
 				TEST_IS_TRUE(Ash::Type::isUnsignedInteger<bool>);
@@ -554,6 +583,36 @@ namespace Ash
 
 				return {};
 			}
+
+			static Ash::Test::Assertion validityOr()
+			{
+				bool isValid;
+				
+				isValid = Ash::Type::Check<char, Ash::Type::Requirement::IsSame, short>::Or<Ash::Type::Requirement::IsSame, long>::isValid;
+				TEST_IS_FALSE(isValid);
+				isValid = Ash::Type::Check<short, Ash::Type::Requirement::IsSame, short>::Or<Ash::Type::Requirement::IsSame, long>::isValid;
+				TEST_IS_TRUE(isValid);
+				isValid = Ash::Type::Check<long, Ash::Type::Requirement::IsSame, short>::Or<Ash::Type::Requirement::IsSame, long>::isValid;
+				TEST_IS_TRUE(isValid);
+
+				return {};
+			}
+
+			static Ash::Test::Assertion validityAnd()
+			{
+				bool isValid;
+				
+				isValid = Ash::Type::Check<signed char, Ash::Type::Requirement::IsInteger>::And<Ash::Type::Requirement::IsUnsigned>::isValid;
+				TEST_IS_FALSE(isValid);
+				isValid = Ash::Type::Check<signed char, Ash::Type::Requirement::IsUnsigned>::And<Ash::Type::Requirement::IsInteger>::isValid;
+				TEST_IS_FALSE(isValid);
+				isValid = Ash::Type::Check<unsigned char, Ash::Type::Requirement::IsInteger>::And<Ash::Type::Requirement::IsUnsigned>::isValid;
+				TEST_IS_TRUE(isValid);
+				isValid = Ash::Type::Check<unsigned char, Ash::Type::Requirement::IsUnsigned>::And<Ash::Type::Requirement::IsInteger>::isValid;
+				TEST_IS_TRUE(isValid);
+
+				return {};
+			}
 		}
 
 		TEST_UNIT
@@ -562,6 +621,7 @@ namespace Ash
 			TEST_CASE(Ash::Test::Type::isClass),
 			TEST_CASE(Ash::Test::Type::isFloatingPoint),
 			TEST_CASE(Ash::Test::Type::isInteger),
+			TEST_CASE(Ash::Test::Type::isSignedInteger),
 			TEST_CASE(Ash::Test::Type::isUnsignedInteger),
 			TEST_CASE(Ash::Test::Type::isNumeric),
 			TEST_CASE(Ash::Test::Type::isPointer),
@@ -570,7 +630,9 @@ namespace Ash
 			TEST_CASE(Ash::Test::Type::isNotConstant),
 			TEST_CASE(Ash::Test::Type::isSame),
 			TEST_CASE(Ash::Test::Type::isNotSame),
-			TEST_CASE(Ash::Test::Type::option)
+			TEST_CASE(Ash::Test::Type::option),
+			TEST_CASE(Ash::Test::Type::validityOr),
+			TEST_CASE(Ash::Test::Type::validityAnd)
 		);
 	}
 }
