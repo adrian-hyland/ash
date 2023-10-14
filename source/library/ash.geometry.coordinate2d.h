@@ -26,7 +26,7 @@ namespace Ash
 
 			using Angle = Ash::Geometry::Radian<Real>;
 
-			static constexpr Coordinate2D invalid = Coordinate2D(Real::invalid, Real::invalid);
+			static constexpr Coordinate2D invalid() { return Coordinate2D(Real::invalid, Real::invalid); }
 
 			constexpr Coordinate2D() : x(Real(0.0)), y(Real(0.0)) {}
 

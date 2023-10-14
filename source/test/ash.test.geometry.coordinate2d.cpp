@@ -121,7 +121,7 @@ namespace Ash
 					coordinate = Coordinate(0, 0);
 					TEST_IS_TRUE(coordinate.isValid());
 
-					coordinate = Coordinate::invalid;
+					coordinate = Coordinate::invalid();
 					TEST_IS_FALSE(coordinate.isValid());
 					TEST_IS_FALSE(coordinate.getRadius().isValid());
 					TEST_IS_FALSE(coordinate.getAngle().isValid());
