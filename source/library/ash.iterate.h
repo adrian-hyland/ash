@@ -17,7 +17,7 @@ namespace Ash
 	<
 		typename TYPE,
 		bool     IS_FORWARD = true,
-		typename = Ash::Type::IsIntegerOrPointer<TYPE>
+		typename = typename Ash::Type::Check<TYPE, Ash::Type::Requirement::IsInteger>::Or<Ash::Type::Requirement::IsPointer>::IsValid
 	>
 	class Iteration
 	{
@@ -48,7 +48,7 @@ namespace Ash
 		{
 			bool isAtEnd = (m_Start == m_End);
 
-			if constexpr (!Ash::Type::isPointer<Type> && !Ash::Type::isUnsignedInteger<Type>)
+			if constexpr (Ash::Type::isSignedInteger<Type>)
 			{
 				if constexpr (isForward)
 				{
@@ -63,11 +63,11 @@ namespace Ash
 			{
 				if constexpr (isForward)
 				{
-					m_Start++;
+					++m_Start;
 				}
 				else
 				{
-					m_Start--;
+					--m_Start;
 				}
 			}
 
@@ -95,7 +95,7 @@ namespace Ash
 		{
 			if (count == 0)
 			{
-				return { value, 0, true };
+				return { value, value, true };
 			}
 
 			count--;
@@ -139,7 +139,7 @@ namespace Ash
 		typename TYPE,
 		bool     IS_FORWARD = true,
 		size_t   DEPTH = 1,
-		typename = Ash::Type::IsIntegerOrPointer<TYPE>
+		typename = typename Ash::Type::Check<TYPE, Ash::Type::Requirement::IsInteger>::Or<Ash::Type::Requirement::IsPointer>::IsValid
 	>
 	class Iterate : public Iterate<TYPE, IS_FORWARD, DEPTH - 1>
 	{
@@ -168,6 +168,8 @@ namespace Ash
 			typename = Ash::Type::IsSame<ITERATE_NEXT, End>
 		>
 		constexpr Iterate() : m_Iteration() {}
+
+		constexpr Iterate(const Iterate &iterate) : Next(iterate), m_Iteration(iterate.m_Iteration) {}
 
 		template
 		<
