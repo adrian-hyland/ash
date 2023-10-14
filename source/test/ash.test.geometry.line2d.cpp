@@ -384,7 +384,7 @@ namespace Ash
 					using Vector = Ash::Geometry::Vector2D<Real>;
 					using Line = Ash::Geometry::Line2D<Real>;
 
-					Line line = Line::invalid;
+					Line line = Line::invalid();
 					Real lineDistance;
 					Real pointDistance;
 

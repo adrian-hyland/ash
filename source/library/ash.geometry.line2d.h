@@ -23,7 +23,7 @@ namespace Ash
 
 			using Angle = typename Vector::Angle;
 
-			static constexpr Line2D invalid = Line2D(Point::invalid, Point::invalid);
+			static constexpr Line2D invalid() { return Line2D(Point::invalid(), Point::invalid()); }
 
 			constexpr Line2D() : startPoint(), endPoint() {};
 
