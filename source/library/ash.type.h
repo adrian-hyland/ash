@@ -32,7 +32,13 @@ namespace Ash
 			<
 				typename TYPE
 			>
-			using IsUnsignedInteger = std::is_unsigned<TYPE>;
+			using IsSigned = std::is_signed<TYPE>;
+
+			template
+			<
+				typename TYPE
+			>
+			using IsUnsigned = std::is_unsigned<TYPE>;
 
 			template
 			<
@@ -50,19 +56,13 @@ namespace Ash
 			<
 				typename TYPE
 			>
-			using IsIntegerOrPointer = std::integral_constant<bool, std::is_pointer<TYPE>::value || std::is_integral<TYPE>::value>;
-
-			template
-			<
-				typename TYPE
-			>
 			using IsConstant = std::is_const<TYPE>;
 
 			template
 			<
 				typename TYPE
 			>
-			using IsNotConstant = std::integral_constant<bool, !std::is_const<TYPE>::value>;
+			using IsNotConstant = std::bool_constant<!std::is_const_v<TYPE>>;
 
 			template
 			<
@@ -76,162 +76,221 @@ namespace Ash
 				typename LEFT_TYPE,
 				typename RIGHT_TYPE
 			>
-			using IsNotSame = std::integral_constant<bool, !std::is_same<LEFT_TYPE, RIGHT_TYPE>::value>;
-
-			template
-			<
-				typename                         TYPE,
-				template <typename ...> typename REQUIREMENT,
-				typename                         ...PARAMS
-			>
-			constexpr bool check = REQUIREMENT<TYPE, PARAMS...>::value;
-
-			template
-			<
-				typename                         TYPE,
-				template <typename ...> typename REQUIREMENT,
-				typename                         ...PARAMS
-			>
-			using Check = std::enable_if_t<check<TYPE, REQUIREMENT, PARAMS...>, TYPE>;
+			using IsNotSame = std::bool_constant<!std::is_same_v<LEFT_TYPE, RIGHT_TYPE>>;
 		}
 
 		template
 		<
 			typename TYPE,
-			typename BASE_CLASS = TYPE
+			bool     IS_VALID
 		>
-		constexpr bool isClass = Ash::Type::Requirement::check<TYPE, Ash::Type::Requirement::IsClass, BASE_CLASS>;
-
-		template
-		<
-			typename LEFT_TYPE,
-			typename RIGHT_TYPE
-		>
-		constexpr bool isSame = Ash::Type::Requirement::check<LEFT_TYPE, Ash::Type::Requirement::IsSame, RIGHT_TYPE>;
-
-		template
-		<
-			typename LEFT_TYPE,
-			typename RIGHT_TYPE
-		>
-		constexpr bool isNotSame = Ash::Type::Requirement::check<LEFT_TYPE, Ash::Type::Requirement::IsNotSame, RIGHT_TYPE>;
+		struct Validity {};
 
 		template
 		<
 			typename TYPE
 		>
-		constexpr bool isFloatingPoint = Ash::Type::Requirement::check<TYPE, Ash::Type::Requirement::IsFloatingPoint>;
+		struct Validity<TYPE, false>
+		{
+			static constexpr bool isValid = false;
+
+			template
+			<
+				template <typename ...> typename REQUIREMENT,
+				typename                         ...PARAMS
+			>
+			using Or = Validity<TYPE, REQUIREMENT<TYPE, PARAMS...>::value>;
+
+			template
+			<
+				template <typename ...> typename REQUIREMENT,
+				typename                         ...PARAMS
+			>
+			using And = Validity<TYPE, false>;
+		};
 
 		template
 		<
 			typename TYPE
 		>
-		constexpr bool isInteger = Ash::Type::Requirement::check<TYPE, Ash::Type::Requirement::IsInteger>;
+		struct Validity<TYPE, true>
+		{
+			using IsValid = TYPE;
+
+			static constexpr bool isValid = true;
+
+			template
+			<
+				template <typename ...> typename REQUIREMENT,
+				typename                         ...PARAMS
+			>
+			using Or = Validity<TYPE, true>;
+
+			template
+			<
+				template <typename ...> typename REQUIREMENT,
+				typename                         ...PARAMS
+			>
+			using And = Validity<TYPE, REQUIREMENT<TYPE, PARAMS...>::value>;
+		};
 
 		template
 		<
-			typename TYPE
+			typename                         TYPE,
+			template <typename ...> typename REQUIREMENT,
+			typename                         ...PARAMS
 		>
-		constexpr bool isUnsignedInteger = Ash::Type::Requirement::check<TYPE, Ash::Type::Requirement::IsUnsignedInteger>;
-
-		template
-		<
-			typename TYPE
-		>
-		constexpr bool isNumeric = Ash::Type::Requirement::check<TYPE, Ash::Type::Requirement::IsNumeric>;
-
-		template
-		<
-			typename TYPE
-		>
-		constexpr bool isPointer = Ash::Type::Requirement::check<TYPE, Ash::Type::Requirement::IsPointer>;
-
-		template
-		<
-			typename TYPE
-		>
-		constexpr bool isIntegerOrPointer = Ash::Type::Requirement::check<TYPE, Ash::Type::Requirement::IsIntegerOrPointer>;
-
-		template
-		<
-			typename TYPE
-		>
-		constexpr bool isConstant = Ash::Type::Requirement::check<TYPE, Ash::Type::Requirement::IsConstant>;
-
-		template
-		<
-			typename TYPE
-		>
-		constexpr bool isNotConstant = Ash::Type::Requirement::check<TYPE, Ash::Type::Requirement::IsNotConstant>;
+		struct Check : Ash::Type::Validity<TYPE, REQUIREMENT<TYPE, PARAMS...>::value> {};
 
 		template
 		<
 			typename TYPE,
 			typename BASE_CLASS = TYPE
 		>
-		using IsClass = Ash::Type::Requirement::Check<TYPE, Ash::Type::Requirement::IsClass, BASE_CLASS>;
+		constexpr bool isClass = Ash::Type::Check<TYPE, Ash::Type::Requirement::IsClass, BASE_CLASS>::isValid;
 
 		template
 		<
 			typename LEFT_TYPE,
 			typename RIGHT_TYPE
 		>
-		using IsSame = Ash::Type::Requirement::Check<LEFT_TYPE, Ash::Type::Requirement::IsSame, RIGHT_TYPE>;
+		constexpr bool isSame = Ash::Type::Check<LEFT_TYPE, Ash::Type::Requirement::IsSame, RIGHT_TYPE>::isValid;
 
 		template
 		<
 			typename LEFT_TYPE,
 			typename RIGHT_TYPE
 		>
-		using IsNotSame = Ash::Type::Requirement::Check<LEFT_TYPE, Ash::Type::Requirement::IsNotSame, RIGHT_TYPE>;
+		constexpr bool isNotSame = Ash::Type::Check<LEFT_TYPE, Ash::Type::Requirement::IsNotSame, RIGHT_TYPE>::isValid;
 
 		template
 		<
 			typename TYPE
 		>
-		using IsFloatingPoint = Ash::Type::Requirement::Check<TYPE, Ash::Type::Requirement::IsFloatingPoint>;
+		constexpr bool isFloatingPoint = Ash::Type::Check<TYPE, Ash::Type::Requirement::IsFloatingPoint>::isValid;
 
 		template
 		<
 			typename TYPE
 		>
-		using IsInteger = Ash::Type::Requirement::Check<TYPE, Ash::Type::Requirement::IsInteger>;
+		constexpr bool isInteger = Ash::Type::Check<TYPE, Ash::Type::Requirement::IsInteger>::isValid;
 
 		template
 		<
 			typename TYPE
 		>
-		using IsUnsignedInteger = Ash::Type::Requirement::Check<TYPE, Ash::Type::Requirement::IsUnsignedInteger>;
+		constexpr bool isSignedInteger = Ash::Type::Check<TYPE, Ash::Type::Requirement::IsInteger>::template And<Ash::Type::Requirement::IsSigned>::isValid;
 
 		template
 		<
 			typename TYPE
 		>
-		using IsNumeric = Ash::Type::Requirement::Check<TYPE, Ash::Type::Requirement::IsNumeric>;
+		constexpr bool isUnsignedInteger = Ash::Type::Check<TYPE, Ash::Type::Requirement::IsInteger>::template And<Ash::Type::Requirement::IsUnsigned>::isValid;
 
 		template
 		<
 			typename TYPE
 		>
-		using IsPointer = Ash::Type::Requirement::Check<TYPE, Ash::Type::Requirement::IsPointer>;
+		constexpr bool isNumeric = Ash::Type::Check<TYPE, Ash::Type::Requirement::IsNumeric>::isValid;
 
 		template
 		<
 			typename TYPE
 		>
-		using IsIntegerOrPointer = Ash::Type::Requirement::Check<TYPE, Ash::Type::Requirement::IsIntegerOrPointer>;
+		constexpr bool isPointer = Ash::Type::Check<TYPE, Ash::Type::Requirement::IsPointer>::isValid;
 
 		template
 		<
 			typename TYPE
 		>
-		using IsConstant = Ash::Type::Requirement::Check<TYPE, Ash::Type::Requirement::IsConstant>;
+		constexpr bool isIntegerOrPointer = Ash::Type::Check<TYPE, Ash::Type::Requirement::IsInteger>::template Or<Ash::Type::Requirement::IsPointer>::isValid;
 
 		template
 		<
 			typename TYPE
 		>
-		using IsNotConstant = Ash::Type::Requirement::Check<TYPE, Ash::Type::Requirement::IsNotConstant>;
+		constexpr bool isConstant = Ash::Type::Check<TYPE, Ash::Type::Requirement::IsConstant>::isValid;
+
+		template
+		<
+			typename TYPE
+		>
+		constexpr bool isNotConstant = Ash::Type::Check<TYPE, Ash::Type::Requirement::IsNotConstant>::isValid;
+
+		template
+		<
+			typename TYPE,
+			typename BASE_CLASS = TYPE
+		>
+		using IsClass = typename Ash::Type::Check<TYPE, Ash::Type::Requirement::IsClass, BASE_CLASS>::IsValid;
+
+		template
+		<
+			typename LEFT_TYPE,
+			typename RIGHT_TYPE
+		>
+		using IsSame = typename Ash::Type::Check<LEFT_TYPE, Ash::Type::Requirement::IsSame, RIGHT_TYPE>::IsValid;
+
+		template
+		<
+			typename LEFT_TYPE,
+			typename RIGHT_TYPE
+		>
+		using IsNotSame = typename Ash::Type::Check<LEFT_TYPE, Ash::Type::Requirement::IsNotSame, RIGHT_TYPE>::IsValid;
+
+		template
+		<
+			typename TYPE
+		>
+		using IsFloatingPoint = typename Ash::Type::Check<TYPE, Ash::Type::Requirement::IsFloatingPoint>::IsValid;
+
+		template
+		<
+			typename TYPE
+		>
+		using IsInteger = typename Ash::Type::Check<TYPE, Ash::Type::Requirement::IsInteger>::IsValid;
+
+		template
+		<
+			typename TYPE
+		>
+		using IsSignedInteger = typename Ash::Type::Check<TYPE, Ash::Type::Requirement::IsInteger>::template And<Ash::Type::Requirement::IsSigned>::IsValid;
+
+		template
+		<
+			typename TYPE
+		>
+		using IsUnsignedInteger = typename Ash::Type::Check<TYPE, Ash::Type::Requirement::IsInteger>::template And<Ash::Type::Requirement::IsUnsigned>::IsValid;
+
+		template
+		<
+			typename TYPE
+		>
+		using IsNumeric = typename Ash::Type::Check<TYPE, Ash::Type::Requirement::IsNumeric>::IsValid;
+
+		template
+		<
+			typename TYPE
+		>
+		using IsPointer = typename Ash::Type::Check<TYPE, Ash::Type::Requirement::IsPointer>::IsValid;
+
+		template
+		<
+			typename TYPE
+		>
+		using IsIntegerOrPointer = typename Ash::Type::Check<TYPE, Ash::Type::Requirement::IsInteger>::template Or<Ash::Type::Requirement::IsPointer>::IsValid;
+
+		template
+		<
+			typename TYPE
+		>
+		using IsConstant = typename Ash::Type::Check<TYPE, Ash::Type::Requirement::IsConstant>::IsValid;
+
+		template
+		<
+			typename TYPE
+		>
+		using IsNotConstant = typename Ash::Type::Check<TYPE, Ash::Type::Requirement::IsNotConstant>::IsValid;
 
 		template
 		<
@@ -239,14 +298,14 @@ namespace Ash
 			typename TYPE_OPTION_FALSE,
 			bool     OPTION
 		>
-		struct OptionType {};
+		struct SelectOption {};
 
 		template
 		<
 			typename TYPE_OPTION_TRUE,
 			typename TYPE_OPTION_FALSE
 		>
-		struct OptionType<TYPE_OPTION_TRUE, TYPE_OPTION_FALSE, true>
+		struct SelectOption<TYPE_OPTION_TRUE, TYPE_OPTION_FALSE, true>
 		{
 			using Type = TYPE_OPTION_TRUE;
 		};
@@ -256,7 +315,7 @@ namespace Ash
 			typename TYPE_OPTION_TRUE,
 			typename TYPE_OPTION_FALSE
 		>
-		struct OptionType<TYPE_OPTION_TRUE, TYPE_OPTION_FALSE, false>
+		struct SelectOption<TYPE_OPTION_TRUE, TYPE_OPTION_FALSE, false>
 		{
 			using Type = TYPE_OPTION_FALSE;
 		};
@@ -267,6 +326,6 @@ namespace Ash
 			typename TYPE_OPTION_FALSE,
 			bool     OPTION
 		>
-		using Option = typename OptionType<TYPE_OPTION_TRUE, TYPE_OPTION_FALSE, OPTION>::Type;
+		using Option = typename SelectOption<TYPE_OPTION_TRUE, TYPE_OPTION_FALSE, OPTION>::Type;
 	}
 }
