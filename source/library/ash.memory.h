@@ -945,9 +945,9 @@ namespace Ash
 
 			using Iterate = Ash::Iterate<typename Allocation::Type *>;
 
-			constexpr Iterate iterate() { return Iterate::from(&(*this)[0], Allocation::getLength()); }
+			constexpr Iterate iterate() const { return Iterate::from(&(*this)[0], Allocation::getLength()); }
 
-			constexpr Iterate iterateBetween(size_t from, size_t to)
+			constexpr Iterate iterateBetween(size_t from, size_t to) const
 			{
 				size_t count = 0;
 
@@ -959,13 +959,13 @@ namespace Ash
 				return Iterate::from(&(*this)[from], count);
 			}
 
-			constexpr Iterate iterateFrom(size_t from) { return iterateBetween(from, Allocation::getLength() - 1); }
+			constexpr Iterate iterateFrom(size_t from) const { return iterateBetween(from, Allocation::getLength() - 1); }
 
-			constexpr Ash::Iterate<typename Allocation::Type *> iterateTo(size_t to) { return iterateBetween(0, to); }
+			constexpr Iterate iterateTo(size_t to) const { return iterateBetween(0, to); }
 
 			using Cycle = Ash::Iterate<typename Allocation::Type *, true, 2>;
 
-			constexpr Cycle cycleBetween(size_t from, size_t to)
+			constexpr Cycle cycleBetween(size_t from, size_t to) const
 			{
 				if ((from >= Allocation::getLength()) || (to >= Allocation::getLength()))
 				{
@@ -981,7 +981,7 @@ namespace Ash
 				}
 			}
 
-			constexpr Cycle cycleFrom(size_t from, size_t count)
+			constexpr Cycle cycleFrom(size_t from, size_t count) const
 			{
 				if ((count == 0) || (from >= Allocation::getLength()) || (count > Allocation::getLength()))
 				{
