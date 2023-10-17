@@ -17,12 +17,14 @@ namespace Ash
 	<
 		typename TYPE,
 		bool     IS_FORWARD = true,
-		typename = typename Ash::Type::Check<TYPE, Ash::Type::Requirement::IsInteger>::Or<Ash::Type::Requirement::IsPointer>::IsValid
+		typename = typename Ash::Type::Check<TYPE, Ash::Type::Requirement::IsInteger>::template Or<Ash::Type::Requirement::IsPointer>::IsValid
 	>
 	class Iteration
 	{
 	public:
 		using Type = TYPE;
+
+		using ReferenceType = std::add_lvalue_reference_t<std::remove_pointer_t<Type>>;
 
 		static constexpr bool isForward = IS_FORWARD;
 
@@ -40,7 +42,19 @@ namespace Ash
 			}
 		}
 
+		template
+		<
+			typename RETURN_TYPE = Type,
+			typename = Ash::Type::IsInteger<RETURN_TYPE>
+		>
 		constexpr operator Type () const { return m_Start; }
+
+		template
+		<
+			typename RETURN_TYPE = Type,
+			typename = Ash::Type::IsPointer<RETURN_TYPE>
+		>
+		constexpr operator ReferenceType () const { return *m_Start; }
 
 		constexpr bool isComplete() const { return m_IsComplete; }
 
@@ -139,7 +153,7 @@ namespace Ash
 		typename TYPE,
 		bool     IS_FORWARD = true,
 		size_t   DEPTH = 1,
-		typename = typename Ash::Type::Check<TYPE, Ash::Type::Requirement::IsInteger>::Or<Ash::Type::Requirement::IsPointer>::IsValid
+		typename = typename Ash::Type::Check<TYPE, Ash::Type::Requirement::IsInteger>::template Or<Ash::Type::Requirement::IsPointer>::IsValid
 	>
 	class Iterate : public Iterate<TYPE, IS_FORWARD, DEPTH - 1>
 	{
@@ -159,6 +173,8 @@ namespace Ash
 		using Reverse = Iterate<Type, isReverse, depth>;
 
 		using Iteration = Ash::Iteration<Type, isForward>;
+
+		using ReferenceType = typename Iteration::ReferenceType;
 
 		static constexpr bool hasNext = Ash::Type::isNotSame<Next, End>;
 
@@ -201,7 +217,7 @@ namespace Ash
 
 		constexpr Iteration getIteration() const { return m_Iteration; }
 
-		constexpr Reverse reverse()
+		constexpr Reverse reverse() const
 		{
 			if constexpr (hasNext)
 			{
@@ -243,13 +259,25 @@ namespace Ash
 			}
 		}
 
+		template
+		<
+			typename RETURN_TYPE = Type,
+			typename = Ash::Type::IsInteger<RETURN_TYPE>
+		>
 		constexpr Type operator * () const { return m_Iteration; }
+
+		template
+		<
+			typename RETURN_TYPE = Type,
+			typename = Ash::Type::IsPointer<RETURN_TYPE>
+		>
+		constexpr ReferenceType operator * () const { return m_Iteration; }
 
 		constexpr Iterate &operator ++ ()
 		{
 			if (!m_Iteration.advance())
 			{
-				getNextIterator();
+				getNextIteration();
 			}
 			return *this;
 		}
@@ -265,12 +293,12 @@ namespace Ash
 		constexpr Iterate end() const { return *this; }
 
 	protected:
-		constexpr void getNextIterator()
+		constexpr void getNextIteration()
 		{
 			if constexpr(hasNext)
 			{
 				m_Iteration = Next::getIteration();
-				Next::getNextIterator();
+				Next::getNextIteration();
 			}
 			else
 			{
