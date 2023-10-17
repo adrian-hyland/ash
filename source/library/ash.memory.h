@@ -96,19 +96,13 @@ namespace Ash
 			protected:
 				constexpr Dynamic() : m_Content(nullptr), m_Length(0), m_Capacity(0) {}
 
-				inline ~Dynamic()
-				{
-					deleteContent();
-				}
+				inline ~Dynamic() { deleteContent(); }
 
 				constexpr const Type *getContent() const { return m_Content; }
 
 				constexpr Type *getContent() { return m_Content; }
 
-				constexpr void copy(const Dynamic &value)
-				{
-					copy(value.m_Content, value.m_Length);
-				}
+				constexpr void copy(const Dynamic &value) { copy(value.m_Content, value.m_Length); }
 
 				constexpr void move(Dynamic &value)
 				{
@@ -287,15 +281,9 @@ namespace Ash
 
 				constexpr Type *getContent() { return m_Content; }
 
-				constexpr void copy(const VariableLength &value)
-				{
-					copy(value.m_Content, value.m_Length);
-				}
+				constexpr void copy(const VariableLength &value) { copy(value.m_Content, value.m_Length); }
 
-				constexpr void move(VariableLength &value)
-				{
-					move(value.m_Content, value.m_Length);
-				}
+				constexpr void move(VariableLength &value) { move(value.m_Content, value.m_Length); }
 
 				constexpr void copy(const Type *content, size_t length)
 				{
@@ -350,25 +338,13 @@ namespace Ash
 			protected:
 				constexpr FixedLength() : m_Content() {}
 
-				constexpr const Type *getContent() const
-				{
-					return m_Content;
-				}
+				constexpr const Type *getContent() const { return m_Content; }
 
-				constexpr Type *getContent()
-				{
-					return m_Content;
-				}
+				constexpr Type *getContent() { return m_Content; }
 
-				constexpr void copy(const FixedLength &value)
-				{
-					copy(value.m_Content, CAPACITY);
-				}
+				constexpr void copy(const FixedLength &value) { copy(value.m_Content, CAPACITY); }
 
-				constexpr void move(FixedLength &value)
-				{
-					move(value.m_Content, CAPACITY);
-				}
+				constexpr void move(FixedLength &value) { move(value.m_Content, CAPACITY); }
 
 				constexpr void copy(const Type *content, size_t length)
 				{
@@ -439,15 +415,9 @@ namespace Ash
 
 				constexpr Type *getContent() { return m_Content; }
 
-				constexpr void copy(const Reference &value)
-				{
-					copy(value.m_Content, value.m_Length);
-				}
+				constexpr void copy(const Reference &value) { copy(value.m_Content, value.m_Length); }
 
-				constexpr void move(Reference &value)
-				{
-					move(value.m_Content, value.m_Length);
-				}
+				constexpr void move(Reference &value) { move(value.m_Content, value.m_Length); }
 
 				constexpr void copy(Type *content, size_t length)
 				{
@@ -943,11 +913,25 @@ namespace Ash
 
 			constexpr const Type *end() const { return (Allocation::getLength() != 0) ? &(*this)[Allocation::getLength()] : nullptr; }
 
-			using Iterate = Ash::Iterate<typename Allocation::Type *>;
+			using Iterate = Ash::Iterate<Type *>;
 
-			constexpr Iterate iterate() const { return Iterate::from(&(*this)[0], Allocation::getLength()); }
+			using IterateConst = Ash::Iterate<const Type *>;
 
-			constexpr Iterate iterateBetween(size_t from, size_t to) const
+			template
+			<
+				typename ALLOCATION_TYPE = typename Allocation::Type,
+				typename = Ash::Type::IsNotConstant<ALLOCATION_TYPE>
+			>
+			constexpr Iterate iterate() { return Iterate::from(at(0), Allocation::getLength()); }
+
+			constexpr IterateConst iterate() const { return IterateConst::from(at(0), Allocation::getLength()); }
+
+			template
+			<
+				typename ALLOCATION_TYPE = typename Allocation::Type,
+				typename = Ash::Type::IsNotConstant<ALLOCATION_TYPE>
+			>
+			constexpr Iterate iterateBetween(size_t from, size_t to)
 			{
 				size_t count = 0;
 
@@ -956,16 +940,49 @@ namespace Ash
 					count = (to < Allocation::getLength()) ? to - from + 1 : Allocation::getLength() - from + 1;
 				}
 
-				return Iterate::from(&(*this)[from], count);
+				return Iterate::from(at(from), count);
 			}
 
-			constexpr Iterate iterateFrom(size_t from) const { return iterateBetween(from, Allocation::getLength() - 1); }
+			constexpr IterateConst iterateBetween(size_t from, size_t to) const
+			{
+				size_t count = 0;
 
-			constexpr Iterate iterateTo(size_t to) const { return iterateBetween(0, to); }
+				if (from < Allocation::getLength() && (from <= to))
+				{
+					count = (to < Allocation::getLength()) ? to - from + 1 : Allocation::getLength() - from + 1;
+				}
 
-			using Cycle = Ash::Iterate<typename Allocation::Type *, true, 2>;
+				return IterateConst::from(at(from), count);
+			}
 
-			constexpr Cycle cycleBetween(size_t from, size_t to) const
+			template
+			<
+				typename ALLOCATION_TYPE = typename Allocation::Type,
+				typename = Ash::Type::IsNotConstant<ALLOCATION_TYPE>
+			>
+			constexpr Iterate iterateFrom(size_t from) { return iterateBetween(from, Allocation::getLength() - 1); }
+
+			constexpr IterateConst iterateFrom(size_t from) const { return iterateBetween(from, Allocation::getLength() - 1); }
+
+			template
+			<
+				typename ALLOCATION_TYPE = typename Allocation::Type,
+				typename = Ash::Type::IsNotConstant<ALLOCATION_TYPE>
+			>
+			constexpr Iterate iterateTo(size_t to) { return iterateBetween(0, to); }
+
+			constexpr IterateConst iterateTo(size_t to) const { return iterateBetween(0, to); }
+
+			using Cycle = Ash::Iterate<Type *, true, 2>;
+
+			using CycleConst = Ash::Iterate<const Type *, true, 2>;
+
+			template
+			<
+				typename ALLOCATION_TYPE = typename Allocation::Type,
+				typename = Ash::Type::IsNotConstant<ALLOCATION_TYPE>
+			>
+			constexpr Cycle cycleBetween(size_t from, size_t to)
 			{
 				if ((from >= Allocation::getLength()) || (to >= Allocation::getLength()))
 				{
@@ -981,7 +998,28 @@ namespace Ash
 				}
 			}
 
-			constexpr Cycle cycleFrom(size_t from, size_t count) const
+			constexpr CycleConst cycleBetween(size_t from, size_t to) const
+			{
+				if ((from >= Allocation::getLength()) || (to >= Allocation::getLength()))
+				{
+					return IterateConst() + IterateConst();
+				}
+				else if (from <= to)
+				{
+					return iterateBetween(from, to) + IterateConst();
+				}
+				else
+				{
+					return iterateFrom(from) + iterateTo(to);
+				}
+			}
+
+			template
+			<
+				typename ALLOCATION_TYPE = typename Allocation::Type,
+				typename = Ash::Type::IsNotConstant<ALLOCATION_TYPE>
+			>
+			constexpr Cycle cycleFrom(size_t from, size_t count)
 			{
 				if ((count == 0) || (from >= Allocation::getLength()) || (count > Allocation::getLength()))
 				{
@@ -990,6 +1028,22 @@ namespace Ash
 				else if (from <= Allocation::getLength() - count)
 				{
 					return iterateBetween(from, from + count - 1) + Iterate();
+				}
+				else
+				{
+					return iterateFrom(from) + iterateTo(from + count - Allocation::getLength() - 1);
+				}
+			}
+
+			constexpr CycleConst cycleFrom(size_t from, size_t count) const
+			{
+				if ((count == 0) || (from >= Allocation::getLength()) || (count > Allocation::getLength()))
+				{
+					return IterateConst() + IterateConst();
+				}
+				else if (from <= Allocation::getLength() - count)
+				{
+					return iterateBetween(from, from + count - 1) + IterateConst();
 				}
 				else
 				{
