@@ -178,12 +178,7 @@ namespace Ash
 
 		static constexpr bool hasNext = Ash::Type::isNotSame<Next, End>;
 
-		template
-		<
-			typename ITERATE_NEXT = Next,
-			typename = Ash::Type::IsSame<ITERATE_NEXT, End>
-		>
-		constexpr Iterate() : m_Iteration() {}
+		constexpr Iterate() : Next(), m_Iteration() {}
 
 		constexpr Iterate(const Iterate &iterate) : Next(iterate), m_Iteration(iterate.m_Iteration) {}
 
