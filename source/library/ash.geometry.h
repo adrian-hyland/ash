@@ -5,3 +5,4 @@
 #include "ash.geometry.vector2d.h"
 #include "ash.geometry.point2d.h"
 #include "ash.geometry.line2d.h"
+#include "ash.geometry.polygon.h"
