@@ -13,7 +13,7 @@ namespace Ash
 		public:
 			using Code = uint8_t;
 
-			static constexpr size_t minSze = 4;
+			static constexpr size_t minSize = 4;
 
 			static constexpr size_t maxSize = 4;
 
