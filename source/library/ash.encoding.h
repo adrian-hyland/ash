@@ -20,10 +20,10 @@ namespace Ash
 			typename TO_ENCODING,
 			typename FROM_ALLOCATION,
 			typename TO_ALLOCATION,
-			typename =Ash::Type::IsClass<FROM_ENCODING, Ash::Generic::Encoding>,
-			typename =Ash::Type::IsClass<TO_ENCODING, Ash::Generic::Encoding>,
-			typename =Ash::Type::IsClass<FROM_ALLOCATION, Ash::Memory::Generic::Allocation>,
-			typename =Ash::Type::IsClass<TO_ALLOCATION, Ash::Memory::Generic::Allocation>
+			typename = Ash::Type::IsClass<FROM_ENCODING, Ash::Generic::Encoding>,
+			typename = Ash::Type::IsClass<TO_ENCODING, Ash::Generic::Encoding>,
+			typename = Ash::Type::IsClass<FROM_ALLOCATION, Ash::Memory::Generic::Allocation>,
+			typename = Ash::Type::IsClass<TO_ALLOCATION, Ash::Memory::Generic::Allocation>
 		>
 		constexpr size_t convert(const Ash::Memory::Value<FROM_ALLOCATION, typename FROM_ENCODING::Code> &from, Ash::Memory::Value<TO_ALLOCATION, typename TO_ENCODING::Code> &to, Ash::Unicode::Character replacementCharacter = TO_ENCODING::Character::replacement)
 		{
@@ -61,39 +61,67 @@ namespace Ash
 		<
 			typename ENCODING,
 			typename ALLOCATION,
-			typename =Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>,
-			typename =Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>
+			typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>,
+			typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>
 		>
 		constexpr size_t find(const Ash::Memory::Value<ALLOCATION, typename ENCODING::Code> &value, size_t offset, Ash::Unicode::Character character)
 		{
-			typename ENCODING::Character valueCharacter;
-			size_t decodeLength = 0;
-
-			for (; offset < value.getLength(); offset = offset + decodeLength)
+			typename ENCODING::Character characterEncoding(character);
+			typename ENCODING::Code characterCode;
+			
+			if (characterEncoding.getLength() <= value.getLength())
 			{
-				decodeLength = ENCODING::decodeNext(value, offset, valueCharacter);
-				if (decodeLength != 0)
+				if (characterEncoding.getLength() == 1)
 				{
-					if (Ash::Unicode::Character(valueCharacter) == character)
+					if (characterEncoding.get(0, characterCode))
 					{
-						break;
+						return value.find(offset, characterCode);
 					}
 				}
-				else
+				else if (characterEncoding.getLength() > 1)
 				{
-					decodeLength = ENCODING::minSize;
+					if constexpr (ENCODING::isBigEndian)
+					{
+						if (characterEncoding.get(ENCODING::minSize - 1, characterCode))
+						{
+							while (offset <= value.getLength() - characterEncoding.getLength())
+							{
+								offset = value.template find<ENCODING::minSize, ENCODING::minSize - 1>(offset, characterCode);
+								if (value.match(offset - (ENCODING::minSize - 1), characterEncoding) == characterEncoding.getLength())
+								{
+									return offset - (ENCODING::minSize - 1);
+								}
+								offset = offset + ENCODING::minSize;
+							}
+						}
+					}
+					else
+					{
+						if (characterEncoding.get(0, characterCode))
+						{
+							while (offset <= value.getLength() - characterEncoding.getLength())
+							{
+								offset = value.template find<ENCODING::minSize>(offset, characterCode);
+								if (value.match(offset, characterEncoding) == characterEncoding.getLength())
+								{
+									return offset;
+								}
+								offset = offset + ENCODING::minSize;
+							}
+						}
+					}
 				}
 			}
 			
-			return offset;
+			return value.getLength();
 		}
 
 		template
 		<
 			typename ENCODING,
 			typename ALLOCATION,
-			typename =Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>,
-			typename =Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>
+			typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>,
+			typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>
 		>
 		constexpr bool contains(const Ash::Memory::Value<ALLOCATION, typename ENCODING::Code> &value, Ash::Unicode::Character character)
 		{
@@ -104,8 +132,8 @@ namespace Ash
 		<
 			typename ENCODING,
 			typename ALLOCATION,
-			typename =Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>,
-			typename =Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>
+			typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>,
+			typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>
 		>
 		constexpr size_t skipAnyOf(const Ash::Memory::Value<ALLOCATION, typename ENCODING::Code> &value, size_t offset, std::initializer_list<Ash::Unicode::Character> characterList)
 		{
@@ -135,8 +163,8 @@ namespace Ash
 		<
 			typename ENCODING,
 			typename ALLOCATION,
-			typename =Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>,
-			typename =Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>
+			typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>,
+			typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>
 		>
 		constexpr size_t skipNoneOf(const Ash::Memory::Value<ALLOCATION, typename ENCODING::Code> &value, size_t offset, std::initializer_list<Ash::Unicode::Character> characterList)
 		{
@@ -167,9 +195,9 @@ namespace Ash
 			typename ENCODING,
 			typename VALUE_ALLOCATION,
 			typename TOKEN_ALLOCATION,
-			typename =Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>,
-			typename =Ash::Type::IsClass<VALUE_ALLOCATION, Ash::Memory::Generic::Allocation>,
-			typename =Ash::Type::IsClass<TOKEN_ALLOCATION, Ash::Memory::Generic::Allocation>
+			typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>,
+			typename = Ash::Type::IsClass<VALUE_ALLOCATION, Ash::Memory::Generic::Allocation>,
+			typename = Ash::Type::IsClass<TOKEN_ALLOCATION, Ash::Memory::Generic::Allocation>
 		>
 		constexpr size_t token(const Ash::Memory::Value<VALUE_ALLOCATION, typename ENCODING::Code> &value, size_t offset, std::initializer_list<Ash::Unicode::Character> delimiters, Ash::Memory::Value<TOKEN_ALLOCATION, typename ENCODING::Code> &tokenValue)
 		{
