@@ -17,6 +17,10 @@ namespace Ash
 
 			static constexpr size_t maxSize = 4;
 
+			static constexpr bool isLittleEndian = true;
+
+			static constexpr bool isBigEndian = false;
+
 			class Character : public Memory::Buffer<Code, maxSize>
 			{
 			public:
