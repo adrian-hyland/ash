@@ -2,6 +2,8 @@
 
 #include <utility>
 #include <algorithm>
+#include <cstring>
+#include <cwchar>
 #include "ash.type.h"
 #include "ash.size.h"
 #include "ash.iterate.h"
@@ -798,6 +800,50 @@ namespace Ash
 				}
 
 				return length;
+			}
+
+			constexpr size_t find(size_t offset, const Type &value) const
+			{
+				if constexpr (Ash::Type::isSame<Type, char> || Ash::Type::isSame<Type, unsigned char>)
+				{
+					const Type *location = (offset < Allocation::getLength()) ? (const Type *)memchr(&(*this)[offset], value, Allocation::getLength() - offset) : nullptr;
+					offset = (location != nullptr) ? location - &(*this)[0] : Allocation::getLength();
+				}
+				else if constexpr (Ash::Type::isSame<Type, wchar_t>)
+				{
+					const Type *location = (offset < Allocation::getLength()) ? (const Type *)wmemchr(&(*this)[offset], value, Allocation::getLength() - offset) : nullptr;
+					offset = (location != nullptr) ? location - &(*this)[0] : Allocation::getLength();
+				}
+				else
+				{
+					for (; (offset < Allocation::getLength()) && ((*this)[offset] != value); offset++)
+						;
+				}
+
+				return offset;
+			}
+
+			template
+			<
+				size_t ALIGNMENT,
+				size_t ALIGNMENT_OFFSET = 0
+			>
+			constexpr size_t find(size_t offset, const Type &value) const
+			{
+				if constexpr (ALIGNMENT > 1)
+				{
+					offset = find(offset, value);
+					while ((offset < Allocation::getLength()) && (offset % ALIGNMENT != ALIGNMENT_OFFSET))
+					{
+						offset = find(offset + 1, value);
+					}
+				}
+				else
+				{
+					offset = find(offset, value);
+				}
+
+				return offset;
 			}
 
 			template
