@@ -192,6 +192,8 @@ namespace Ash
 
 					TEST_IS_FALSE(allocation.isFixedLength);
 					TEST_IS_FALSE(allocation.isFixedCapacity);
+					TEST_IS_FALSE(allocation.isReference);
+					TEST_IS_EQ(allocation.maxCapacity, std::numeric_limits<size_t>::max());
 					TEST_IS_EQ(allocation.getCapacity(), 0);
 					TEST_IS_EQ(allocation.getLength(), 0);
 					TEST_IS_NULL((TraceValue<int> *)allocation.getContent());
@@ -398,6 +400,8 @@ namespace Ash
 
 					TEST_IS_FALSE(allocation.isFixedLength);
 					TEST_IS_TRUE(allocation.isFixedCapacity);
+					TEST_IS_FALSE(allocation.isReference);
+					TEST_IS_EQ(allocation.maxCapacity, CAPACITY);
 					TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
 					TEST_IS_EQ(allocation.getLength(), 0);
 					TEST_IS_NOT_NULL((TraceValue<int> *)allocation.getContent());
@@ -573,6 +577,8 @@ namespace Ash
 
 					TEST_IS_TRUE(allocation.isFixedLength);
 					TEST_IS_TRUE(allocation.isFixedCapacity);
+					TEST_IS_FALSE(allocation.isReference);
+					TEST_IS_EQ(allocation.maxCapacity, CAPACITY);
 					TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
 					TEST_IS_EQ(allocation.getLength(), CAPACITY);
 					TEST_IS_NOT_NULL((TraceValue<int> *)allocation.getContent());
@@ -739,6 +745,8 @@ namespace Ash
 
 					TEST_IS_TRUE(reference.isFixedLength);
 					TEST_IS_TRUE(reference.isFixedCapacity);
+					TEST_IS_TRUE(reference.isReference);
+					TEST_IS_EQ(reference.maxCapacity, std::numeric_limits<size_t>::max());
 					TEST_IS_EQ(reference.getCapacity(), sizeof(values) / sizeof(values[0]));
 					TEST_IS_EQ(reference.getLength(), sizeof(values) / sizeof(values[0]));
 					TEST_IS_EQ((int *)reference.getContent(), values);
