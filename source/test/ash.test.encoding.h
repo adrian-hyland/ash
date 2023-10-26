@@ -5,6 +5,7 @@
 #include "ash.test.encoding.utf16le.h"
 #include "ash.test.encoding.utf32be.h"
 #include "ash.test.encoding.utf32le.h"
+#include "ash.test.encoding.core.h"
 
 
 namespace Ash
@@ -14,13 +15,15 @@ namespace Ash
 		constexpr TEST_UNIT
 		(
 			testEncoding,
+
 			Ash::Test::testAscii,
 			Ash::Test::testWide,
 			Ash::Test::testUtf8,
 			Ash::Test::testUtf16be,
 			Ash::Test::testUtf16le,
 			Ash::Test::testUtf32be,
-			Ash::Test::testUtf32le
+			Ash::Test::testUtf32le,
+			Ash::Test::testEncodingCore
 		);
 	}
 }
