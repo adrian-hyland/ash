@@ -18,6 +18,13 @@ namespace Ash
 
 			template
 			<
+				typename TYPE,
+				typename BASE_CLASS = TYPE
+			>
+			using IsNotClass = std::bool_constant<!std::is_base_of_v<BASE_CLASS, TYPE>>;
+
+			template
+			<
 				typename TYPE
 			>
 			using IsFloatingPoint = std::is_floating_point<TYPE>;
@@ -151,6 +158,13 @@ namespace Ash
 
 		template
 		<
+			typename TYPE,
+			typename BASE_CLASS = TYPE
+		>
+		constexpr bool isNotClass = Ash::Type::Check<TYPE, Ash::Type::Requirement::IsNotClass, BASE_CLASS>::isValid;
+
+		template
+		<
 			typename LEFT_TYPE,
 			typename RIGHT_TYPE
 		>
@@ -223,6 +237,13 @@ namespace Ash
 			typename BASE_CLASS = TYPE
 		>
 		using IsClass = typename Ash::Type::Check<TYPE, Ash::Type::Requirement::IsClass, BASE_CLASS>::IsValid;
+
+		template
+		<
+			typename TYPE,
+			typename BASE_CLASS = TYPE
+		>
+		using IsNotClass = typename Ash::Type::Check<TYPE, Ash::Type::Requirement::IsNotClass, BASE_CLASS>::IsValid;
 
 		template
 		<
