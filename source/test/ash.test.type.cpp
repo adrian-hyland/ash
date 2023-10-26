@@ -63,6 +63,49 @@ namespace Ash
 				return {};
 			}
 
+			static Ash::Test::Assertion isNotClass()
+			{
+				bool isNotClass = false;
+
+				isNotClass = Ash::Type::isNotClass<TestBaseClass, TestDerivedClass>;
+				TEST_IS_TRUE(isNotClass);
+				isNotClass = Ash::Type::isNotClass<TestBaseStruct, TestDerivedStruct>;
+				TEST_IS_TRUE(isNotClass);
+				isNotClass = Ash::Type::isNotClass<TestDerivedClass, TestNonDerivedClass>;
+				TEST_IS_TRUE(isNotClass);
+				isNotClass = Ash::Type::isNotClass<TestDerivedStruct, TestNonDerivedStruct>;
+				TEST_IS_TRUE(isNotClass);
+				TEST_IS_TRUE(Ash::Type::isNotClass<float>);
+				TEST_IS_TRUE(Ash::Type::isNotClass<double>);
+				TEST_IS_TRUE(Ash::Type::isNotClass<long double>);
+				TEST_IS_TRUE(Ash::Type::isNotClass<void>);
+				TEST_IS_TRUE(Ash::Type::isNotClass<bool>);
+				TEST_IS_TRUE(Ash::Type::isNotClass<char16_t>);
+				TEST_IS_TRUE(Ash::Type::isNotClass<char32_t>);
+				TEST_IS_TRUE(Ash::Type::isNotClass<wchar_t>);
+				TEST_IS_TRUE(Ash::Type::isNotClass<signed char>);
+				TEST_IS_TRUE(Ash::Type::isNotClass<unsigned char>);
+				TEST_IS_TRUE(Ash::Type::isNotClass<signed int>);
+				TEST_IS_TRUE(Ash::Type::isNotClass<unsigned int>);
+				TEST_IS_TRUE(Ash::Type::isNotClass<signed short>);
+				TEST_IS_TRUE(Ash::Type::isNotClass<unsigned short>);
+				TEST_IS_TRUE(Ash::Type::isNotClass<signed long>);
+				TEST_IS_TRUE(Ash::Type::isNotClass<unsigned long>);
+				TEST_IS_TRUE(Ash::Type::isNotClass<signed long long>);
+				TEST_IS_TRUE(Ash::Type::isNotClass<unsigned long long>);
+				TEST_IS_TRUE(Ash::Type::isNotClass<void *>);
+				TEST_IS_FALSE(Ash::Type::isNotClass<TestBaseClass>);
+				TEST_IS_FALSE(Ash::Type::isNotClass<TestDerivedClass>);
+				TEST_IS_FALSE(Ash::Type::isNotClass<TestBaseStruct>);
+				TEST_IS_FALSE(Ash::Type::isNotClass<TestDerivedStruct>);
+				isNotClass = Ash::Type::isNotClass<TestDerivedClass, TestBaseClass>;
+				TEST_IS_FALSE(isNotClass);
+				isNotClass = Ash::Type::isNotClass<TestDerivedStruct, TestBaseStruct>;
+				TEST_IS_FALSE(isNotClass);
+
+				return {};
+			}
+
 			static Ash::Test::Assertion isFloatingPoint()
 			{
 				TEST_IS_TRUE(Ash::Type::isFloatingPoint<float>);
@@ -619,6 +662,7 @@ namespace Ash
 		(
 			testType,
 			TEST_CASE(Ash::Test::Type::isClass),
+			TEST_CASE(Ash::Test::Type::isNotClass),
 			TEST_CASE(Ash::Test::Type::isFloatingPoint),
 			TEST_CASE(Ash::Test::Type::isInteger),
 			TEST_CASE(Ash::Test::Type::isSignedInteger),
