@@ -62,11 +62,9 @@ namespace Ash
 
 			constexpr Value() : Memory() {}
 
-			// TODO: this could truncate the value (for fixed capacity values)
-			//       what should happen if the truncation is in the middle of a code point? should we allow truncation but truncate at appropriate code point?
-			constexpr Value(const Code *value) : Memory(value, getStringLength(value)) {}
+			constexpr Value(const Code *value) : Memory(value, getCodeLength(value)) {}
 
-			constexpr Value(const Code *value, size_t length) : Memory(value, length) {}
+			constexpr Value(const Code *value, size_t length) : Memory(value, getCodeLength(value, length)) {}
 
 			constexpr Value(const Value &value) : Memory(value) {}
 
@@ -139,16 +137,50 @@ namespace Ash
 			}
 
 		protected:
-			static constexpr size_t getStringLength(const Code *value)
+			static constexpr size_t getCodeLength(const Code *value)
 			{
 				size_t length = 0;
 
-				while (value[length] != '\0')
+				for (;;)
 				{
-					length++;
+					Character character;
+					size_t decodeLength = Encoding::decodeNext(Ash::Memory::View<Code>(value, length + Encoding::maxSize), length, character);
+					if ((decodeLength == 0) || (Ash::Unicode::Character(character) == '\0'))
+					{
+						return length;
+					}
+					if constexpr (Memory::maxCapacity < std::numeric_limits<size_t>::max())
+					{
+						if ((decodeLength > Memory::maxCapacity) || (length > Memory::maxCapacity - decodeLength))
+						{
+							return length;
+						}
+					}
+					length = length + decodeLength;
 				}
+			}
 
-				return length;
+			static constexpr size_t getCodeLength(const Code *value, size_t valueLength)
+			{
+				size_t length = 0;
+
+				for (;;)
+				{
+					Character character;
+					size_t decodeLength = Encoding::decodeNext(Ash::Memory::View<Code>(value, valueLength), length, character);
+					if ((decodeLength == 0) || (Ash::Unicode::Character(character) == '\0'))
+					{
+						return length;
+					}
+					if constexpr (Memory::maxCapacity < std::numeric_limits<size_t>::max())
+					{
+						if ((decodeLength > Memory::maxCapacity) || (length > Memory::maxCapacity - decodeLength))
+						{
+							return length;
+						}
+					}
+					length = length + decodeLength;
+				}
 			}
 		};
 	}
