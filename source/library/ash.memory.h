@@ -16,6 +16,8 @@ namespace Ash
 		namespace Generic
 		{
 			class Allocation {};
+
+			class Reference : Allocation {};
 		}
 
 		namespace Allocation
@@ -35,6 +37,10 @@ namespace Ash
 				static constexpr bool isFixedLength = false;
 
 				static constexpr bool isFixedCapacity = false;
+
+				static constexpr bool isReference = false;
+
+				static constexpr size_t maxCapacity = std::numeric_limits<size_t>::max();
 
 				constexpr size_t getCapacity() const { return m_Capacity; }
 
@@ -226,6 +232,10 @@ namespace Ash
 
 				static constexpr bool isFixedCapacity = true;
 
+				static constexpr bool isReference = false;
+
+				static constexpr size_t maxCapacity = CAPACITY;
+
 				constexpr size_t getCapacity() const { return CAPACITY; }
 
 				constexpr size_t getLength() const { return m_Length; }
@@ -327,6 +337,10 @@ namespace Ash
 
 				static constexpr bool isFixedCapacity = true;
 
+				static constexpr bool isReference = false;
+
+				static constexpr size_t maxCapacity = CAPACITY;
+
 				constexpr size_t getCapacity() const { return CAPACITY; }
 
 				constexpr size_t getLength() const { return CAPACITY; }
@@ -391,7 +405,7 @@ namespace Ash
 			<
 				typename TYPE
 			>
-			class Reference : Ash::Memory::Generic::Allocation
+			class Reference : Ash::Memory::Generic::Reference
 			{
 			public:
 				using Type = TYPE;
@@ -399,6 +413,10 @@ namespace Ash
 				static constexpr bool isFixedLength = true;
 
 				static constexpr bool isFixedCapacity = true;
+
+				static constexpr bool isReference = true;
+
+				static constexpr size_t maxCapacity = std::numeric_limits<size_t>::max();
 
 				constexpr size_t getCapacity() const { return m_Length; }
 				
