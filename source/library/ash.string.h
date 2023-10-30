@@ -32,7 +32,7 @@ namespace Ash
 			size_t   CAPACITY,
 			typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
 		>
-		using Buffer = Value<Ash::Memory::Allocation::VariableLength<typename ENCODING::Code, CAPACITY>, ENCODING>;
+		using Buffer = Value<Ash::Memory::Allocation::Buffer<typename ENCODING::Code, CAPACITY>, ENCODING>;
 
 		template
 		<
@@ -42,7 +42,17 @@ namespace Ash
 			size_t   BLOCK_SIZE          = 32,
 			typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
 		>
-		using Array = Value<Ash::Memory::Allocation::Dynamic<typename ENCODING::Code, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>, ENCODING>;
+		using Array = Value<Ash::Memory::Allocation::Array<typename ENCODING::Code, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>, ENCODING>;
+
+		template
+		<
+			typename ENCODING,
+			size_t   CAPACITY            = 32,
+			size_t   PERCENTAGE_INCREASE = 50,
+			size_t   BLOCK_SIZE          = 32,
+			typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
+		>
+		using ArrayBuffer = Value<Ash::Memory::Allocation::ArrayBuffer<typename ENCODING::Code, CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>, ENCODING>;
 
 		template
 		<
@@ -137,27 +147,39 @@ namespace Ash
 			}
 
 		protected:
+			static constexpr bool isNull(const Code *value)
+			{
+				if constexpr (Encoding::minSize == 1)
+				{
+					return value[0] == 0;
+				}
+				else if constexpr (Encoding::minSize == 2)
+				{
+					return (value[0] == 0) && (value[1] == 0);
+				}
+				else if constexpr (Encoding::minSize == 4)
+				{
+					return (value[0] == 0) && (value[1] == 0) && (value[2] == 0) && (value[3] == 0);
+				}
+				else
+				{
+					bool isNull = (value[0] == 0);
+					for (size_t n = 1; isNull && (n < Encoding::minSize); n++)
+					{
+						isNull = isNull && (value[n] == 0);
+					}
+					return isNull;
+				}
+			}
+
 			static constexpr size_t getCodeLength(const Code *value)
 			{
 				size_t length = 0;
 
-				for (;;)
-				{
-					Character character;
-					size_t decodeLength = Encoding::decodeNext(Ash::Memory::View<Code>(value, length + Encoding::maxSize), length, character);
-					if ((decodeLength == 0) || (Ash::Unicode::Character(character) == '\0'))
-					{
-						return length;
-					}
-					if constexpr (Memory::maxCapacity < std::numeric_limits<size_t>::max())
-					{
-						if ((decodeLength > Memory::maxCapacity) || (length > Memory::maxCapacity - decodeLength))
-						{
-							return length;
-						}
-					}
-					length = length + decodeLength;
-				}
+				for (length = 0; !isNull(&value[length]); length = length + Encoding::minSize)
+					;
+				
+				return getCodeLength(value, length);
 			}
 
 			static constexpr size_t getCodeLength(const Code *value, size_t valueLength)
