@@ -11,7 +11,7 @@ namespace Ash
 		class Utf16le : Ash::Generic::Encoding
 		{
 		public:
-			using Code = uint8_t;
+			using Code = Ash::Encoding::CodeUnit8;
 
 			static constexpr size_t minSize = 2;
 
@@ -43,11 +43,11 @@ namespace Ash
 				{
 					if (getLength() == 2)
 					{
-						return ((*this)[1] << 8) + (*this)[0];
+						return (getCode(1) << 8) + getCode(0);
 					}
 					else if (getLength() == 4)
 					{
-						return 0x10000 + (((*this)[1] & 0x03) << 18) + ((*this)[0] << 10) + (((*this)[3] & 0x03) << 8) + (*this)[2];
+						return 0x10000 + ((getCode(1) & 0x03) << 18) + (getCode(0) << 10) + ((getCode(3) & 0x03) << 8) + getCode(2);
 					}
 					else
 					{
@@ -56,6 +56,8 @@ namespace Ash
 				}
 
 			protected:
+				constexpr Ash::Unicode::Character::Value getCode(size_t offset) const { return Ash::Unicode::Character::Value(uint8_t((*this)[offset])); }
+
 				constexpr bool set(Ash::Unicode::Character value)
 				{
 					if (value < 0x10000)

@@ -11,7 +11,7 @@ namespace Ash
 		class Utf8 : Ash::Generic::Encoding
 		{
 		public:
-			using Code = uint8_t;
+			using Code = Ash::Encoding::CodeUnit8;
 
 			static constexpr size_t minSize = 1;
 
@@ -43,19 +43,19 @@ namespace Ash
 				{
 					if (getLength() == 1)
 					{
-						return (*this)[0];
+						return getCode(0);
 					}
 					else if (getLength() == 2)
 					{
-						return (((*this)[0] & 0x1F) << 6) | ((*this)[1] & 0x3F);
+						return ((getCode(0) & 0x1F) << 6) | (getCode(1) & 0x3F);
 					}
 					else if (getLength() == 3)
 					{
-						return (((*this)[0] & 0x0F) << 12) | (((*this)[1] & 0x3F) << 6) | ((*this)[2] & 0x3F);
+						return ((getCode(0) & 0x0F) << 12) | ((getCode(1) & 0x3F) << 6) | (getCode(2) & 0x3F);
 					}
 					else if (getLength() == 4)
 					{
-						return (((*this)[0] & 0x0F) << 18) | (((*this)[1] & 0x3F) << 12) | (((*this)[2] & 0x3F) << 6) | ((*this)[3] & 0x3F);
+						return ((getCode(0) & 0x0F) << 18) | ((getCode(1) & 0x3F) << 12) | ((getCode(2) & 0x3F) << 6) | (getCode(3) & 0x3F);
 					}
 					else
 					{
@@ -64,6 +64,8 @@ namespace Ash
 				}
 
 			protected:
+				constexpr Ash::Unicode::Character::Value getCode(size_t offset) const { return Ash::Unicode::Character::Value(uint8_t((*this)[offset])); }
+
 				constexpr bool set(Ash::Unicode::Character value)
 				{
 					if (value < 0x80)
@@ -111,7 +113,7 @@ namespace Ash
 
 				constexpr size_t set(Code code1, Code code2)
 				{
-					if (code1 > 0xC1)
+					if (uint8_t(code1) > 0xC1)
 					{
 						setLength(2);
 						(*this)[0] = code1;
@@ -125,7 +127,7 @@ namespace Ash
 
 				constexpr size_t set(Code code1, Code code2, Code code3)
 				{
-					if (((code1 != 0xE0) || (code2 > 0x9F)) && ((code1 != 0xED) || (code2 < 0xA0)))
+					if (((uint8_t(code1) != 0xE0) || (uint8_t(code2) > 0x9F)) && ((uint8_t(code1) != 0xED) || (uint8_t(code2) < 0xA0)))
 					{
 						setLength(3);
 						(*this)[0] = code1;
@@ -140,7 +142,7 @@ namespace Ash
 
 				constexpr size_t set(Code code1, Code code2, Code code3, Code code4)
 				{
-					if (((code1 != 0xF0) || (code2 > 0x8F)) && ((code1 != 0xF4) || (code2 < 0x90)) && (code1 < 0xF5))
+					if (((uint8_t(code1) != 0xF0) || (uint8_t(code2) > 0x8F)) && ((uint8_t(code1) != 0xF4) || (uint8_t(code2) < 0x90)) && (uint8_t(code1) < 0xF5))
 					{
 						setLength(4);
 						(*this)[0] = code1;

@@ -11,7 +11,7 @@ namespace Ash
 		class Utf32be : Ash::Generic::Encoding
 		{
 		public:
-			using Code = uint8_t;
+			using Code = Ash::Encoding::CodeUnit8;
 
 			static constexpr size_t minSize = 4;
 
@@ -43,7 +43,7 @@ namespace Ash
 				{
 					if (getLength() == 4)
 					{
-						return ((*this)[0] << 24) | ((*this)[1] << 16) | ((*this)[2] << 8) | (*this)[3];
+						return (getCode(0) << 24) | (getCode(1) << 16) | (getCode(2) << 8) | getCode(3);
 					}
 					else
 					{
@@ -52,6 +52,8 @@ namespace Ash
 				}
 
 			protected:
+				constexpr Ash::Unicode::Character::Value getCode(size_t offset) const { return Ash::Unicode::Character::Value(uint8_t((*this)[offset])); }
+
 				constexpr bool set(Ash::Unicode::Character value)
 				{
 					if ((value >= 0xD800) && (value <= 0xDFFF))
@@ -70,7 +72,7 @@ namespace Ash
 
 				constexpr size_t set(Code code1, Code code2, Code code3, Code code4)
 				{
-					if ((code1 == 0x00) && (code2 < 0x11))
+					if ((uint8_t(code1) == 0x00) && (uint8_t(code2) < 0x11))
 					{
 						setLength(4);
 						(*this)[0] = code1;
