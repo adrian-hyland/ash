@@ -8,888 +8,1118 @@ namespace Ash
 	{
 		namespace Memory
 		{
-			template
-			<
-				typename TYPE
-			>
-			class TraceAllocation;
-
-			class Trace
+			namespace Allocation
 			{
-			public:
-				static size_t getAllocatedCount()
-				{
-					size_t count = 0;
+				template
+				<
+					typename TYPE
+				>
+				class TraceAllocation;
 
-					for (Node *node = m_Head; node != nullptr; node = node->m_Next)
+				class Trace
+				{
+				public:
+					static size_t getAllocatedCount()
 					{
-						count++;
+						size_t count = 0;
+
+						for (Node *node = m_Head; node != nullptr; node = node->m_Next)
+						{
+							count++;
+						}
+
+						return count;
 					}
 
-					return count;
-				}
+				private:
+					struct Node
+					{
+						struct Node *m_Previous;
+						struct Node *m_Next;
+					};
 
-			private:
-				struct Node
-				{
-					struct Node *m_Previous;
-					struct Node *m_Next;
+					static void insert(Node *node)
+					{
+						node->m_Next = m_Head;
+						node->m_Previous = nullptr;
+
+						if (m_Head != nullptr)
+						{
+							m_Head->m_Previous = node;
+						}
+						m_Head = node;
+					}
+
+					static void remove(Node *node)
+					{
+						if (node->m_Previous != nullptr)
+						{
+							node->m_Previous->m_Next = node->m_Next;
+						}
+						else
+						{
+							m_Head = node->m_Next;
+						}
+							
+						if (node->m_Next != nullptr)
+						{
+							node->m_Next->m_Previous = node->m_Previous;
+						}
+					}
+
+					static Node *m_Head;
+
+					template
+					<
+						typename TYPE
+					>
+					friend class TraceAllocation;
 				};
 
-				static void insert(Node *node)
-				{
-					node->m_Next = m_Head;
-					node->m_Previous = nullptr;
-
-					if (m_Head != nullptr)
-					{
-						m_Head->m_Previous = node;
-					}
-					m_Head = node;
-				}
-
-				static void remove(Node *node)
-				{
-					if (node->m_Previous != nullptr)
-					{
-						node->m_Previous->m_Next = node->m_Next;
-					}
-					else
-					{
-						m_Head = node->m_Next;
-					}
-						
-					if (node->m_Next != nullptr)
-					{
-						node->m_Next->m_Previous = node->m_Previous;
-					}
-				}
-
-				static Node *m_Head;
+				Trace::Node *Trace::m_Head = nullptr;
 
 				template
 				<
 					typename TYPE
 				>
-				friend class TraceAllocation;
-			};
-
-			Trace::Node *Trace::m_Head = nullptr;
-
-			template
-			<
-				typename TYPE
-			>
-			class TraceAllocation
-			{
-			public:
-				constexpr TraceAllocation(const TYPE &value) : m_Value(value) {}
-
-				constexpr void *operator new(size_t size)
+				class TraceAllocation
 				{
-					Trace::Node *node = (Trace::Node *)malloc(size + sizeof(Trace::Node));
-					if (node == nullptr)
+				public:
+					constexpr TraceAllocation(const TYPE &value) : m_Value(value) {}
+
+					constexpr void *operator new(size_t size)
 					{
-						throw std::bad_alloc();
+						Trace::Node *node = (Trace::Node *)malloc(size + sizeof(Trace::Node));
+						if (node == nullptr)
+						{
+							throw std::bad_alloc();
+						}
+
+						Trace::insert(node);
+
+						return node + 1;
 					}
 
-					Trace::insert(node);
-
-					return node + 1;
-				}
-
-				constexpr void operator delete(void *object)
-				{
-					if (object != nullptr)
+					constexpr void operator delete(void *object)
 					{
-						Trace::Node *node = (Trace::Node *)object - 1;
+						if (object != nullptr)
+						{
+							Trace::Node *node = (Trace::Node *)object - 1;
 
-						Trace::remove(node);
+							Trace::remove(node);
 
-						free(node);
+							free(node);
+						}
 					}
-				}
 
-				constexpr void setValue(const TYPE &value) { m_Value = value; }
+					constexpr void setValue(const TYPE &value) { m_Value = value; }
 
-				constexpr const TYPE &getValue() const { return m_Value; }
+					constexpr const TYPE &getValue() const { return m_Value; }
 
-			private:
-				TYPE m_Value;
-			};
+				private:
+					TYPE m_Value;
+				};
 
 
-			template
-			<
-				typename TYPE
-			>
-			class TraceValue
-			{
-			public:
-				constexpr TraceValue() : m_Pointer(nullptr) {}
-
-				constexpr TraceValue(const TYPE &value) : m_Pointer(new TraceAllocation<TYPE>(value)) {}
-
-				constexpr TraceValue(const TraceValue &value) : m_Pointer((value.m_Pointer != nullptr) ? new TraceAllocation<TYPE>(value.m_Pointer->getValue()) : nullptr) {}
-
-				constexpr TraceValue(TraceValue &&value) : m_Pointer(value.m_Pointer) { value.m_Pointer = nullptr; }
-
-				~TraceValue() { delete m_Pointer; }
-
-				constexpr TraceValue &operator = (const TraceValue &value)
+				template
+				<
+					typename TYPE
+				>
+				class TraceValue
 				{
-					if (this != &value)
+				public:
+					constexpr TraceValue() : m_Pointer(nullptr) {}
+
+					constexpr TraceValue(const TYPE &value) : m_Pointer(new TraceAllocation<TYPE>(value)) {}
+
+					constexpr TraceValue(const TraceValue &value) : m_Pointer((value.m_Pointer != nullptr) ? new TraceAllocation<TYPE>(value.m_Pointer->getValue()) : nullptr) {}
+
+					constexpr TraceValue(TraceValue &&value) : m_Pointer(value.m_Pointer) { value.m_Pointer = nullptr; }
+
+					~TraceValue() { delete m_Pointer; }
+
+					constexpr TraceValue &operator = (const TraceValue &value)
 					{
-						if (value.m_Pointer == nullptr)
+						if (this != &value)
+						{
+							if (value.m_Pointer == nullptr)
+							{
+								delete m_Pointer;
+								m_Pointer = nullptr;
+							}
+							else if (m_Pointer == nullptr)
+							{
+								m_Pointer = new TraceAllocation<TYPE>(value.m_Pointer->getValue());
+							}
+							else
+							{
+								m_Pointer->setValue(value.m_Pointer->getValue());
+							}
+						}
+
+						return *this;
+					}
+
+					constexpr TraceValue &operator = (TraceValue &&allocation)
+					{
+						if (this != &allocation)
 						{
 							delete m_Pointer;
-							m_Pointer = nullptr;
+							m_Pointer = allocation.m_Pointer;
+							allocation.m_Pointer = nullptr;
 						}
-						else if (m_Pointer == nullptr)
+
+						return *this;
+					}
+
+					constexpr const TYPE &getValueOr(const TYPE &defaultValue) const { return (m_Pointer != nullptr) ? m_Pointer->getValue() : defaultValue; }
+
+				private:
+					TraceAllocation<TYPE> *m_Pointer;
+				};
+
+
+				template
+				<
+					size_t MINIMUM_CAPACITY    = 32,
+					size_t PERCENTAGE_INCREASE = 50,
+					size_t BLOCK_SIZE          = 32
+				>
+				class TestArray : public Ash::Memory::Allocation::Array<TraceValue<int>, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>
+				{
+				public:
+					static Ash::Test::Assertion testCore()
+					{
+						TestArray allocation;
+
+						TEST_IS_FALSE(allocation.isFixedLength);
+						TEST_IS_FALSE(allocation.isFixedCapacity);
+						TEST_IS_FALSE(allocation.isReference);
+						TEST_IS_EQ(allocation.maxCapacity, std::numeric_limits<size_t>::max());
+						TEST_IS_EQ(allocation.getCapacity(), 0);
+						TEST_IS_EQ(allocation.getLength(), 0);
+						TEST_IS_NULL((TraceValue<int> *)allocation.getContent());
+						TEST_IS_NULL((const TraceValue<int> *)allocation.getContent());
+
+						return {};
+					}
+
+					static Ash::Test::Assertion testSetLength()
+					{
+						TestArray allocation;
+
+						TEST_IS_TRUE(allocation.setLength(1));
+						TEST_IS_EQ(allocation.getLength(), 1)
+						TEST_IS_EQ(allocation.getCapacity(), MINIMUM_CAPACITY);
+
+						TEST_IS_TRUE(allocation.setLength(MINIMUM_CAPACITY));
+						TEST_IS_EQ(allocation.getLength(), MINIMUM_CAPACITY);
+						TEST_IS_EQ(allocation.getCapacity(), MINIMUM_CAPACITY);
+
+						TEST_IS_TRUE(allocation.setLength(MINIMUM_CAPACITY + 1));
+						TEST_IS_EQ(allocation.getLength(), MINIMUM_CAPACITY + 1);
+						TEST_IS_GT(allocation.getCapacity(), MINIMUM_CAPACITY);
+
+						TEST_IS_TRUE(allocation.setLength(0));
+						TEST_IS_EQ(allocation.getLength(), 0);
+						TEST_IS_EQ(allocation.getCapacity(), 0);
+
+						return {};
+					}
+
+					static Ash::Test::Assertion testDecreaseLength()
+					{
+						TestArray allocation;
+
+						if (PERCENTAGE_INCREASE == 0)
 						{
-							m_Pointer = new TraceAllocation<TYPE>(value.m_Pointer->getValue());
+							size_t length = MINIMUM_CAPACITY + 20 * BLOCK_SIZE;
+
+							TEST_IS_TRUE(allocation.setLength(length));
+
+							for (int n = 0; n < 20; n++)
+							{
+								TEST_IS_TRUE(allocation.decreaseLength(BLOCK_SIZE));
+								TEST_IS_EQ(allocation.getLength(), length - BLOCK_SIZE * (n + 1));
+								TEST_IS_EQ(allocation.getCapacity(), length);
+							}
 						}
 						else
 						{
-							m_Pointer->setValue(value.m_Pointer->getValue());
-						}
-					}
+							size_t length = MINIMUM_CAPACITY;
 
-					return *this;
-				}
+							for (int n = 0; n < 20; n++)
+							{
+								length = TestArray::getIncreaseCapacity(length + 1);
+							}
 
-				constexpr TraceValue &operator = (TraceValue &&allocation)
-				{
-					if (this != &allocation)
-					{
-						delete m_Pointer;
-						m_Pointer = allocation.m_Pointer;
-						allocation.m_Pointer = nullptr;
-					}
+							TEST_IS_TRUE(allocation.setLength(length));
 
-					return *this;
-				}
-
-				constexpr const TYPE &getValueOr(const TYPE &defaultValue) const { return (m_Pointer != nullptr) ? m_Pointer->getValue() : defaultValue; }
-
-			private:
-				TraceAllocation<TYPE> *m_Pointer;
-			};
-
-
-			template
-			<
-				size_t MINIMUM_CAPACITY    = 32,
-				size_t PERCENTAGE_INCREASE = 50,
-				size_t BLOCK_SIZE          = 32
-			>
-			class TestDynamic : public Ash::Memory::Allocation::Dynamic<TraceValue<int>, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>
-			{
-			public:
-				static Ash::Test::Assertion testCore()
-				{
-					TestDynamic allocation;
-
-					TEST_IS_FALSE(allocation.isFixedLength);
-					TEST_IS_FALSE(allocation.isFixedCapacity);
-					TEST_IS_FALSE(allocation.isReference);
-					TEST_IS_EQ(allocation.maxCapacity, std::numeric_limits<size_t>::max());
-					TEST_IS_EQ(allocation.getCapacity(), 0);
-					TEST_IS_EQ(allocation.getLength(), 0);
-					TEST_IS_NULL((TraceValue<int> *)allocation.getContent());
-					TEST_IS_NULL((const TraceValue<int> *)allocation.getContent());
-
-					return {};
-				}
-
-				static Ash::Test::Assertion testSetLength()
-				{
-					TestDynamic allocation;
-
-					TEST_IS_TRUE(allocation.setLength(1));
-					TEST_IS_EQ(allocation.getLength(), 1)
-					TEST_IS_EQ(allocation.getCapacity(), MINIMUM_CAPACITY);
-
-					TEST_IS_TRUE(allocation.setLength(MINIMUM_CAPACITY));
-					TEST_IS_EQ(allocation.getLength(), MINIMUM_CAPACITY);
-					TEST_IS_EQ(allocation.getCapacity(), MINIMUM_CAPACITY);
-
-					TEST_IS_TRUE(allocation.setLength(MINIMUM_CAPACITY + 1));
-					TEST_IS_EQ(allocation.getLength(), MINIMUM_CAPACITY + 1);
-					TEST_IS_GT(allocation.getCapacity(), MINIMUM_CAPACITY);
-
-					TEST_IS_TRUE(allocation.setLength(0));
-					TEST_IS_EQ(allocation.getLength(), 0);
-					TEST_IS_EQ(allocation.getCapacity(), 0);
-
-					return {};
-				}
-
-				static Ash::Test::Assertion testDecreaseLength()
-				{
-					TestDynamic allocation;
-
-					if (PERCENTAGE_INCREASE == 0)
-					{
-						size_t length = MINIMUM_CAPACITY + 20 * BLOCK_SIZE;
-
-						TEST_IS_TRUE(allocation.setLength(length));
-
-						for (int n = 0; n < 20; n++)
-						{
-							TEST_IS_TRUE(allocation.decreaseLength(BLOCK_SIZE));
-							TEST_IS_EQ(allocation.getLength(), length - BLOCK_SIZE * (n + 1));
-							TEST_IS_EQ(allocation.getCapacity(), length);
-						}
-					}
-					else
-					{
-						size_t length = MINIMUM_CAPACITY;
-
-						for (int n = 0; n < 20; n++)
-						{
-							length = TestDynamic::getIncreaseCapacity(length + 1);
+							for (int n = 0; n < 10; n++)
+							{
+								size_t capacity = TestArray::getDecreaseCapacity(allocation.getCapacity());
+								size_t decrease = allocation.getLength() - capacity + 1;
+								TEST_IS_TRUE(allocation.decreaseLength(decrease));
+								TEST_IS_EQ(allocation.getLength(), capacity - 1);
+								TEST_IS_EQ(allocation.getCapacity(), capacity);
+							}
 						}
 
-						TEST_IS_TRUE(allocation.setLength(length));
+						TEST_IS_TRUE(allocation.setLength(0));
+						TEST_IS_FALSE(allocation.decreaseLength(1));
+
+						return {};
+					}
+
+					static Ash::Test::Assertion testIncreaseLength()
+					{
+						TestArray allocation;
+
+						TEST_IS_TRUE(allocation.increaseLength(MINIMUM_CAPACITY));
 
 						for (int n = 0; n < 10; n++)
 						{
-							size_t capacity = TestDynamic::getDecreaseCapacity(allocation.getCapacity());
-							size_t decrease = allocation.getLength() - capacity + 1;
-							TEST_IS_TRUE(allocation.decreaseLength(decrease));
-							TEST_IS_EQ(allocation.getLength(), capacity - 1);
-							TEST_IS_EQ(allocation.getCapacity(), capacity);
+							size_t capacity = allocation.getCapacity();
+							size_t increase = capacity - allocation.getLength() + 1;
+							TEST_IS_TRUE(allocation.increaseLength(increase));
+							TEST_IS_EQ(allocation.getLength(), capacity + 1);
+							TEST_IS_EQ(allocation.getCapacity(), TestArray::getIncreaseCapacity(capacity + 1));
 						}
+
+						return {};
 					}
 
-					TEST_IS_TRUE(allocation.setLength(0));
-					TEST_IS_FALSE(allocation.decreaseLength(1));
-
-					return {};
-				}
-
-				static Ash::Test::Assertion testIncreaseLength()
-				{
-					TestDynamic allocation;
-
-					TEST_IS_TRUE(allocation.increaseLength(MINIMUM_CAPACITY));
-
-					for (int n = 0; n < 10; n++)
+					static Ash::Test::Assertion testCopy()
 					{
-						size_t capacity = allocation.getCapacity();
-						size_t increase = capacity - allocation.getLength() + 1;
-						TEST_IS_TRUE(allocation.increaseLength(increase));
-						TEST_IS_EQ(allocation.getLength(), capacity + 1);
-						TEST_IS_EQ(allocation.getCapacity(), TestDynamic::getIncreaseCapacity(capacity + 1));
+						TestArray allocation1;
+						TestArray allocation2;
+
+						size_t length = MINIMUM_CAPACITY + (MINIMUM_CAPACITY * PERCENTAGE_INCREASE) / 100 + BLOCK_SIZE;
+
+						TEST_IS_TRUE(allocation1.setLength(length));
+						for (size_t n = 0; n < length; n++)
+						{
+							allocation1.getContent()[n] = TraceValue<int>(n);
+
+							TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(n));
+						}
+
+						TEST_IS_EQ(Trace::getAllocatedCount(), length);
+
+						TEST_IS_TRUE(allocation2.setLength(length));
+						for (size_t n = 0; n < length; n++)
+						{
+							allocation2.getContent()[n] = TraceValue<int>(length + n);
+
+							TEST_IS_EQ(allocation2.getContent()[n].getValueOr(-1), int(length + n));
+						}
+
+						TEST_IS_EQ(Trace::getAllocatedCount(), 2 * length);
+
+						allocation1.copy(allocation2);
+
+						TEST_IS_EQ(Trace::getAllocatedCount(), 2 * length);
+
+						for (size_t n = 0; n < length; n++)
+						{
+							TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(length + n));
+							TEST_IS_EQ(allocation2.getContent()[n].getValueOr(-1), int(length + n));
+						}
+
+						return {};
 					}
 
-					return {};
-				}
-
-				static Ash::Test::Assertion testCopy()
-				{
-					TestDynamic allocation1;
-					TestDynamic allocation2;
-
-					size_t length = MINIMUM_CAPACITY + (MINIMUM_CAPACITY * PERCENTAGE_INCREASE) / 100 + BLOCK_SIZE;
-
-					TEST_IS_TRUE(allocation1.setLength(length));
-					for (size_t n = 0; n < length; n++)
+					static Ash::Test::Assertion testMove()
 					{
-						allocation1.getContent()[n] = TraceValue<int>(n);
+						TestArray allocation1;
+						TestArray allocation2;
 
-						TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(n));
+						size_t length = MINIMUM_CAPACITY + (MINIMUM_CAPACITY * PERCENTAGE_INCREASE) / 100 + BLOCK_SIZE;
+
+						TEST_IS_TRUE(allocation1.setLength(length));
+						for (size_t n = 0; n < length; n++)
+						{
+							allocation1.getContent()[n] = TraceValue<int>(n);
+
+							TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(n));
+						}
+
+						TEST_IS_EQ(Trace::getAllocatedCount(), length);
+
+						TEST_IS_TRUE(allocation2.setLength(length));
+						for (size_t n = 0; n < length; n++)
+						{
+							allocation2.getContent()[n] = TraceValue<int>(length + n);
+
+							TEST_IS_EQ(allocation2.getContent()[n].getValueOr(-1), int(length + n));
+						}
+
+						TEST_IS_EQ(Trace::getAllocatedCount(), 2 * length);
+
+						allocation1.move(allocation2);
+
+						TEST_IS_EQ(Trace::getAllocatedCount(), length);
+
+						TEST_IS_NULL(allocation2.getContent());
+						TEST_IS_ZERO(allocation2.getLength());
+						TEST_IS_ZERO(allocation2.getCapacity());
+
+						for (size_t n = 0; n < length; n++)
+						{
+							TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(length + n));
+						}
+
+						return {};
 					}
+				};
 
-					TEST_IS_EQ(Trace::getAllocatedCount(), length);
+				template
+				<
+					size_t MINIMUM_CAPACITY    = 32,
+					size_t PERCENTAGE_INCREASE = 50,
+					size_t BLOCK_SIZE          = 32
+				>
+				static Ash::Test::Assertion array()
+				{
+					TEST_CLASS_GENERIC(TestArray, testCore,           MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE);
+					TEST_CLASS_GENERIC(TestArray, testSetLength,      MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE);
+					TEST_CLASS_GENERIC(TestArray, testDecreaseLength, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE);
+					TEST_CLASS_GENERIC(TestArray, testIncreaseLength, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE);
+					TEST_CLASS_GENERIC(TestArray, testCopy,           MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE);
+					TEST_CLASS_GENERIC(TestArray, testMove,           MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE);
 
-					TEST_IS_TRUE(allocation2.setLength(length));
-					for (size_t n = 0; n < length; n++)
+					return {};
+				}
+
+
+				template
+				<
+					size_t CAPACITY            = 32,
+					size_t PERCENTAGE_INCREASE = 50,
+					size_t BLOCK_SIZE          = 32
+				>
+				class TestArrayBuffer : public Ash::Memory::Allocation::ArrayBuffer<TraceValue<int>, CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>
+				{
+				public:
+					static Ash::Test::Assertion testCore()
 					{
-						allocation2.getContent()[n] = TraceValue<int>(length + n);
+						TestArrayBuffer allocation;
 
-						TEST_IS_EQ(allocation2.getContent()[n].getValueOr(-1), int(length + n));
+						TEST_IS_FALSE(allocation.isFixedLength);
+						TEST_IS_FALSE(allocation.isFixedCapacity);
+						TEST_IS_FALSE(allocation.isReference);
+						TEST_IS_EQ(allocation.maxCapacity, std::numeric_limits<size_t>::max());
+						TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
+						TEST_IS_EQ(allocation.getLength(), 0);
+						TEST_IS_NOT_NULL((TraceValue<int> *)allocation.getContent());
+						TEST_IS_NOT_NULL((const TraceValue<int> *)allocation.getContent());
+
+						return {};
 					}
 
-					TEST_IS_EQ(Trace::getAllocatedCount(), 2 * length);
-
-					allocation1.copy(allocation2);
-
-					TEST_IS_EQ(Trace::getAllocatedCount(), 2 * length);
-
-					for (size_t n = 0; n < length; n++)
+					static Ash::Test::Assertion testSetLength()
 					{
-						TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(length + n));
-						TEST_IS_EQ(allocation2.getContent()[n].getValueOr(-1), int(length + n));
+						TestArrayBuffer allocation;
+
+						TEST_IS_TRUE(allocation.setLength(1));
+						TEST_IS_EQ(allocation.getLength(), 1)
+						TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
+
+						TEST_IS_TRUE(allocation.setLength(CAPACITY));
+						TEST_IS_EQ(allocation.getLength(), CAPACITY);
+						TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
+
+						TEST_IS_TRUE(allocation.setLength(CAPACITY + 1));
+						TEST_IS_EQ(allocation.getLength(), CAPACITY + 1);
+						TEST_IS_GT(allocation.getCapacity(), CAPACITY);
+
+						TEST_IS_TRUE(allocation.setLength(0));
+						TEST_IS_EQ(allocation.getLength(), 0);
+						TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
+
+						return {};
 					}
 
-					return {};
-				}
-
-				static Ash::Test::Assertion testMove()
-				{
-					TestDynamic allocation1;
-					TestDynamic allocation2;
-
-					size_t length = MINIMUM_CAPACITY + (MINIMUM_CAPACITY * PERCENTAGE_INCREASE) / 100 + BLOCK_SIZE;
-
-					TEST_IS_TRUE(allocation1.setLength(length));
-					for (size_t n = 0; n < length; n++)
+					static Ash::Test::Assertion testDecreaseLength()
 					{
-						allocation1.getContent()[n] = TraceValue<int>(n);
+						TestArrayBuffer allocation;
 
-						TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(n));
+						if (PERCENTAGE_INCREASE == 0)
+						{
+							size_t length = CAPACITY + 20 * BLOCK_SIZE;
+
+							TEST_IS_TRUE(allocation.setLength(length));
+
+							for (int n = 0; n < 20; n++)
+							{
+								TEST_IS_TRUE(allocation.decreaseLength(BLOCK_SIZE));
+								TEST_IS_EQ(allocation.getLength(), length - BLOCK_SIZE * (n + 1));
+								TEST_IS_EQ(allocation.getCapacity(), length);
+							}
+						}
+						else
+						{
+							size_t length = CAPACITY;
+
+							for (int n = 0; n < 20; n++)
+							{
+								length = TestArrayBuffer::getIncreaseCapacity(length + 1);
+							}
+
+							TEST_IS_TRUE(allocation.setLength(length));
+
+							for (int n = 0; n < 10; n++)
+							{
+								size_t capacity = TestArrayBuffer::getDecreaseCapacity(allocation.getCapacity());
+								size_t decrease = allocation.getLength() - capacity + 1;
+								TEST_IS_TRUE(allocation.decreaseLength(decrease));
+								TEST_IS_EQ(allocation.getLength(), capacity - 1);
+								TEST_IS_EQ(allocation.getCapacity(), capacity);
+							}
+						}
+
+						TEST_IS_TRUE(allocation.setLength(0));
+						TEST_IS_FALSE(allocation.decreaseLength(1));
+
+						return {};
 					}
 
-					TEST_IS_EQ(Trace::getAllocatedCount(), length);
-
-					TEST_IS_TRUE(allocation2.setLength(length));
-					for (size_t n = 0; n < length; n++)
+					static Ash::Test::Assertion testIncreaseLength()
 					{
-						allocation2.getContent()[n] = TraceValue<int>(length + n);
+						TestArrayBuffer allocation;
 
-						TEST_IS_EQ(allocation2.getContent()[n].getValueOr(-1), int(length + n));
+						TEST_IS_TRUE(allocation.increaseLength(CAPACITY));
+
+						for (int n = 0; n < 10; n++)
+						{
+							size_t capacity = allocation.getCapacity();
+							size_t increase = capacity - allocation.getLength() + 1;
+							TEST_IS_TRUE(allocation.increaseLength(increase));
+							TEST_IS_EQ(allocation.getLength(), capacity + 1);
+							TEST_IS_EQ(allocation.getCapacity(), TestArrayBuffer::getIncreaseCapacity(capacity + 1));
+						}
+
+						return {};
 					}
 
-					TEST_IS_EQ(Trace::getAllocatedCount(), 2 * length);
-
-					allocation1.move(allocation2);
-
-					TEST_IS_EQ(Trace::getAllocatedCount(), length);
-
-					TEST_IS_NULL(allocation2.getContent());
-
-					for (size_t n = 0; n < length; n++)
+					static Ash::Test::Assertion testCopy()
 					{
-						TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(length + n));
+						TestArrayBuffer allocation1;
+						TestArrayBuffer allocation2;
+
+						size_t length = CAPACITY + (CAPACITY * PERCENTAGE_INCREASE) / 100 + BLOCK_SIZE;
+
+						TEST_IS_TRUE(allocation1.setLength(length));
+						for (size_t n = 0; n < length; n++)
+						{
+							allocation1.getContent()[n] = TraceValue<int>(n);
+
+							TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(n));
+						}
+
+						TEST_IS_EQ(Trace::getAllocatedCount(), length);
+
+						TEST_IS_TRUE(allocation2.setLength(length));
+						for (size_t n = 0; n < length; n++)
+						{
+							allocation2.getContent()[n] = TraceValue<int>(length + n);
+
+							TEST_IS_EQ(allocation2.getContent()[n].getValueOr(-1), int(length + n));
+						}
+
+						TEST_IS_EQ(Trace::getAllocatedCount(), 2 * length);
+
+						allocation1.copy(allocation2);
+
+						TEST_IS_EQ(Trace::getAllocatedCount(), 2 * length);
+
+						for (size_t n = 0; n < length; n++)
+						{
+							TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(length + n));
+							TEST_IS_EQ(allocation2.getContent()[n].getValueOr(-1), int(length + n));
+						}
+
+						return {};
 					}
 
-					return {};
-				}
-			};
-
-			template
-			<
-				size_t MINIMUM_CAPACITY    = 32,
-				size_t PERCENTAGE_INCREASE = 50,
-				size_t BLOCK_SIZE          = 32
-			>
-			static Ash::Test::Assertion dynamic()
-			{
-				TEST_CLASS_GENERIC(TestDynamic, testCore, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE);
-				TEST_CLASS_GENERIC(TestDynamic, testSetLength, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE);
-				TEST_CLASS_GENERIC(TestDynamic, testDecreaseLength, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE);
-				TEST_CLASS_GENERIC(TestDynamic, testIncreaseLength, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE);
-				TEST_CLASS_GENERIC(TestDynamic, testCopy, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE);
-				TEST_CLASS_GENERIC(TestDynamic, testMove, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE);
-
-				return {};
-			}
-
-			template
-			<
-				size_t CAPACITY
-			>
-			class TestVariableLength : public Ash::Memory::Allocation::VariableLength<TraceValue<int>, CAPACITY>
-			{
-			public:
-				static Ash::Test::Assertion testCore()
-				{
-					TestVariableLength allocation;
-
-					TEST_IS_FALSE(allocation.isFixedLength);
-					TEST_IS_TRUE(allocation.isFixedCapacity);
-					TEST_IS_FALSE(allocation.isReference);
-					TEST_IS_EQ(allocation.maxCapacity, CAPACITY);
-					TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
-					TEST_IS_EQ(allocation.getLength(), 0);
-					TEST_IS_NOT_NULL((TraceValue<int> *)allocation.getContent());
-					TEST_IS_NOT_NULL((const TraceValue<int> *)allocation.getContent());
-
-					return {};
-				}
-
-				static Ash::Test::Assertion testSetLength()
-				{
-					TestVariableLength allocation;
-
-					TEST_IS_FALSE(allocation.setLength(CAPACITY + 1));
-					TEST_IS_EQ(allocation.getLength(), 0);
-					TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
-
-					TEST_IS_TRUE(allocation.setLength(CAPACITY));
-					TEST_IS_EQ(allocation.getLength(), CAPACITY);
-					TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
-
-					TEST_IS_TRUE(allocation.setLength(0));
-					TEST_IS_EQ(allocation.getLength(), 0);
-					TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
-
-					return {};
-				}
-
-				static Ash::Test::Assertion testDecreaseLength()
-				{
-					TestVariableLength allocation;
-
-					TEST_IS_TRUE(allocation.setLength(0));
-					TEST_IS_FALSE(allocation.decreaseLength(1));
-					TEST_IS_EQ(allocation.getLength(), 0);
-					TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
-
-					TEST_IS_TRUE(allocation.setLength(CAPACITY));
-					TEST_IS_TRUE(allocation.decreaseLength(1));
-					TEST_IS_EQ(allocation.getLength(), CAPACITY - 1);
-					TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
-
-					TEST_IS_TRUE(allocation.decreaseLength(0));
-					TEST_IS_EQ(allocation.getLength(), CAPACITY - 1);
-					TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
-
-					return {};
-				}
-
-				static Ash::Test::Assertion testIncreaseLength()
-				{
-					TestVariableLength allocation;
-
-					TEST_IS_TRUE(allocation.setLength(CAPACITY));
-					TEST_IS_FALSE(allocation.increaseLength(1));
-					TEST_IS_EQ(allocation.getLength(), CAPACITY);
-					TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
-
-					TEST_IS_TRUE(allocation.setLength(0));
-					TEST_IS_TRUE(allocation.increaseLength(1));
-					TEST_IS_EQ(allocation.getLength(), 1);
-					TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
-
-					TEST_IS_TRUE(allocation.increaseLength(0));
-					TEST_IS_EQ(allocation.getLength(), 1);
-					TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
-
-					return {};
-				}
-
-				static Ash::Test::Assertion testCopy()
-				{
-					TestVariableLength allocation1;
-					TestVariableLength allocation2;
-
-					TEST_IS_TRUE(allocation1.setLength(CAPACITY));
-					for (size_t n = 0; n < CAPACITY; n++)
+					static Ash::Test::Assertion testMove()
 					{
-						allocation1.getContent()[n] = TraceValue<int>(n);
+						TestArrayBuffer allocation1;
+						TestArrayBuffer allocation2;
 
-						TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(n));
+						size_t length = CAPACITY + (CAPACITY * PERCENTAGE_INCREASE) / 100 + BLOCK_SIZE;
+
+						TEST_IS_TRUE(allocation1.setLength(length));
+						for (size_t n = 0; n < length; n++)
+						{
+							allocation1.getContent()[n] = TraceValue<int>(n);
+
+							TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(n));
+						}
+
+						TEST_IS_EQ(Trace::getAllocatedCount(), length);
+
+						TEST_IS_TRUE(allocation2.setLength(length));
+						for (size_t n = 0; n < length; n++)
+						{
+							allocation2.getContent()[n] = TraceValue<int>(length + n);
+
+							TEST_IS_EQ(allocation2.getContent()[n].getValueOr(-1), int(length + n));
+						}
+
+						TEST_IS_EQ(Trace::getAllocatedCount(), 2 * length);
+
+						allocation1.move(allocation2);
+
+						TEST_IS_EQ(Trace::getAllocatedCount(), length);
+
+						TEST_IS_NOT_NULL(allocation2.getContent());
+						TEST_IS_ZERO(allocation2.getLength());
+						TEST_IS_EQ(allocation2.getCapacity(), CAPACITY);
+
+						for (size_t n = 0; n < length; n++)
+						{
+							TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(length + n));
+						}
+
+						return {};
 					}
+				};
 
-					TEST_IS_EQ(Trace::getAllocatedCount(), CAPACITY);
+				template
+				<
+					size_t CAPACITY            = 32,
+					size_t PERCENTAGE_INCREASE = 50,
+					size_t BLOCK_SIZE          = 32
+				>
+				static Ash::Test::Assertion arrayBuffer()
+				{
+					TEST_CLASS_GENERIC(TestArrayBuffer, testCore,           CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE);
+					TEST_CLASS_GENERIC(TestArrayBuffer, testSetLength,      CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE);
+					TEST_CLASS_GENERIC(TestArrayBuffer, testDecreaseLength, CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE);
+					TEST_CLASS_GENERIC(TestArrayBuffer, testIncreaseLength, CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE);
+					TEST_CLASS_GENERIC(TestArrayBuffer, testCopy,           CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE);
+					TEST_CLASS_GENERIC(TestArrayBuffer, testMove,           CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE);
 
-					TEST_IS_TRUE(allocation2.setLength(CAPACITY));
-					for (size_t n = 0; n < CAPACITY; n++)
+					return {};
+				}
+
+				template
+				<
+					size_t CAPACITY
+				>
+				class TestBuffer : public Ash::Memory::Allocation::Buffer<TraceValue<int>, CAPACITY>
+				{
+				public:
+					static Ash::Test::Assertion testCore()
 					{
-						allocation2.getContent()[n] = TraceValue<int>(CAPACITY + n);
+						TestBuffer allocation;
 
-						TEST_IS_EQ(allocation2.getContent()[n].getValueOr(-1), int(CAPACITY + n));
+						TEST_IS_FALSE(allocation.isFixedLength);
+						TEST_IS_TRUE(allocation.isFixedCapacity);
+						TEST_IS_FALSE(allocation.isReference);
+						TEST_IS_EQ(allocation.maxCapacity, CAPACITY);
+						TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
+						TEST_IS_EQ(allocation.getLength(), 0);
+						TEST_IS_NOT_NULL((TraceValue<int> *)allocation.getContent());
+						TEST_IS_NOT_NULL((const TraceValue<int> *)allocation.getContent());
+
+						return {};
 					}
 
-					TEST_IS_EQ(Trace::getAllocatedCount(), 2 * CAPACITY);
-
-					allocation1.copy(allocation2);
-
-					TEST_IS_EQ(Trace::getAllocatedCount(), 2 * CAPACITY);
-
-					for (size_t n = 0; n < CAPACITY; n++)
+					static Ash::Test::Assertion testSetLength()
 					{
-						TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(CAPACITY + n));
-						TEST_IS_EQ(allocation2.getContent()[n].getValueOr(-1), int(CAPACITY + n));
+						TestBuffer allocation;
+
+						TEST_IS_FALSE(allocation.setLength(CAPACITY + 1));
+						TEST_IS_EQ(allocation.getLength(), 0);
+						TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
+
+						TEST_IS_TRUE(allocation.setLength(CAPACITY));
+						TEST_IS_EQ(allocation.getLength(), CAPACITY);
+						TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
+
+						TEST_IS_TRUE(allocation.setLength(0));
+						TEST_IS_EQ(allocation.getLength(), 0);
+						TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
+
+						return {};
 					}
 
-					return {};
-				}
-
-				static Ash::Test::Assertion testMove()
-				{
-					TestVariableLength allocation1;
-					TestVariableLength allocation2;
-
-					TEST_IS_TRUE(allocation1.setLength(CAPACITY));
-					for (size_t n = 0; n < CAPACITY; n++)
+					static Ash::Test::Assertion testDecreaseLength()
 					{
-						allocation1.getContent()[n] = TraceValue<int>(n);
+						TestBuffer allocation;
 
-						TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(n));
+						TEST_IS_TRUE(allocation.setLength(0));
+						TEST_IS_FALSE(allocation.decreaseLength(1));
+						TEST_IS_EQ(allocation.getLength(), 0);
+						TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
+
+						TEST_IS_TRUE(allocation.setLength(CAPACITY));
+						TEST_IS_TRUE(allocation.decreaseLength(1));
+						TEST_IS_EQ(allocation.getLength(), CAPACITY - 1);
+						TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
+
+						TEST_IS_TRUE(allocation.decreaseLength(0));
+						TEST_IS_EQ(allocation.getLength(), CAPACITY - 1);
+						TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
+
+						return {};
 					}
 
-					TEST_IS_EQ(Trace::getAllocatedCount(), CAPACITY);
-
-					TEST_IS_TRUE(allocation2.setLength(CAPACITY));
-					for (size_t n = 0; n < CAPACITY; n++)
+					static Ash::Test::Assertion testIncreaseLength()
 					{
-						allocation2.getContent()[n] = TraceValue<int>(CAPACITY + n);
+						TestBuffer allocation;
 
-						TEST_IS_EQ(allocation2.getContent()[n].getValueOr(-1), int(CAPACITY + n));
+						TEST_IS_TRUE(allocation.setLength(CAPACITY));
+						TEST_IS_FALSE(allocation.increaseLength(1));
+						TEST_IS_EQ(allocation.getLength(), CAPACITY);
+						TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
+
+						TEST_IS_TRUE(allocation.setLength(0));
+						TEST_IS_TRUE(allocation.increaseLength(1));
+						TEST_IS_EQ(allocation.getLength(), 1);
+						TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
+
+						TEST_IS_TRUE(allocation.increaseLength(0));
+						TEST_IS_EQ(allocation.getLength(), 1);
+						TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
+
+						return {};
 					}
 
-					TEST_IS_EQ(Trace::getAllocatedCount(), 2 * CAPACITY);
-
-					allocation1.move(allocation2);
-
-					TEST_IS_EQ(Trace::getAllocatedCount(), CAPACITY);
-
-					for (size_t n = 0; n < CAPACITY; n++)
+					static Ash::Test::Assertion testCopy()
 					{
-						TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(CAPACITY + n));
-						TEST_IS_EQ(allocation2.getContent()[n].getValueOr(-1), -1);
+						TestBuffer allocation1;
+						TestBuffer allocation2;
+
+						TEST_IS_TRUE(allocation1.setLength(CAPACITY));
+						for (size_t n = 0; n < CAPACITY; n++)
+						{
+							allocation1.getContent()[n] = TraceValue<int>(n);
+
+							TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(n));
+						}
+
+						TEST_IS_EQ(Trace::getAllocatedCount(), CAPACITY);
+
+						TEST_IS_TRUE(allocation2.setLength(CAPACITY));
+						for (size_t n = 0; n < CAPACITY; n++)
+						{
+							allocation2.getContent()[n] = TraceValue<int>(CAPACITY + n);
+
+							TEST_IS_EQ(allocation2.getContent()[n].getValueOr(-1), int(CAPACITY + n));
+						}
+
+						TEST_IS_EQ(Trace::getAllocatedCount(), 2 * CAPACITY);
+
+						allocation1.copy(allocation2);
+
+						TEST_IS_EQ(Trace::getAllocatedCount(), 2 * CAPACITY);
+
+						for (size_t n = 0; n < CAPACITY; n++)
+						{
+							TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(CAPACITY + n));
+							TEST_IS_EQ(allocation2.getContent()[n].getValueOr(-1), int(CAPACITY + n));
+						}
+
+						return {};
 					}
 
-					return {};
-				}
-			};
-
-			template
-			<
-				size_t CAPACITY
-			>
-			static Ash::Test::Assertion variableLength()
-			{
-				TEST(TestVariableLength<CAPACITY>::testCore);
-				TEST(TestVariableLength<CAPACITY>::testSetLength);
-				TEST(TestVariableLength<CAPACITY>::testDecreaseLength);
-				TEST(TestVariableLength<CAPACITY>::testIncreaseLength);
-				TEST(TestVariableLength<CAPACITY>::testCopy);
-				TEST(TestVariableLength<CAPACITY>::testMove);
-
-				return {};
-			}
-
-			template
-			<
-				size_t CAPACITY
-			>
-			class TestFixedLength : public Ash::Memory::Allocation::FixedLength<TraceValue<int>, CAPACITY>
-			{
-			public:
-				static Ash::Test::Assertion testCore()
-				{
-					TestFixedLength allocation;
-
-					TEST_IS_TRUE(allocation.isFixedLength);
-					TEST_IS_TRUE(allocation.isFixedCapacity);
-					TEST_IS_FALSE(allocation.isReference);
-					TEST_IS_EQ(allocation.maxCapacity, CAPACITY);
-					TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
-					TEST_IS_EQ(allocation.getLength(), CAPACITY);
-					TEST_IS_NOT_NULL((TraceValue<int> *)allocation.getContent());
-					TEST_IS_NOT_NULL((const TraceValue<int> *)allocation.getContent());
-
-					return {};
-				}
-
-				static Ash::Test::Assertion testSetLength()
-				{
-					TestFixedLength allocation;
-
-					TEST_IS_FALSE(allocation.setLength(CAPACITY - 1));
-					TEST_IS_EQ(allocation.getLength(), CAPACITY);
-					TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
-
-					TEST_IS_FALSE(allocation.setLength(CAPACITY + 1));
-					TEST_IS_EQ(allocation.getLength(), CAPACITY);
-					TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
-
-					TEST_IS_TRUE(allocation.setLength(CAPACITY));
-					TEST_IS_EQ(allocation.getLength(), CAPACITY);
-					TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
-
-					TEST_IS_FALSE(allocation.setLength(0));
-					TEST_IS_EQ(allocation.getLength(), CAPACITY);
-					TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
-
-					return {};
-				}
-
-				static Ash::Test::Assertion testDecreaseLength()
-				{
-					TestFixedLength allocation;
-
-					TEST_IS_FALSE(allocation.decreaseLength(1));
-					TEST_IS_EQ(allocation.getLength(), CAPACITY);
-					TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
-
-					TEST_IS_TRUE(allocation.decreaseLength(0));
-					TEST_IS_EQ(allocation.getLength(), CAPACITY);
-					TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
-
-					return {};
-				}
-
-				static Ash::Test::Assertion testIncreaseLength()
-				{
-					TestFixedLength allocation;
-
-					TEST_IS_FALSE(allocation.increaseLength(1));
-					TEST_IS_EQ(allocation.getLength(), CAPACITY);
-					TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
-
-					TEST_IS_TRUE(allocation.increaseLength(0));
-					TEST_IS_EQ(allocation.getLength(), CAPACITY);
-					TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
-
-					return {};
-				}
-
-				static Ash::Test::Assertion testCopy()
-				{
-					TestFixedLength allocation1;
-					TestFixedLength allocation2;
-
-					TEST_IS_TRUE(allocation1.setLength(CAPACITY));
-					for (size_t n = 0; n < CAPACITY; n++)
+					static Ash::Test::Assertion testMove()
 					{
-						allocation1.getContent()[n] = TraceValue<int>(n);
+						TestBuffer allocation1;
+						TestBuffer allocation2;
 
-						TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(n));
+						TEST_IS_TRUE(allocation1.setLength(CAPACITY));
+						for (size_t n = 0; n < CAPACITY; n++)
+						{
+							allocation1.getContent()[n] = TraceValue<int>(n);
+
+							TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(n));
+						}
+
+						TEST_IS_EQ(Trace::getAllocatedCount(), CAPACITY);
+
+						TEST_IS_TRUE(allocation2.setLength(CAPACITY));
+						for (size_t n = 0; n < CAPACITY; n++)
+						{
+							allocation2.getContent()[n] = TraceValue<int>(CAPACITY + n);
+
+							TEST_IS_EQ(allocation2.getContent()[n].getValueOr(-1), int(CAPACITY + n));
+						}
+
+						TEST_IS_EQ(Trace::getAllocatedCount(), 2 * CAPACITY);
+
+						allocation1.move(allocation2);
+
+						TEST_IS_EQ(Trace::getAllocatedCount(), CAPACITY);
+
+						for (size_t n = 0; n < CAPACITY; n++)
+						{
+							TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(CAPACITY + n));
+							TEST_IS_EQ(allocation2.getContent()[n].getValueOr(-1), -1);
+						}
+
+						return {};
 					}
+				};
 
-					TEST_IS_EQ(Trace::getAllocatedCount(), CAPACITY);
+				template
+				<
+					size_t CAPACITY
+				>
+				static Ash::Test::Assertion buffer()
+				{
+					TEST(TestBuffer<CAPACITY>::testCore);
+					TEST(TestBuffer<CAPACITY>::testSetLength);
+					TEST(TestBuffer<CAPACITY>::testDecreaseLength);
+					TEST(TestBuffer<CAPACITY>::testIncreaseLength);
+					TEST(TestBuffer<CAPACITY>::testCopy);
+					TEST(TestBuffer<CAPACITY>::testMove);
 
-					TEST_IS_TRUE(allocation2.setLength(CAPACITY));
-					for (size_t n = 0; n < CAPACITY; n++)
+					return {};
+				}
+
+				template
+				<
+					size_t CAPACITY
+				>
+				class TestSequence : public Ash::Memory::Allocation::Sequence<TraceValue<int>, CAPACITY>
+				{
+				public:
+					static Ash::Test::Assertion testCore()
 					{
-						allocation2.getContent()[n] = TraceValue<int>(CAPACITY + n);
+						TestSequence allocation;
 
-						TEST_IS_EQ(allocation2.getContent()[n].getValueOr(-1), int(CAPACITY + n));
+						TEST_IS_TRUE(allocation.isFixedLength);
+						TEST_IS_TRUE(allocation.isFixedCapacity);
+						TEST_IS_FALSE(allocation.isReference);
+						TEST_IS_EQ(allocation.maxCapacity, CAPACITY);
+						TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
+						TEST_IS_EQ(allocation.getLength(), CAPACITY);
+						TEST_IS_NOT_NULL((TraceValue<int> *)allocation.getContent());
+						TEST_IS_NOT_NULL((const TraceValue<int> *)allocation.getContent());
+
+						return {};
 					}
 
-					TEST_IS_EQ(Trace::getAllocatedCount(), 2 * CAPACITY);
-
-					allocation1.copy(allocation2);
-
-					TEST_IS_EQ(Trace::getAllocatedCount(), 2 * CAPACITY);
-
-					for (size_t n = 0; n < CAPACITY; n++)
+					static Ash::Test::Assertion testSetLength()
 					{
-						TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(CAPACITY + n));
-						TEST_IS_EQ(allocation2.getContent()[n].getValueOr(-1), int(CAPACITY + n));
+						TestSequence allocation;
+
+						TEST_IS_FALSE(allocation.setLength(CAPACITY - 1));
+						TEST_IS_EQ(allocation.getLength(), CAPACITY);
+						TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
+
+						TEST_IS_FALSE(allocation.setLength(CAPACITY + 1));
+						TEST_IS_EQ(allocation.getLength(), CAPACITY);
+						TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
+
+						TEST_IS_TRUE(allocation.setLength(CAPACITY));
+						TEST_IS_EQ(allocation.getLength(), CAPACITY);
+						TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
+
+						TEST_IS_FALSE(allocation.setLength(0));
+						TEST_IS_EQ(allocation.getLength(), CAPACITY);
+						TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
+
+						return {};
 					}
 
-					return {};
-				}
-
-				static Ash::Test::Assertion testMove()
-				{
-					TestFixedLength allocation1;
-					TestFixedLength allocation2;
-
-					TEST_IS_TRUE(allocation1.setLength(CAPACITY));
-					for (size_t n = 0; n < CAPACITY; n++)
+					static Ash::Test::Assertion testDecreaseLength()
 					{
-						allocation1.getContent()[n] = TraceValue<int>(n);
+						TestSequence allocation;
 
-						TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(n));
+						TEST_IS_FALSE(allocation.decreaseLength(1));
+						TEST_IS_EQ(allocation.getLength(), CAPACITY);
+						TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
+
+						TEST_IS_TRUE(allocation.decreaseLength(0));
+						TEST_IS_EQ(allocation.getLength(), CAPACITY);
+						TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
+
+						return {};
 					}
 
-					TEST_IS_EQ(Trace::getAllocatedCount(), CAPACITY);
-
-					TEST_IS_TRUE(allocation2.setLength(CAPACITY));
-					for (size_t n = 0; n < CAPACITY; n++)
+					static Ash::Test::Assertion testIncreaseLength()
 					{
-						allocation2.getContent()[n] = TraceValue<int>(CAPACITY + n);
+						TestSequence allocation;
 
-						TEST_IS_EQ(allocation2.getContent()[n].getValueOr(-1), int(CAPACITY + n));
+						TEST_IS_FALSE(allocation.increaseLength(1));
+						TEST_IS_EQ(allocation.getLength(), CAPACITY);
+						TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
+
+						TEST_IS_TRUE(allocation.increaseLength(0));
+						TEST_IS_EQ(allocation.getLength(), CAPACITY);
+						TEST_IS_EQ(allocation.getCapacity(), CAPACITY);
+
+						return {};
 					}
 
-					TEST_IS_EQ(Trace::getAllocatedCount(), 2 * CAPACITY);
-
-					allocation1.move(allocation2);
-
-					TEST_IS_EQ(Trace::getAllocatedCount(), CAPACITY);
-
-					for (size_t n = 0; n < CAPACITY; n++)
+					static Ash::Test::Assertion testCopy()
 					{
-						TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(CAPACITY + n));
-						TEST_IS_EQ(allocation2.getContent()[n].getValueOr(-1), -1);
+						TestSequence allocation1;
+						TestSequence allocation2;
+
+						TEST_IS_TRUE(allocation1.setLength(CAPACITY));
+						for (size_t n = 0; n < CAPACITY; n++)
+						{
+							allocation1.getContent()[n] = TraceValue<int>(n);
+
+							TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(n));
+						}
+
+						TEST_IS_EQ(Trace::getAllocatedCount(), CAPACITY);
+
+						TEST_IS_TRUE(allocation2.setLength(CAPACITY));
+						for (size_t n = 0; n < CAPACITY; n++)
+						{
+							allocation2.getContent()[n] = TraceValue<int>(CAPACITY + n);
+
+							TEST_IS_EQ(allocation2.getContent()[n].getValueOr(-1), int(CAPACITY + n));
+						}
+
+						TEST_IS_EQ(Trace::getAllocatedCount(), 2 * CAPACITY);
+
+						allocation1.copy(allocation2);
+
+						TEST_IS_EQ(Trace::getAllocatedCount(), 2 * CAPACITY);
+
+						for (size_t n = 0; n < CAPACITY; n++)
+						{
+							TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(CAPACITY + n));
+							TEST_IS_EQ(allocation2.getContent()[n].getValueOr(-1), int(CAPACITY + n));
+						}
+
+						return {};
 					}
 
-					return {};
-				}
-			};
+					static Ash::Test::Assertion testMove()
+					{
+						TestSequence allocation1;
+						TestSequence allocation2;
 
-			template
-			<
-				size_t CAPACITY
-			>
-			static Ash::Test::Assertion fixedLength()
-			{
-				TEST(TestFixedLength<CAPACITY>::testCore);
-				TEST(TestFixedLength<CAPACITY>::testSetLength);
-				TEST(TestFixedLength<CAPACITY>::testDecreaseLength);
-				TEST(TestFixedLength<CAPACITY>::testIncreaseLength);
-				TEST(TestFixedLength<CAPACITY>::testCopy);
-				TEST(TestFixedLength<CAPACITY>::testMove);
+						TEST_IS_TRUE(allocation1.setLength(CAPACITY));
+						for (size_t n = 0; n < CAPACITY; n++)
+						{
+							allocation1.getContent()[n] = TraceValue<int>(n);
 
-				return {};
-			}
+							TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(n));
+						}
 
-			class TestReference : public Ash::Memory::Allocation::Reference<int>
-			{
-			public:
-				static Ash::Test::Assertion testCore()
+						TEST_IS_EQ(Trace::getAllocatedCount(), CAPACITY);
+
+						TEST_IS_TRUE(allocation2.setLength(CAPACITY));
+						for (size_t n = 0; n < CAPACITY; n++)
+						{
+							allocation2.getContent()[n] = TraceValue<int>(CAPACITY + n);
+
+							TEST_IS_EQ(allocation2.getContent()[n].getValueOr(-1), int(CAPACITY + n));
+						}
+
+						TEST_IS_EQ(Trace::getAllocatedCount(), 2 * CAPACITY);
+
+						allocation1.move(allocation2);
+
+						TEST_IS_EQ(Trace::getAllocatedCount(), CAPACITY);
+
+						for (size_t n = 0; n < CAPACITY; n++)
+						{
+							TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(CAPACITY + n));
+							TEST_IS_EQ(allocation2.getContent()[n].getValueOr(-1), -1);
+						}
+
+						return {};
+					}
+				};
+
+				template
+				<
+					size_t CAPACITY
+				>
+				static Ash::Test::Assertion sequence()
 				{
-					TestReference reference;
-					int values[128];
-
-					reference.copy(values, sizeof(values) / sizeof(values[0]));
-
-					TEST_IS_TRUE(reference.isFixedLength);
-					TEST_IS_TRUE(reference.isFixedCapacity);
-					TEST_IS_TRUE(reference.isReference);
-					TEST_IS_EQ(reference.maxCapacity, std::numeric_limits<size_t>::max());
-					TEST_IS_EQ(reference.getCapacity(), sizeof(values) / sizeof(values[0]));
-					TEST_IS_EQ(reference.getLength(), sizeof(values) / sizeof(values[0]));
-					TEST_IS_EQ((int *)reference.getContent(), values);
-					TEST_IS_EQ((const int *)reference.getContent(), values);
+					TEST(TestSequence<CAPACITY>::testCore);
+					TEST(TestSequence<CAPACITY>::testSetLength);
+					TEST(TestSequence<CAPACITY>::testDecreaseLength);
+					TEST(TestSequence<CAPACITY>::testIncreaseLength);
+					TEST(TestSequence<CAPACITY>::testCopy);
+					TEST(TestSequence<CAPACITY>::testMove);
 
 					return {};
 				}
 
-				static Ash::Test::Assertion testSetLength()
+				class TestReference : public Ash::Memory::Allocation::Reference<int>
 				{
-					TestReference reference;
-					int values[128];
+				public:
+					static Ash::Test::Assertion testCore()
+					{
+						TestReference reference;
+						int values[128];
 
-					reference.copy(values, sizeof(values) / sizeof(values[0]));
+						reference.copy(values, sizeof(values) / sizeof(values[0]));
 
-					TEST_IS_FALSE(reference.setLength(sizeof(values) / sizeof(values[0]) - 1));
-					TEST_IS_EQ(reference.getLength(), sizeof(values) / sizeof(values[0]));
-					TEST_IS_EQ(reference.getCapacity(), sizeof(values) / sizeof(values[0]));
+						TEST_IS_TRUE(reference.isFixedLength);
+						TEST_IS_TRUE(reference.isFixedCapacity);
+						TEST_IS_TRUE(reference.isReference);
+						TEST_IS_EQ(reference.maxCapacity, std::numeric_limits<size_t>::max());
+						TEST_IS_EQ(reference.getCapacity(), sizeof(values) / sizeof(values[0]));
+						TEST_IS_EQ(reference.getLength(), sizeof(values) / sizeof(values[0]));
+						TEST_IS_EQ((int *)reference.getContent(), values);
+						TEST_IS_EQ((const int *)reference.getContent(), values);
 
-					TEST_IS_FALSE(reference.setLength(sizeof(values) / sizeof(values[0]) + 1));
-					TEST_IS_EQ(reference.getLength(), sizeof(values) / sizeof(values[0]));
-					TEST_IS_EQ(reference.getCapacity(), sizeof(values) / sizeof(values[0]));
+						return {};
+					}
 
-					TEST_IS_TRUE(reference.setLength(sizeof(values) / sizeof(values[0])));
-					TEST_IS_EQ(reference.getLength(), sizeof(values) / sizeof(values[0]));
-					TEST_IS_EQ(reference.getCapacity(), sizeof(values) / sizeof(values[0]));
+					static Ash::Test::Assertion testSetLength()
+					{
+						TestReference reference;
+						int values[128];
 
-					TEST_IS_FALSE(reference.setLength(0));
-					TEST_IS_EQ(reference.getLength(), sizeof(values) / sizeof(values[0]));
-					TEST_IS_EQ(reference.getCapacity(), sizeof(values) / sizeof(values[0]));
+						reference.copy(values, sizeof(values) / sizeof(values[0]));
 
-					return {};
-				}
+						TEST_IS_FALSE(reference.setLength(sizeof(values) / sizeof(values[0]) - 1));
+						TEST_IS_EQ(reference.getLength(), sizeof(values) / sizeof(values[0]));
+						TEST_IS_EQ(reference.getCapacity(), sizeof(values) / sizeof(values[0]));
 
-				static Ash::Test::Assertion testDecreaseLength()
+						TEST_IS_FALSE(reference.setLength(sizeof(values) / sizeof(values[0]) + 1));
+						TEST_IS_EQ(reference.getLength(), sizeof(values) / sizeof(values[0]));
+						TEST_IS_EQ(reference.getCapacity(), sizeof(values) / sizeof(values[0]));
+
+						TEST_IS_TRUE(reference.setLength(sizeof(values) / sizeof(values[0])));
+						TEST_IS_EQ(reference.getLength(), sizeof(values) / sizeof(values[0]));
+						TEST_IS_EQ(reference.getCapacity(), sizeof(values) / sizeof(values[0]));
+
+						TEST_IS_FALSE(reference.setLength(0));
+						TEST_IS_EQ(reference.getLength(), sizeof(values) / sizeof(values[0]));
+						TEST_IS_EQ(reference.getCapacity(), sizeof(values) / sizeof(values[0]));
+
+						return {};
+					}
+
+					static Ash::Test::Assertion testDecreaseLength()
+					{
+						TestReference reference;
+						int values[128];
+
+						reference.copy(values, sizeof(values) / sizeof(values[0]));
+
+						TEST_IS_FALSE(reference.decreaseLength(1));
+						TEST_IS_EQ(reference.getLength(), sizeof(values) / sizeof(values[0]));
+						TEST_IS_EQ(reference.getCapacity(), sizeof(values) / sizeof(values[0]));
+
+						TEST_IS_TRUE(reference.decreaseLength(0));
+						TEST_IS_EQ(reference.getLength(), sizeof(values) / sizeof(values[0]));
+						TEST_IS_EQ(reference.getCapacity(), sizeof(values) / sizeof(values[0]));
+
+						return {};
+					}
+
+					static Ash::Test::Assertion testIncreaseLength()
+					{
+						TestReference reference;
+						int values[128];
+
+						reference.copy(values, sizeof(values) / sizeof(values[0]));
+
+						TEST_IS_FALSE(reference.increaseLength(1));
+						TEST_IS_EQ(reference.getLength(), sizeof(values) / sizeof(values[0]));
+						TEST_IS_EQ(reference.getCapacity(), sizeof(values) / sizeof(values[0]));
+
+						TEST_IS_TRUE(reference.increaseLength(0));
+						TEST_IS_EQ(reference.getLength(), sizeof(values) / sizeof(values[0]));
+						TEST_IS_EQ(reference.getCapacity(), sizeof(values) / sizeof(values[0]));
+
+						return {};
+					}
+
+					static Ash::Test::Assertion testCopy()
+					{
+						TestReference reference1;
+						TestReference reference2;
+						int values1[128];
+						int values2[64];
+
+						reference1.copy(values1, sizeof(values1) / sizeof(values1[0]));
+						TEST_IS_EQ(reference1.getContent(), values1);
+						TEST_IS_EQ(reference1.getLength(), sizeof(values1) / sizeof(values1[0]));
+
+						reference2.copy(values2, sizeof(values2) / sizeof(values2[0]));
+						TEST_IS_EQ(reference2.getContent(), values2);
+						TEST_IS_EQ(reference2.getLength(), sizeof(values2) / sizeof(values2[0]));
+
+						reference1.copy(reference2);
+						TEST_IS_EQ(reference2.getContent(), values2);
+						TEST_IS_EQ(reference2.getLength(), sizeof(values2) / sizeof(values2[0]));
+
+						return {};
+					}
+
+					static Ash::Test::Assertion testMove()
+					{
+						TestReference reference1;
+						TestReference reference2;
+						int values1[128];
+						int values2[64];
+
+						reference1.copy(values1, sizeof(values1) / sizeof(values1[0]));
+						TEST_IS_EQ(reference1.getContent(), values1);
+						TEST_IS_EQ(reference1.getLength(), sizeof(values1) / sizeof(values1[0]));
+
+						reference2.move(values2, sizeof(values2) / sizeof(values2[0]));
+						TEST_IS_EQ(reference2.getContent(), values2);
+						TEST_IS_EQ(reference2.getLength(), sizeof(values2) / sizeof(values2[0]));
+
+						reference1.copy(reference2);
+						TEST_IS_EQ(reference2.getContent(), values2);
+						TEST_IS_EQ(reference2.getLength(), sizeof(values2) / sizeof(values2[0]));
+
+						return {};
+					}
+				};
+
+				static Ash::Test::Assertion reference()
 				{
-					TestReference reference;
-					int values[128];
-
-					reference.copy(values, sizeof(values) / sizeof(values[0]));
-
-					TEST_IS_FALSE(reference.decreaseLength(1));
-					TEST_IS_EQ(reference.getLength(), sizeof(values) / sizeof(values[0]));
-					TEST_IS_EQ(reference.getCapacity(), sizeof(values) / sizeof(values[0]));
-
-					TEST_IS_TRUE(reference.decreaseLength(0));
-					TEST_IS_EQ(reference.getLength(), sizeof(values) / sizeof(values[0]));
-					TEST_IS_EQ(reference.getCapacity(), sizeof(values) / sizeof(values[0]));
+					TEST(TestReference::testCore);
+					TEST(TestReference::testSetLength);
+					TEST(TestReference::testDecreaseLength);
+					TEST(TestReference::testIncreaseLength);
+					TEST(TestReference::testCopy);
+					TEST(TestReference::testMove);
 
 					return {};
 				}
-
-				static Ash::Test::Assertion testIncreaseLength()
-				{
-					TestReference reference;
-					int values[128];
-
-					reference.copy(values, sizeof(values) / sizeof(values[0]));
-
-					TEST_IS_FALSE(reference.increaseLength(1));
-					TEST_IS_EQ(reference.getLength(), sizeof(values) / sizeof(values[0]));
-					TEST_IS_EQ(reference.getCapacity(), sizeof(values) / sizeof(values[0]));
-
-					TEST_IS_TRUE(reference.increaseLength(0));
-					TEST_IS_EQ(reference.getLength(), sizeof(values) / sizeof(values[0]));
-					TEST_IS_EQ(reference.getCapacity(), sizeof(values) / sizeof(values[0]));
-
-					return {};
-				}
-
-				static Ash::Test::Assertion testCopy()
-				{
-					TestReference reference1;
-					TestReference reference2;
-					int values1[128];
-					int values2[64];
-
-					reference1.copy(values1, sizeof(values1) / sizeof(values1[0]));
-					TEST_IS_EQ(reference1.getContent(), values1);
-					TEST_IS_EQ(reference1.getLength(), sizeof(values1) / sizeof(values1[0]));
-
-					reference2.copy(values2, sizeof(values2) / sizeof(values2[0]));
-					TEST_IS_EQ(reference2.getContent(), values2);
-					TEST_IS_EQ(reference2.getLength(), sizeof(values2) / sizeof(values2[0]));
-
-					reference1.copy(reference2);
-					TEST_IS_EQ(reference2.getContent(), values2);
-					TEST_IS_EQ(reference2.getLength(), sizeof(values2) / sizeof(values2[0]));
-
-					return {};
-				}
-
-				static Ash::Test::Assertion testMove()
-				{
-					TestReference reference1;
-					TestReference reference2;
-					int values1[128];
-					int values2[64];
-
-					reference1.copy(values1, sizeof(values1) / sizeof(values1[0]));
-					TEST_IS_EQ(reference1.getContent(), values1);
-					TEST_IS_EQ(reference1.getLength(), sizeof(values1) / sizeof(values1[0]));
-
-					reference2.move(values2, sizeof(values2) / sizeof(values2[0]));
-					TEST_IS_EQ(reference2.getContent(), values2);
-					TEST_IS_EQ(reference2.getLength(), sizeof(values2) / sizeof(values2[0]));
-
-					reference1.copy(reference2);
-					TEST_IS_EQ(reference2.getContent(), values2);
-					TEST_IS_EQ(reference2.getLength(), sizeof(values2) / sizeof(values2[0]));
-
-					return {};
-				}
-			};
-
-			static Ash::Test::Assertion reference()
-			{
-				TEST(TestReference::testCore);
-				TEST(TestReference::testSetLength);
-				TEST(TestReference::testDecreaseLength);
-				TEST(TestReference::testIncreaseLength);
-				TEST(TestReference::testCopy);
-				TEST(TestReference::testMove);
-
-				return {};
 			}
 		}
 
 		TEST_UNIT
 		(
 			testMemoryAllocation,
-			TEST_CASE_GENERIC(Ash::Test::Memory::dynamic, 1, 0, 1),
-			TEST_CASE_GENERIC(Ash::Test::Memory::dynamic, 64, 0, 1),
-			TEST_CASE_GENERIC(Ash::Test::Memory::dynamic, 64, 0, 16),
-			TEST_CASE_GENERIC(Ash::Test::Memory::dynamic, 64, 25, 16),
-			TEST_CASE_GENERIC(Ash::Test::Memory::dynamic, 64, 50, 16),
-			TEST_CASE_GENERIC(Ash::Test::Memory::dynamic, 64, 75, 16),
-			TEST_CASE_GENERIC(Ash::Test::Memory::dynamic, 64, 100, 16),
-			TEST_CASE_GENERIC(Ash::Test::Memory::variableLength, 1),
-			TEST_CASE_GENERIC(Ash::Test::Memory::variableLength, 256),
-			TEST_CASE_GENERIC(Ash::Test::Memory::fixedLength, 1),
-			TEST_CASE_GENERIC(Ash::Test::Memory::fixedLength, 256),
-			TEST_CASE(Ash::Test::Memory::reference)
+
+			TEST_CASE_GENERIC(Ash::Test::Memory::Allocation::array, 1, 0, 1),
+			TEST_CASE_GENERIC(Ash::Test::Memory::Allocation::array, 64, 0, 1),
+			TEST_CASE_GENERIC(Ash::Test::Memory::Allocation::array, 64, 0, 16),
+			TEST_CASE_GENERIC(Ash::Test::Memory::Allocation::array, 64, 25, 16),
+			TEST_CASE_GENERIC(Ash::Test::Memory::Allocation::array, 64, 50, 16),
+			TEST_CASE_GENERIC(Ash::Test::Memory::Allocation::array, 64, 75, 16),
+			TEST_CASE_GENERIC(Ash::Test::Memory::Allocation::array, 64, 100, 16),
+
+			TEST_CASE_GENERIC(Ash::Test::Memory::Allocation::arrayBuffer, 1, 0, 1),
+			TEST_CASE_GENERIC(Ash::Test::Memory::Allocation::arrayBuffer, 64, 0, 1),
+			TEST_CASE_GENERIC(Ash::Test::Memory::Allocation::arrayBuffer, 64, 0, 16),
+			TEST_CASE_GENERIC(Ash::Test::Memory::Allocation::arrayBuffer, 64, 25, 16),
+			TEST_CASE_GENERIC(Ash::Test::Memory::Allocation::arrayBuffer, 64, 50, 16),
+			TEST_CASE_GENERIC(Ash::Test::Memory::Allocation::arrayBuffer, 64, 75, 16),
+			TEST_CASE_GENERIC(Ash::Test::Memory::Allocation::arrayBuffer, 64, 100, 16),
+
+			TEST_CASE_GENERIC(Ash::Test::Memory::Allocation::buffer, 1),
+			TEST_CASE_GENERIC(Ash::Test::Memory::Allocation::buffer, 256),
+
+			TEST_CASE_GENERIC(Ash::Test::Memory::Allocation::sequence, 1),
+			TEST_CASE_GENERIC(Ash::Test::Memory::Allocation::sequence, 256),
+
+			TEST_CASE(Ash::Test::Memory::Allocation::reference)
 		);
 	}
 }
