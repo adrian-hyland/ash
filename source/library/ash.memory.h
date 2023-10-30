@@ -17,6 +17,8 @@ namespace Ash
 		{
 			class Allocation {};
 
+			class Dynamic : Allocation {};
+
 			class Reference : Allocation {};
 		}
 
@@ -29,7 +31,7 @@ namespace Ash
 				size_t   PERCENTAGE_INCREASE = 50,
 				size_t   BLOCK_SIZE          = 32
 			>
-			class Dynamic : Ash::Memory::Generic::Allocation
+			class Array : Ash::Memory::Generic::Dynamic
 			{
 			public:
 				using Type = TYPE;
@@ -102,17 +104,17 @@ namespace Ash
 				}
 
 			protected:
-				constexpr Dynamic() : m_Content(nullptr), m_Length(0), m_Capacity(0) {}
+				constexpr Array() : m_Content(nullptr), m_Length(0), m_Capacity(0) {}
 
-				inline ~Dynamic() { deleteContent(); }
+				inline ~Array() { deleteContent(); }
 
 				constexpr const Type *getContent() const { return m_Content; }
 
 				constexpr Type *getContent() { return m_Content; }
 
-				constexpr void copy(const Dynamic &value) { copy(value.m_Content, value.m_Length); }
+				constexpr void copy(const Array &value) { copy(value.m_Content, value.m_Length); }
 
-				constexpr void move(Dynamic &value)
+				constexpr void move(Array &value)
 				{
 					delete [] m_Content;
 
@@ -218,12 +220,245 @@ namespace Ash
 				size_t m_Capacity;
 			};
 
+
+			template
+			<
+				typename TYPE,
+				size_t   CAPACITY            = 32,
+				size_t   PERCENTAGE_INCREASE = 50,
+				size_t   BLOCK_SIZE          = 32
+			>
+			class ArrayBuffer : Ash::Memory::Generic::Dynamic
+			{
+			public:
+				using Type = TYPE;
+
+				static constexpr bool isFixedLength = false;
+
+				static constexpr bool isFixedCapacity = false;
+
+				static constexpr bool isReference = false;
+
+				static constexpr size_t maxCapacity = std::numeric_limits<size_t>::max();
+
+				constexpr size_t getCapacity() const { return m_Capacity; }
+
+				constexpr size_t getLength() const { return m_Length; }
+
+				constexpr bool setLength(size_t length)
+				{
+					return (length < m_Length) ? decreaseLength(m_Length - length) : increaseLength(length - m_Length);
+				}
+
+				constexpr bool increaseLength(size_t increase)
+				{
+					size_t length = 0;
+
+					if (!Size(m_Length).add(increase).getValue(length))
+					{
+						return false;
+					}
+					
+					if (length > m_Capacity)
+					{
+						return newContent(getIncreaseCapacity(length), length);
+					}
+
+					m_Length = length;
+
+					return true;
+				}
+
+				constexpr bool decreaseLength(size_t decrease)
+				{
+					size_t length = 0;
+					
+					if (!Size(m_Length).subtract(decrease).getValue(length))
+					{
+						return false;
+					}
+
+					if (length == 0)
+					{
+						deleteContent();
+						return true;
+					}
+					
+					size_t capacity = getDecreaseCapacity(m_Capacity);
+
+					if ((length < capacity) && (capacity < m_Capacity))
+					{
+						return newContent(capacity, length);
+					}
+
+					for (size_t n = length; n < m_Length; n++)
+					{
+						m_Content[n] = Type();
+					}
+					m_Length = length;
+
+					return true;
+				}
+
+			protected:
+				constexpr ArrayBuffer() : m_Buffer(), m_Content(m_Buffer), m_Length(0), m_Capacity(CAPACITY) {}
+
+				inline ~ArrayBuffer() { deleteContent(); }
+
+				constexpr const Type *getContent() const { return m_Content; }
+
+				constexpr Type *getContent() { return m_Content; }
+
+				constexpr void copy(const ArrayBuffer &value) { copy(value.m_Content, value.m_Length); }
+
+				constexpr void move(ArrayBuffer &value)
+				{
+					if (m_Content != m_Buffer)
+					{
+						delete [] m_Content;
+						m_Content = m_Buffer;
+						m_Capacity = CAPACITY;
+					}
+
+					if (value.m_Content == value.m_Buffer)
+					{
+						for (size_t n = 0; n < value.m_Length; n++)
+						{
+							m_Buffer[n] = std::move(value.m_Buffer[n]);
+						}
+					}
+					else
+					{
+						m_Content = value.m_Content;
+						m_Capacity = value.m_Capacity;
+					}
+					m_Length = value.m_Length;
+
+					value.m_Content = value.m_Buffer;
+					value.m_Length = 0;
+					value.m_Capacity = CAPACITY;
+				}
+
+				constexpr void copy(const Type *content, size_t length)
+				{
+					setLength(length);
+
+					for (size_t n = 0; n < length; n++)
+					{
+						m_Content[n] = content[n];
+					}
+				}
+
+				static constexpr size_t minimumCapacity = Size(CAPACITY).roundUp(BLOCK_SIZE).getValueOr(CAPACITY);
+
+				static constexpr size_t getIncreaseCapacity(size_t length)
+				{
+					if (length <= CAPACITY)
+					{
+						return CAPACITY;
+					}
+
+					if (length <= minimumCapacity)
+					{
+						return minimumCapacity;
+					}
+
+					Size capacity(length);
+
+					if (PERCENTAGE_INCREASE != 0)
+					{
+						if (length < 100 * PERCENTAGE_INCREASE)
+						{
+							capacity = capacity.multiply(100 + PERCENTAGE_INCREASE).divide(100);
+						}
+						else
+						{
+							capacity = capacity.divide(100).multiply(100 + PERCENTAGE_INCREASE);
+						}
+					}
+
+					return capacity.roundUp(BLOCK_SIZE).getValueOr(length);
+				}
+
+				static constexpr size_t getDecreaseCapacity(size_t length)
+				{
+					if (length <= CAPACITY)
+					{
+						return CAPACITY;
+					}
+
+					if (length <= minimumCapacity)
+					{
+						return minimumCapacity;
+					}
+
+					Size capacity(length);
+
+					if (PERCENTAGE_INCREASE != 0)
+					{
+						if (length < PERCENTAGE_INCREASE * (100 + PERCENTAGE_INCREASE))
+						{
+							capacity = capacity.multiply(100).divide(100 + PERCENTAGE_INCREASE);
+						}
+						else
+						{
+							capacity = capacity.divide(100 + PERCENTAGE_INCREASE).multiply(100);
+						}
+					}
+
+					return capacity.roundUp(BLOCK_SIZE).getValueOr(length);
+				}
+
+				constexpr bool newContent(size_t capacity, size_t length)
+				{
+					Type *content = (capacity <= CAPACITY) ? m_Buffer : new Type[capacity];
+
+					if (content != m_Content)
+					{
+						for (size_t n = 0; n < ((length < m_Length) ? length : m_Length); n++)
+						{
+							content[n] = std::move(m_Content[n]);
+						}
+					}
+
+					if (m_Content != m_Buffer)
+					{
+						delete [] m_Content;
+					}
+
+					m_Content = content;
+					m_Length = length;
+					m_Capacity = capacity;
+
+					return true;
+				}
+
+				constexpr void deleteContent()
+				{
+					if (m_Content != m_Buffer)
+					{
+						delete [] m_Content;
+						m_Content = m_Buffer;
+					}
+
+					m_Capacity = CAPACITY;
+					m_Length = 0;
+				}
+
+			private:
+				Type   m_Buffer[CAPACITY];
+				Type  *m_Content;
+				size_t m_Length;
+				size_t m_Capacity;
+			};
+
+
 			template
 			<
 				typename TYPE,
 				size_t   CAPACITY
 			>
-			class VariableLength : Ash::Memory::Generic::Allocation
+			class Buffer : Ash::Memory::Generic::Allocation
 			{
 			public:
 				using Type = TYPE;
@@ -287,15 +522,15 @@ namespace Ash
 				}
 
 			protected:
-				constexpr VariableLength() : m_Content(), m_Length(0) {}
+				constexpr Buffer() : m_Content(), m_Length(0) {}
 
 				constexpr const Type *getContent() const { return m_Content; }
 
 				constexpr Type *getContent() { return m_Content; }
 
-				constexpr void copy(const VariableLength &value) { copy(value.m_Content, value.m_Length); }
+				constexpr void copy(const Buffer &value) { copy(value.m_Content, value.m_Length); }
 
-				constexpr void move(VariableLength &value) { move(value.m_Content, value.m_Length); }
+				constexpr void move(Buffer &value) { move(value.m_Content, value.m_Length); }
 
 				constexpr void copy(const Type *content, size_t length)
 				{
@@ -328,7 +563,7 @@ namespace Ash
 				typename TYPE,
 				size_t   CAPACITY
 			>
-			class FixedLength : Ash::Memory::Generic::Allocation
+			class Sequence : Ash::Memory::Generic::Allocation
 			{
 			public:
 				using Type = TYPE;
@@ -352,15 +587,15 @@ namespace Ash
 				constexpr bool increaseLength(size_t length) { return length == 0; }
 
 			protected:
-				constexpr FixedLength() : m_Content() {}
+				constexpr Sequence() : m_Content() {}
 
 				constexpr const Type *getContent() const { return m_Content; }
 
 				constexpr Type *getContent() { return m_Content; }
 
-				constexpr void copy(const FixedLength &value) { copy(value.m_Content, CAPACITY); }
+				constexpr void copy(const Sequence &value) { copy(value.m_Content, CAPACITY); }
 
-				constexpr void move(FixedLength &value) { move(value.m_Content, CAPACITY); }
+				constexpr void move(Sequence &value) { move(value.m_Content, CAPACITY); }
 
 				constexpr void copy(const Type *content, size_t length)
 				{
@@ -472,21 +707,30 @@ namespace Ash
 			size_t   PERCENTAGE_INCREASE = 50,
 			size_t   BLOCK_SIZE          = 32
 		>
-		using Array = Value<Allocation::Dynamic<TYPE, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>>;
+		using Array = Value<Allocation::Array<TYPE, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>>;
+
+		template
+		<
+			typename TYPE,
+			size_t   CAPACITY            = 32,
+			size_t   PERCENTAGE_INCREASE = 50,
+			size_t   BLOCK_SIZE          = 32
+		>
+		using ArrayBuffer = Value<Allocation::ArrayBuffer<TYPE, CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>>;
 
 		template
 		<
 			typename TYPE,
 			size_t   CAPACITY
 		>
-		using Buffer = Value<Allocation::VariableLength<TYPE, CAPACITY>>;
+		using Buffer = Value<Allocation::Buffer<TYPE, CAPACITY>>;
 
 		template
 		<
 			typename TYPE,
 			size_t   CAPACITY
 		>
-		using Sequence = Value<Allocation::FixedLength<TYPE, CAPACITY>>;
+		using Sequence = Value<Allocation::Sequence<TYPE, CAPACITY>>;
 
 		template
 		<
@@ -822,7 +1066,7 @@ namespace Ash
 
 			constexpr size_t find(size_t offset, const Type &value) const
 			{
-				if constexpr (Ash::Type::isSame<Type, char> || Ash::Type::isSame<Type, unsigned char>)
+				if constexpr ((Ash::Type::isInteger<Type>) && (sizeof(Type) == sizeof(unsigned char)))
 				{
 					const Type *location = (offset < Allocation::getLength()) ? (const Type *)memchr(&(*this)[offset], value, Allocation::getLength() - offset) : nullptr;
 					offset = (location != nullptr) ? location - &(*this)[0] : Allocation::getLength();
