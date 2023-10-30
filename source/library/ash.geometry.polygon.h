@@ -60,7 +60,7 @@ namespace Ash
 				size_t   CAPACITY,
 				typename = Ash::Type::IsClass<REAL, Ash::Generic::Real>
 			>
-			using Buffer = Value<Ash::Memory::Allocation::VariableLength<Ash::Geometry::Point2D<REAL>, CAPACITY>, REAL, FORM>;
+			using Buffer = Value<Ash::Memory::Allocation::Buffer<Ash::Geometry::Point2D<REAL>, CAPACITY>, REAL, FORM>;
 
 			template
 			<
@@ -69,7 +69,7 @@ namespace Ash
 				size_t   CAPACITY,
 				typename = Ash::Type::IsClass<REAL, Ash::Generic::Real>
 			>
-			using Sequence = Value<Ash::Memory::Allocation::FixedLength<Ash::Geometry::Point2D<REAL>, CAPACITY>, REAL, FORM>;
+			using Sequence = Value<Ash::Memory::Allocation::Sequence<Ash::Geometry::Point2D<REAL>, CAPACITY>, REAL, FORM>;
 
 			template
 			<
@@ -80,7 +80,18 @@ namespace Ash
 				size_t   BLOCK_SIZE          = 32,
 				typename = Ash::Type::IsClass<REAL, Ash::Generic::Real>
 			>
-			using Array = Value<Ash::Memory::Allocation::Dynamic<Ash::Geometry::Point2D<REAL>, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>, REAL, FORM>;
+			using Array = Value<Ash::Memory::Allocation::Array<Ash::Geometry::Point2D<REAL>, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>, REAL, FORM>;
+
+			template
+			<
+				typename REAL,
+				Form     FORM,
+				size_t   CAPACITY            = 32,
+				size_t   PERCENTAGE_INCREASE = 50,
+				size_t   BLOCK_SIZE          = 32,
+				typename = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+			>
+			using ArrayBuffer = Value<Ash::Memory::Allocation::ArrayBuffer<Ash::Geometry::Point2D<REAL>, CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>, REAL, FORM>;
 
 			template
 			<
