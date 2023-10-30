@@ -20,8 +20,8 @@ namespace Ash
 
 						TEST_IS_EQ(character.getLength(), 2);
 
-						TEST_IS_EQ(*character.at(0), (code >> 8));
-						TEST_IS_EQ(*character.at(1), (code & 0xFF));
+						TEST_IS_EQ(uint8_t(*character.at(0)), (code >> 8));
+						TEST_IS_EQ(uint8_t(*character.at(1)), (code & 0xFF));
 
 						TEST_IS_EQ(Ash::Unicode::Character(character), code);
 					}
@@ -32,8 +32,8 @@ namespace Ash
 
 						TEST_IS_EQ(character.getLength(), 2);
 
-						TEST_IS_EQ(*character.at(0), (code >> 8));
-						TEST_IS_EQ(*character.at(1), (code & 0xFF));
+						TEST_IS_EQ(uint8_t(*character.at(0)), (code >> 8));
+						TEST_IS_EQ(uint8_t(*character.at(1)), (code & 0xFF));
 
 						TEST_IS_EQ(Ash::Unicode::Character(character), code);
 					}
@@ -44,10 +44,10 @@ namespace Ash
 
 						TEST_IS_EQ(character.getLength(), 4);
 
-						TEST_IS_EQ(*character.at(0), 0xD8 + (((code - 0x10000) >> 18) & 0x03));
-						TEST_IS_EQ(*character.at(1), (((code - 0x10000) >> 10) & 0xFF));
-						TEST_IS_EQ(*character.at(2), 0xDC + (((code - 0x10000) >> 8) & 0x03));
-						TEST_IS_EQ(*character.at(3), ((code - 0x10000) & 0xFF));
+						TEST_IS_EQ(uint8_t(*character.at(0)), 0xD8 + (((code - 0x10000) >> 18) & 0x03));
+						TEST_IS_EQ(uint8_t(*character.at(1)), (((code - 0x10000) >> 10) & 0xFF));
+						TEST_IS_EQ(uint8_t(*character.at(2)), 0xDC + (((code - 0x10000) >> 8) & 0x03));
+						TEST_IS_EQ(uint8_t(*character.at(3)), ((code - 0x10000) & 0xFF));
 
 						TEST_IS_EQ(Ash::Unicode::Character(character), code);
 					}

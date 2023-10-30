@@ -19,7 +19,7 @@ namespace Ash
 
 						TEST_IS_EQ(character.getLength(), 1);
 
-						TEST_IS_EQ(*character.at(0), code);
+						TEST_IS_EQ(uint8_t(*character.at(0)), code);
 
 						TEST_IS_EQ(Ash::Unicode::Character(character), code);
 					}
@@ -30,8 +30,8 @@ namespace Ash
 
 						TEST_IS_EQ(character.getLength(), 2);
 
-						TEST_IS_EQ(*character.at(0), 0xC0 + (code >> 6));
-						TEST_IS_EQ(*character.at(1), 0x80 + (code & 0x3F));
+						TEST_IS_EQ(uint8_t(*character.at(0)), 0xC0 + (code >> 6));
+						TEST_IS_EQ(uint8_t(*character.at(1)), 0x80 + (code & 0x3F));
 
 						TEST_IS_EQ(Ash::Unicode::Character(character), code);
 					}
@@ -42,9 +42,9 @@ namespace Ash
 
 						TEST_IS_EQ(character.getLength(), 3);
 
-						TEST_IS_EQ(*character.at(0), 0xE0 + (code >> 12));
-						TEST_IS_EQ(*character.at(1), 0x80 + ((code >> 6) & 0x3F));
-						TEST_IS_EQ(*character.at(2), 0x80 + (code & 0x3F));
+						TEST_IS_EQ(uint8_t(*character.at(0)), 0xE0 + (code >> 12));
+						TEST_IS_EQ(uint8_t(*character.at(1)), 0x80 + ((code >> 6) & 0x3F));
+						TEST_IS_EQ(uint8_t(*character.at(2)), 0x80 + (code & 0x3F));
 
 						TEST_IS_EQ(Ash::Unicode::Character(character), code);
 					}
@@ -55,9 +55,9 @@ namespace Ash
 
 						TEST_IS_EQ(character.getLength(), 3);
 
-						TEST_IS_EQ(*character.at(0), 0xE0 + (code >> 12));
-						TEST_IS_EQ(*character.at(1), 0x80 + ((code >> 6) & 0x3F));
-						TEST_IS_EQ(*character.at(2), 0x80 + (code & 0x3F));
+						TEST_IS_EQ(uint8_t(*character.at(0)), 0xE0 + (code >> 12));
+						TEST_IS_EQ(uint8_t(*character.at(1)), 0x80 + ((code >> 6) & 0x3F));
+						TEST_IS_EQ(uint8_t(*character.at(2)), 0x80 + (code & 0x3F));
 
 						TEST_IS_EQ(Ash::Unicode::Character(character), code);
 					}
@@ -68,10 +68,10 @@ namespace Ash
 
 						TEST_IS_EQ(character.getLength(), 4);
 
-						TEST_IS_EQ(*character.at(0), 0xF0 + (code >> 18));
-						TEST_IS_EQ(*character.at(1), 0x80 + ((code >> 12) & 0x3F));
-						TEST_IS_EQ(*character.at(2), 0x80 + ((code >> 6) & 0x3F));
-						TEST_IS_EQ(*character.at(3), 0x80 + (code & 0x3F));
+						TEST_IS_EQ(uint8_t(*character.at(0)), 0xF0 + (code >> 18));
+						TEST_IS_EQ(uint8_t(*character.at(1)), 0x80 + ((code >> 12) & 0x3F));
+						TEST_IS_EQ(uint8_t(*character.at(2)), 0x80 + ((code >> 6) & 0x3F));
+						TEST_IS_EQ(uint8_t(*character.at(3)), 0x80 + (code & 0x3F));
 
 						TEST_IS_EQ(Ash::Unicode::Character(character), code);
 					}
