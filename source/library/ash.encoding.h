@@ -14,6 +14,18 @@ namespace Ash
 
 	namespace Encoding
 	{
+		#if STD < 20
+		using CodeUnit8 = char;
+		#else
+		using CodeUnit8 = char8_t;
+		#endif
+
+		using CodeUnit16 = char16_t;
+
+		using CodeUnit32 = char32_t;
+
+		using CodeUnitWide = wchar_t;
+
 		template
 		<
 			typename FROM_ENCODING,
