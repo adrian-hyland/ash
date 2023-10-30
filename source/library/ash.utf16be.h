@@ -34,5 +34,14 @@ namespace Ash
 			size_t BLOCK_SIZE          = 32
 		>
 		using String = Ash::String::Array<Ash::Encoding::Utf16be, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+
+
+		template
+		<
+			size_t CAPACITY            = 32,
+			size_t PERCENTAGE_INCREASE = 50,
+			size_t BLOCK_SIZE          = 32
+		>
+		using StringBuffer = Ash::String::ArrayBuffer<Ash::Encoding::Utf16be, CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
 	}
 }
