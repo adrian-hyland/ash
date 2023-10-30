@@ -11,11 +11,11 @@ namespace Ash
 		class Wide : Ash::Generic::Encoding
 		{
 		public:
-			using Code = wchar_t;
+			using Code = Ash::Encoding::CodeUnitWide;
 
 			static constexpr size_t minSize = 1;
 
-			static constexpr size_t maxSize = 4 / sizeof(wchar_t);
+			static constexpr size_t maxSize = 4 / sizeof(Code);
 
 			static constexpr bool isLittleEndian = false;
 
@@ -43,11 +43,11 @@ namespace Ash
 				{
 					if (getLength() == 1)
 					{
-						return (*this)[0];
+						return getCode(0);
 					}
 					else if (getLength() == 2)
 					{
-						return 0x10000 + (((*this)[0] & 0x3FF) << 10) + ((*this)[1] & 0x3FF);
+						return 0x10000 + ((getCode(0) & 0x3FF) << 10) + (getCode(1) & 0x3FF);
 					}
 					else
 					{
@@ -56,6 +56,8 @@ namespace Ash
 				}
 
 			protected:
+				constexpr Ash::Unicode::Character::Value getCode(size_t offset) const { return Ash::Unicode::Character::Value((*this)[offset]); }
+
 				constexpr bool set(Ash::Unicode::Character value)
 				{
 					if ((value < 0xD800) || (value > 0xDFFF))
