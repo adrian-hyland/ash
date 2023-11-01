@@ -280,7 +280,7 @@ namespace Ash
 
 					if (length == 0)
 					{
-						deleteContent();
+						deleteContent<true>();
 						return true;
 					}
 					
@@ -303,7 +303,7 @@ namespace Ash
 			protected:
 				constexpr ArrayBuffer() : m_Buffer(), m_Content(m_Buffer), m_Length(0), m_Capacity(CAPACITY) {}
 
-				inline ~ArrayBuffer() { deleteContent(); }
+				inline ~ArrayBuffer() { deleteContent<false>(); }
 
 				constexpr const Type *getContent() const { return m_Content; }
 
@@ -433,12 +433,23 @@ namespace Ash
 					return true;
 				}
 
+				template
+				<
+					bool CLEAR_BUFFER = true
+				>
 				constexpr void deleteContent()
 				{
 					if (m_Content != m_Buffer)
 					{
 						delete [] m_Content;
 						m_Content = m_Buffer;
+					}
+					else if constexpr (CLEAR_BUFFER)
+					{
+						for (size_t n = 0; n < m_Length; n++)
+						{
+							m_Buffer[n] = Type();
+						}
 					}
 
 					m_Capacity = CAPACITY;
@@ -1066,7 +1077,7 @@ namespace Ash
 
 			constexpr size_t find(size_t offset, const Type &value) const
 			{
-				if constexpr ((Ash::Type::isInteger<Type>) && (sizeof(Type) == sizeof(unsigned char)))
+				if constexpr (Ash::Type::isByteSizeInteger<Type>)
 				{
 					const Type *location = (offset < Allocation::getLength()) ? (const Type *)memchr(&(*this)[offset], value, Allocation::getLength() - offset) : nullptr;
 					offset = (location != nullptr) ? location - &(*this)[0] : Allocation::getLength();
