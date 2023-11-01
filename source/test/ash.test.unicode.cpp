@@ -14,6 +14,14 @@ namespace Ash
 			{
 				TEST_IS_EQ(Ash::Unicode::Character(0), 0);
 
+				TEST_IS_EQ(Ash::Unicode::Character(Ash::Unicode::Character::surrogateStart - 1), Ash::Unicode::Character::surrogateStart - 1);
+
+				TEST_IS_EQ(Ash::Unicode::Character(Ash::Unicode::Character::surrogateStart), Ash::Unicode::Character::replacement);
+
+				TEST_IS_EQ(Ash::Unicode::Character(Ash::Unicode::Character::surrogateEnd), Ash::Unicode::Character::replacement);
+
+				TEST_IS_EQ(Ash::Unicode::Character(Ash::Unicode::Character::surrogateEnd + 1), Ash::Unicode::Character::surrogateEnd + 1);
+
 				TEST_IS_EQ(Ash::Unicode::Character(Ash::Unicode::Character::maximum), Ash::Unicode::Character::maximum);
 
 				TEST_IS_EQ(Ash::Unicode::Character(Ash::Unicode::Character::maximum + 1), Ash::Unicode::Character::replacement);
