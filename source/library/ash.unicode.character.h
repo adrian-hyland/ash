@@ -17,9 +17,15 @@ namespace Ash
 
 			static constexpr Value replacement = 0xFFFD;
 
-			constexpr Character(Value value) : m_Value(value <= maximum ? value : replacement) {}
+			static constexpr Value surrogateStart = 0xD800;
+
+			static constexpr Value surrogateEnd = 0xDFFF;
+
+			constexpr Character(Value value) : m_Value(isValid(value) ? value : replacement) {}
 
 			constexpr operator Value () const { return m_Value; }
+
+			static constexpr bool isValid(Value value) { return (value < surrogateStart) || ((value > surrogateEnd) && (value <= maximum)); }
 
 			static constexpr bool contains(std::initializer_list<Character> characterList, Character character)
 			{
