@@ -84,6 +84,13 @@ namespace Ash
 				typename RIGHT_TYPE
 			>
 			using IsNotSame = std::bool_constant<!std::is_same_v<LEFT_TYPE, RIGHT_TYPE>>;
+
+			template
+			<
+				typename LEFT_TYPE,
+				typename RIGHT_TYPE
+			>
+			using IsSameSize = std::bool_constant<sizeof(LEFT_TYPE) == sizeof(RIGHT_TYPE)>;
 		}
 
 		template
@@ -233,6 +240,19 @@ namespace Ash
 
 		template
 		<
+			typename LEFT_TYPE,
+			typename RIGHT_TYPE
+		>
+		constexpr bool isSameSize = Ash::Type::Check<LEFT_TYPE, Ash::Type::Requirement::IsSameSize, RIGHT_TYPE>::isValid;
+
+		template
+		<
+			typename TYPE
+		>
+		constexpr bool isByteSizeInteger = Ash::Type::Check<TYPE, Ash::Type::Requirement::IsInteger>::template And<Ash::Type::Requirement::IsSameSize, unsigned char>::isValid;
+
+		template
+		<
 			typename TYPE,
 			typename BASE_CLASS = TYPE
 		>
@@ -312,6 +332,19 @@ namespace Ash
 			typename TYPE
 		>
 		using IsNotConstant = typename Ash::Type::Check<TYPE, Ash::Type::Requirement::IsNotConstant>::IsValid;
+
+		template
+		<
+			typename LEFT_TYPE,
+			typename RIGHT_TYPE
+		>
+		using IsSameSize = typename Ash::Type::Check<LEFT_TYPE, Ash::Type::Requirement::IsSameSize, RIGHT_TYPE>::IsValid;
+
+		template
+		<
+			typename TYPE
+		>
+		using IsByteSizeInteger = typename Ash::Type::Check<TYPE, Ash::Type::Requirement::IsInteger>::template And<Ash::Type::Requirement::IsSameSize, unsigned char>::IsValid;
 
 		template
 		<
