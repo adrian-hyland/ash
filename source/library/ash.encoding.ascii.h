@@ -28,32 +28,31 @@ namespace Ash
 
 				constexpr Character() : Memory::Buffer<Code, maxSize>() {}
 
-				constexpr Character(Ash::Unicode::Character value) : Memory::Buffer<Code, maxSize>()
+				constexpr Character(Ash::Unicode::Character character) : Memory::Buffer<Code, maxSize>()
 				{
-					set(value);
+					set(character);
 				}
 
-				constexpr Ash::Unicode::Character operator = (Ash::Unicode::Character value)
+				constexpr Ash::Unicode::Character operator = (Ash::Unicode::Character character)
 				{
-					set(value);
-					return value;
+					set(character);
+					return character;
 				}
 
 				constexpr operator Ash::Unicode::Character () const { return (getLength() > 0) ? (*this)[0] : Ash::Unicode::Character::replacement; }
 
 			protected:
-				constexpr bool set(Ash::Unicode::Character value)
+				constexpr void set(Ash::Unicode::Character character)
 				{
+					Ash::Unicode::Character::Value value = character;
 					if (value < 0x80)
 					{
 						setLength(1);
 						(*this)[0] = value;
-						return true;
 					}
 					else
 					{
 						setLength(0);
-						return false;
 					}
 				}
 

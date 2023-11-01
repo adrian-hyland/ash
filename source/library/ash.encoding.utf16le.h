@@ -28,15 +28,15 @@ namespace Ash
 
 				constexpr Character() : Memory::Buffer<Code, maxSize>() {}
 
-				constexpr Character(Ash::Unicode::Character value) : Memory::Buffer<Code, maxSize>()
+				constexpr Character(Ash::Unicode::Character character) : Memory::Buffer<Code, maxSize>()
 				{
-					set(value);
+					set(character);
 				}
 
-				constexpr Ash::Unicode::Character operator = (Ash::Unicode::Character value)
+				constexpr Ash::Unicode::Character operator = (Ash::Unicode::Character character)
 				{
-					set(value);
-					return value;
+					set(character);
+					return character;
 				}
 
 				constexpr operator Ash::Unicode::Character () const
@@ -58,16 +58,12 @@ namespace Ash
 			protected:
 				constexpr Ash::Unicode::Character::Value getCode(size_t offset) const { return Ash::Unicode::Character::Value(uint8_t((*this)[offset])); }
 
-				constexpr bool set(Ash::Unicode::Character value)
+				constexpr void set(Ash::Unicode::Character character)
 				{
+					Ash::Unicode::Character::Value value = character;
+
 					if (value < 0x10000)
 					{
-						if ((value >= 0xD800) && (value <= 0xDFFF))
-						{
-							clear();
-							return false;
-						}
-
 						setLength(2);
 						(*this)[0] = value & 0xFF;
 						(*this)[1] = value >> 8;
@@ -81,8 +77,6 @@ namespace Ash
 						(*this)[2] = value;
 						(*this)[3] = ((value >> 8) & 0x03) | 0xDC;
 					}
-
-					return true;
 				}
 
 				constexpr size_t set(Code code1, Code code2)
