@@ -57,8 +57,6 @@ namespace Ash
 					{
 						Ash::Encoding::Utf16be::Character character(code);
 
-						TEST_IS_ZERO(character.getLength());
-
 						TEST_IS_EQ(Ash::Unicode::Character(character), Ash::Unicode::Character::replacement);
 					}
 
@@ -76,9 +74,9 @@ namespace Ash
 
 					TEST_IS_ZERO(character.getLength());
 
-					for (Ash::Unicode::Character::Value code = 0; code <= Ash::Unicode::Character::maximum; code++)
+					for (Ash::Unicode::Character unicodeCharacter : Ash::Iterate<Ash::Unicode::Character::Value>::between(0, Ash::Unicode::Character::surrogateStart - 1) + Ash::Iterate<Ash::Unicode::Character::Value>::between(Ash::Unicode::Character::surrogateEnd + 1, Ash::Unicode::Character::maximum))
 					{
-						TEST_IS_TRUE(content.append(Ash::Encoding::Utf16be::Character(code)));
+						TEST_IS_TRUE(content.append(Ash::Encoding::Utf16be::Character(unicodeCharacter)));
 					}
 
 					expectedCharacter = 0;
@@ -92,15 +90,12 @@ namespace Ash
 						TEST_IS_EQ(Ash::Unicode::Character(character), expectedCharacter);
 
 						offset = offset + length;
-						if (expectedCharacter == 0xD7FF)
+						if (offset < content.getLength())
 						{
-							expectedCharacter = 0xE000;
-						}
-						else
-						{
-							expectedCharacter = expectedCharacter + 1;
+							expectedCharacter = (expectedCharacter == Ash::Unicode::Character::surrogateStart - 1) ? Ash::Unicode::Character::surrogateEnd + 1 : expectedCharacter + 1;
 						}
 					}
+					TEST_IS_EQ(expectedCharacter, Ash::Unicode::Character::maximum);
 
 					TEST_IS_ZERO(Ash::Encoding::Utf16be::decodeNext(content, offset, character));
 
@@ -163,10 +158,10 @@ namespace Ash
 
 					TEST_IS_ZERO(character.getLength());
 
-					for (Ash::Unicode::Character::Value code = 0; code <= Ash::Unicode::Character::maximum; code++)
+					for (Ash::Unicode::Character unicodeCharacter : Ash::Iterate<Ash::Unicode::Character::Value>::between(0, Ash::Unicode::Character::surrogateStart - 1) + Ash::Iterate<Ash::Unicode::Character::Value>::between(Ash::Unicode::Character::surrogateEnd + 1, Ash::Unicode::Character::maximum))
 					{
-						TEST_IS_TRUE(content.append(Ash::Encoding::Utf16be::Character(code)));
-				}
+						TEST_IS_TRUE(content.append(Ash::Encoding::Utf16be::Character(unicodeCharacter)));
+					}
 
 					expectedCharacter = Ash::Unicode::Character::maximum;
 					offset = content.getLength();
@@ -179,15 +174,12 @@ namespace Ash
 						TEST_IS_EQ(Ash::Unicode::Character(character), expectedCharacter);
 
 						offset = offset - length;
-						if (expectedCharacter == 0xE000)
+						if (offset > 0)
 						{
-							expectedCharacter = 0xD7FF;
-						}
-						else
-						{
-							expectedCharacter = expectedCharacter - 1;
+							expectedCharacter = (expectedCharacter == Ash::Unicode::Character::surrogateEnd + 1) ? Ash::Unicode::Character::surrogateStart - 1 : expectedCharacter - 1;
 						}
 					}
+					TEST_IS_EQ(expectedCharacter, 0);
 
 					TEST_IS_ZERO(Ash::Encoding::Utf16be::decodePrevious(content, offset, character));
 
