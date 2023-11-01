@@ -615,6 +615,50 @@ namespace Ash
 				return {};
 			}
 
+			static Ash::Test::Assertion isSameSize()
+			{
+				bool isSameSize;
+
+				isSameSize = Ash::Type::isSameSize<signed char, unsigned char>;
+				TEST_IS_TRUE(isSameSize);
+				isSameSize = Ash::Type::isSameSize<signed char, signed short>;
+				TEST_IS_FALSE(isSameSize);
+
+				return {};
+			}
+
+			static Ash::Test::Assertion isByteSizeInteger()
+			{
+				TEST_IS_TRUE(Ash::Type::isByteSizeInteger<unsigned char>);
+				TEST_IS_TRUE(Ash::Type::isByteSizeInteger<signed char>);
+				TEST_IS_TRUE(Ash::Type::isByteSizeInteger<char>);
+				#if STD >= 20
+				TEST_IS_TRUE(Ash::Type::isByteSizeInteger<char8_t>);
+				#endif
+				TEST_IS_FALSE(Ash::Type::isByteSizeInteger<char16_t>);
+				TEST_IS_FALSE(Ash::Type::isByteSizeInteger<char32_t>);
+				TEST_IS_FALSE(Ash::Type::isByteSizeInteger<wchar_t>);
+				TEST_IS_FALSE(Ash::Type::isByteSizeInteger<unsigned int>);
+				TEST_IS_FALSE(Ash::Type::isByteSizeInteger<unsigned short>);
+				TEST_IS_FALSE(Ash::Type::isByteSizeInteger<unsigned long>);
+				TEST_IS_FALSE(Ash::Type::isByteSizeInteger<unsigned long long>);
+				TEST_IS_FALSE(Ash::Type::isByteSizeInteger<signed int>);
+				TEST_IS_FALSE(Ash::Type::isByteSizeInteger<signed short>);
+				TEST_IS_FALSE(Ash::Type::isByteSizeInteger<signed long>);
+				TEST_IS_FALSE(Ash::Type::isByteSizeInteger<signed long long>);
+				TEST_IS_FALSE(Ash::Type::isByteSizeInteger<float>);
+				TEST_IS_FALSE(Ash::Type::isByteSizeInteger<double>);
+				TEST_IS_FALSE(Ash::Type::isByteSizeInteger<long double>);
+				TEST_IS_FALSE(Ash::Type::isByteSizeInteger<void *>);
+				TEST_IS_FALSE(Ash::Type::isByteSizeInteger<void>);
+				TEST_IS_FALSE(Ash::Type::isByteSizeInteger<TestBaseClass>);
+				TEST_IS_FALSE(Ash::Type::isByteSizeInteger<TestDerivedClass>);
+				TEST_IS_FALSE(Ash::Type::isByteSizeInteger<TestBaseStruct>);
+				TEST_IS_FALSE(Ash::Type::isByteSizeInteger<TestDerivedStruct>);
+
+				return {};
+			}
+
 			static Ash::Test::Assertion option()
 			{
 				bool isSame;
@@ -674,6 +718,8 @@ namespace Ash
 			TEST_CASE(Ash::Test::Type::isNotConstant),
 			TEST_CASE(Ash::Test::Type::isSame),
 			TEST_CASE(Ash::Test::Type::isNotSame),
+			TEST_CASE(Ash::Test::Type::isSameSize),
+			TEST_CASE(Ash::Test::Type::isByteSizeInteger),
 			TEST_CASE(Ash::Test::Type::option),
 			TEST_CASE(Ash::Test::Type::validityOr),
 			TEST_CASE(Ash::Test::Type::validityAnd)
