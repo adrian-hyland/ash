@@ -40,6 +40,21 @@ namespace Ash
 				close();
 			}
 
+			inline File(File &&file) : m_File(file.m_File) { file.m_File = nullptr; }
+
+			inline File &operator = (File &&file) noexcept
+			{
+				if (this != &file)
+				{
+					close();
+					
+					m_File = file.m_File;
+					file.m_File = nullptr;
+				}
+
+				return *this;
+			}
+
 			template
 			<
 				typename ALLOCATION,
@@ -281,6 +296,9 @@ namespace Ash
 
 		private:
 			FILE *m_File;
+
+			File(const File &file) = delete;
+			File &operator = (const File &file) = delete;
 		};
 	}
 }

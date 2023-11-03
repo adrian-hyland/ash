@@ -36,6 +36,21 @@ namespace Ash
 				close();
 			}
 
+			inline File(File &&file) : m_File(file.m_File) { file.m_File = INVALID_HANDLE_VALUE; }
+
+			inline File &operator = (File &&file) noexcept
+			{
+				if (this != &file)
+				{
+					close();
+					
+					m_File = file.m_File;
+					file.m_File = INVALID_HANDLE_VALUE;
+				}
+
+				return *this;
+			}
+
 			template
 			<
 				typename ALLOCATION,
@@ -290,6 +305,9 @@ namespace Ash
 
 		private:
 			HANDLE m_File;
+
+			File(const File &file) = delete;
+			File &operator = (const File &file) = delete;
 		};
 	}
 }
