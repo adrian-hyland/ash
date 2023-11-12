@@ -54,6 +54,10 @@ list_get = $(patsubst ¬%,$(1)%,$(patsubst %¬¬,%$(3),$(patsubst ¬%¬¬,$(1)%$
 # @note This would normally be quite difficult using the normal text functions as these use the space to separate out each text item.
 list_get_csv = $(filter-out $(COMMA)¬,$(call escape,$(call list_get,",$(1)," $(COMMA)))¬)
 
+ifeq ($(CC),cc)
+CC := g++
+endif
+
 SRC_DIR = ./source
 INC_DIR := $(call list_add,$(SRC_DIR)/library)
 ifndef EXAMPLE
@@ -113,13 +117,13 @@ C_DEFINE += $(call list_add,APP_NAME="$(APP_NAME) ($(BUILD_NAME) $(BUILD_STD))")
 C_DEFINE += $(call list_add,STD=$(STD))
 C_FLAGS += -c -std=$(C_STD) -Wall -Werror $(call list_get,-I",$(INC_DIR),") $(call list_get,-D",$(C_DEFINE),")
 
+ifeq ($(CC),g++)
+LNK_FLAGS += -pthread
+endif
+
 BUILD_CFG := ./.vscode/c_cpp_properties.json
 BUILD_DEFINE := $(call list_get_csv,$(C_DEFINE))
 BUILD_INCLUDE := $(call list_get_csv,$(INC_DIR) $(call list_add,$${workspaceFolder}/**))
-
-ifeq ($(CC),cc)
-CC := g++
-endif
 
 APP := $(BIN_DIR)/$(APP_NAME)
 
