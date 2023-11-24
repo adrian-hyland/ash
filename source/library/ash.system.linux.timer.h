@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cmath>
 #include <ctime>
+#include <cerrno>
 #include "ash.type.h"
 #include "ash.real.h"
 
@@ -90,11 +91,11 @@ namespace Ash
 					{
 						if constexpr (Ash::Type::isSame<VALUE, struct timespec>)
 						{
-							return { time_t(m_Unit / Unit::Seconds), long((m_Unit % Unit::Seconds) / Unit::Nanoseconds) };
+							return { decltype(VALUE::tv_sec)(m_Unit / Unit::Seconds), decltype(VALUE::tv_nsec)((m_Unit % Unit::Seconds) / Unit::Nanoseconds) };
 						}
 						else if constexpr (Ash::Type::isSame<VALUE, struct timeval>)
 						{
-							return { time_t(m_Unit / Unit::Seconds), long((m_Unit % Unit::Seconds) / Unit::Microseconds) };
+							return { decltype(VALUE::tv_sec)(m_Unit / Unit::Seconds), decltype(VALUE::tv_usec)((m_Unit % Unit::Seconds) / Unit::Microseconds) };
 						}
 						else if constexpr (Ash::Type::isSame<VALUE, Unit> || Ash::Type::isInteger<VALUE>)
 						{
