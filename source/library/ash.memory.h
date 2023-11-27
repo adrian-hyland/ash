@@ -949,7 +949,7 @@ namespace Ash
 
 			constexpr bool insert(size_t offset, Type &&value)
 			{
-				if ((offset < Allocation::getLength()) && Allocation::increaseLength(1))
+				if ((offset <= Allocation::getLength()) && Allocation::increaseLength(1))
 				{
 					shiftRight(offset, 1);
 					(*this)[offset] = std::move(value);
@@ -961,7 +961,7 @@ namespace Ash
 				}
 			}
 
-			constexpr bool insert(size_t offset, Type &value)
+			constexpr bool insert(size_t offset, const Type &value)
 			{
 				if ((offset <= Allocation::getLength()) && Allocation::increaseLength(1))
 				{
