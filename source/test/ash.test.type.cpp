@@ -45,6 +45,9 @@ namespace Ash
 				TEST_IS_FALSE(Ash::Type::isClass<long double>);
 				TEST_IS_FALSE(Ash::Type::isClass<void>);
 				TEST_IS_FALSE(Ash::Type::isClass<bool>);
+				#if STD >= 20
+				TEST_IS_FALSE(Ash::Type::isClass<char8_t>);
+				#endif
 				TEST_IS_FALSE(Ash::Type::isClass<char16_t>);
 				TEST_IS_FALSE(Ash::Type::isClass<char32_t>);
 				TEST_IS_FALSE(Ash::Type::isClass<wchar_t>);
@@ -80,6 +83,9 @@ namespace Ash
 				TEST_IS_TRUE(Ash::Type::isNotClass<long double>);
 				TEST_IS_TRUE(Ash::Type::isNotClass<void>);
 				TEST_IS_TRUE(Ash::Type::isNotClass<bool>);
+				#if STD >= 20
+				TEST_IS_TRUE(Ash::Type::isNotClass<char8_t>);
+				#endif
 				TEST_IS_TRUE(Ash::Type::isNotClass<char16_t>);
 				TEST_IS_TRUE(Ash::Type::isNotClass<char32_t>);
 				TEST_IS_TRUE(Ash::Type::isNotClass<wchar_t>);
@@ -106,6 +112,38 @@ namespace Ash
 				return {};
 			}
 
+			static Ash::Test::Assertion isPrimitive()
+			{
+				TEST_IS_TRUE(Ash::Type::isPrimitive<bool>);
+				#if STD >= 20
+				TEST_IS_TRUE(Ash::Type::isPrimitive<char8_t>);
+				#endif
+				TEST_IS_TRUE(Ash::Type::isPrimitive<char16_t>);
+				TEST_IS_TRUE(Ash::Type::isPrimitive<char32_t>);
+				TEST_IS_TRUE(Ash::Type::isPrimitive<wchar_t>);
+				TEST_IS_TRUE(Ash::Type::isPrimitive<unsigned char>);
+				TEST_IS_TRUE(Ash::Type::isPrimitive<unsigned int>);
+				TEST_IS_TRUE(Ash::Type::isPrimitive<unsigned short>);
+				TEST_IS_TRUE(Ash::Type::isPrimitive<unsigned long>);
+				TEST_IS_TRUE(Ash::Type::isPrimitive<unsigned long long>);
+				TEST_IS_TRUE(Ash::Type::isPrimitive<signed char>);
+				TEST_IS_TRUE(Ash::Type::isPrimitive<signed int>);
+				TEST_IS_TRUE(Ash::Type::isPrimitive<signed short>);
+				TEST_IS_TRUE(Ash::Type::isPrimitive<signed long>);
+				TEST_IS_TRUE(Ash::Type::isPrimitive<signed long long>);
+				TEST_IS_TRUE(Ash::Type::isPrimitive<float>);
+				TEST_IS_TRUE(Ash::Type::isPrimitive<double>);
+				TEST_IS_TRUE(Ash::Type::isPrimitive<long double>);
+				TEST_IS_TRUE(Ash::Type::isPrimitive<void *>);
+				TEST_IS_FALSE(Ash::Type::isPrimitive<void>);
+				TEST_IS_FALSE(Ash::Type::isPrimitive<TestBaseClass>);
+				TEST_IS_FALSE(Ash::Type::isPrimitive<TestDerivedClass>);
+				TEST_IS_FALSE(Ash::Type::isPrimitive<TestBaseStruct>);
+				TEST_IS_FALSE(Ash::Type::isPrimitive<TestDerivedStruct>);
+
+				return {};
+			}
+
 			static Ash::Test::Assertion isFloatingPoint()
 			{
 				TEST_IS_TRUE(Ash::Type::isFloatingPoint<float>);
@@ -113,6 +151,9 @@ namespace Ash
 				TEST_IS_TRUE(Ash::Type::isFloatingPoint<long double>);
 				TEST_IS_FALSE(Ash::Type::isFloatingPoint<void>);
 				TEST_IS_FALSE(Ash::Type::isFloatingPoint<bool>);
+				#if STD >= 20
+				TEST_IS_FALSE(Ash::Type::isFloatingPoint<char8_t>);
+				#endif
 				TEST_IS_FALSE(Ash::Type::isFloatingPoint<char16_t>);
 				TEST_IS_FALSE(Ash::Type::isFloatingPoint<char32_t>);
 				TEST_IS_FALSE(Ash::Type::isFloatingPoint<wchar_t>);
@@ -138,6 +179,9 @@ namespace Ash
 			static Ash::Test::Assertion isInteger()
 			{
 				TEST_IS_TRUE(Ash::Type::isInteger<bool>);
+				#if STD >= 20
+				TEST_IS_TRUE(Ash::Type::isInteger<char8_t>);
+				#endif
 				TEST_IS_TRUE(Ash::Type::isInteger<char16_t>);
 				TEST_IS_TRUE(Ash::Type::isInteger<char32_t>);
 				TEST_IS_TRUE(Ash::Type::isInteger<wchar_t>);
@@ -173,6 +217,9 @@ namespace Ash
 				TEST_IS_TRUE(Ash::Type::isSignedInteger<signed long long>);
 				TEST_IS_EQ(Ash::Type::isSignedInteger<wchar_t>, sizeof(wchar_t) != 2);
 				TEST_IS_FALSE(Ash::Type::isSignedInteger<bool>);
+				#if STD >= 20
+				TEST_IS_FALSE(Ash::Type::isSignedInteger<char8_t>);
+				#endif
 				TEST_IS_FALSE(Ash::Type::isSignedInteger<char16_t>);
 				TEST_IS_FALSE(Ash::Type::isSignedInteger<char32_t>);
 				TEST_IS_FALSE(Ash::Type::isSignedInteger<unsigned char>);
@@ -196,6 +243,9 @@ namespace Ash
 			static Ash::Test::Assertion isUnsignedInteger()
 			{
 				TEST_IS_TRUE(Ash::Type::isUnsignedInteger<bool>);
+				#if STD >= 20
+				TEST_IS_TRUE(Ash::Type::isUnsignedInteger<char8_t>);
+				#endif
 				TEST_IS_TRUE(Ash::Type::isUnsignedInteger<char16_t>);
 				TEST_IS_TRUE(Ash::Type::isUnsignedInteger<char32_t>);
 				TEST_IS_EQ(Ash::Type::isUnsignedInteger<wchar_t>, sizeof(wchar_t) == 2);
@@ -225,6 +275,9 @@ namespace Ash
 			static Ash::Test::Assertion isNumeric()
 			{
 				TEST_IS_TRUE(Ash::Type::isNumeric<bool>);
+				#if STD >= 20
+				TEST_IS_TRUE(Ash::Type::isNumeric<char8_t>);
+				#endif
 				TEST_IS_TRUE(Ash::Type::isNumeric<char16_t>);
 				TEST_IS_TRUE(Ash::Type::isNumeric<char32_t>);
 				TEST_IS_TRUE(Ash::Type::isNumeric<wchar_t>);
@@ -255,6 +308,9 @@ namespace Ash
 			{
 				TEST_IS_TRUE(Ash::Type::isPointer<void *>);
 				TEST_IS_FALSE(Ash::Type::isPointer<bool>);
+				#if STD >= 20
+				TEST_IS_FALSE(Ash::Type::isPointer<char8_t>);
+				#endif
 				TEST_IS_FALSE(Ash::Type::isPointer<char16_t>);
 				TEST_IS_FALSE(Ash::Type::isPointer<char32_t>);
 				TEST_IS_FALSE(Ash::Type::isPointer<wchar_t>);
@@ -283,6 +339,9 @@ namespace Ash
 			static Ash::Test::Assertion isIntegerOrPointer()
 			{
 				TEST_IS_TRUE(Ash::Type::isIntegerOrPointer<bool>);
+				#if STD >= 20
+				TEST_IS_TRUE(Ash::Type::isIntegerOrPointer<char8_t>);
+				#endif
 				TEST_IS_TRUE(Ash::Type::isIntegerOrPointer<char16_t>);
 				TEST_IS_TRUE(Ash::Type::isIntegerOrPointer<char32_t>);
 				TEST_IS_TRUE(Ash::Type::isIntegerOrPointer<wchar_t>);
@@ -312,6 +371,9 @@ namespace Ash
 			static Ash::Test::Assertion isConstant()
 			{
 				TEST_IS_TRUE(Ash::Type::isConstant<const bool>);
+				#if STD >= 20
+				TEST_IS_TRUE(Ash::Type::isConstant<const char8_t>);
+				#endif
 				TEST_IS_TRUE(Ash::Type::isConstant<const char16_t>);
 				TEST_IS_TRUE(Ash::Type::isConstant<const char32_t>);
 				TEST_IS_TRUE(Ash::Type::isConstant<const wchar_t>);
@@ -335,6 +397,9 @@ namespace Ash
 				TEST_IS_TRUE(Ash::Type::isConstant<const TestBaseStruct>);
 				TEST_IS_TRUE(Ash::Type::isConstant<const TestDerivedStruct>);
 				TEST_IS_FALSE(Ash::Type::isConstant<bool>);
+				#if STD >= 20
+				TEST_IS_FALSE(Ash::Type::isConstant<char8_t>);
+				#endif
 				TEST_IS_FALSE(Ash::Type::isConstant<char16_t>);
 				TEST_IS_FALSE(Ash::Type::isConstant<char32_t>);
 				TEST_IS_FALSE(Ash::Type::isConstant<wchar_t>);
@@ -364,6 +429,9 @@ namespace Ash
 			static Ash::Test::Assertion isNotConstant()
 			{
 				TEST_IS_TRUE(Ash::Type::isNotConstant<bool>);
+				#if STD >= 20
+				TEST_IS_TRUE(Ash::Type::isNotConstant<char8_t>);
+				#endif
 				TEST_IS_TRUE(Ash::Type::isNotConstant<char16_t>);
 				TEST_IS_TRUE(Ash::Type::isNotConstant<char32_t>);
 				TEST_IS_TRUE(Ash::Type::isNotConstant<wchar_t>);
@@ -387,6 +455,9 @@ namespace Ash
 				TEST_IS_TRUE(Ash::Type::isNotConstant<TestBaseStruct>);
 				TEST_IS_TRUE(Ash::Type::isNotConstant<TestDerivedStruct>);
 				TEST_IS_FALSE(Ash::Type::isNotConstant<const bool>);
+				#if STD >= 20
+				TEST_IS_FALSE(Ash::Type::isNotConstant<const char8_t>);
+				#endif
 				TEST_IS_FALSE(Ash::Type::isNotConstant<const char16_t>);
 				TEST_IS_FALSE(Ash::Type::isNotConstant<const char32_t>);
 				TEST_IS_FALSE(Ash::Type::isNotConstant<const wchar_t>);
@@ -419,6 +490,10 @@ namespace Ash
 
 				isSame = Ash::Type::isSame<bool, bool>;
 				TEST_IS_TRUE(isSame);
+				#if STD >= 20
+				isSame = Ash::Type::isSame<char8_t, char8_t>;
+				TEST_IS_TRUE(isSame);
+				#endif
 				isSame = Ash::Type::isSame<char16_t, char16_t>;
 				TEST_IS_TRUE(isSame);
 				isSame = Ash::Type::isSame<char32_t, char32_t>;
@@ -466,6 +541,10 @@ namespace Ash
 
 				isSame = Ash::Type::isSame<bool, int>;
 				TEST_IS_FALSE(isSame);
+				#if STD >= 20
+				isSame = Ash::Type::isSame<char8_t, int>;
+				TEST_IS_FALSE(isSame);
+				#endif
 				isSame = Ash::Type::isSame<char16_t, int>;
 				TEST_IS_FALSE(isSame);
 				isSame = Ash::Type::isSame<char32_t, int>;
@@ -520,6 +599,10 @@ namespace Ash
 
 				isNotSame = Ash::Type::isNotSame<bool, int>;
 				TEST_IS_TRUE(isNotSame);
+				#if STD >= 20
+				isNotSame = Ash::Type::isNotSame<char8_t, int>;
+				TEST_IS_TRUE(isNotSame);
+				#endif
 				isNotSame = Ash::Type::isNotSame<char16_t, int>;
 				TEST_IS_TRUE(isNotSame);
 				isNotSame = Ash::Type::isNotSame<char32_t, int>;
@@ -567,6 +650,10 @@ namespace Ash
 
 				isNotSame = Ash::Type::isNotSame<bool, bool>;
 				TEST_IS_FALSE(isNotSame);
+				#if STD >= 20
+				isNotSame = Ash::Type::isNotSame<char8_t, char8_t>;
+				TEST_IS_FALSE(isNotSame);
+				#endif
 				isNotSame = Ash::Type::isNotSame<char16_t, char16_t>;
 				TEST_IS_FALSE(isNotSame);
 				isNotSame = Ash::Type::isNotSame<char32_t, char32_t>;
@@ -707,6 +794,7 @@ namespace Ash
 			testType,
 			TEST_CASE(Ash::Test::Type::isClass),
 			TEST_CASE(Ash::Test::Type::isNotClass),
+			TEST_CASE(Ash::Test::Type::isPrimitive),
 			TEST_CASE(Ash::Test::Type::isFloatingPoint),
 			TEST_CASE(Ash::Test::Type::isInteger),
 			TEST_CASE(Ash::Test::Type::isSignedInteger),
