@@ -188,6 +188,12 @@ namespace Ash
 		<
 			typename TYPE
 		>
+		constexpr bool isPrimitive = Ash::Type::Check<TYPE, Ash::Type::Requirement::IsNumeric>::template Or<Ash::Type::Requirement::IsPointer>::isValid;
+
+		template
+		<
+			typename TYPE
+		>
 		constexpr bool isFloatingPoint = Ash::Type::Check<TYPE, Ash::Type::Requirement::IsFloatingPoint>::isValid;
 
 		template
@@ -278,6 +284,12 @@ namespace Ash
 			typename RIGHT_TYPE
 		>
 		using IsNotSame = typename Ash::Type::Check<LEFT_TYPE, Ash::Type::Requirement::IsNotSame, RIGHT_TYPE>::IsValid;
+
+		template
+		<
+			typename TYPE
+		>
+		using IsPrimitive = typename Ash::Type::Check<TYPE, Ash::Type::Requirement::IsNumeric>::template Or<Ash::Type::Requirement::IsPointer>::IsValid;
 
 		template
 		<
