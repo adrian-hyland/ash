@@ -102,7 +102,7 @@ namespace Ash
 						}
 						else // constexpr(Ash::Type::isClass<VALUE, Ash::Generic::Real> || Ash::Type::isFloatingPoint<VALUE>)
 						{
-							return VALUE(std::underlying_type_t<Unit>(m_Unit)) / unit;
+							return VALUE(std::underlying_type_t<Unit>(m_Unit)) / std::underlying_type_t<Unit>(unit);
 						}
 					}
 
