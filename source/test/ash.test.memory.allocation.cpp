@@ -255,12 +255,13 @@ namespace Ash
 
 							TEST_IS_TRUE(allocation.setLength(length));
 
-							for (int n = 0; n < 10; n++)
+							for (int n = 0; n < 20; n++)
 							{
 								size_t capacity = TestArray::getDecreaseCapacity(allocation.getCapacity());
-								size_t decrease = allocation.getLength() - capacity + 1;
+								size_t decrease = (allocation.getLength() > capacity) ? allocation.getLength() - capacity + 1 : 1;
+								length = length - decrease;
 								TEST_IS_TRUE(allocation.decreaseLength(decrease));
-								TEST_IS_EQ(allocation.getLength(), capacity - 1);
+								TEST_IS_EQ(allocation.getLength(), length);
 								TEST_IS_EQ(allocation.getCapacity(), capacity);
 							}
 						}
