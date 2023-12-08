@@ -472,9 +472,10 @@ namespace Ash
 							for (int n = 0; n < 10; n++)
 							{
 								size_t capacity = TestArrayBuffer::getDecreaseCapacity(allocation.getCapacity());
-								size_t decrease = allocation.getLength() - capacity + 1;
+								size_t decrease = (allocation.getLength() > capacity) ? allocation.getLength() - capacity + 1 : 1;
+								length = length - decrease;
 								TEST_IS_TRUE(allocation.decreaseLength(decrease));
-								TEST_IS_EQ(allocation.getLength(), capacity - 1);
+								TEST_IS_EQ(allocation.getLength(), length);
 								TEST_IS_EQ(allocation.getCapacity(), capacity);
 							}
 						}
