@@ -487,6 +487,201 @@ namespace Ash
 
 				return {};
 			}
+
+			static Ash::Test::Assertion percent()
+			{
+				Ash::Size size;
+				size_t sizeValue = 0;
+
+				// valid percent constant -> valid
+				size = Ash::Size(100).percent(100);
+				TEST_IS_TRUE(size.isValid());
+				TEST_IS_TRUE(size.getValue(sizeValue));
+				TEST_IS_EQ(sizeValue, 100);
+
+				size = Ash::Size(100).percent(99);
+				TEST_IS_TRUE(size.isValid());
+				TEST_IS_TRUE(size.getValue(sizeValue));
+				TEST_IS_EQ(sizeValue, 99);
+
+				size = Ash::Size(100).percent(50);
+				TEST_IS_TRUE(size.isValid());
+				TEST_IS_TRUE(size.getValue(sizeValue));
+				TEST_IS_EQ(sizeValue, 50);
+
+				size = Ash::Size(100).percent(1);
+				TEST_IS_TRUE(size.isValid());
+				TEST_IS_TRUE(size.getValue(sizeValue));
+				TEST_IS_EQ(sizeValue, 1);
+
+				size = Ash::Size(0).percent(0);
+				TEST_IS_TRUE(size.isValid());
+				TEST_IS_TRUE(size.getValue(sizeValue));
+				TEST_IS_EQ(sizeValue, 0);
+
+				size = MaximumSize.percent(100);
+				TEST_IS_TRUE(size.isValid());
+				TEST_IS_TRUE(size.getValue(sizeValue));
+				TEST_IS_EQ(sizeValue, SIZE_MAX);
+
+				size = MaximumSize.percent(99);
+				TEST_IS_TRUE(size.isValid());
+				TEST_IS_TRUE(size.getValue(sizeValue));
+				TEST_IS_EQ(sizeValue, SIZE_MAX - SIZE_MAX / 100 - 1);
+
+				size = MaximumSize.percent(50);
+				TEST_IS_TRUE(size.isValid());
+				TEST_IS_TRUE(size.getValue(sizeValue));
+				TEST_IS_EQ(sizeValue, SIZE_MAX / 2);
+
+				size = MaximumSize.percent(1);
+				TEST_IS_TRUE(size.isValid());
+				TEST_IS_TRUE(size.getValue(sizeValue));
+				TEST_IS_EQ(sizeValue, SIZE_MAX / 100);
+
+				size = MaximumSize.percent(0);
+				TEST_IS_TRUE(size.isValid());
+				TEST_IS_TRUE(size.getValue(sizeValue));
+				TEST_IS_EQ(sizeValue, 0);
+
+				// valid percent constant -> invalid value
+				size = MaximumSize.percent(101);
+				TEST_IS_FALSE(size.isValid());
+				TEST_IS_FALSE(size.getValue(sizeValue));
+
+				// invalid percent constant -> invalid value
+				size = InvalidSize.percent(100);
+				TEST_IS_FALSE(size.isValid());
+				TEST_IS_FALSE(size.getValue(sizeValue));
+
+				// valid percent valid -> valid
+				size = Ash::Size(100).percent(Ash::Size(100));
+				TEST_IS_TRUE(size.isValid());
+				TEST_IS_TRUE(size.getValue(sizeValue));
+				TEST_IS_EQ(sizeValue, 100);
+
+				// valid percent valid -> invalid
+				size = MaximumSize.percent(Ash::Size(101));
+				TEST_IS_FALSE(size.isValid());
+				TEST_IS_FALSE(size.getValue(sizeValue));
+
+				// invalid percent valid -> invalid
+				size = InvalidSize.percent(Ash::Size(100));
+				TEST_IS_FALSE(size.isValid());
+				TEST_IS_FALSE(size.getValue(sizeValue));
+
+				// invalid percent invalid -> invalid
+				size = InvalidSize.percent(InvalidSize);
+				TEST_IS_FALSE(size.isValid());
+				TEST_IS_FALSE(size.getValue(sizeValue));
+
+				// valid percent invalid -> invalid
+				size = MaximumSize.percent(InvalidSize);
+				TEST_IS_FALSE(size.isValid());
+				TEST_IS_FALSE(size.getValue(sizeValue));
+
+				return {};
+			}
+
+			static Ash::Test::Assertion reversePercent()
+			{
+				Ash::Size size;
+				size_t sizeValue = 0;
+
+				// valid reversePercent constant -> valid
+				size = Ash::Size(200).reversePercent(100);
+				TEST_IS_TRUE(size.isValid());
+				TEST_IS_TRUE(size.getValue(sizeValue));
+				TEST_IS_EQ(sizeValue, 100);
+
+				size = Ash::Size(199).reversePercent(99);
+				TEST_IS_TRUE(size.isValid());
+				TEST_IS_TRUE(size.getValue(sizeValue));
+				TEST_IS_EQ(sizeValue, 99);
+
+				size = Ash::Size(150).reversePercent(50);
+				TEST_IS_TRUE(size.isValid());
+				TEST_IS_TRUE(size.getValue(sizeValue));
+				TEST_IS_EQ(sizeValue, 50);
+
+				size = Ash::Size(101).reversePercent(1);
+				TEST_IS_TRUE(size.isValid());
+				TEST_IS_TRUE(size.getValue(sizeValue));
+				TEST_IS_EQ(sizeValue, 1);
+
+				size = Ash::Size(100).reversePercent(0);
+				TEST_IS_TRUE(size.isValid());
+				TEST_IS_TRUE(size.getValue(sizeValue));
+				TEST_IS_EQ(sizeValue, 0);
+
+				size = MaximumSize.reversePercent(100);
+				size = size.add(size.percent(100));
+				TEST_IS_TRUE(size.isValid());
+				TEST_IS_TRUE(size.getValue(sizeValue));
+				TEST_IS_EQ(sizeValue, SIZE_MAX - 1);
+
+				size = MaximumSize.subtract(MaximumSize.reversePercent(99));
+				size = size.add(size.percent(99));
+				TEST_IS_TRUE(size.isValid());
+				TEST_IS_TRUE(size.getValue(sizeValue));
+				TEST_IS_EQ(sizeValue, SIZE_MAX);
+
+				size = MaximumSize.subtract(MaximumSize.reversePercent(50));
+				size = size.add(size.percent(50));
+				TEST_IS_TRUE(size.isValid());
+				TEST_IS_TRUE(size.getValue(sizeValue));
+				TEST_IS_EQ(sizeValue, SIZE_MAX);
+
+				size = MaximumSize.subtract(MaximumSize.reversePercent(1));
+				size = size.add(size.percent(1));
+				TEST_IS_TRUE(size.isValid());
+				TEST_IS_TRUE(size.getValue(sizeValue));
+				TEST_IS_EQ(sizeValue, SIZE_MAX);
+
+				size = MaximumSize.subtract(MaximumSize.reversePercent(0));
+				size = size.add(size.percent(0));
+				TEST_IS_TRUE(size.isValid());
+				TEST_IS_TRUE(size.getValue(sizeValue));
+				TEST_IS_EQ(sizeValue, SIZE_MAX);
+
+				// invalid reversePercent constant -> invalid
+				size = MaximumSize.reversePercent(101);
+				TEST_IS_FALSE(size.isValid());
+				TEST_IS_FALSE(size.getValue(sizeValue));
+
+				// invalid reversePercent constant -> invalid
+				size = InvalidSize.reversePercent(100);
+				TEST_IS_FALSE(size.isValid());
+				TEST_IS_FALSE(size.getValue(sizeValue));
+
+				// valid reversePercent valid -> valid
+				size = Ash::Size(200).reversePercent(Ash::Size(100));
+				TEST_IS_TRUE(size.isValid());
+				TEST_IS_TRUE(size.getValue(sizeValue));
+				TEST_IS_EQ(sizeValue, 100);
+
+				// valid reversePercent valid -> invalid
+				size = MaximumSize.reversePercent(Ash::Size(101));
+				TEST_IS_FALSE(size.isValid());
+				TEST_IS_FALSE(size.getValue(sizeValue));
+
+				// invalid reversePercent valid -> invalid
+				size = InvalidSize.reversePercent(Ash::Size(100));
+				TEST_IS_FALSE(size.isValid());
+				TEST_IS_FALSE(size.getValue(sizeValue));
+
+				// invalid reversePercent invalid -> invalid
+				size = InvalidSize.reversePercent(InvalidSize);
+				TEST_IS_FALSE(size.isValid());
+				TEST_IS_FALSE(size.getValue(sizeValue));
+
+				// valid reversePercent invalid -> invalid
+				size = MaximumSize.reversePercent(InvalidSize);
+				TEST_IS_FALSE(size.isValid());
+				TEST_IS_FALSE(size.getValue(sizeValue));
+
+				return {};
+			}
 		}
 
 		TEST_UNIT
@@ -499,7 +694,9 @@ namespace Ash
 			TEST_CASE(Ash::Test::Size::divide),
 			TEST_CASE(Ash::Test::Size::remainder),
 			TEST_CASE(Ash::Test::Size::roundUp),
-			TEST_CASE(Ash::Test::Size::roundDown)
+			TEST_CASE(Ash::Test::Size::roundDown),
+			TEST_CASE(Ash::Test::Size::percent),
+			TEST_CASE(Ash::Test::Size::reversePercent)
 		);
 	}
 }
