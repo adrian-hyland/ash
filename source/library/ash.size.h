@@ -158,6 +158,64 @@ namespace Ash
 			return size.m_IsValid ? roundDown(size.m_Value) : size;
 		}
 
+		constexpr Size percent(size_t percent) const
+		{
+			Size result;
+			result.m_IsValid = m_IsValid && (percent <= 100);
+			result.m_Value = m_Value;
+			return result.multiplyFraction(percent, 100);
+		}
+
+		constexpr Size percent(const Size &size) const
+		{
+			return size.m_IsValid ? percent(size.m_Value) : size;
+		}
+
+		constexpr Size reversePercent(size_t percent) const
+		{
+			Size result;
+			result.m_IsValid = m_IsValid && (percent <= 100);
+			result.m_Value = m_Value;
+			return result.multiplyFraction(percent, 100 + percent);
+		}
+
+		constexpr Size reversePercent(const Size &size) const
+		{
+			return size.m_IsValid ? reversePercent(size.m_Value) : size;
+		}
+
+	protected:
+		constexpr Size multiplyFraction(size_t numerator, size_t denominator) const
+		{
+			Size result;
+			result.m_IsValid = m_IsValid;
+			if ((result.m_IsValid) && (numerator != 0))
+			{
+				if (numerator == denominator)
+				{
+					result.m_Value = m_Value;
+				}
+				else
+				{
+					size_t max = SIZE_MAX / numerator;
+					if (m_Value > max)
+					{
+						size_t d = m_Value / max;
+						size_t r = m_Value % max;
+						size_t n1 = max * numerator;
+						size_t n2 = r * numerator;
+						size_t n3 = d * (n1 % denominator) + (n2 % denominator);
+						result.m_Value = d * (n1 / denominator) + (n2 / denominator) + (n3 / denominator);
+					}
+					else
+					{
+						result.m_Value = (m_Value * numerator) / denominator;
+					}
+				}
+			}
+			return result;
+		}
+
 	private:
 		size_t m_Value;
 		bool   m_IsValid;
