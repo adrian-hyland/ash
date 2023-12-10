@@ -19,7 +19,9 @@ namespace Ash
 				enum Clock
 				{
 					HighResolution,
-					LowResolution
+					LowResolution,
+					ProcessTime,
+					ThreadTime
 				};
 
 				class Value
@@ -127,9 +129,36 @@ namespace Ash
 						::QueryPerformanceCounter(&counter);
 						startValue = Value(counter.QuadPart, resolution);
 					}
-					else
+					else if (clock == Clock::LowResolution)
 					{
 						startValue = Value(::GetTickCount64(), Value::Unit::Milliseconds);
+					}
+					else
+					{
+						FILETIME creationTime;
+						FILETIME exitTime;
+						FILETIME kernelTime;
+						FILETIME userTime;
+
+						if (clock == Clock::ProcessTime)
+						{
+							::GetProcessTimes(GetCurrentProcess(), &creationTime, &exitTime, &kernelTime, &userTime);
+						}
+						else // (clock == Clock::ThreadTime)
+						{
+							::GetThreadTimes(GetCurrentThread(), &creationTime, &exitTime, &kernelTime, &userTime);
+						}
+
+						ULARGE_INTEGER kernelTimeValue;
+						ULARGE_INTEGER userTimeValue;
+
+						kernelTimeValue.LowPart = kernelTime.dwLowDateTime;
+						kernelTimeValue.HighPart = kernelTime.dwHighDateTime;
+
+						userTimeValue.LowPart = userTime.dwLowDateTime;
+						userTimeValue.HighPart = userTime.dwHighDateTime;
+
+						startValue = Value((kernelTimeValue.QuadPart + userTimeValue.QuadPart) * 100, Value::Unit::Nanoseconds);
 					}
 
 					return Timer(clock, startValue);
@@ -173,9 +202,13 @@ namespace Ash
 						QueryPerformanceFrequency(&frequency);
 						return Value::Unit::Seconds / frequency.QuadPart;
 					}
-					else
+					else if (clock == Clock::LowResolution)
 					{
 						return Value(10, Value::Unit::Milliseconds);
+					}
+					else // (clock == Clock::ProcessTime) || (clock == Clock::ThreadTime)
+					{
+						return Value(100, Value::Unit::Nanoseconds);
 					}
 				}
 

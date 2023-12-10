@@ -20,7 +20,9 @@ namespace Ash
 				enum Clock
 				{
 					HighResolution,
-					LowResolution
+					LowResolution,
+					ProcessTime,
+					ThreadTime
 				};
 
 				class Value
@@ -173,7 +175,25 @@ namespace Ash
 					return time;
 				}
 
-				static inline clockid_t getClockId(Clock clock) { return (clock == Clock::HighResolution) ? CLOCK_MONOTONIC_RAW : CLOCK_MONOTONIC_COARSE; }
+				static inline clockid_t getClockId(Clock clock)
+				{
+					if (clock == Clock::HighResolution)
+					{
+						return CLOCK_MONOTONIC_RAW;
+					}
+					else if (clock == Clock::LowResolution)
+					{
+						return CLOCK_REALTIME_COARSE;
+					}
+					else if (clock == Clock::ProcessTime)
+					{
+						return CLOCK_PROCESS_CPUTIME_ID;
+					}
+					else // (clock == Clock::ThreadTime)
+					{
+						return CLOCK_THREAD_CPUTIME_ID;
+					}
+				}
 
 			private:
 				Clock m_Clock;
