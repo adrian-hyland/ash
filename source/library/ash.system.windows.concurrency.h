@@ -1,7 +1,7 @@
 #pragma once
 
+#include <limits>
 #include <windows.h>
-#include "ash.system.windows.timer.h"
 
 
 namespace Ash
@@ -169,6 +169,78 @@ namespace Ash
 					Handle m_Handle;
 				};
 
+
+				class Semaphore
+				{
+				public:
+					using Handle = HANDLE;
+
+					using Count = LONG;
+
+					inline Semaphore(Count count = 0) : m_Handle(INVALID_HANDLE_VALUE)
+					{
+						create(count);
+					}
+
+					inline Semaphore(Semaphore &&semaphore) noexcept : m_Handle(semaphore.m_Handle)
+					{
+						semaphore.m_Handle = INVALID_HANDLE_VALUE; 
+					}
+
+					virtual inline ~Semaphore()
+					{
+						destroy();
+					}
+
+					inline Semaphore &operator = (Semaphore &&semaphore) noexcept
+					{
+						if (this != &semaphore)
+						{
+							destroy();
+
+							m_Handle = semaphore.m_Handle;
+
+							semaphore.m_Handle = INVALID_HANDLE_VALUE;
+						}
+
+						return *this;
+					}
+
+					inline bool isSetUp() { return m_Handle != INVALID_HANDLE_VALUE; } 
+
+					inline operator Handle *() { return (m_Handle != INVALID_HANDLE_VALUE) ? &m_Handle : nullptr; }
+
+					inline bool acquire()
+					{
+						return (m_Handle != INVALID_HANDLE_VALUE) && (::WaitForSingleObject(m_Handle, INFINITE) == WAIT_OBJECT_0);
+					}
+
+					inline bool release()
+					{
+						return (m_Handle != INVALID_HANDLE_VALUE) && (::ReleaseSemaphore(m_Handle, 1, nullptr) == 0);
+					}
+
+				protected:
+					inline void create(Count count)
+					{
+						if (m_Handle == INVALID_HANDLE_VALUE)
+						{
+							m_Handle = ::CreateSemaphoreA(nullptr, count, std::numeric_limits<Count>::max(), nullptr);
+						}
+					}
+
+					inline void destroy()
+					{
+						if (m_Handle != INVALID_HANDLE_VALUE)
+						{
+							::CloseHandle(m_Handle);
+							m_Handle = INVALID_HANDLE_VALUE;
+						}
+					}
+
+				private:
+					Handle m_Handle;
+				};
 				
 				template
 				<
@@ -279,9 +351,9 @@ namespace Ash
 					<
 						typename ...ARGS
 					>
-					inline Thread(ARGS ...args) : m_Handle(INVALID_HANDLE_VALUE), m_DetachEvent(), m_Detachable(&m_DetachEvent, std::forward<ARGS>(args)...) {}
+					inline Thread(ARGS ...args) : m_Runnable(std::forward<ARGS>(args)...), m_DetachEvent(), m_Handle(INVALID_HANDLE_VALUE) {}
 
-					inline Thread(Thread &&thread) noexcept : m_Handle(thread.m_Handle), m_DetachEvent(std::move(thread.m_DetachEvent)), m_Detachable(std::move(thread.m_Detachable))
+					inline Thread(Thread &&thread) noexcept : m_Runnable(std::move(thread.m_Runnable)), m_DetachEvent(std::move(thread.m_DetachEvent)), m_Handle(thread.m_Handle)
 					{
 						thread.m_Handle = INVALID_HANDLE_VALUE;
 					}
@@ -290,9 +362,9 @@ namespace Ash
 					{
 						if (this != &thread)
 						{
-							m_Handle = thread.m_Handle;
+							m_Runnable = std::move(thread.m_Runnable);
 							m_DetachEvent = std::move(thread.m_DetachEvent);
-							m_Detachable = std::move(thread.m_Detachable);
+							m_Handle = thread.m_Handle;
 
 							thread.m_Handle = INVALID_HANDLE_VALUE;
 						}
@@ -313,48 +385,14 @@ namespace Ash
 					}
 
 				protected:
-					class Detachable : public Runnable
-					{
-					public:
-						template
-						<
-							typename ...ARGS
-						>
-						inline Detachable(Event *event, ARGS ...args) : Runnable(std::forward<ARGS>(args)...), m_Event(event) {}
-
-						inline Detachable(Detachable &&detachable) noexcept : Runnable(std::move(detachable)), m_Event(std::move(detachable.m_Event)) {}
-
-						inline Detachable &operator = (Detachable &&detachable) noexcept
-						{
-							if (this != detachable)
-							{
-								Runnable::operator = (std::move(detachable));
-								m_Event = std::move(detachable.m_Event);
-							}
-
-							return *this;
-						}
-
-						inline bool detach()
-						{
-							return m_Event->signal();
-						}
-
-					private:
-						Event *m_Event;
-
-						Detachable(const Detachable &detachable) = delete;
-						Detachable &operator = (const Detachable &detachable) = delete;
-					};
-
 					static __stdcall unsigned int run(void *param)
 					{
 						Thread *thread = static_cast<Thread *>(param);
 						Handle handle = thread->m_Handle;
 						thread->m_Handle = INVALID_HANDLE_VALUE;
-						Detachable runnable = std::move(thread->m_Detachable);
+						Runnable runnable = std::move(thread->m_Runnable);
 
-						if (runnable.detach())
+						if (thread->m_DetachEvent.signal())
 						{
 							runnable.run();
 						}
@@ -366,9 +404,9 @@ namespace Ash
 					}
 
 				private:
-					Handle     m_Handle;
-					Event      m_DetachEvent;
-					Detachable m_Detachable;
+					Runnable m_Runnable;
+					Event    m_DetachEvent;
+					Handle   m_Handle;
 
 					Thread(const Thread &thread) = delete;
 					Thread &operator = (const Thread &thread) = delete;
