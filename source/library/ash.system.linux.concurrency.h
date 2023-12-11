@@ -1,7 +1,9 @@
 #pragma once
 
 #include <utility>
+#include <semaphore.h>
 #include <pthread.h>
+
 
 namespace Ash
 {
@@ -276,6 +278,81 @@ namespace Ash
 				};
 
 
+				class Semaphore
+				{
+				public:
+					using Handle = sem_t;
+
+					using Count = unsigned int;
+
+					inline Semaphore(Count count = 0) : m_Handle(), m_IsSetUp(false)
+					{
+						create(count);
+					}
+
+					inline Semaphore(Semaphore &&semaphore) noexcept : m_Handle(semaphore.m_Handle), m_IsSetUp(semaphore.m_IsSetUp)
+					{
+						semaphore.m_IsSetUp = false;
+					}
+
+					virtual inline ~Semaphore()
+					{
+						destroy();
+					}
+
+					inline Semaphore &operator = (Semaphore &&semaphore) noexcept
+					{
+						if (this != &semaphore)
+						{
+							destroy();
+
+							m_Handle = semaphore.m_Handle;
+							m_IsSetUp = semaphore.m_IsSetUp;
+
+							semaphore.m_IsSetUp = false;
+						}
+
+						return *this;
+					}
+
+					inline bool isSetUp() { return m_IsSetUp; } 
+
+					inline operator Handle *() { return m_IsSetUp ? &m_Handle : nullptr; }
+
+					inline bool acquire()
+					{
+						return m_IsSetUp && (::sem_wait(&m_Handle) == 0);
+					}
+
+					inline bool release()
+					{
+						return m_IsSetUp && (::sem_post(&m_Handle) == 0);
+					}
+
+				protected:
+					inline void create(Count count)
+					{
+						m_IsSetUp = m_IsSetUp || (::sem_init(&m_Handle, 0, count) == 0);
+					}
+
+					inline void destroy()
+					{
+						if (m_IsSetUp)
+						{
+							::sem_destroy(&m_Handle);
+							m_IsSetUp = false;
+						}
+					}
+
+				private:
+					Handle m_Handle;
+					bool   m_IsSetUp;
+
+					Semaphore(const Semaphore &semaphore) = delete;
+					Semaphore &operator = (const Semaphore &semaphore) = delete;
+				};
+
+
 				template
 				<
 					typename RUNNABLE,
@@ -376,16 +453,16 @@ namespace Ash
 					<
 						typename ...ARGS
 					>
-					inline Thread(ARGS ...args) : m_DetachEvent(), m_Detachable(&m_DetachEvent, std::forward<ARGS>(args)...) {}
+					inline Thread(ARGS ...args) : m_Runnable(std::forward<ARGS>(args)...), m_DetachEvent(){}
 
-					inline Thread(Thread &&thread) noexcept : m_DetachEvent(std::move(thread.m_DetachEvent)), m_Detachable(std::move(thread.m_Detachable)) {}
+					inline Thread(Thread &&thread) noexcept : m_Runnable(std::move(thread.m_Runnable)), m_DetachEvent(std::move(thread.m_DetachEvent)) {}
 
 					inline Thread &operator = (Thread &&thread) noexcept
 					{
 						if (this != &thread)
 						{
+							m_Runnable = std::move(thread.m_Runnable);
 							m_DetachEvent = std::move(thread.m_DetachEvent);
-							m_Detachable = std::move(thread.m_Detachable);
 						}
 
 						return *this;
@@ -398,7 +475,7 @@ namespace Ash
 						
 						ok = m_DetachEvent.reset();
 						
-						ok = ok && (::pthread_create(&handle, nullptr, run, &m_Detachable) == 0);
+						ok = ok && (::pthread_create(&handle, nullptr, run, this) == 0);
 
 						ok = ok && m_DetachEvent.wait();
 
@@ -406,44 +483,12 @@ namespace Ash
 					}
 
 				protected:
-					class Detachable : public Runnable
-					{
-					public:
-						template
-						<
-							typename ...ARGS
-						>
-						inline Detachable(Event *event, ARGS ...args) : Runnable(std::forward<ARGS>(args)...), m_Event(event) {}
-
-						inline Detachable(Detachable &&detachable) noexcept : Runnable(std::move(detachable)), m_Event(std::move(detachable.m_Event)) {}
-
-						inline Detachable &operator = (Detachable &&detachable) noexcept
-						{
-							if (this != detachable)
-							{
-								Runnable::operator = (std::move(detachable));
-								m_Event = std::move(detachable.m_Event);
-							}
-
-							return *this;
-						}
-
-						inline bool detach()
-						{
-							return (::pthread_detach(::pthread_self()) == 0) && m_Event->signal();
-						}
-
-					private:
-						Event *m_Event;
-
-						Detachable(const Detachable &detachable) = delete;
-						Detachable &operator = (const Detachable &detachable) = delete;
-					};
-
 					static void *run(void *param)
 					{
-						Detachable runnable(std::move(*static_cast<Detachable *>(param)));
-						if (runnable.detach())
+						Thread *thread = static_cast<Thread *>(param);
+						Runnable runnable = std::move(thread->m_Runnable);
+
+						if ((::pthread_detach(::pthread_self()) == 0) && thread->m_DetachEvent.signal())
 						{
 							runnable.run();
 						}
@@ -452,8 +497,8 @@ namespace Ash
 					}
 
 				private:
-					Event      m_DetachEvent;
-					Detachable m_Detachable;
+					Runnable m_Runnable;
+					Event    m_DetachEvent;
 
 					Thread(const Thread &thread) = delete;
 					Thread &operator = (const Thread &thread) = delete;
