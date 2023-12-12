@@ -9,7 +9,11 @@ class OutputThread
 public:
 	OutputThread() : m_Queue(), m_Thread(&m_Queue) { m_Thread.start(); }
 
-	~OutputThread() { send(""); }
+	~OutputThread()
+	{
+		send("");
+		m_Thread.join();
+	}
 
 	void send(Ash::Ascii::String<> &&message) { m_Queue.add(std::move(message)); }
 
