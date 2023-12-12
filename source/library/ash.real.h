@@ -103,6 +103,8 @@ namespace Ash
 			return error.isValid() && (error <= tolerance);
 		}
 
+		constexpr Real square() const { return m_Value * m_Value; }
+
 		constexpr Real squareRoot() const { return std::sqrt(m_Value); }
 
 		constexpr Real modulus(Real n) const { return std::fmod(m_Value, n); }
