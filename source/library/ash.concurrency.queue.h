@@ -16,22 +16,22 @@ namespace Ash
 		public:
 			using Type = TYPE;
 
-			constexpr Queue() : m_First(nullptr), m_Last(nullptr), m_Count()
+			inline Queue() : m_First(nullptr), m_Last(nullptr), m_Count()
 			{
 				Element::create(*this);
 			}
 
-			inline ~Queue()
+			virtual inline ~Queue()
 			{
 				Element::destroy(*this);
 			}
 
-			bool add(Type &&value)
+			inline bool add(Type &&value)
 			{
 				return Element::add(*this, std::move(value));
 			}
 
-			bool remove(Type &value)
+			inline bool remove(Type &value)
 			{
 				return Element::remove(*this, value);
 			}
@@ -40,15 +40,15 @@ namespace Ash
 			class Element
 			{
 			public:
-				constexpr Element() : m_Value(), m_Next(nullptr) {}
+				inline Element() : m_Value(), m_Next(nullptr) {}
 
-				static void create(Queue &queue)
+				static inline void create(Queue &queue)
 				{
 					queue.m_First = new Element();
 					queue.m_Last = queue.m_First;
 				}
 
-				static void destroy(Queue &queue)
+				static inline void destroy(Queue &queue)
 				{
 					while (queue.m_First != nullptr)
 					{
@@ -58,7 +58,7 @@ namespace Ash
 					}
 				}
 
-				static bool add(Queue &queue, Type &&value)
+				static inline bool add(Queue &queue, Type &&value)
 				{
 					Element *element = new Element();
 
@@ -70,7 +70,7 @@ namespace Ash
 					return queue.m_Count.release();
 				}
 
-				static bool remove(Queue &queue, Type &value)
+				static inline bool remove(Queue &queue, Type &value)
 				{
 					if (!queue.m_Count.acquire())
 					{
@@ -82,7 +82,7 @@ namespace Ash
 					value = std::move(element->m_Value);
 					queue.m_First = element->m_Next;
 
-					delete(element);
+					delete element;
 					
 					return true;
 				}
