@@ -1,4 +1,4 @@
-# make [all | clean | coverage | vscode] [DEBUG=1] [INTERMEDIATE=1] [COVERAGE=1] [EXAMPLE=name] [STD=11,14,17,20]
+# make [all | clean | coverage | vscode] [DEBUG=1] [INTERMEDIATE=1] [COVERAGE=1] [APPLICATION=name] [STD=11,14,17,20]
 
 # Rules:
 #   all       - builds the application (default rule)
@@ -7,18 +7,18 @@
 #   vscode    - add a build configuration to VS Code
 
 # Options:
-#   DEBUG=1         - enables a debug build of the application (default is a release build with no debug information)
-#   INTERMEDIATE=1  - saves generated intermediate pre-processor and assembly files (default is not to save files)
-#   COVERAGE=1      - enables coverage to get added to the application
-#   EXAMPLE=name    - name of the example application to build (unit test application is built if no example is given)
-#   STD=nn          - sets which C++ standard should be used to build the application (default is 17)
+#   DEBUG=1          - enables a debug build of the application (default is a release build with no debug information)
+#   INTERMEDIATE=1   - saves generated intermediate pre-processor and assembly files (default is not to save files)
+#   COVERAGE=1       - enables coverage to get added to the application
+#   APPLICATION=name - name of the application to build (unit test application is built if no application name is given)
+#   STD=nn           - sets which C++ standard should be used to build the application (default is 17)
 
 
-ifndef EXAMPLE
-APP_NAME := test
-else
-APP_NAME := $(EXAMPLE)
+ifndef APPLICATION
+APPLICATION := test
 endif
+
+APP_NAME := $(notdir $(APPLICATION))
 
 # Some useful character constants
 NULL  :=
@@ -60,11 +60,7 @@ endif
 
 SRC_DIR = ./source
 INC_DIR := $(call list_add,$(SRC_DIR)/library)
-ifndef EXAMPLE
-INC_DIR += $(call list_add,$(SRC_DIR)/test)
-else
-INC_DIR += $(call list_add,$(SRC_DIR)/example/$(EXAMPLE))
-endif
+INC_DIR += $(call list_add,$(SRC_DIR)/$(APPLICATION))
 
 BIN_DIR := ./bin
 
@@ -125,7 +121,7 @@ BUILD_CFG := ./.vscode/c_cpp_properties.json
 BUILD_DEFINE := $(call list_get_csv,$(C_DEFINE))
 BUILD_INCLUDE := $(call list_get_csv,$(INC_DIR) $(call list_add,$${workspaceFolder}/**))
 
-APP := $(BIN_DIR)/$(APP_NAME)
+APP := $(BIN_DIR)/$(APPLICATION)
 
 all: $(APP)
 
