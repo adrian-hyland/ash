@@ -460,6 +460,30 @@ namespace Ash
 				typename FLOAT,
 				typename = Ash::Type::IsFloatingPoint<FLOAT>
 			>
+			static Ash::Test::Assertion square()
+			{
+				using Real = Ash::Real<FLOAT>;
+
+				Real square = Real(1, Real::minExponent / 2).square();
+				TEST_IS_TRUE(Real(1, Real::minExponent).isEqual(square, Real::MatchAbsolute, 0.5));
+				TEST_IS_TRUE(Real(1, Real::minExponent).isEqual(square, Real::MatchRelative, 0.5));
+
+				square = Real(1, (Real::maxExponent - 1) / 2).square();
+				TEST_IS_TRUE(Real(1, Real::maxExponent - 1).isEqual(square, Real::MatchAbsolute, 0.5));
+				TEST_IS_TRUE(Real(1, Real::maxExponent - 1).isEqual(square, Real::MatchRelative, 0.5));
+
+				TEST_IS_TRUE(Real(Real::min).square().isEqual(0, Real::MatchAbsolute, 0.5));
+				TEST_IS_TRUE(Real(Real::min).square().isEqual(0, Real::MatchRelative, 0.5));
+				TEST_IS_TRUE(Real(Real::max).square().isInfinite());
+
+				return {};
+			}
+
+			template
+			<
+				typename FLOAT,
+				typename = Ash::Type::IsFloatingPoint<FLOAT>
+			>
 			static Ash::Test::Assertion squareRoot()
 			{
 				using Real = Ash::Real<FLOAT>;
@@ -472,7 +496,7 @@ namespace Ash
 				TEST_IS_TRUE(Real(Real::max).isEqual(root * root, Real::MatchAbsolute, 0.5));
 				TEST_IS_TRUE(Real(Real::max).isEqual(root * root, Real::MatchRelative, 0.5));
 
-				TEST_IS_FALSE(Real(1.0).negate().squareRoot().isValid())
+				TEST_IS_FALSE(Real(1.0).negate().squareRoot().isValid());
 
 				return {};
 			}
@@ -558,6 +582,7 @@ namespace Ash
 			TEST_CASE_GENERIC(Ash::Test::Real::matchRelative, float),
 			TEST_CASE_GENERIC(Ash::Test::Real::isEqualAbsolute, float),
 			TEST_CASE_GENERIC(Ash::Test::Real::isEqualRelative, float),
+			TEST_CASE_GENERIC(Ash::Test::Real::square, float),
 			TEST_CASE_GENERIC(Ash::Test::Real::squareRoot, float),
 			TEST_CASE_GENERIC(Ash::Test::Real::modulus, float),
 			TEST_CASE_GENERIC(Ash::Test::Real::reciprocal, float),
@@ -572,6 +597,7 @@ namespace Ash
 			TEST_CASE_GENERIC(Ash::Test::Real::matchRelative, double),
 			TEST_CASE_GENERIC(Ash::Test::Real::isEqualAbsolute, double),
 			TEST_CASE_GENERIC(Ash::Test::Real::isEqualRelative, double),
+			TEST_CASE_GENERIC(Ash::Test::Real::square, double),
 			TEST_CASE_GENERIC(Ash::Test::Real::squareRoot, double),
 			TEST_CASE_GENERIC(Ash::Test::Real::modulus, double),
 			TEST_CASE_GENERIC(Ash::Test::Real::reciprocal, double),
@@ -586,6 +612,7 @@ namespace Ash
 			TEST_CASE_GENERIC(Ash::Test::Real::matchRelative, long double),
 			TEST_CASE_GENERIC(Ash::Test::Real::isEqualAbsolute, long double),
 			TEST_CASE_GENERIC(Ash::Test::Real::isEqualRelative, long double),
+			TEST_CASE_GENERIC(Ash::Test::Real::square, long double),
 			TEST_CASE_GENERIC(Ash::Test::Real::squareRoot, long double),
 			TEST_CASE_GENERIC(Ash::Test::Real::modulus, long double),
 			TEST_CASE_GENERIC(Ash::Test::Real::reciprocal, long double),
