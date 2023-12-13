@@ -4,15 +4,15 @@
 #include "ash.concurrency.h"
 
 
-class OutputThread
+class OutputThread : public Ash::Concurrency::Thread
 {
 public:
-	OutputThread() : m_Queue(), m_Thread(&m_Queue) { m_Thread.start(); }
+	OutputThread() : Ash::Concurrency::Thread(), m_Queue() { run<Runnable>(&m_Queue); }
 
 	~OutputThread()
 	{
 		send("");
-		m_Thread.join();
+		join();
 	}
 
 	void send(Ash::Ascii::String<> &&message) { m_Queue.add(std::move(message)); }
@@ -47,7 +47,6 @@ protected:
 
 private:
 	Ash::Concurrency::Queue<Ash::Ascii::String<>> m_Queue;
-	Ash::Concurrency::Thread<Runnable>            m_Thread;
 };
 
 

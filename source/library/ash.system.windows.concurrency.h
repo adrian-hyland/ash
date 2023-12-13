@@ -243,25 +243,15 @@ namespace Ash
 					Handle m_Handle;
 				};
 				
-				template
-				<
-					typename RUNNABLE,
-					bool     IS_DETACHABLE = false
-				>
+
 				class Thread
 				{
 				public:
 					using Handle = HANDLE;
 
-					using Runnable = RUNNABLE;
+					inline Thread() : m_Handle(INVALID_HANDLE_VALUE) {}
 
-					template
-					<
-						typename ...ARGS
-					>
-					inline Thread(ARGS ...args) : m_Runnable(std::forward<ARGS>(args)...), m_Handle(INVALID_HANDLE_VALUE) {}
-
-					inline Thread(Thread &&thread) noexcept : m_Runnable(std::move(thread.m_Runnable)), m_Handle(thread.m_Handle)
+					inline Thread(Thread &&thread) noexcept : m_Handle(thread.m_Handle)
 					{
 						thread.m_Handle = INVALID_HANDLE_VALUE;
 					}
@@ -277,7 +267,6 @@ namespace Ash
 						{
 							join();
 
-							m_Runnable = std::move(thread.m_Runnable);
 							m_Handle = thread.m_Handle;
 
 							thread.m_Handle = INVALID_HANDLE_VALUE;
@@ -286,14 +275,19 @@ namespace Ash
 						return *this;
 					}
 
-					inline bool start()
+					template
+					<
+						typename RUNNABLE,
+						typename ...ARGS
+					>
+					inline bool run(ARGS ...args)
 					{
 						if (!join())
 						{
 							return false;
 						}
 
-						m_Handle = (Handle)::_beginthreadex(nullptr, 0, run, &m_Runnable, 0, nullptr);
+						m_Handle = startRunnable<RUNNABLE>(std::forward<ARGS>(args)...);
 
 						return m_Handle != INVALID_HANDLE_VALUE;
 					}
@@ -311,103 +305,81 @@ namespace Ash
 
 					template
 					<
+						typename RUNNABLE,
 						typename ...ARGS
 					>
-					static inline bool start(ARGS ...args)
+					static inline bool runDetached(ARGS ...args)
 					{
-						return Thread<Runnable, true>(std::forward<ARGS>(args)...).start();
+						Handle handle = startRunnable<RUNNABLE>(std::forward<ARGS>(args)...);
+						if (handle != INVALID_HANDLE_VALUE)
+						{
+							::CloseHandle(handle);
+							return true;
+						}
+						return false;
 					}
 
 				protected:
-					static __stdcall unsigned int run(void *param)
+					template
+					<
+						typename RUNNABLE
+					>
+					class ThreadRunnable : public RUNNABLE
 					{
-						static_cast<Runnable *>(param)->run();
+					public:
+						template
+						<
+							typename ...ARGS
+						>
+						ThreadRunnable(ARGS ...args) : RUNNABLE(args...), m_Event() {}
 
-						::_endthreadex(0);
+						inline bool signal() { return m_Event.signal(); }
 
-						return 0;
-					}
+						inline bool wait() { return m_Event.wait(); }
 
-				private:
-					Runnable m_Runnable;
-					Handle   m_Handle;
-
-					Thread(const Thread &thread) = delete;
-					Thread &operator = (const Thread &thread) = delete;
-				};
-
-
-				template
-				<
-					typename RUNNABLE
-				>
-				class Thread<RUNNABLE, true>
-				{
-				public:
-					using Handle = HANDLE;
-
-					using Runnable = RUNNABLE;
+					private:
+						Event m_Event;
+					};
 
 					template
 					<
+						typename RUNNABLE,
 						typename ...ARGS
 					>
-					inline Thread(ARGS ...args) : m_Runnable(std::forward<ARGS>(args)...), m_DetachEvent(), m_Handle(INVALID_HANDLE_VALUE) {}
-
-					inline Thread(Thread &&thread) noexcept : m_Runnable(std::move(thread.m_Runnable)), m_DetachEvent(std::move(thread.m_DetachEvent)), m_Handle(thread.m_Handle)
+					static inline Handle startRunnable(ARGS ...args)
 					{
-						thread.m_Handle = INVALID_HANDLE_VALUE;
-					}
+						ThreadRunnable<RUNNABLE> threadRunnable(std::forward<ARGS>(args)...);
 
-					inline Thread &operator = (Thread &&thread) noexcept
-					{
-						if (this != &thread)
+						uintptr_t handle = ::_beginthreadex(nullptr, 0, startThreadRunnable<RUNNABLE>, &threadRunnable, 0, nullptr);
+						if (handle == 0)
 						{
-							m_Runnable = std::move(thread.m_Runnable);
-							m_DetachEvent = std::move(thread.m_DetachEvent);
-							m_Handle = thread.m_Handle;
-
-							thread.m_Handle = INVALID_HANDLE_VALUE;
+							return INVALID_HANDLE_VALUE;
 						}
 
-						return *this;
+						threadRunnable.wait();
+						return Handle(handle);
 					}
 
-					inline bool start()
+					template
+					<
+						typename RUNNABLE
+					>
+					static __stdcall unsigned int startThreadRunnable(void *param)
 					{
-						if (!m_DetachEvent.reset())
-						{
-							return false;
-						}
+						ThreadRunnable<RUNNABLE> *threadRunnable = static_cast<ThreadRunnable<RUNNABLE> *>(param);
+						RUNNABLE runnable = std::move(*threadRunnable);
 						
-						m_Handle = (Handle)_beginthreadex(nullptr, 0, run, this, 0, nullptr);
-
-						return (m_Handle != INVALID_HANDLE_VALUE) && m_DetachEvent.wait();
-					}
-
-				protected:
-					static __stdcall unsigned int run(void *param)
-					{
-						Thread *thread = static_cast<Thread *>(param);
-						Handle handle = thread->m_Handle;
-						thread->m_Handle = INVALID_HANDLE_VALUE;
-						Runnable runnable = std::move(thread->m_Runnable);
-
-						if (thread->m_DetachEvent.signal())
+						if (threadRunnable->signal())
 						{
 							runnable.run();
 						}
 
 						::_endthreadex(0);
-						::CloseHandle(handle);
-
 						return 0;
 					}
 
 				private:
-					Runnable m_Runnable;
-					Event    m_DetachEvent;
-					Handle   m_Handle;
+					Handle m_Handle;
 
 					Thread(const Thread &thread) = delete;
 					Thread &operator = (const Thread &thread) = delete;
