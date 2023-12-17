@@ -388,16 +388,16 @@ namespace Ash
 					template
 					<
 						typename RUNNABLE,
-						typename ...ARGS
+						typename ...ARGUMENTS
 					>
-					inline bool run(ARGS ...args)
+					inline bool run(ARGUMENTS &&...arguments)
 					{
 						if (!join())
 						{
 							return false;
 						}
 
-						m_IsSetUp = startRunnable<RUNNABLE>(m_Handle, std::forward<ARGS>(args)...);
+						m_IsSetUp = startRunnable<RUNNABLE>(m_Handle, std::forward<ARGUMENTS>(arguments)...);
 
 						return m_IsSetUp;
 					}
@@ -412,13 +412,13 @@ namespace Ash
 					template
 					<
 						typename RUNNABLE,
-						typename ...ARGS
+						typename ...ARGUMENTS
 					>
-					static bool runDetached(ARGS ...args)
+					static bool runDetached(ARGUMENTS &&...arguments)
 					{
 						Handle handle;
 
-						if (startRunnable<RUNNABLE>(handle, std::forward<ARGS>(args)...))
+						if (startRunnable<RUNNABLE>(handle, std::forward<ARGUMENTS>(arguments)...))
 						{
 							pthread_detach(handle);
 							return true;
@@ -436,9 +436,9 @@ namespace Ash
 					public:
 						template
 						<
-							typename ...ARGS
+							typename ...ARGUMENTS
 						>
-						ThreadRunnable(ARGS ...args) : RUNNABLE(args...), m_Event() {}
+						ThreadRunnable(ARGUMENTS &&...arguments) : RUNNABLE(std::forward<ARGUMENTS>(arguments)...), m_Event() {}
 
 						inline bool signal() { return m_Event.signal(); }
 
@@ -451,11 +451,11 @@ namespace Ash
 					template
 					<
 						typename RUNNABLE,
-						typename ...ARGS
+						typename ...ARGUMENTS
 					>
-					static inline bool startRunnable(Handle &handle, ARGS ...args)
+					static inline bool startRunnable(Handle &handle, ARGUMENTS &&...arguments)
 					{
-						ThreadRunnable<RUNNABLE> threadRunnable(std::forward<ARGS>(args)...);
+						ThreadRunnable<RUNNABLE> threadRunnable(std::forward<ARGUMENTS>(arguments)...);
 
 						if (::pthread_create(&handle, nullptr, startThreadRunnable<RUNNABLE>, &threadRunnable) == 0)
 						{
