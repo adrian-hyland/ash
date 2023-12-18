@@ -27,6 +27,18 @@ namespace Ash
 			<
 				typename TYPE
 			>
+			using IsArray = std::is_array<TYPE>;
+
+			template
+			<
+				typename TYPE
+			>
+			using IsNotArray = std::bool_constant<!std::is_array_v<TYPE>>;
+
+			template
+			<
+				typename TYPE
+			>
 			using IsFloatingPoint = std::is_floating_point<TYPE>;
 
 			template
@@ -172,6 +184,18 @@ namespace Ash
 
 		template
 		<
+			typename TYPE
+		>
+		constexpr bool isArray = Ash::Type::Check<TYPE, Ash::Type::Requirement::IsArray>::isValid;
+
+		template
+		<
+			typename TYPE
+		>
+		constexpr bool isNotArray = Ash::Type::Check<TYPE, Ash::Type::Requirement::IsNotArray>::isValid;
+
+		template
+		<
 			typename LEFT_TYPE,
 			typename RIGHT_TYPE
 		>
@@ -270,6 +294,18 @@ namespace Ash
 			typename BASE_CLASS = TYPE
 		>
 		using IsNotClass = typename Ash::Type::Check<TYPE, Ash::Type::Requirement::IsNotClass, BASE_CLASS>::IsValid;
+
+		template
+		<
+			typename TYPE
+		>
+		using IsArray = typename Ash::Type::Check<TYPE, Ash::Type::Requirement::IsArray>::IsValid;
+
+		template
+		<
+			typename TYPE
+		>
+		using IsNotArray = typename Ash::Type::Check<TYPE, Ash::Type::Requirement::IsNotArray>::IsValid;
 
 		template
 		<
