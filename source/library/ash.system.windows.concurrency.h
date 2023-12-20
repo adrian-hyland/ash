@@ -3,6 +3,7 @@
 #include <limits>
 #include <windows.h>
 #include <process.h>
+#include "ash.callable.h"
 
 
 namespace Ash
@@ -277,17 +278,17 @@ namespace Ash
 
 					template
 					<
-						typename RUNNABLE,
+						typename FUNCTION,
 						typename ...ARGUMENTS
 					>
-					inline bool run(ARGUMENTS &&...arguments)
+					inline bool run(FUNCTION function, ARGUMENTS &&...arguments)
 					{
 						if (!join())
 						{
 							return false;
 						}
 
-						m_Handle = startRunnable<RUNNABLE>(std::forward<ARGUMENTS>(arguments)...);
+						m_Handle = runFunction(function, std::forward<ARGUMENTS>(arguments)...);
 
 						return m_Handle != INVALID_HANDLE_VALUE;
 					}
@@ -305,12 +306,12 @@ namespace Ash
 
 					template
 					<
-						typename RUNNABLE,
+						typename FUNCTION,
 						typename ...ARGUMENTS
 					>
-					static inline bool runDetached(ARGUMENTS &&...arguments)
+					inline bool runDetached(FUNCTION function, ARGUMENTS &&...arguments)
 					{
-						Handle handle = startRunnable<RUNNABLE>(std::forward<ARGUMENTS>(arguments)...);
+						Handle handle = runFunction(function, std::forward<ARGUMENTS>(arguments)...);
 						if (handle != INVALID_HANDLE_VALUE)
 						{
 							::CloseHandle(handle);
@@ -322,16 +323,19 @@ namespace Ash
 				protected:
 					template
 					<
-						typename RUNNABLE
+						typename CALLABLE
 					>
-					class ThreadRunnable : public RUNNABLE
+					class Context : public CALLABLE
 					{
 					public:
+						using Callable = CALLABLE;
+
 						template
 						<
+							typename FUNCTION,
 							typename ...ARGUMENTS
 						>
-						ThreadRunnable(ARGUMENTS &&...arguments) : RUNNABLE(std::forward<ARGUMENTS>(arguments)...), m_Event() {}
+						Context(FUNCTION function, ARGUMENTS &&...arguments) : Callable(function, std::forward<ARGUMENTS>(arguments)...), m_Event() {}
 
 						inline bool signal() { return m_Event.signal(); }
 
@@ -343,35 +347,37 @@ namespace Ash
 
 					template
 					<
-						typename RUNNABLE,
+						typename FUNCTION,
 						typename ...ARGUMENTS
 					>
-					static inline Handle startRunnable(ARGUMENTS &&...arguments)
+					static inline Handle runFunction(FUNCTION function, ARGUMENTS &&...arguments)
 					{
-						ThreadRunnable<RUNNABLE> threadRunnable(std::forward<ARGUMENTS>(arguments)...);
+						using CallableFunction = Ash::Callable::Function<FUNCTION, ARGUMENTS...>;
 
-						uintptr_t handle = ::_beginthreadex(nullptr, 0, startThreadRunnable<RUNNABLE>, &threadRunnable, 0, nullptr);
+						Context<CallableFunction> context(function, std::forward<ARGUMENTS>(arguments)...);
+
+						uintptr_t handle = ::_beginthreadex(nullptr, 0, runCallable<CallableFunction>, &context, 0, nullptr);
 						if (handle == 0)
 						{
 							return INVALID_HANDLE_VALUE;
 						}
 
-						threadRunnable.wait();
+						context.wait();
 						return Handle(handle);
 					}
 
 					template
 					<
-						typename RUNNABLE
+						typename CALLABLE
 					>
-					static __stdcall unsigned int startThreadRunnable(void *param)
+					static __stdcall unsigned int runCallable(void *param)
 					{
-						ThreadRunnable<RUNNABLE> *threadRunnable = static_cast<ThreadRunnable<RUNNABLE> *>(param);
-						RUNNABLE runnable = std::move(*threadRunnable);
+						Context<CALLABLE> *context = static_cast<Context<CALLABLE> *>(param);
+						CALLABLE callable = std::move(*context);
 						
-						if (threadRunnable->signal())
+						if (context->signal())
 						{
-							runnable.run();
+							callable();
 						}
 
 						::_endthreadex(0);

@@ -7,7 +7,7 @@
 class OutputThread : public Ash::Concurrency::Thread
 {
 public:
-	OutputThread() : Ash::Concurrency::Thread(), m_Queue() { run<Runnable>(&m_Queue); }
+	OutputThread() : Ash::Concurrency::Thread(), m_Queue() { run(this); }
 
 	~OutputThread()
 	{
@@ -17,33 +17,23 @@ public:
 
 	void send(Ash::Ascii::String<> &&message) { m_Queue.add(std::move(message)); }
 
-protected:
-	class Runnable
+	void operator ()()
 	{
-	public:
-		Runnable(Ash::Concurrency::Queue<Ash::Ascii::String<>> *queue) : m_Queue(queue) {}
-
-		void run()
+		for (;;)
 		{
-			for (;;)
+			Ash::Ascii::String<> string;
+
+			if (m_Queue.remove(string))
 			{
-				Ash::Ascii::String<> string;
-
-				if (m_Queue->remove(string))
+				if (string.getLength() == 0)
 				{
-					if (string.getLength() == 0)
-					{
-						break;
-					}
-
-					printf("%.*s\n", (int)string.getLength(), string.at(0));
+					break;
 				}
+
+				printf("%.*s\n", (int)string.getLength(), string.at(0));
 			}
 		}
-
-	private:
-		Ash::Concurrency::Queue<Ash::Ascii::String<>> *m_Queue;
-	};
+	}
 
 private:
 	Ash::Concurrency::Queue<Ash::Ascii::String<>> m_Queue;
