@@ -323,30 +323,6 @@ namespace Ash
 				protected:
 					template
 					<
-						typename CALLABLE
-					>
-					class Context : public CALLABLE
-					{
-					public:
-						using Callable = CALLABLE;
-
-						template
-						<
-							typename FUNCTION,
-							typename ...ARGUMENTS
-						>
-						Context(FUNCTION function, ARGUMENTS &&...arguments) : Callable(function, std::forward<ARGUMENTS>(arguments)...), m_Event() {}
-
-						inline bool signal() { return m_Event.signal(); }
-
-						inline bool wait() { return m_Event.wait(); }
-
-					private:
-						Event m_Event;
-					};
-
-					template
-					<
 						typename FUNCTION,
 						typename ...ARGUMENTS
 					>
@@ -354,16 +330,11 @@ namespace Ash
 					{
 						using CallableFunction = Ash::Callable::Function<FUNCTION, ARGUMENTS...>;
 
-						Context<CallableFunction> context(function, std::forward<ARGUMENTS>(arguments)...);
+						CallableFunction *callable = new CallableFunction(function, std::forward<ARGUMENTS>(arguments)...);
 
-						uintptr_t handle = ::_beginthreadex(nullptr, 0, runCallable<CallableFunction>, &context, 0, nullptr);
-						if (handle == 0)
-						{
-							return INVALID_HANDLE_VALUE;
-						}
+						uintptr_t handle = ::_beginthreadex(nullptr, 0, runCallable<CallableFunction>, callable, 0, nullptr);
 
-						context.wait();
-						return Handle(handle);
+						return (handle != 0) ? Handle(handle) : INVALID_HANDLE_VALUE;
 					}
 
 					template
@@ -372,13 +343,11 @@ namespace Ash
 					>
 					static __stdcall unsigned int runCallable(void *param)
 					{
-						Context<CALLABLE> *context = static_cast<Context<CALLABLE> *>(param);
-						CALLABLE callable = std::move(*context);
+						CALLABLE *callable = static_cast<CALLABLE *>(param);
 						
-						if (context->signal())
-						{
-							callable();
-						}
+						(*callable)();
+
+						delete callable;
 
 						::_endthreadex(0);
 						return 0;

@@ -430,30 +430,6 @@ namespace Ash
 				protected:
 					template
 					<
-						typename CALLABLE
-					>
-					class Context : public CALLABLE
-					{
-					public:
-						using Callable = CALLABLE;
-
-						template
-						<
-							typename FUNCTION,
-							typename ...ARGUMENTS
-						>
-						Context(FUNCTION function, ARGUMENTS &&...arguments) : Callable(function, std::forward<ARGUMENTS>(arguments)...), m_Event() {}
-
-						inline bool signal() { return m_Event.signal(); }
-
-						inline bool wait() { return m_Event.wait(); }
-
-					private:
-						Event m_Event;
-					};
-
-					template
-					<
 						typename FUNCTION,
 						typename ...ARGUMENTS
 					>
@@ -461,15 +437,9 @@ namespace Ash
 					{
 						using CallableFunction = Ash::Callable::Function<FUNCTION, ARGUMENTS...>;
 
-						Context<CallableFunction> context(function, std::forward<ARGUMENTS>(arguments)...);
+						CallableFunction *callable = new CallableFunction(function, std::forward<ARGUMENTS>(arguments)...);
 
-						if (::pthread_create(&handle, nullptr, runCallable<CallableFunction>, &context) != 0)
-						{
-							return false;
-						}
-
-						context.wait();
-						return true;
+						return ::pthread_create(&handle, nullptr, runCallable<CallableFunction>, callable) == 0;
 					}
 
 					template
@@ -478,13 +448,11 @@ namespace Ash
 					>
 					static void *runCallable(void *param)
 					{
-						Context<CALLABLE> *context = static_cast<Context<CALLABLE> *>(param);
-						CALLABLE callable = std::move(*context);
+						CALLABLE *callable = static_cast<CALLABLE *>(param);
 						
-						if (context->signal())
-						{
-							callable();
-						}
+						(*callable)();
+
+						delete callable;
 
 						return nullptr;
 					}
