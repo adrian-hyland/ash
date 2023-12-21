@@ -5,6 +5,7 @@
 #include "ash.test.iterate.h"
 #include "ash.test.integer.h"
 #include "ash.test.real.h"
+#include "ash.test.statistic.h"
 #include "ash.test.geometry.h"
 #include "ash.test.calendar.h"
 #include "ash.test.unicode.h"
@@ -23,6 +24,7 @@ int main()
 		Ash::Test::testIterate,
 		Ash::Test::testInteger,
 		Ash::Test::testReal,
+		Ash::Test::testStatistic,
 		Ash::Test::testGeometry,
 		Ash::Test::testCalendar,
 		Ash::Test::testUnicode,
