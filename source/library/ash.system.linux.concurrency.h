@@ -393,7 +393,7 @@ namespace Ash
 					>
 					inline bool run(FUNCTION function, ARGUMENTS &&...arguments)
 					{
-						if (!join())
+						if (m_IsSetUp)
 						{
 							return false;
 						}

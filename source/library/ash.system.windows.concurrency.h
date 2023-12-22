@@ -283,7 +283,7 @@ namespace Ash
 					>
 					inline bool run(FUNCTION function, ARGUMENTS &&...arguments)
 					{
-						if (!join())
+						if (m_Handle != INVALID_HANDLE_VALUE)
 						{
 							return false;
 						}
