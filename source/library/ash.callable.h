@@ -22,6 +22,12 @@ namespace Ash
 
 			template
 			<
+				size_t INDEX
+			>
+			using GetType = std::remove_cv_t<std::remove_reference_t<Ash::Type::Index<INDEX, TYPE, NEXT_TYPE...>>>;
+
+			template
+			<
 				typename ...NEXT_ARGUMENT
 			>
 			constexpr Argument(const Type &argument, NEXT_ARGUMENT &&...nextArgument) : Next(std::forward<NEXT_ARGUMENT>(nextArgument)...), m_Value()
@@ -42,6 +48,22 @@ namespace Ash
 				typename ...NEXT_ARGUMENT
 			>
 			constexpr Argument(Type &&argument, NEXT_ARGUMENT &&...nextArgument) noexcept : Next(std::forward<NEXT_ARGUMENT>(nextArgument)...), m_Value(std::move(argument)) {}
+
+			template
+			<
+				size_t INDEX
+			>
+			const GetType<INDEX> &get() const
+			{
+				if constexpr (INDEX == 0)
+				{
+					return m_Value;
+				}
+				else
+				{
+					return Next::template get<INDEX - 1>();
+				}
+			}
 
 			template
 			<
@@ -73,6 +95,12 @@ namespace Ash
 		public:
 			using Type = std::remove_cv_t<std::remove_reference_t<TYPE>>;
 
+			template
+			<
+				size_t INDEX
+			>
+			using GetType = std::remove_cv_t<std::remove_reference_t<Ash::Type::Index<INDEX, TYPE>>>;
+
 			constexpr Argument(const Type &argument) : m_Value()
 			{
 				if constexpr (Ash::Type::isArray<Type>)
@@ -87,6 +115,18 @@ namespace Ash
 			}
 
 			constexpr Argument(Type &&argument) noexcept : m_Value(std::move(argument)) {}
+
+			template
+			<
+				size_t INDEX
+			>
+			const GetType<INDEX> &get() const
+			{
+				if constexpr (INDEX == 0)
+				{
+					return m_Value;
+				}
+			}
 
 			template
 			<
@@ -133,6 +173,12 @@ namespace Ash
 				typename ...FUNCTION_ARGUMENT
 			>
 			constexpr Function(Call call, FUNCTION_ARGUMENT &&...argument) : m_Call(call), m_Arguments(std::forward<FUNCTION_ARGUMENT>(argument)...) {}
+
+			template
+			<
+				size_t INDEX
+			>
+			const typename Arguments::GetType<INDEX> &getArgument() const { return m_Arguments.template get<INDEX>(); }
 
 			constexpr void operator ()() { m_Arguments(m_Call); }
 
