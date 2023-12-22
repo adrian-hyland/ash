@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ash.type.h"
+#include "ash.memory.h"
 
 
 namespace Ash
