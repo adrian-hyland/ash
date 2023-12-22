@@ -897,6 +897,20 @@ namespace Ash
 				return {};
 			}
 
+			static Ash::Test::Assertion index()
+			{
+				bool isSame;
+
+				isSame = Ash::Type::isSame<Ash::Type::Index<0, int, float, const char *>, int>;
+				TEST_IS_TRUE(isSame);
+				isSame = Ash::Type::isSame<Ash::Type::Index<1, int, float, const char *>, float>;
+				TEST_IS_TRUE(isSame);
+				isSame = Ash::Type::isSame<Ash::Type::Index<2, int, float, const char *>, const char *>;
+				TEST_IS_TRUE(isSame);
+
+				return {};
+			}
+
 			static Ash::Test::Assertion validityOr()
 			{
 				bool isValid;
@@ -950,6 +964,7 @@ namespace Ash
 			TEST_CASE(Ash::Test::Type::isSameSize),
 			TEST_CASE(Ash::Test::Type::isByteSizeInteger),
 			TEST_CASE(Ash::Test::Type::option),
+			TEST_CASE(Ash::Test::Type::index),
 			TEST_CASE(Ash::Test::Type::validityOr),
 			TEST_CASE(Ash::Test::Type::validityAnd)
 		);
