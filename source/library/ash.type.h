@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <type_traits>
 
 
@@ -429,5 +430,34 @@ namespace Ash
 			bool     OPTION
 		>
 		using Option = typename SelectOption<TYPE_OPTION_TRUE, TYPE_OPTION_FALSE, OPTION>::Type;
+
+		template
+		<
+			size_t   INDEX,
+			typename TYPE,
+			typename ...NEXT
+		>
+		struct SelectIndex
+		{
+			using Type = typename SelectIndex<INDEX - 1, NEXT...>::Type;
+		};
+
+		template
+		<
+			typename TYPE,
+			typename ...NEXT
+		>
+		struct SelectIndex<0, TYPE, NEXT...>
+		{
+			using Type = TYPE;
+		};
+
+		template
+		<
+			size_t   INDEX,
+			typename TYPE,
+			typename ...NEXT
+		>
+		using Index = typename SelectIndex<INDEX, TYPE, NEXT...>::Type;
 	}
 }
