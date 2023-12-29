@@ -309,7 +309,7 @@ namespace Ash
 						typename FUNCTION,
 						typename ...ARGUMENTS
 					>
-					inline bool runDetached(FUNCTION function, ARGUMENTS &&...arguments)
+					static bool runDetached(FUNCTION function, ARGUMENTS &&...arguments)
 					{
 						Handle handle = runFunction(function, std::forward<ARGUMENTS>(arguments)...);
 						if (handle != INVALID_HANDLE_VALUE)
