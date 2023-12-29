@@ -241,7 +241,10 @@ namespace Ash
 
 						bool acquired = m_Value;
 
-						m_Value = false;
+						if (m_Reset == Reset::Automatic)
+						{
+							m_Value = false;
+						}
 
 						return Condition::release() && acquired;
 					}
