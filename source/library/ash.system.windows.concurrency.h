@@ -82,6 +82,9 @@ namespace Ash
 
 				private:
 					Handle m_Handle;
+
+					Mutex(const Mutex &mutex) = delete;
+					Mutex &operator = (const Mutex &mutex) = delete;
 				};
 
 
@@ -169,6 +172,9 @@ namespace Ash
 
 				private:
 					Handle m_Handle;
+
+					Event(const Event &event) = delete;
+					Event &operator = (const Event &event) = delete;
 				};
 
 
@@ -242,6 +248,9 @@ namespace Ash
 
 				private:
 					Handle m_Handle;
+
+					Semaphore(const Semaphore &semaphore) = delete;
+					Semaphore &operator = (const Semaphore &semaphore) = delete;
 				};
 				
 
