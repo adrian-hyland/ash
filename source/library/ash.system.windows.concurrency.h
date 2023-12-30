@@ -59,7 +59,7 @@ namespace Ash
 
 					inline bool release()
 					{
-						return (m_Handle != INVALID_HANDLE_VALUE) && (::ReleaseMutex(m_Handle) == 0);
+						return (m_Handle != INVALID_HANDLE_VALUE) && ::ReleaseMutex(m_Handle);
 					}
 
 				protected:
@@ -225,7 +225,7 @@ namespace Ash
 
 					inline bool release()
 					{
-						return (m_Handle != INVALID_HANDLE_VALUE) && (::ReleaseSemaphore(m_Handle, 1, nullptr) == 0);
+						return (m_Handle != INVALID_HANDLE_VALUE) && ::ReleaseSemaphore(m_Handle, 1, nullptr);
 					}
 
 				protected:
