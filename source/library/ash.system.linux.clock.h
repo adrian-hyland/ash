@@ -19,7 +19,8 @@ namespace Ash
 					HighResolution,
 					LowResolution,
 					ProcessTime,
-					ThreadTime
+					ThreadTime,
+					System
 				};
 
 				using Tick = uint64_t;
@@ -70,6 +71,10 @@ namespace Ash
 				{
 					switch (m_Type)
 					{
+						case System:
+							return CLOCK_REALTIME;
+						break;
+
 						case ProcessTime:
 							return CLOCK_PROCESS_CPUTIME_ID;
 						break;
@@ -79,7 +84,7 @@ namespace Ash
 						break;
 
 						case LowResolution:
-							return CLOCK_REALTIME_COARSE;
+							return CLOCK_MONOTONIC_COARSE;
 						break;
 
 						case HighResolution:
