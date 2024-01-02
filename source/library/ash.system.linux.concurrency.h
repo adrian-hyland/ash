@@ -4,6 +4,7 @@
 #include <semaphore.h>
 #include <pthread.h>
 #include "ash.callable.h"
+#include "ash.timer.h"
 
 
 namespace Ash
@@ -52,6 +53,20 @@ namespace Ash
 					inline bool isSetUp() { return m_IsSetUp; } 
 
 					inline operator Handle *() { return m_IsSetUp ? &m_Handle : nullptr; }
+
+					inline bool tryAcquire()
+					{
+						return m_IsSetUp && (::pthread_mutex_trylock(&m_Handle) == 0);
+					}
+
+					inline bool tryAcquire(Ash::Timer::Value duration)
+					{
+						duration = duration + Ash::Timer::getClockValue(Ash::Timer::Clock::System);
+
+						timespec timeout = duration.as<timespec>();
+
+						return m_IsSetUp && (::pthread_mutex_timedlock(&m_Handle, &timeout) == 0);
+					}
 
 					inline bool acquire()
 					{
@@ -141,6 +156,54 @@ namespace Ash
 					inline bool wait()
 					{
 						return m_IsSetUp && (::pthread_cond_wait(&m_Handle, m_Mutex) == 0);
+					}
+
+					template
+					<
+						typename PREDICATE
+					>
+					inline bool wait(PREDICATE predicate)
+					{
+						if (!m_IsSetUp)
+						{
+							return false;
+						}
+
+						while (!predicate())
+						{
+							if (::pthread_cond_wait(&m_Handle, m_Mutex) != 0)
+							{
+								return false;
+							}
+						}
+
+						return true;
+					}
+
+					template
+					<
+						typename PREDICATE
+					>
+					inline bool tryWait(PREDICATE predicate, Ash::Timer::Value duration)
+					{
+						if (!m_IsSetUp)
+						{
+							return false;
+						}
+
+						duration = duration + Ash::Timer::getClockValue(Ash::Timer::Clock::System);
+
+						timespec timeout = duration.as<timespec>();
+
+						while (!predicate())
+						{
+							if (::pthread_cond_timedwait(&m_Handle, m_Mutex, &timeout) != 0)
+							{
+								return false;
+							}
+						}
+
+						return true;
 					}
 
 					inline bool release()
@@ -249,6 +312,27 @@ namespace Ash
 						return Condition::release() && acquired;
 					}
 
+					inline bool tryWait(Ash::Timer::Value duration)
+					{
+						if (!Condition::acquire())
+						{
+							return false;
+						}
+
+						if (!Condition::tryWait([=]() { return m_Value; }, duration))
+						{
+							Condition::release();
+							return false;
+						}
+
+						if (m_Reset == Reset::Automatic)
+						{
+							m_Value = false;
+						}
+
+						return Condition::release();
+					}
+
 					inline bool wait()
 					{
 						if (!Condition::acquire())
@@ -256,13 +340,10 @@ namespace Ash
 							return false;
 						}
 
-						while (!m_Value)
+						if (!Condition::wait([=]() { return m_Value; }))
 						{
-							if (!Condition::wait())
-							{
-								Condition::release();
-								return false;
-							}
+							Condition::release();
+							return false;
 						}
 
 						if (m_Reset == Reset::Automatic)
@@ -322,6 +403,36 @@ namespace Ash
 					inline bool isSetUp() { return m_IsSetUp; } 
 
 					inline operator Handle *() { return m_IsSetUp ? &m_Handle : nullptr; }
+
+					inline bool tryAcquire()
+					{
+						return m_IsSetUp && (::sem_trywait(&m_Handle) == 0);
+					}
+
+					inline bool tryAcquire(Ash::Timer::Value duration)
+					{
+						duration = duration + Ash::Timer::getClockValue(Ash::Timer::Clock::System);
+
+						timespec timeout = duration.as<timespec>();
+
+						if (!m_IsSetUp)
+						{
+							return false;
+						}
+						
+						for (;;)
+						{
+							int err = ::sem_timedwait(&m_Handle, &timeout);
+							if (err == 0)
+							{
+								return true;
+							}
+							else if (err != EINTR)
+							{
+								return false;
+							}
+						}
+					}
 
 					inline bool acquire()
 					{
