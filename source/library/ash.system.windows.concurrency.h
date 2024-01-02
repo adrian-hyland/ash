@@ -4,6 +4,7 @@
 #include <windows.h>
 #include <process.h>
 #include "ash.callable.h"
+#include "ash.timer.h"
 
 
 namespace Ash
@@ -51,6 +52,16 @@ namespace Ash
 					inline bool isSetUp() { return m_Handle != INVALID_HANDLE_VALUE; } 
 
 					inline operator Handle *() { return (m_Handle != INVALID_HANDLE_VALUE) ? &m_Handle : nullptr; }
+
+					inline bool tryAcquire()
+					{
+						return (m_Handle != INVALID_HANDLE_VALUE) && (::WaitForSingleObject(m_Handle, 0) == WAIT_OBJECT_0);
+					}
+
+					inline bool tryAcquire(Ash::Timer::Value duration)
+					{
+						return (m_Handle != INVALID_HANDLE_VALUE) && (::WaitForSingleObject(m_Handle, duration.as<DWORD>(Ash::Timer::Value::Milliseconds)) == WAIT_OBJECT_0);
+					}
 
 					inline bool acquire()
 					{
@@ -147,6 +158,11 @@ namespace Ash
 						return (m_Handle != INVALID_HANDLE_VALUE) && (::WaitForSingleObject(m_Handle, 0) == WAIT_OBJECT_0);
 					}
 
+					inline bool tryWait(Ash::Timer::Value duration)
+					{
+						return (m_Handle != INVALID_HANDLE_VALUE) && (::WaitForSingleObject(m_Handle, duration.as<DWORD>(Ash::Timer::Value::Milliseconds)) == WAIT_OBJECT_0);
+					}
+
 					inline bool wait()
 					{
 						return (m_Handle != INVALID_HANDLE_VALUE) && (::WaitForSingleObject(m_Handle, INFINITE) == WAIT_OBJECT_0);
@@ -217,6 +233,16 @@ namespace Ash
 					inline bool isSetUp() { return m_Handle != INVALID_HANDLE_VALUE; } 
 
 					inline operator Handle *() { return (m_Handle != INVALID_HANDLE_VALUE) ? &m_Handle : nullptr; }
+
+					inline bool tryAcquire()
+					{
+						return (m_Handle != INVALID_HANDLE_VALUE) && (::WaitForSingleObject(m_Handle, 0) == WAIT_OBJECT_0);
+					}
+
+					inline bool tryAcquire(Ash::Timer::Value duration)
+					{
+						return (m_Handle != INVALID_HANDLE_VALUE) && (::WaitForSingleObject(m_Handle, duration.as<DWORD>(Ash::Timer::Value::Milliseconds)) == WAIT_OBJECT_0);
+					}
 
 					inline bool acquire()
 					{
