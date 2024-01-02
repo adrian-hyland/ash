@@ -140,6 +140,11 @@ namespace Ash
 			sleep(duration);
 		}
 
+		static inline Value getClockValue(Type type)
+		{
+			return Value(Clock(type).getTick(), Ash::Timer::Value::Unit(Clock(type).getTickDuration()));
+		}
+
 	protected:
 		inline Timer(Type type) : Clock(type), m_Start(getTick()) {}
 
