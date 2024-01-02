@@ -18,7 +18,8 @@ namespace Ash
 					HighResolution,
 					LowResolution,
 					ProcessTime,
-					ThreadTime
+					ThreadTime,
+					System
 				};
 
 				using Tick = uint64_t;
@@ -31,29 +32,27 @@ namespace Ash
 
 				inline Tick getTick() const
 				{
-					FILETIME creationTime, exitTime, kernelTime, userTime;
-
 					switch (m_Type)
 					{
+						case System:
+							return getSystemTick();
+						break;
+
 						case ThreadTime:
-							::GetThreadTimes(GetCurrentThread(), &creationTime, &exitTime, &kernelTime, &userTime);
-							return addFileTime(kernelTime, userTime);
+							return getThreadTimeTick();
 						break;
 
 						case ProcessTime:
-							::GetProcessTimes(GetCurrentProcess(), &creationTime, &exitTime, &kernelTime, &userTime);
-							return addFileTime(kernelTime, userTime);
+							return getProcessTimeTick();
 						break;
 
 						case LowResolution:
-							return ::GetTickCount64();
+							return getLowResolutionTick();
 						break;
 
 						case HighResolution:
 						default:
-							LARGE_INTEGER counter;
-							::QueryPerformanceCounter(&counter);
-							return counter.QuadPart;
+							return getHighResolutionTick();
 						break;
 					}
 				}
@@ -62,6 +61,10 @@ namespace Ash
 				{
 					switch (m_Type)
 					{
+						case System:
+							return 1000000ULL;
+						break;
+
 						case ProcessTime:
 						case ThreadTime:
 							return 100ULL;
@@ -96,18 +99,57 @@ namespace Ash
 				}
 
 			protected:
-				static constexpr Tick addFileTime(FILETIME left, FILETIME right)
+				static inline Tick getSystemTick()
 				{
-					ULARGE_INTEGER leftValue = {};
-					ULARGE_INTEGER rightValue = {};
+					SYSTEMTIME systemTime;
+					FILETIME fileTime;
 
-					leftValue.LowPart = left.dwLowDateTime;
-					leftValue.HighPart = left.dwHighDateTime;
+					::GetSystemTime(&systemTime);
+					::SystemTimeToFileTime(&systemTime, &fileTime);
 
-					rightValue.LowPart = right.dwLowDateTime;
-					rightValue.HighPart = right.dwHighDateTime;
+					return getTick(fileTime) / 10000ULL;
+				}
 
-					return (leftValue.QuadPart + rightValue.QuadPart);
+				static inline Tick getThreadTimeTick()
+				{
+					FILETIME creationTime, exitTime, kernelTime, userTime;
+
+					::GetThreadTimes(GetCurrentThread(), &creationTime, &exitTime, &kernelTime, &userTime);
+
+					return getTick(kernelTime) + getTick(userTime);
+				}
+
+				static inline Tick getProcessTimeTick()
+				{
+					FILETIME creationTime, exitTime, kernelTime, userTime;
+
+					::GetProcessTimes(GetCurrentProcess(), &creationTime, &exitTime, &kernelTime, &userTime);
+					
+					return getTick(kernelTime) + getTick(userTime);
+				}
+
+				static inline Tick getLowResolutionTick()
+				{
+					return ::GetTickCount64();
+				}
+
+				static inline Tick getHighResolutionTick()
+				{
+					LARGE_INTEGER counter;
+
+					::QueryPerformanceCounter(&counter);
+
+					return counter.QuadPart;
+				}
+
+				static constexpr Tick getTick(FILETIME fileTime)
+				{
+					ULARGE_INTEGER value = {};
+
+					value.LowPart = fileTime.dwLowDateTime;
+					value.HighPart = fileTime.dwHighDateTime;
+
+					return value.QuadPart;
 				}
 
 			private:
