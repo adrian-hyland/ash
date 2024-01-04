@@ -15,268 +15,135 @@ namespace Ash
 		{
 			namespace Concurrency
 			{
-				class Mutex
+				class Condition
 				{
-				public:
-					using Handle = HANDLE;
+				protected:
+					inline Condition() : m_Condition(CONDITION_VARIABLE_INIT), m_Lock(SRWLOCK_INIT) {}
 
-					inline Mutex() : m_Handle(INVALID_HANDLE_VALUE)
+					inline void acquire()
 					{
-						create();
+						AcquireSRWLockExclusive(&m_Lock);
 					}
 
-					inline Mutex(Mutex &&mutex) noexcept : m_Handle(mutex.m_Handle)
+					inline void release()
 					{
-						mutex.m_Handle = INVALID_HANDLE_VALUE; 
+						ReleaseSRWLockExclusive(&m_Lock);
 					}
 
-					virtual inline ~Mutex()
+					inline void signal()
 					{
-						destroy();
+						WakeConditionVariable(&m_Condition);
 					}
 
-					inline Mutex &operator = (Mutex &&mutex) noexcept
+					template
+					<
+						typename PREDICATE
+					>
+					inline void wait(PREDICATE predicate)
 					{
-						if (this != &mutex)
+						while (!predicate())
 						{
-							destroy();
+							SleepConditionVariableSRW(&m_Condition, &m_Lock, INFINITE, 0);
+						}
+					}
 
-							m_Handle = mutex.m_Handle;
+					template
+					<
+						typename PREDICATE
+					>
+					inline bool tryWait(PREDICATE predicate, Ash::Timer::Value duration)
+					{
+						Ash::Timer::Value now = Ash::Timer::getClockValue(Ash::Timer::Clock::LowResolution);
 
-							mutex.m_Handle = INVALID_HANDLE_VALUE;
+						while (!predicate())
+						{
+							Ash::Timer::Value elapsed = Ash::Timer::getClockValue(Ash::Timer::Clock::LowResolution) - now;
+							if (elapsed > duration)
+							{
+								return false;
+							}
+							Ash::Timer::Value remaining = duration - elapsed;
+
+							if (!SleepConditionVariableSRW(&m_Condition, &m_Lock, remaining.as<DWORD>(Ash::Timer::Value::Milliseconds), 0))
+							{
+								return false;
+							}
 						}
 
-						return *this;
+						return true;
 					}
 
-					inline bool isSetUp() { return m_Handle != INVALID_HANDLE_VALUE; } 
+				private:
+					CONDITION_VARIABLE m_Condition;
+					SRWLOCK            m_Lock;
 
-					inline operator Handle *() { return (m_Handle != INVALID_HANDLE_VALUE) ? &m_Handle : nullptr; }
+					Condition(const Condition &condition) = delete;
+					Condition(Condition &&condition) = delete;
+					Condition &operator = (const Condition &condition) = delete;
+					Condition &operator = (Condition &&condition) = delete;
+				};
+
+				class Mutex : public Condition
+				{
+				public:
+					inline Mutex() : Condition(), m_IsLocked(false) {}
 
 					inline bool tryAcquire()
 					{
-						return (m_Handle != INVALID_HANDLE_VALUE) && (::WaitForSingleObject(m_Handle, 0) == WAIT_OBJECT_0);
+						Condition::acquire();
+
+						bool isLocked = m_IsLocked;
+						m_IsLocked = true;
+
+						Condition::release();
+						
+						return !isLocked;
 					}
 
 					inline bool tryAcquire(Ash::Timer::Value duration)
 					{
-						return (m_Handle != INVALID_HANDLE_VALUE) && (::WaitForSingleObject(m_Handle, duration.as<DWORD>(Ash::Timer::Value::Milliseconds)) == WAIT_OBJECT_0);
-					}
+						Condition::acquire();
 
-					inline bool acquire()
-					{
-						return (m_Handle != INVALID_HANDLE_VALUE) && (::WaitForSingleObject(m_Handle, INFINITE) == WAIT_OBJECT_0);
-					}
-
-					inline bool release()
-					{
-						return (m_Handle != INVALID_HANDLE_VALUE) && ::ReleaseMutex(m_Handle);
-					}
-
-				protected:
-					inline void create()
-					{
-						if (m_Handle == INVALID_HANDLE_VALUE)
+						if (!Condition::tryWait([=]() { return !m_IsLocked; }, duration))
 						{
-							m_Handle = ::CreateMutexA(nullptr, false, nullptr);
+							Condition::release();
+							return false;
 						}
+
+						m_IsLocked = true;
+
+						Condition::release();
+						return true;
 					}
 
-					inline void destroy()
+					inline void acquire()
 					{
-						if (m_Handle != INVALID_HANDLE_VALUE)
-						{
-							::CloseHandle(m_Handle);
-							m_Handle = INVALID_HANDLE_VALUE;
-						}
+						Condition::acquire();
+
+						Condition::wait([=]() { return !m_IsLocked; });
+
+						m_IsLocked = true;
+
+						Condition::release();
+					}
+
+					inline void release()
+					{
+						Condition::acquire();
+
+						m_IsLocked = false;
+
+						Condition::release();
+						Condition::signal();
 					}
 
 				private:
-					Handle m_Handle;
+					bool m_IsLocked;
 
 					Mutex(const Mutex &mutex) = delete;
+					Mutex(Mutex &&mutex) = delete;
 					Mutex &operator = (const Mutex &mutex) = delete;
-				};
-
-
-				class Event
-				{
-				public:
-					using Handle = HANDLE;
-
-					enum Reset
-					{
-						Manual,
-						Automatic
-					};
-
-					inline Event(Reset reset = Reset::Manual, bool value = false) : m_Handle(INVALID_HANDLE_VALUE)
-					{
-						create(reset, value);
-					}
-
-					inline Event(Event &&event) noexcept : m_Handle(event.m_Handle)
-					{
-						event.m_Handle = INVALID_HANDLE_VALUE;
-					}
-
-					virtual inline ~Event()
-					{
-						destroy();
-					}
-
-					inline Event &operator = (Event &&event) noexcept
-					{
-						if (this != &event)
-						{
-							destroy();
-
-							m_Handle = event.m_Handle;
-
-							event.m_Handle = INVALID_HANDLE_VALUE;
-						}
-
-						return *this;
-					}
-
-					inline bool isSetUp() const { return m_Handle != INVALID_HANDLE_VALUE; }
-
-					inline operator Handle *() { return (m_Handle != INVALID_HANDLE_VALUE) ? &m_Handle : nullptr; }
-
-					inline bool reset()
-					{
-						return (m_Handle != INVALID_HANDLE_VALUE) && ::ResetEvent(m_Handle);
-					}
-
-					inline bool signal()
-					{
-						return (m_Handle != INVALID_HANDLE_VALUE) && ::SetEvent(m_Handle);
-					}
-
-					inline bool tryWait()
-					{
-						return (m_Handle != INVALID_HANDLE_VALUE) && (::WaitForSingleObject(m_Handle, 0) == WAIT_OBJECT_0);
-					}
-
-					inline bool tryWait(Ash::Timer::Value duration)
-					{
-						return (m_Handle != INVALID_HANDLE_VALUE) && (::WaitForSingleObject(m_Handle, duration.as<DWORD>(Ash::Timer::Value::Milliseconds)) == WAIT_OBJECT_0);
-					}
-
-					inline bool wait()
-					{
-						return (m_Handle != INVALID_HANDLE_VALUE) && (::WaitForSingleObject(m_Handle, INFINITE) == WAIT_OBJECT_0);
-					}
-
-				protected:
-					inline void create(Reset reset, bool value)
-					{
-						if (m_Handle == INVALID_HANDLE_VALUE)
-						{
-							m_Handle = ::CreateEventA(nullptr, reset == Reset::Manual, value, nullptr);
-						}
-					}
-
-					inline void destroy()
-					{
-						if (m_Handle != INVALID_HANDLE_VALUE)
-						{
-							::CloseHandle(m_Handle);
-							m_Handle = INVALID_HANDLE_VALUE;
-						}
-					}
-
-				private:
-					Handle m_Handle;
-
-					Event(const Event &event) = delete;
-					Event &operator = (const Event &event) = delete;
-				};
-
-
-				class Semaphore
-				{
-				public:
-					using Handle = HANDLE;
-
-					using Count = LONG;
-
-					inline Semaphore(Count count = 0) : m_Handle(INVALID_HANDLE_VALUE)
-					{
-						create(count);
-					}
-
-					inline Semaphore(Semaphore &&semaphore) noexcept : m_Handle(semaphore.m_Handle)
-					{
-						semaphore.m_Handle = INVALID_HANDLE_VALUE; 
-					}
-
-					virtual inline ~Semaphore()
-					{
-						destroy();
-					}
-
-					inline Semaphore &operator = (Semaphore &&semaphore) noexcept
-					{
-						if (this != &semaphore)
-						{
-							destroy();
-
-							m_Handle = semaphore.m_Handle;
-
-							semaphore.m_Handle = INVALID_HANDLE_VALUE;
-						}
-
-						return *this;
-					}
-
-					inline bool isSetUp() { return m_Handle != INVALID_HANDLE_VALUE; } 
-
-					inline operator Handle *() { return (m_Handle != INVALID_HANDLE_VALUE) ? &m_Handle : nullptr; }
-
-					inline bool tryAcquire()
-					{
-						return (m_Handle != INVALID_HANDLE_VALUE) && (::WaitForSingleObject(m_Handle, 0) == WAIT_OBJECT_0);
-					}
-
-					inline bool tryAcquire(Ash::Timer::Value duration)
-					{
-						return (m_Handle != INVALID_HANDLE_VALUE) && (::WaitForSingleObject(m_Handle, duration.as<DWORD>(Ash::Timer::Value::Milliseconds)) == WAIT_OBJECT_0);
-					}
-
-					inline bool acquire()
-					{
-						return (m_Handle != INVALID_HANDLE_VALUE) && (::WaitForSingleObject(m_Handle, INFINITE) == WAIT_OBJECT_0);
-					}
-
-					inline bool release()
-					{
-						return (m_Handle != INVALID_HANDLE_VALUE) && ::ReleaseSemaphore(m_Handle, 1, nullptr);
-					}
-
-				protected:
-					inline void create(Count count)
-					{
-						if (m_Handle == INVALID_HANDLE_VALUE)
-						{
-							m_Handle = ::CreateSemaphoreA(nullptr, count, std::numeric_limits<Count>::max(), nullptr);
-						}
-					}
-
-					inline void destroy()
-					{
-						if (m_Handle != INVALID_HANDLE_VALUE)
-						{
-							::CloseHandle(m_Handle);
-							m_Handle = INVALID_HANDLE_VALUE;
-						}
-					}
-
-				private:
-					Handle m_Handle;
-
-					Semaphore(const Semaphore &semaphore) = delete;
-					Semaphore &operator = (const Semaphore &semaphore) = delete;
+					Mutex &operator = (Mutex &&mutex) = delete;
 				};
 				
 
