@@ -9,14 +9,20 @@ namespace Ash
 	{
 		template
 		<
-			typename TYPE
+			typename TYPE,
+			bool     HAS_SINGLE_PRODUCER = false,
+			bool     HAS_SINGLE_CONSUMER = false
 		>
 		class Queue
 		{
 		public:
 			using Type = TYPE;
 
-			inline Queue() : m_First(nullptr), m_Last(nullptr), m_Count()
+			static constexpr bool hasSingleProducer = HAS_SINGLE_PRODUCER;
+
+			static constexpr bool hasSingleConsumer = HAS_SINGLE_CONSUMER;
+
+			inline Queue() : m_First(nullptr), m_Last(nullptr), m_Count(), m_FirstLock(), m_LastLock()
 			{
 				Element::create(*this);
 			}
@@ -26,17 +32,29 @@ namespace Ash
 				Element::destroy(*this);
 			}
 
-			inline bool add(Type &&value)
+			inline void add(Type &&value)
 			{
-				return Element::add(*this, std::move(value));
+				Element::add(*this, std::move(value));
 			}
 
-			inline bool remove(Type &value)
+			inline Type remove()
 			{
-				return Element::remove(*this, value);
+				return Element::remove(*this);
 			}
 
 		protected:
+			class NullMutex
+			{
+			public:
+				constexpr bool acquire() { return true; }
+
+				constexpr bool release() { return true; }
+			};
+
+			using FirstLock = Ash::Type::Option<Mutex, NullMutex, !hasSingleConsumer>;
+
+			using LastLock = Ash::Type::Option<Mutex, NullMutex, !hasSingleProducer>;
+
 			class Element
 			{
 			public:
@@ -58,8 +76,10 @@ namespace Ash
 					}
 				}
 
-				static inline bool add(Queue &queue, Type &&value)
+				static inline void add(Queue &queue, Type &&value)
 				{
+					queue.m_LastLock.acquire();
+
 					Element *element = new Element();
 
 					queue.m_Last->m_Value = std::move(value);
@@ -67,24 +87,27 @@ namespace Ash
 					
 					queue.m_Last = element;
 
-					return queue.m_Count.release();
+					queue.m_LastLock.release();
+					
+					queue.m_Count.release();
 				}
 
-				static inline bool remove(Queue &queue, Type &value)
+				static inline Type remove(Queue &queue)
 				{
-					if (!queue.m_Count.acquire())
-					{
-						return false;
-					}
+					queue.m_Count.acquire();
+
+					queue.m_FirstLock.acquire();
 
 					Element *element = queue.m_First;
 
-					value = std::move(element->m_Value);
+					Type value = std::move(element->m_Value);
 					queue.m_First = element->m_Next;
 
 					delete element;
 					
-					return true;
+					queue.m_FirstLock.release();
+
+					return value;
 				}
 
 			private:
@@ -96,6 +119,32 @@ namespace Ash
 			Element  *m_First;
 			Element  *m_Last;
 			Semaphore m_Count;
+			FirstLock m_FirstLock;
+			LastLock  m_LastLock;
 		};
+
+		template
+		<
+			typename TYPE
+		>
+		using Queue1x1 = Queue<TYPE, true, true>;
+
+		template
+		<
+			typename TYPE
+		>
+		using Queue1xN = Queue<TYPE, true, false>;
+
+		template
+		<
+			typename TYPE
+		>
+		using QueueNx1 = Queue<TYPE, false, true>;
+
+		template
+		<
+			typename TYPE
+		>
+		using QueueNxN = Queue<TYPE, false, false>;
 	}
 }
