@@ -21,22 +21,18 @@ public:
 	{
 		for (;;)
 		{
-			Ash::Ascii::String<> string;
-
-			if (m_Queue.remove(string))
+			Ash::Ascii::String<> string = m_Queue.remove();
+			if (string.getLength() == 0)
 			{
-				if (string.getLength() == 0)
-				{
-					break;
-				}
-
-				printf("%.*s\n", (int)string.getLength(), string.at(0));
+				break;
 			}
+
+			printf("%.*s\n", (int)string.getLength(), string.at(0));
 		}
 	}
 
 private:
-	Ash::Concurrency::Queue<Ash::Ascii::String<>> m_Queue;
+	Ash::Concurrency::Queue1x1<Ash::Ascii::String<>> m_Queue;
 };
 
 
