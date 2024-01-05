@@ -11,7 +11,8 @@ namespace Ash
 		<
 			typename TYPE,
 			bool     HAS_SINGLE_PRODUCER = false,
-			bool     HAS_SINGLE_CONSUMER = false
+			bool     HAS_SINGLE_CONSUMER = false,
+			size_t   NODE_SIZE = 256
 		>
 		class Queue
 		{
@@ -22,24 +23,27 @@ namespace Ash
 
 			static constexpr bool hasSingleConsumer = HAS_SINGLE_CONSUMER;
 
-			inline Queue() : m_First(nullptr), m_Last(nullptr), m_Count(), m_FirstLock(), m_LastLock()
-			{
-				Element::create(*this);
-			}
+			static constexpr bool isSingleElement = (NODE_SIZE <= 1);
+
+			inline Queue() : m_First(), m_Last(m_First.getNode()), m_Count() {}
 
 			virtual inline ~Queue()
 			{
-				Element::destroy(*this);
+				m_First.clear();
 			}
 
 			inline void add(Type &&value)
 			{
-				Element::add(*this, std::move(value));
+				m_Last.add(std::move(value));
+									
+				m_Count.release();
 			}
 
 			inline Type remove()
 			{
-				return Element::remove(*this);
+				m_Count.acquire();
+
+				return m_First.remove();
 			}
 
 		protected:
@@ -55,96 +59,198 @@ namespace Ash
 
 			using LastLock = Ash::Type::Option<Mutex, NullMutex, !hasSingleProducer>;
 
-			class Element
+			class ElementValue
 			{
 			public:
-				inline Element() : m_Value(), m_Next(nullptr) {}
-
-				static inline void create(Queue &queue)
+				struct Node
 				{
-					queue.m_First = new Element();
-					queue.m_Last = queue.m_First;
-				}
+					using Content = Type;
 
-				static inline void destroy(Queue &queue)
+					constexpr Node() : m_Content(), m_Next(nullptr) {}
+
+					Content m_Content;
+					Node   *m_Next;
+				};
+
+				constexpr ElementValue() : m_Node(new Node) {}
+
+				constexpr ElementValue(Node *node) : m_Node(node) {}
+
+				constexpr Node *getNode() { return m_Node; }
+
+				constexpr bool isEmpty() { return m_Node == nullptr; }
+
+				constexpr void clear()
 				{
-					while (queue.m_First != nullptr)
+					while (m_Node != nullptr)
 					{
-						Element *element = queue.m_First;
-						queue.m_First = element->m_Next;
-						delete element;
+						Node *nextNode = m_Node->m_Next;
+						delete m_Node;
+						m_Node = nextNode;
 					}
 				}
 
-				static inline void add(Queue &queue, Type &&value)
+				constexpr void add(Type &&value)
 				{
-					queue.m_LastLock.acquire();
-
-					Element *element = new Element();
-
-					queue.m_Last->m_Value = std::move(value);
-					queue.m_Last->m_Next = element;
-					
-					queue.m_Last = element;
-
-					queue.m_LastLock.release();
-					
-					queue.m_Count.release();
+					m_Node->m_Content = std::move(value);
+					m_Node->m_Next = new Node();
+					m_Node = m_Node->m_Next;
 				}
 
-				static inline Type remove(Queue &queue)
+				constexpr Type remove()
 				{
-					queue.m_Count.acquire();
+					Type value = std::move(m_Node->m_Content);
+					Node *nextNode = m_Node->m_Next;
+					delete m_Node;
+					m_Node = nextNode;
+					return value;
+				}
 
-					queue.m_FirstLock.acquire();
+			private:
+				Node  *m_Node;
+				size_t m_Offset;
+			};
 
-					Element *element = queue.m_First;
+			class ElementSequence
+			{
+			public:
+				struct Node
+				{
+					using Content = Ash::Memory::Sequence<Type, NODE_SIZE>;
 
-					Type value = std::move(element->m_Value);
-					queue.m_First = element->m_Next;
+					constexpr Node() : m_Content(), m_Next(nullptr) {}
 
-					delete element;
-					
-					queue.m_FirstLock.release();
+					Content m_Content;
+					Node   *m_Next;
+				};
+
+				constexpr ElementSequence() : m_Node(new Node), m_Offset(0) {}
+
+				constexpr ElementSequence(Node *node) : m_Node(node), m_Offset(0) {}
+
+				constexpr Node *getNode() { return m_Node; }
+
+				constexpr bool isEmpty() { return m_Node == nullptr; }
+
+				constexpr void clear()
+				{
+					while (m_Node != nullptr)
+					{
+						Node *nextNode = m_Node->m_Next;
+						delete m_Node;
+						m_Node = nextNode;
+					}
+				}
+
+				constexpr void add(Type &&value)
+				{
+					*m_Node->m_Content.at(m_Offset) = std::move(value);
+					m_Offset++;
+					if (m_Offset == NODE_SIZE)
+					{
+						m_Node->m_Next = new Node();
+						m_Node = m_Node->m_Next;
+						m_Offset = 0;
+					}
+				}
+
+				constexpr Type remove()
+				{
+					Type value = std::move(*m_Node->m_Content.at(m_Offset));
+					m_Offset++;
+					if (m_Offset == NODE_SIZE)
+					{
+						Node *nextNode = m_Node->m_Next;
+						delete m_Node;
+						m_Node = nextNode;
+						m_Offset = 0;
+					}
+					return value;
+				}
+
+			private:
+				Node  *m_Node;
+				size_t m_Offset;
+			};
+
+			using Element = Ash::Type::Option<ElementValue, ElementSequence, isSingleElement>;
+
+			template
+			<
+				typename LOCK
+			>
+			class LockedElement : public Element
+			{
+			public:
+				using Lock = LOCK;
+
+				using Node = typename Element::Node;
+
+				constexpr LockedElement() : Element(), m_Lock() {}
+
+				constexpr LockedElement(Node *node) : Element(node), m_Lock() {}
+
+				constexpr void clear()
+				{
+					Element::clear();
+				}
+
+				inline void add(Type &&value)
+				{
+					m_Lock.acquire();
+					Element::add(std::move(value));
+					m_Lock.release();
+				}
+
+				inline Type remove()
+				{
+					m_Lock.acquire();
+					Type value = Element::remove();					
+					m_Lock.release();
 
 					return value;
 				}
 
 			private:
-				Type     m_Value;
-				Element *m_Next;
+				Lock m_Lock;
 			};
 
+			using FirstElement = LockedElement<FirstLock>;
+
+			using LastElement = LockedElement<LastLock>;
+
 		private:
-			Element  *m_First;
-			Element  *m_Last;
-			Semaphore m_Count;
-			FirstLock m_FirstLock;
-			LastLock  m_LastLock;
+			FirstElement m_First;
+			LastElement  m_Last;
+			Semaphore    m_Count;
 		};
 
 		template
 		<
-			typename TYPE
+			typename TYPE,
+			size_t   NODE_SIZE = 256
 		>
-		using Queue1x1 = Queue<TYPE, true, true>;
+		using Queue1x1 = Queue<TYPE, true, true, NODE_SIZE>;
 
 		template
 		<
-			typename TYPE
+			typename TYPE,
+			size_t   NODE_SIZE = 256
 		>
-		using Queue1xN = Queue<TYPE, true, false>;
+		using Queue1xN = Queue<TYPE, true, false, NODE_SIZE>;
 
 		template
 		<
-			typename TYPE
+			typename TYPE,
+			size_t   NODE_SIZE = 256
 		>
-		using QueueNx1 = Queue<TYPE, false, true>;
+		using QueueNx1 = Queue<TYPE, false, true, NODE_SIZE>;
 
 		template
 		<
-			typename TYPE
+			typename TYPE,
+			size_t   NODE_SIZE = 256
 		>
-		using QueueNxN = Queue<TYPE, false, false>;
+		using QueueNxN = Queue<TYPE, false, false, NODE_SIZE>;
 	}
 }
