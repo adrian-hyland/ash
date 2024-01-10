@@ -178,7 +178,7 @@ namespace Ash
 			<
 				size_t INDEX
 			>
-			const typename Arguments::GetType<INDEX> &getArgument() const { return m_Arguments.template get<INDEX>(); }
+			const typename Arguments::template GetType<INDEX> &getArgument() const { return m_Arguments.template get<INDEX>(); }
 
 			constexpr void operator ()() { m_Arguments(m_Call); }
 
