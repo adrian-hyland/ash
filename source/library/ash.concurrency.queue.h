@@ -12,7 +12,7 @@ namespace Ash
 			typename TYPE,
 			bool     HAS_SINGLE_PRODUCER = false,
 			bool     HAS_SINGLE_CONSUMER = false,
-			size_t   NODE_SIZE = 256
+			size_t   NODE_CAPACITY = 256
 		>
 		class Queue
 		{
@@ -23,7 +23,7 @@ namespace Ash
 
 			static constexpr bool hasSingleConsumer = HAS_SINGLE_CONSUMER;
 
-			static constexpr bool isSingleElement = (NODE_SIZE <= 1);
+			static constexpr bool isSingleElement = (NODE_CAPACITY <= 1);
 
 			inline Queue() : m_First(), m_Last(m_First.getNode()), m_Count() {}
 
@@ -107,8 +107,7 @@ namespace Ash
 				}
 
 			private:
-				Node  *m_Node;
-				size_t m_Offset;
+				Node *m_Node;
 			};
 
 			class ElementSequence
@@ -116,7 +115,7 @@ namespace Ash
 			public:
 				struct Node
 				{
-					using Content = Ash::Memory::Sequence<Type, NODE_SIZE>;
+					using Content = Ash::Memory::Sequence<Type, NODE_CAPACITY>;
 
 					constexpr Node() : m_Content(), m_Next(nullptr) {}
 
@@ -146,7 +145,7 @@ namespace Ash
 				{
 					*m_Node->m_Content.at(m_Offset) = std::move(value);
 					m_Offset++;
-					if (m_Offset == NODE_SIZE)
+					if (m_Offset == NODE_CAPACITY)
 					{
 						m_Node->m_Next = new Node();
 						m_Node = m_Node->m_Next;
@@ -158,7 +157,7 @@ namespace Ash
 				{
 					Type value = std::move(*m_Node->m_Content.at(m_Offset));
 					m_Offset++;
-					if (m_Offset == NODE_SIZE)
+					if (m_Offset == NODE_CAPACITY)
 					{
 						Node *nextNode = m_Node->m_Next;
 						delete m_Node;
@@ -228,29 +227,29 @@ namespace Ash
 		template
 		<
 			typename TYPE,
-			size_t   NODE_SIZE = 256
+			size_t   NODE_CAPACITY = 256
 		>
-		using Queue1x1 = Queue<TYPE, true, true, NODE_SIZE>;
+		using Queue1x1 = Queue<TYPE, true, true, NODE_CAPACITY>;
 
 		template
 		<
 			typename TYPE,
-			size_t   NODE_SIZE = 256
+			size_t   NODE_CAPACITY = 256
 		>
-		using Queue1xN = Queue<TYPE, true, false, NODE_SIZE>;
+		using Queue1xN = Queue<TYPE, true, false, NODE_CAPACITY>;
 
 		template
 		<
 			typename TYPE,
-			size_t   NODE_SIZE = 256
+			size_t   NODE_CAPACITY = 256
 		>
-		using QueueNx1 = Queue<TYPE, false, true, NODE_SIZE>;
+		using QueueNx1 = Queue<TYPE, false, true, NODE_CAPACITY>;
 
 		template
 		<
 			typename TYPE,
-			size_t   NODE_SIZE = 256
+			size_t   NODE_CAPACITY = 256
 		>
-		using QueueNxN = Queue<TYPE, false, false, NODE_SIZE>;
+		using QueueNxN = Queue<TYPE, false, false, NODE_CAPACITY>;
 	}
 }
