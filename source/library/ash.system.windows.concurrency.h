@@ -243,7 +243,7 @@ namespace Ash
 					<
 						typename CALLABLE
 					>
-					static __stdcall unsigned int runCallable(void *param)
+					static unsigned int __stdcall runCallable(void *param)
 					{
 						CALLABLE *callable = static_cast<CALLABLE *>(param);
 						
