@@ -95,7 +95,7 @@ namespace Ash
 
 				static inline void sleep(Nanosecond duration)
 				{
-					::Sleep(duration / 1000000ULL);
+					::Sleep(DWORD(duration / 1000000ULL));
 				}
 
 			protected:
