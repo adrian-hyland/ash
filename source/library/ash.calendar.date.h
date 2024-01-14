@@ -50,6 +50,14 @@ namespace Ash
 
 			constexpr YearCycle(Type year = 0) : SubCycle(year) {}
 
+			constexpr YearCycle &operator ++ () { *this = *this + 1; return *this; }
+
+			constexpr YearCycle &operator -- () { *this = *this - 1; return *this; }
+
+			constexpr YearCycle operator ++ (int) { YearCycle result = *this; ++(*this); return result; }
+
+			constexpr YearCycle operator -- (int) { YearCycle result = *this; --(*this); return result; }
+
 			constexpr bool isLeapYear() const
 			{
 				return (Type(*this) % cycleStep == 0) ? (Type(*this) / cycleStep) % cycleCount == 0 : SubCycle::isLeapYear();
