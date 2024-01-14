@@ -29,6 +29,69 @@ namespace Ash
 				typename CALENDAR,
 				typename = Ash::Type::IsClass<CALENDAR, Ash::Calendar::Generic::Proleptic>
 			>
+			static Ash::Test::Assertion year()
+			{
+				using Calendar = CALENDAR;
+				using Year = typename Calendar::Year;
+
+				Year year = 0;
+				TEST_IS_TRUE(year++.isLeapYear());
+				TEST_IS_TRUE((--year).isLeapYear());
+				TEST_IS_TRUE(year--.isLeapYear());
+				TEST_IS_TRUE((++year).isLeapYear());
+				TEST_IS_FALSE((++year).isLeapYear());
+				TEST_IS_FALSE(year++.isLeapYear());
+				TEST_IS_FALSE((--year).isLeapYear());
+				TEST_IS_FALSE(year--.isLeapYear());
+				
+				year = 4;
+				TEST_IS_TRUE(year++.isLeapYear());
+				TEST_IS_TRUE((--year).isLeapYear());
+				TEST_IS_TRUE(year--.isLeapYear());
+				TEST_IS_TRUE((++year).isLeapYear());
+				TEST_IS_FALSE((++year).isLeapYear());
+				TEST_IS_FALSE(year++.isLeapYear());
+				TEST_IS_FALSE((--year).isLeapYear());
+				TEST_IS_FALSE(year--.isLeapYear());
+
+				year = 100;
+				if constexpr (Ash::Type::isSame<Calendar, Ash::Calendar::Julian>)
+				{
+					TEST_IS_TRUE(year++.isLeapYear());
+					TEST_IS_TRUE((--year).isLeapYear());
+					TEST_IS_TRUE(year--.isLeapYear());
+					TEST_IS_TRUE((++year).isLeapYear());
+				}
+				else
+				{
+					TEST_IS_FALSE(year++.isLeapYear());
+					TEST_IS_FALSE((--year).isLeapYear());
+					TEST_IS_FALSE(year--.isLeapYear());
+					TEST_IS_FALSE((++year).isLeapYear());
+				}
+				TEST_IS_FALSE((++year).isLeapYear());
+				TEST_IS_FALSE(year++.isLeapYear());
+				TEST_IS_FALSE((--year).isLeapYear());
+				TEST_IS_FALSE(year--.isLeapYear());
+
+				year = 400;
+				TEST_IS_TRUE(year++.isLeapYear());
+				TEST_IS_TRUE((--year).isLeapYear());
+				TEST_IS_TRUE(year--.isLeapYear());
+				TEST_IS_TRUE((++year).isLeapYear());
+				TEST_IS_FALSE((++year).isLeapYear());
+				TEST_IS_FALSE(year++.isLeapYear());
+				TEST_IS_FALSE((--year).isLeapYear());
+				TEST_IS_FALSE(year--.isLeapYear());
+
+				return {};
+			}
+
+			template
+			<
+				typename CALENDAR,
+				typename = Ash::Type::IsClass<CALENDAR, Ash::Calendar::Generic::Proleptic>
+			>
 			static Ash::Test::Assertion month()
 			{
 				using Calendar = CALENDAR;
@@ -548,6 +611,7 @@ namespace Ash
 			testDate,
 			TEST_CASE(Ash::Test::Calendar::weekday),
 
+			TEST_CASE_GENERIC(Ash::Test::Calendar::year, Ash::Calendar::Gregorian),
 			TEST_CASE_GENERIC(Ash::Test::Calendar::month, Ash::Calendar::Gregorian),
 			TEST_CASE_GENERIC(Ash::Test::Calendar::date, Ash::Calendar::Gregorian),
 			TEST_CASE_GENERIC(Ash::Test::Calendar::isYearOrdinalValid, Ash::Calendar::Gregorian),
@@ -564,6 +628,7 @@ namespace Ash
 			TEST_CASE_GENERIC(Ash::Test::Calendar::getWeekday, Ash::Calendar::Gregorian),
 			TEST_CASE_GENERIC(Ash::Test::Calendar::getYearWeek, Ash::Calendar::Gregorian),
 
+			TEST_CASE_GENERIC(Ash::Test::Calendar::year, Ash::Calendar::Julian),
 			TEST_CASE_GENERIC(Ash::Test::Calendar::month, Ash::Calendar::Julian),
 			TEST_CASE_GENERIC(Ash::Test::Calendar::date, Ash::Calendar::Julian),
 			TEST_CASE_GENERIC(Ash::Test::Calendar::isYearOrdinalValid, Ash::Calendar::Julian),
