@@ -53,6 +53,28 @@ namespace Ash
 				return m_First.remove();
 			}
 
+			inline bool tryRemove(Type &value)
+			{
+				if (!m_Count.tryAcquire())
+				{
+					return false;
+				}
+
+				value = m_First.remove();
+				return true;
+			}
+
+			inline bool tryRemove(Ash::Timer::Value duration, Type &value)
+			{
+				if (!m_Count.tryAcquire(duration))
+				{
+					return false;
+				}
+
+				value = m_First.remove();
+				return true;
+			}
+
 		protected:
 			class NullMutex
 			{
