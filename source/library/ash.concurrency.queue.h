@@ -39,6 +39,13 @@ namespace Ash
 				m_Count.release();
 			}
 
+			inline void add(const Type &value)
+			{
+				m_Last.add(value);
+									
+				m_Count.release();
+			}
+
 			inline Type remove()
 			{
 				m_Count.acquire();
@@ -93,6 +100,13 @@ namespace Ash
 				constexpr void add(Type &&value)
 				{
 					m_Node->m_Content = std::move(value);
+					m_Node->m_Next = new Node();
+					m_Node = m_Node->m_Next;
+				}
+
+				constexpr void add(const Type &value)
+				{
+					m_Node->m_Content = value;
 					m_Node->m_Next = new Node();
 					m_Node = m_Node->m_Next;
 				}
@@ -153,6 +167,18 @@ namespace Ash
 					}
 				}
 
+				constexpr void add(const Type &value)
+				{
+					*m_Node->m_Content.at(m_Offset) = value;
+					m_Offset++;
+					if (m_Offset == NODE_CAPACITY)
+					{
+						m_Node->m_Next = new Node();
+						m_Node = m_Node->m_Next;
+						m_Offset = 0;
+					}
+				}
+
 				constexpr Type remove()
 				{
 					Type value = std::move(*m_Node->m_Content.at(m_Offset));
@@ -198,6 +224,13 @@ namespace Ash
 				{
 					m_Lock.acquire();
 					Element::add(std::move(value));
+					m_Lock.release();
+				}
+
+				inline void add(const Type &value)
+				{
+					m_Lock.acquire();
+					Element::add(value);
 					m_Lock.release();
 				}
 
