@@ -159,13 +159,16 @@ namespace Ash
 				Condition::release();
 			}
 
-			inline void release()
+			inline void release(Count count = 1)
 			{
 				Condition::acquire();
 
-				m_Count++;
+				for (Count n = 0; n < count; n++)
+				{
+					m_Count++;
+					Condition::signal();
+				}
 
-				Condition::signal();
 				Condition::release();
 			}
 
