@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ash.integer.h"
 #include "ash.concurrency.h"
 
 
@@ -113,33 +114,41 @@ namespace Ash
 				{
 					while (m_Node != nullptr)
 					{
-						Node *nextNode = m_Node->m_Next;
-						delete m_Node;
-						m_Node = nextNode;
+						removeNode();
 					}
 				}
 
 				constexpr void add(Type &&value)
 				{
 					m_Node->m_Content = std::move(value);
-					m_Node->m_Next = new Node();
-					m_Node = m_Node->m_Next;
+					addNode();
 				}
 
 				constexpr void add(const Type &value)
 				{
 					m_Node->m_Content = value;
-					m_Node->m_Next = new Node();
-					m_Node = m_Node->m_Next;
+					addNode();
 				}
 
 				constexpr Type remove()
 				{
 					Type value = std::move(m_Node->m_Content);
+					removeNode();
+					return value;
+				}
+
+			protected:
+				constexpr void addNode()
+				{
+					m_Node->m_Next = new Node();
+					m_Node = m_Node->m_Next;
+				}
+
+				constexpr void removeNode()
+				{
 					Node *nextNode = m_Node->m_Next;
 					delete m_Node;
 					m_Node = nextNode;
-					return value;
 				}
 
 			private:
@@ -149,6 +158,8 @@ namespace Ash
 			class ElementSequence
 			{
 			public:
+				using Offset = Ash::Integer::Cycle<0, NODE_CAPACITY - 1>;
+
 				struct Node
 				{
 					using Content = Ash::Memory::Sequence<Type, NODE_CAPACITY>;
@@ -171,53 +182,55 @@ namespace Ash
 				{
 					while (m_Node != nullptr)
 					{
-						Node *nextNode = m_Node->m_Next;
-						delete m_Node;
-						m_Node = nextNode;
+						removeNode();
 					}
 				}
 
 				constexpr void add(Type &&value)
 				{
 					*m_Node->m_Content.at(m_Offset) = std::move(value);
-					m_Offset++;
-					if (m_Offset == NODE_CAPACITY)
+					if (++m_Offset == 0)
 					{
-						m_Node->m_Next = new Node();
-						m_Node = m_Node->m_Next;
-						m_Offset = 0;
+						addNode();
 					}
 				}
 
 				constexpr void add(const Type &value)
 				{
 					*m_Node->m_Content.at(m_Offset) = value;
-					m_Offset++;
-					if (m_Offset == NODE_CAPACITY)
+					if (++m_Offset == 0)
 					{
-						m_Node->m_Next = new Node();
-						m_Node = m_Node->m_Next;
-						m_Offset = 0;
+						addNode();
 					}
 				}
 
 				constexpr Type remove()
 				{
 					Type value = std::move(*m_Node->m_Content.at(m_Offset));
-					m_Offset++;
-					if (m_Offset == NODE_CAPACITY)
+					if (++m_Offset == 0)
 					{
-						Node *nextNode = m_Node->m_Next;
-						delete m_Node;
-						m_Node = nextNode;
-						m_Offset = 0;
+						removeNode();
 					}
 					return value;
 				}
 
+			protected:
+				void addNode()
+				{
+					m_Node->m_Next = new Node();
+					m_Node = m_Node->m_Next;
+				}
+
+				void removeNode()
+				{
+					Node *nextNode = m_Node->m_Next;
+					delete m_Node;
+					m_Node = nextNode;
+				}
+
 			private:
 				Node  *m_Node;
-				size_t m_Offset;
+				Offset m_Offset;
 			};
 
 			using Element = Ash::Type::Option<ElementValue, ElementSequence, isSingleElement>;
