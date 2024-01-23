@@ -108,8 +108,6 @@ namespace Ash
 
 				constexpr Node *getNode() { return m_Node; }
 
-				constexpr bool isEmpty() { return m_Node == nullptr; }
-
 				constexpr void clear()
 				{
 					while (m_Node != nullptr)
@@ -175,8 +173,6 @@ namespace Ash
 				constexpr ElementSequence(Node *node) : m_Node(node), m_Offset(0) {}
 
 				constexpr Node *getNode() { return m_Node; }
-
-				constexpr bool isEmpty() { return m_Node == nullptr; }
 
 				constexpr void clear()
 				{
