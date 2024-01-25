@@ -65,7 +65,7 @@ namespace Ash
 
 				class Condition
 				{
-				protected:
+				public:
 					inline Condition() : m_Handle(PTHREAD_COND_INITIALIZER), m_Mutex() {}
 
 					virtual inline ~Condition()
@@ -199,7 +199,7 @@ namespace Ash
 
 						if (runFunction(handle, function, std::forward<ARGUMENTS>(arguments)...))
 						{
-							pthread_detach(handle);
+							::pthread_detach(handle);
 							return true;
 						}
 						return false;

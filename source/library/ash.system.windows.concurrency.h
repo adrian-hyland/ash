@@ -17,22 +17,22 @@ namespace Ash
 			{
 				class Condition
 				{
-				protected:
+				public:
 					inline Condition() : m_Condition(CONDITION_VARIABLE_INIT), m_Lock(SRWLOCK_INIT) {}
 
 					inline void acquire()
 					{
-						AcquireSRWLockExclusive(&m_Lock);
+						::AcquireSRWLockExclusive(&m_Lock);
 					}
 
 					inline void release()
 					{
-						ReleaseSRWLockExclusive(&m_Lock);
+						::ReleaseSRWLockExclusive(&m_Lock);
 					}
 
 					inline void signal()
 					{
-						WakeConditionVariable(&m_Condition);
+						::WakeConditionVariable(&m_Condition);
 					}
 
 					template
@@ -43,7 +43,7 @@ namespace Ash
 					{
 						while (!predicate())
 						{
-							SleepConditionVariableSRW(&m_Condition, &m_Lock, INFINITE, 0);
+							::SleepConditionVariableSRW(&m_Condition, &m_Lock, INFINITE, 0);
 						}
 					}
 
@@ -64,7 +64,7 @@ namespace Ash
 							}
 							Ash::Timer::Value remaining = duration - elapsed;
 
-							if (!SleepConditionVariableSRW(&m_Condition, &m_Lock, remaining.as<DWORD>(Ash::Timer::Value::Milliseconds), 0))
+							if (!::SleepConditionVariableSRW(&m_Condition, &m_Lock, remaining.as<DWORD>(Ash::Timer::Value::Milliseconds), 0))
 							{
 								return false;
 							}
