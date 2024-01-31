@@ -23,20 +23,19 @@ namespace Ash
 		class Value
 		{
 		public:
-			enum Unit : uint64_t
-			{
-				Nanoseconds  = 1,
-				Microseconds = Nanoseconds  * 1000,
-				Milliseconds = Microseconds * 1000,
-				Seconds      = Milliseconds * 1000,
-				Minutes      = Seconds * 60,
-				Hours        = Minutes * 60,
-				Days         = Hours * 24
-			};
+			using Unit = uint64_t;
+
+			static constexpr Unit Nanoseconds  = 1;
+			static constexpr Unit Microseconds = Nanoseconds  * 1000;
+			static constexpr Unit Milliseconds = Microseconds * 1000;
+			static constexpr Unit Seconds      = Milliseconds * 1000;
+			static constexpr Unit Minutes      = Seconds * 60;
+			static constexpr Unit Hours        = Minutes * 60;
+			static constexpr Unit Days         = Hours * 24;
 
 			template
 			<
-				Unit UNIT = Unit::Nanoseconds
+				Unit UNIT = Nanoseconds
 			>
 			static constexpr Unit maximum = Unit(std::numeric_limits<Unit>::max() / UNIT);
 
@@ -52,15 +51,15 @@ namespace Ash
 																Or<Ash::Type::Requirement::IsClass, Ash::Generic::Real>::template
 																Or<Ash::Type::Requirement::IsFloatingPoint>::IsValid
 			>
-			constexpr Value(VALUE value, Unit unit = Unit::Nanoseconds) : m_Unit()
+			constexpr Value(VALUE value, Unit unit = Nanoseconds) : m_Unit()
 			{
 				if constexpr (Ash::Type::isSame<VALUE, timespec>)
 				{
-					m_Unit = Unit((value.tv_sec >= 0) ? value.tv_sec * Unit::Seconds + value.tv_nsec * Unit::Nanoseconds : 0);
+					m_Unit = Unit((value.tv_sec >= 0) ? value.tv_sec * Seconds + value.tv_nsec * Nanoseconds : 0);
 				}
 				else if constexpr (Ash::Type::isSame<VALUE, timeval>)
 				{
-					m_Unit = Unit((value.tv_sec >= 0) ? value.tv_sec * Unit::Seconds + value.tv_usec * Unit::Microseconds : 0);
+					m_Unit = Unit((value.tv_sec >= 0) ? value.tv_sec * Seconds + value.tv_usec * Microseconds : 0);
 				}
 				else if constexpr (Ash::Type::isSame<VALUE, Unit> || Ash::Type::isInteger<VALUE>)
 				{
@@ -84,15 +83,15 @@ namespace Ash
 																Or<Ash::Type::Requirement::IsClass, Ash::Generic::Real>::template
 																Or<Ash::Type::Requirement::IsFloatingPoint>::IsValid
 			>
-			constexpr VALUE as(Unit unit = Unit::Nanoseconds) const
+			constexpr VALUE as(Unit unit = Nanoseconds) const
 			{
 				if constexpr (Ash::Type::isSame<VALUE, timespec>)
 				{
-					return { decltype(VALUE::tv_sec)(m_Unit / Unit::Seconds), decltype(VALUE::tv_nsec)((m_Unit % Unit::Seconds) / Unit::Nanoseconds) };
+					return { decltype(VALUE::tv_sec)(m_Unit / Seconds), decltype(VALUE::tv_nsec)((m_Unit % Seconds) / Nanoseconds) };
 				}
 				else if constexpr (Ash::Type::isSame<VALUE, timeval>)
 				{
-					return { decltype(VALUE::tv_sec)(m_Unit / Unit::Seconds), decltype(VALUE::tv_usec)((m_Unit % Unit::Seconds) / Unit::Microseconds) };
+					return { decltype(VALUE::tv_sec)(m_Unit / Seconds), decltype(VALUE::tv_usec)((m_Unit % Seconds) / Microseconds) };
 				}
 				else if constexpr (Ash::Type::isSame<VALUE, Unit> || Ash::Type::isInteger<VALUE>)
 				{
@@ -100,7 +99,7 @@ namespace Ash
 				}
 				else // constexpr(Ash::Type::isClass<VALUE, Ash::Generic::Real> || Ash::Type::isFloatingPoint<VALUE>)
 				{
-					return VALUE(std::underlying_type_t<Unit>(m_Unit)) / std::underlying_type_t<Unit>(unit);
+					return VALUE(Unit(m_Unit)) / Unit(unit);
 				}
 			}
 
