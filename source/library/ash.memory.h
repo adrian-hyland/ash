@@ -15,17 +15,58 @@ namespace Ash
 	{
 		template
 		<
+			typename TYPE,
+			size_t   TO_SIZE,
+			size_t   FROM_SIZE
+		>
+		constexpr void copy(TYPE (&to)[TO_SIZE], const TYPE (&from)[FROM_SIZE])
+		{
+			for (size_t n = 0; n < std::min(TO_SIZE, FROM_SIZE); n++)
+			{
+				to[n] = from[n];
+			}
+		}
+
+		template
+		<
+			typename TYPE,
+			size_t   TO_SIZE,
+			size_t   FROM_SIZE
+		>
+		constexpr void move(TYPE (&to)[TO_SIZE], TYPE (&from)[FROM_SIZE])
+		{
+			for (size_t n = 0; n < std::min(TO_SIZE, FROM_SIZE); n++)
+			{
+				to[n] = std::move(from[n]);
+			}
+		}
+
+		template
+		<
+			typename TYPE,
+			size_t   SIZE
+		>
+		constexpr void clear(TYPE (&content)[SIZE])
+		{
+			for (size_t n = 0; n < SIZE; n++)
+			{
+				content[n] = TYPE();
+			}
+		}
+
+		template
+		<
 			typename TYPE
 		>
-		void copy(TYPE *to, const TYPE *from, size_t length)
+		constexpr void copy(TYPE *to, const TYPE *from, size_t length)
 		{
 			if constexpr (Ash::Type::isPrimitive<TYPE>)
 			{
 				if (length < sizeof(int) / sizeof(TYPE))
 				{
-					while (length--)
+					for (size_t n = 0; n < length; n++)
 					{
-						*(to++) = *(from++);
+						to[n] = from[n];
 					}
 				}
 				else
@@ -46,7 +87,7 @@ namespace Ash
 		<
 			typename TYPE
 		>
-		void move(TYPE *to, TYPE *from, size_t length)
+		constexpr void move(TYPE *to, TYPE *from, size_t length)
 		{
 			if constexpr (Ash::Type::isPrimitive<TYPE>)
 			{
@@ -75,7 +116,7 @@ namespace Ash
 		<
 			typename TYPE
 		>
-		void clear(TYPE *content, size_t length)
+		constexpr void clear(TYPE *content, size_t length)
 		{
 			if constexpr (Ash::Type::isPrimitive<TYPE>)
 			{
