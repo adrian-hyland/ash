@@ -34,8 +34,7 @@ namespace Ash
 			{
 				if constexpr (Ash::Type::isArray<Type>)
 				{
-					using ArrayType = std::remove_all_extents_t<Type>;
-					Ash::Memory::copy((ArrayType *)m_Value, (const ArrayType *)argument, sizeof(m_Value) / sizeof(ArrayType));
+					Ash::Memory::copy(m_Value, argument);
 				}
 				else
 				{
@@ -53,7 +52,7 @@ namespace Ash
 			<
 				size_t INDEX
 			>
-			const GetType<INDEX> &get() const
+			constexpr const GetType<INDEX> &get() const
 			{
 				if constexpr (INDEX == 0)
 				{
@@ -105,8 +104,7 @@ namespace Ash
 			{
 				if constexpr (Ash::Type::isArray<Type>)
 				{
-					using ArrayType = std::remove_all_extents_t<Type>;
-					Ash::Memory::copy((ArrayType *)m_Value, (const ArrayType *)argument, sizeof(m_Value) / sizeof(ArrayType));
+					Ash::Memory::copy(m_Value, argument);
 				}
 				else
 				{
@@ -120,7 +118,7 @@ namespace Ash
 			<
 				size_t INDEX
 			>
-			const GetType<INDEX> &get() const
+			constexpr const GetType<INDEX> &get() const
 			{
 				if constexpr (INDEX == 0)
 				{
