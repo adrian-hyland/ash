@@ -217,7 +217,13 @@ namespace Ash
 
 						CallableFunction *callable = new CallableFunction(function, std::forward<ARGUMENTS>(arguments)...);
 
-						return ::pthread_create(&handle, nullptr, runCallable<CallableFunction>, callable) == 0;
+						if (::pthread_create(&handle, nullptr, runCallable<CallableFunction>, callable) != 0)
+						{
+							delete callable;
+							return false;
+						}
+
+						return true;
 					}
 
 					template
