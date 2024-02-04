@@ -236,7 +236,13 @@ namespace Ash
 
 						uintptr_t handle = ::_beginthreadex(nullptr, 0, runCallable<CallableFunction>, callable, 0, nullptr);
 
-						return (handle != 0) ? Handle(handle) : INVALID_HANDLE_VALUE;
+						if (handle == 0)
+						{
+							delete callable;
+							return INVALID_HANDLE_VALUE;
+						}
+
+						return Handle(handle);
 					}
 
 					template
