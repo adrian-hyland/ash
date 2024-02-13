@@ -104,7 +104,7 @@ namespace Ash
 					{
 						Condition::acquire();
 
-						if (!Condition::tryWait([=]() { return !m_IsLocked; }, duration))
+						if (!Condition::tryWait([this]() { return !m_IsLocked; }, duration))
 						{
 							Condition::release();
 							return false;
@@ -120,7 +120,7 @@ namespace Ash
 					{
 						Condition::acquire();
 
-						Condition::wait([=]() { return !m_IsLocked; });
+						Condition::wait([this]() { return !m_IsLocked; });
 
 						m_IsLocked = true;
 
@@ -159,7 +159,7 @@ namespace Ash
 						thread.m_Handle = INVALID_HANDLE_VALUE;
 					}
 
-					virtual inline ~Thread()
+					inline ~Thread()
 					{
 						join();
 					}
