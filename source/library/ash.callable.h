@@ -154,12 +154,21 @@ namespace Ash
 		Argument(TYPE &&...) -> Argument<TYPE &&...>;
 
 
+		namespace Generic
+		{
+			class Function
+			{
+			public:
+				virtual constexpr void operator ()() = 0;
+			};
+		}
+
 		template
 		<
 			typename CALL,
 			typename ...ARGUMENT
 		>
-		class Function
+		class Function : public Generic::Function
 		{
 		public:
 			using Call = CALL;
@@ -178,7 +187,7 @@ namespace Ash
 			>
 			const typename Arguments::template GetType<INDEX> &getArgument() const { return m_Arguments.template get<INDEX>(); }
 
-			constexpr void operator ()() { m_Arguments(m_Call); }
+			constexpr void operator ()() override { m_Arguments(m_Call); }
 
 		private:
 			Call      m_Call;
@@ -189,14 +198,14 @@ namespace Ash
 		<
 			typename CALL
 		>
-		class Function<CALL>
+		class Function<CALL> : public Generic::Function
 		{
 		public:
 			using Call = CALL;
 
 			constexpr Function(Call call) : m_Call(call) {}
 
-			constexpr void operator ()() { (*m_Call)(); }
+			constexpr void operator ()() override { (*m_Call)(); }
 
 		private:
 			Call m_Call;
