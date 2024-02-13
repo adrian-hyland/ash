@@ -70,7 +70,7 @@ namespace Ash
 			{
 				Condition::acquire();
 
-				if (!Condition::tryWait([=]() { return m_Value; }, duration))
+				if (!Condition::tryWait([this]() { return m_Value; }, duration))
 				{
 					Condition::release();
 					return false;
@@ -89,7 +89,7 @@ namespace Ash
 			{
 				Condition::acquire();
 
-				Condition::wait([=]() { return m_Value; });
+				Condition::wait([this]() { return m_Value; });
 
 				if (m_Reset == Reset::Automatic)
 				{
@@ -136,7 +136,7 @@ namespace Ash
 			{
 				Condition::acquire();
 
-				if (!Condition::tryWait([=]() { return m_Count > 0; }, duration))
+				if (!Condition::tryWait([this]() { return m_Count > 0; }, duration))
 				{
 					Condition::release();
 					return false;
@@ -152,7 +152,7 @@ namespace Ash
 			{
 				Condition::acquire();
 
-				Condition::wait([=]() { return m_Count > 0; });
+				Condition::wait([this]() { return m_Count > 0; });
 
 				m_Count--;
 
