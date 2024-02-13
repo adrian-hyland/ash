@@ -103,7 +103,7 @@ LNK_FLAGS += --coverage
 endif
 
 ifndef STD
-STD := 17
+STD := 20
 endif
 
 BUILD_STD=C++$(STD)
@@ -121,6 +121,8 @@ BUILD_CFG := ./.vscode/c_cpp_properties.json
 BUILD_DEFINE := $(call list_get_csv,$(C_DEFINE))
 BUILD_INCLUDE := $(call list_get_csv,$(INC_DIR) $(call list_add,$${workspaceFolder}/**))
 
+CFG_NAME := $(APP_NAME) - $(BUILD_NAME) $(BUILD_STD)
+
 APP := $(BIN_DIR)/$(APPLICATION)
 
 all: $(APP)
@@ -132,9 +134,9 @@ clean:
 vscode:
 	mkdir -p ./.vscode
 	touch $(BUILD_CFG)
-	cat $(BUILD_CFG) | ./jsoncfg "/configurations[/name:\"$(BUILD_NAME) $(BUILD_STD)\"]" \
+	cat $(BUILD_CFG) | ./jsoncfg "/configurations[/name:\"$(CFG_NAME)\"]" \
        "{ \
-            \"name\":\"$(BUILD_NAME) $(BUILD_STD)\", \
+            \"name\":\"$(CFG_NAME)\", \
             \"includePath\":[ $(BUILD_INCLUDE) ], \
             \"defines\":[ $(BUILD_DEFINE) ], \
             \"cppStandard\":\"$(C_STD)\" \
