@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ash.test.memory.allocation.h"
+#include "ash.test.memory.unique.h"
 
 
 namespace Ash
@@ -10,7 +11,8 @@ namespace Ash
 		constexpr TEST_UNIT
 		(
 			testMemory,
-			Ash::Test::testMemoryAllocation
+			Ash::Test::testMemoryAllocation,
+			Ash::Test::testMemoryUnique
 		);
 	}
 }
