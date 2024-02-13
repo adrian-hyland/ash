@@ -39,7 +39,7 @@ namespace Ash
 
 					inline File(File &&file) noexcept : m_Handle(file.m_Handle) { file.m_Handle = INVALID_HANDLE_VALUE; }
 
-					virtual inline ~File()
+					inline ~File()
 					{
 						close();
 					}

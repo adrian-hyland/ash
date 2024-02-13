@@ -28,7 +28,7 @@ namespace Ash
 
 			inline Queue() : m_First(), m_Last(m_First.getNode()), m_Count() {}
 
-			virtual inline ~Queue()
+			inline ~Queue()
 			{
 				m_First.clear();
 			}

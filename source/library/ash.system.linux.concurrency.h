@@ -22,7 +22,7 @@ namespace Ash
 				public:
 					inline Mutex() : m_Handle(PTHREAD_MUTEX_INITIALIZER) {}
 
-					virtual inline ~Mutex()
+					inline ~Mutex()
 					{
 						::pthread_mutex_destroy(&m_Handle);
 					}
@@ -68,7 +68,7 @@ namespace Ash
 				public:
 					inline Condition() : m_Handle(PTHREAD_COND_INITIALIZER), m_Mutex() {}
 
-					virtual inline ~Condition()
+					inline ~Condition()
 					{
 						::pthread_cond_destroy(&m_Handle);
 					}
@@ -144,7 +144,7 @@ namespace Ash
 						thread.m_IsSetUp = false;
 					}
 
-					virtual inline ~Thread()
+					inline ~Thread()
 					{
 						join();
 					}

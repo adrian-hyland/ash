@@ -43,7 +43,7 @@ namespace Ash
 
 					inline File(File &&file) noexcept : m_Handle(file.m_Handle) { file.m_Handle = nullptr; }
 
-					virtual inline ~File()
+					inline ~File()
 					{
 						close();
 					}
