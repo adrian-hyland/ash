@@ -1,4 +1,5 @@
 #include "ash.memory.h"
+#include "ash.test.memory.trace.h"
 #include "ash.test.memory.allocation.h"
 
 
@@ -10,175 +11,6 @@ namespace Ash
 		{
 			namespace Allocation
 			{
-				template
-				<
-					typename TYPE
-				>
-				class TraceAllocation;
-
-				class Trace
-				{
-				public:
-					static size_t getAllocatedCount()
-					{
-						size_t count = 0;
-
-						for (Node *node = m_Head; node != nullptr; node = node->m_Next)
-						{
-							count++;
-						}
-
-						return count;
-					}
-
-				private:
-					struct Node
-					{
-						struct Node *m_Previous;
-						struct Node *m_Next;
-					};
-
-					static void insert(Node *node)
-					{
-						node->m_Next = m_Head;
-						node->m_Previous = nullptr;
-
-						if (m_Head != nullptr)
-						{
-							m_Head->m_Previous = node;
-						}
-						m_Head = node;
-					}
-
-					static void remove(Node *node)
-					{
-						if (node->m_Previous != nullptr)
-						{
-							node->m_Previous->m_Next = node->m_Next;
-						}
-						else
-						{
-							m_Head = node->m_Next;
-						}
-							
-						if (node->m_Next != nullptr)
-						{
-							node->m_Next->m_Previous = node->m_Previous;
-						}
-					}
-
-					static Node *m_Head;
-
-					template
-					<
-						typename TYPE
-					>
-					friend class TraceAllocation;
-				};
-
-				Trace::Node *Trace::m_Head = nullptr;
-
-				template
-				<
-					typename TYPE
-				>
-				class TraceAllocation
-				{
-				public:
-					constexpr TraceAllocation(const TYPE &value) : m_Value(value) {}
-
-					constexpr void *operator new(size_t size)
-					{
-						Trace::Node *node = (Trace::Node *)malloc(size + sizeof(Trace::Node));
-						if (node == nullptr)
-						{
-							throw std::bad_alloc();
-						}
-
-						Trace::insert(node);
-
-						return node + 1;
-					}
-
-					constexpr void operator delete(void *object)
-					{
-						if (object != nullptr)
-						{
-							Trace::Node *node = (Trace::Node *)object - 1;
-
-							Trace::remove(node);
-
-							free(node);
-						}
-					}
-
-					constexpr void setValue(const TYPE &value) { m_Value = value; }
-
-					constexpr const TYPE &getValue() const { return m_Value; }
-
-				private:
-					TYPE m_Value;
-				};
-
-
-				template
-				<
-					typename TYPE
-				>
-				class TraceValue
-				{
-				public:
-					constexpr TraceValue() : m_Pointer(nullptr) {}
-
-					constexpr TraceValue(const TYPE &value) : m_Pointer(new TraceAllocation<TYPE>(value)) {}
-
-					constexpr TraceValue(const TraceValue &value) : m_Pointer((value.m_Pointer != nullptr) ? new TraceAllocation<TYPE>(value.m_Pointer->getValue()) : nullptr) {}
-
-					constexpr TraceValue(TraceValue &&value) : m_Pointer(value.m_Pointer) { value.m_Pointer = nullptr; }
-
-					~TraceValue() { delete m_Pointer; }
-
-					constexpr TraceValue &operator = (const TraceValue &value)
-					{
-						if (this != &value)
-						{
-							if (value.m_Pointer == nullptr)
-							{
-								delete m_Pointer;
-								m_Pointer = nullptr;
-							}
-							else if (m_Pointer == nullptr)
-							{
-								m_Pointer = new TraceAllocation<TYPE>(value.m_Pointer->getValue());
-							}
-							else
-							{
-								m_Pointer->setValue(value.m_Pointer->getValue());
-							}
-						}
-
-						return *this;
-					}
-
-					constexpr TraceValue &operator = (TraceValue &&allocation)
-					{
-						if (this != &allocation)
-						{
-							delete m_Pointer;
-							m_Pointer = allocation.m_Pointer;
-							allocation.m_Pointer = nullptr;
-						}
-
-						return *this;
-					}
-
-					constexpr const TYPE &getValueOr(const TYPE &defaultValue) const { return (m_Pointer != nullptr) ? m_Pointer->getValue() : defaultValue; }
-
-				private:
-					TraceAllocation<TYPE> *m_Pointer;
-				};
-
-
 				template
 				<
 					size_t MINIMUM_CAPACITY    = 32,
@@ -302,7 +134,7 @@ namespace Ash
 						{
 							allocation1.getContent()[n] = TraceValue<int>(n);
 
-							TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(n));
+							TEST_IS_EQ(*allocation1.getContent()[n], int(n));
 						}
 
 						TEST_IS_EQ(Trace::getAllocatedCount(), length);
@@ -312,7 +144,7 @@ namespace Ash
 						{
 							allocation2.getContent()[n] = TraceValue<int>(length + n);
 
-							TEST_IS_EQ(allocation2.getContent()[n].getValueOr(-1), int(length + n));
+							TEST_IS_EQ(*allocation2.getContent()[n], int(length + n));
 						}
 
 						TEST_IS_EQ(Trace::getAllocatedCount(), 2 * length);
@@ -323,8 +155,8 @@ namespace Ash
 
 						for (size_t n = 0; n < length; n++)
 						{
-							TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(length + n));
-							TEST_IS_EQ(allocation2.getContent()[n].getValueOr(-1), int(length + n));
+							TEST_IS_EQ(*allocation1.getContent()[n], int(length + n));
+							TEST_IS_EQ(*allocation2.getContent()[n], int(length + n));
 						}
 
 						return {};
@@ -342,7 +174,7 @@ namespace Ash
 						{
 							allocation1.getContent()[n] = TraceValue<int>(n);
 
-							TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(n));
+							TEST_IS_EQ(*allocation1.getContent()[n], int(n));
 						}
 
 						TEST_IS_EQ(Trace::getAllocatedCount(), length);
@@ -352,7 +184,7 @@ namespace Ash
 						{
 							allocation2.getContent()[n] = TraceValue<int>(length + n);
 
-							TEST_IS_EQ(allocation2.getContent()[n].getValueOr(-1), int(length + n));
+							TEST_IS_EQ(*allocation2.getContent()[n], int(length + n));
 						}
 
 						TEST_IS_EQ(Trace::getAllocatedCount(), 2 * length);
@@ -367,7 +199,7 @@ namespace Ash
 
 						for (size_t n = 0; n < length; n++)
 						{
-							TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(length + n));
+							TEST_IS_EQ(*allocation1.getContent()[n], int(length + n));
 						}
 
 						return {};
@@ -516,7 +348,7 @@ namespace Ash
 						{
 							allocation1.getContent()[n] = TraceValue<int>(n);
 
-							TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(n));
+							TEST_IS_EQ(*allocation1.getContent()[n], int(n));
 						}
 
 						TEST_IS_EQ(Trace::getAllocatedCount(), length);
@@ -526,7 +358,7 @@ namespace Ash
 						{
 							allocation2.getContent()[n] = TraceValue<int>(length + n);
 
-							TEST_IS_EQ(allocation2.getContent()[n].getValueOr(-1), int(length + n));
+							TEST_IS_EQ(*allocation2.getContent()[n], int(length + n));
 						}
 
 						TEST_IS_EQ(Trace::getAllocatedCount(), 2 * length);
@@ -537,8 +369,8 @@ namespace Ash
 
 						for (size_t n = 0; n < length; n++)
 						{
-							TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(length + n));
-							TEST_IS_EQ(allocation2.getContent()[n].getValueOr(-1), int(length + n));
+							TEST_IS_EQ(*allocation1.getContent()[n], int(length + n));
+							TEST_IS_EQ(*allocation2.getContent()[n], int(length + n));
 						}
 
 						return {};
@@ -556,7 +388,7 @@ namespace Ash
 						{
 							allocation1.getContent()[n] = TraceValue<int>(n);
 
-							TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(n));
+							TEST_IS_EQ(*allocation1.getContent()[n], int(n));
 						}
 
 						TEST_IS_EQ(Trace::getAllocatedCount(), length);
@@ -566,7 +398,7 @@ namespace Ash
 						{
 							allocation2.getContent()[n] = TraceValue<int>(length + n);
 
-							TEST_IS_EQ(allocation2.getContent()[n].getValueOr(-1), int(length + n));
+							TEST_IS_EQ(*allocation2.getContent()[n], int(length + n));
 						}
 
 						TEST_IS_EQ(Trace::getAllocatedCount(), 2 * length);
@@ -581,7 +413,7 @@ namespace Ash
 
 						for (size_t n = 0; n < length; n++)
 						{
-							TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(length + n));
+							TEST_IS_EQ(*allocation1.getContent()[n], int(length + n));
 						}
 
 						return {};
@@ -700,7 +532,7 @@ namespace Ash
 						{
 							allocation1.getContent()[n] = TraceValue<int>(n);
 
-							TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(n));
+							TEST_IS_EQ(*allocation1.getContent()[n], int(n));
 						}
 
 						TEST_IS_EQ(Trace::getAllocatedCount(), CAPACITY);
@@ -710,7 +542,7 @@ namespace Ash
 						{
 							allocation2.getContent()[n] = TraceValue<int>(CAPACITY + n);
 
-							TEST_IS_EQ(allocation2.getContent()[n].getValueOr(-1), int(CAPACITY + n));
+							TEST_IS_EQ(*allocation2.getContent()[n], int(CAPACITY + n));
 						}
 
 						TEST_IS_EQ(Trace::getAllocatedCount(), 2 * CAPACITY);
@@ -721,8 +553,8 @@ namespace Ash
 
 						for (size_t n = 0; n < CAPACITY; n++)
 						{
-							TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(CAPACITY + n));
-							TEST_IS_EQ(allocation2.getContent()[n].getValueOr(-1), int(CAPACITY + n));
+							TEST_IS_EQ(*allocation1.getContent()[n], int(CAPACITY + n));
+							TEST_IS_EQ(*allocation2.getContent()[n], int(CAPACITY + n));
 						}
 
 						return {};
@@ -738,7 +570,7 @@ namespace Ash
 						{
 							allocation1.getContent()[n] = TraceValue<int>(n);
 
-							TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(n));
+							TEST_IS_EQ(*allocation1.getContent()[n], int(n));
 						}
 
 						TEST_IS_EQ(Trace::getAllocatedCount(), CAPACITY);
@@ -748,7 +580,7 @@ namespace Ash
 						{
 							allocation2.getContent()[n] = TraceValue<int>(CAPACITY + n);
 
-							TEST_IS_EQ(allocation2.getContent()[n].getValueOr(-1), int(CAPACITY + n));
+							TEST_IS_EQ(*allocation2.getContent()[n], int(CAPACITY + n));
 						}
 
 						TEST_IS_EQ(Trace::getAllocatedCount(), 2 * CAPACITY);
@@ -759,8 +591,8 @@ namespace Ash
 
 						for (size_t n = 0; n < CAPACITY; n++)
 						{
-							TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(CAPACITY + n));
-							TEST_IS_EQ(allocation2.getContent()[n].getValueOr(-1), -1);
+							TEST_IS_EQ(*allocation1.getContent()[n], int(CAPACITY + n));
+							TEST_IS_TRUE(allocation2.getContent()[n].isNull());
 						}
 
 						return {};
@@ -869,7 +701,7 @@ namespace Ash
 						{
 							allocation1.getContent()[n] = TraceValue<int>(n);
 
-							TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(n));
+							TEST_IS_EQ(*allocation1.getContent()[n], int(n));
 						}
 
 						TEST_IS_EQ(Trace::getAllocatedCount(), CAPACITY);
@@ -879,7 +711,7 @@ namespace Ash
 						{
 							allocation2.getContent()[n] = TraceValue<int>(CAPACITY + n);
 
-							TEST_IS_EQ(allocation2.getContent()[n].getValueOr(-1), int(CAPACITY + n));
+							TEST_IS_EQ(*allocation2.getContent()[n], int(CAPACITY + n));
 						}
 
 						TEST_IS_EQ(Trace::getAllocatedCount(), 2 * CAPACITY);
@@ -890,8 +722,8 @@ namespace Ash
 
 						for (size_t n = 0; n < CAPACITY; n++)
 						{
-							TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(CAPACITY + n));
-							TEST_IS_EQ(allocation2.getContent()[n].getValueOr(-1), int(CAPACITY + n));
+							TEST_IS_EQ(*allocation1.getContent()[n], int(CAPACITY + n));
+							TEST_IS_EQ(*allocation2.getContent()[n], int(CAPACITY + n));
 						}
 
 						return {};
@@ -907,7 +739,7 @@ namespace Ash
 						{
 							allocation1.getContent()[n] = TraceValue<int>(n);
 
-							TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(n));
+							TEST_IS_EQ(*allocation1.getContent()[n], int(n));
 						}
 
 						TEST_IS_EQ(Trace::getAllocatedCount(), CAPACITY);
@@ -917,7 +749,7 @@ namespace Ash
 						{
 							allocation2.getContent()[n] = TraceValue<int>(CAPACITY + n);
 
-							TEST_IS_EQ(allocation2.getContent()[n].getValueOr(-1), int(CAPACITY + n));
+							TEST_IS_EQ(*allocation2.getContent()[n], int(CAPACITY + n));
 						}
 
 						TEST_IS_EQ(Trace::getAllocatedCount(), 2 * CAPACITY);
@@ -928,8 +760,8 @@ namespace Ash
 
 						for (size_t n = 0; n < CAPACITY; n++)
 						{
-							TEST_IS_EQ(allocation1.getContent()[n].getValueOr(-1), int(CAPACITY + n));
-							TEST_IS_EQ(allocation2.getContent()[n].getValueOr(-1), -1);
+							TEST_IS_EQ(*allocation1.getContent()[n], int(CAPACITY + n));
+							TEST_IS_TRUE(allocation2.getContent()[n].isNull());
 						}
 
 						return {};
