@@ -228,13 +228,23 @@ namespace Ash
 						typename FUNCTION,
 						typename ...ARGUMENTS
 					>
+					struct Function
+					{
+						Ash::Callable::Function<FUNCTION, ARGUMENTS...> function;
+					};
+
+					template
+					<
+						typename FUNCTION,
+						typename ...ARGUMENTS
+					>
 					static inline Handle runFunction(FUNCTION function, ARGUMENTS &&...arguments)
 					{
-						using CallableFunction = Ash::Callable::Function<FUNCTION, ARGUMENTS...>;
+						using Callable = Function<FUNCTION, ARGUMENTS...>;
 
-						CallableFunction *callable = new CallableFunction(function, std::forward<ARGUMENTS>(arguments)...);
+						Callable *callable = new Callable(Ash::Callable::Function(function, std::forward<ARGUMENTS>(arguments)...));
 
-						uintptr_t handle = ::_beginthreadex(nullptr, 0, runCallable<CallableFunction>, callable, 0, nullptr);
+						uintptr_t handle = ::_beginthreadex(nullptr, 0, runCallable<Callable>, callable, 0, nullptr);
 
 						if (handle == 0)
 						{
@@ -253,7 +263,7 @@ namespace Ash
 					{
 						CALLABLE *callable = static_cast<CALLABLE *>(param);
 						
-						(*callable)();
+						callable->function();
 
 						delete callable;
 
