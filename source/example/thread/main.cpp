@@ -1,46 +1,67 @@
-#include <cstdio>
-#include "ash.ascii.h"
+#include <iostream>
+#include "ash.memory.unique.h"
 #include "ash.concurrency.h"
 
 
-class OutputThread : public Ash::Concurrency::Thread
+class BackgroundThread : public Ash::Concurrency::Thread
 {
 public:
-	OutputThread() : Ash::Concurrency::Thread(), m_Queue() { run(this); }
+	BackgroundThread() : Ash::Concurrency::Thread(), m_Queue() { run(this); }
 
-	~OutputThread()
+	~BackgroundThread()
 	{
-		send("");
+		send(Ash::Memory::Unique::Pointer<Ash::Callable::Generic::Function>());
 		join();
 	}
 
-	void send(Ash::Ascii::String<> &&message) { m_Queue.add(std::move(message)); }
+	void send(Ash::Memory::Unique::Pointer<Ash::Callable::Generic::Function> fn) { m_Queue.add(std::move(fn)); }
 
 	void operator ()()
 	{
 		for (;;)
 		{
-			Ash::Ascii::String<> string = m_Queue.remove();
-			if (string.getLength() == 0)
+			Ash::Memory::Unique::Pointer<Ash::Callable::Generic::Function> function = m_Queue.remove();
+			if (function.isNull())
 			{
 				break;
 			}
 
-			printf("%.*s\n", (int)string.getLength(), string.at(0));
+			(*function)();
 		}
 	}
 
 private:
-	Ash::Concurrency::Queue1x1<Ash::Ascii::String<>> m_Queue;
+	Ash::Concurrency::Queue1x1<Ash::Memory::Unique::Pointer<Ash::Callable::Generic::Function>> m_Queue;
 };
 
 
-int main()
+void helloWorld()
 {
-	OutputThread outputThread;
+	std::cout << "hello world\n";
+}
 
-	outputThread.send("Hello");
-	outputThread.send("World");
+
+int main(int argumentCount, const char *argumentArray[])
+{
+	BackgroundThread backgroundThread;
+
+	Ash::Callable::Function helloWorldFunction = helloWorld;
+	backgroundThread.send(Ash::Memory::Unique::at(helloWorldFunction));
+
+	backgroundThread.send(Ash::Memory::Unique::newValue
+	(
+		Ash::Callable::Function
+		(
+			[](Ash::Memory::View<const char *> arguments)
+			{
+				for (const char *s : arguments)
+				{
+					std::cout << "argument: " << s << "\n";
+				}
+			},
+			Ash::Memory::View<const char *>(argumentArray, argumentCount))
+		)
+	);
 
 	return 0;
 }
