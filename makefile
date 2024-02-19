@@ -11,14 +11,7 @@
 #   INTERMEDIATE=1   - saves generated intermediate pre-processor and assembly files (default is not to save files)
 #   COVERAGE=1       - enables coverage to get added to the application
 #   APPLICATION=name - name of the application to build (unit test application is built if no application name is given)
-#   STD=nn           - sets which C++ standard should be used to build the application (default is 17)
-
-
-ifndef APPLICATION
-APPLICATION := test
-endif
-
-APP_NAME := $(notdir $(APPLICATION))
+#   STD=nn           - sets which C++ standard should be used to build the application (default is 20)
 
 # Some useful character constants
 NULL  :=
@@ -54,71 +47,66 @@ list_get = $(patsubst ¬%,$(1)%,$(patsubst %¬¬,%$(3),$(patsubst ¬%¬¬,$(1)%$
 # @note This would normally be quite difficult using the normal text functions as these use the space to separate out each text item.
 list_get_csv = $(filter-out $(COMMA)¬,$(call escape,$(call list_get,",$(1)," $(COMMA)))¬)
 
-ifeq ($(CC),cc)
-CC := g++
-endif
-
-SRC_DIR = ./source
-INC_DIR := $(call list_add,$(SRC_DIR)/library)
-INC_DIR += $(call list_add,$(SRC_DIR)/$(APPLICATION))
-
-BIN_DIR := ./bin
-
-ifeq ($(COVERAGE),1)
-APP_NAME := $(APP_NAME)-coverage
-BIN_DIR := $(BIN_DIR)/coverage
-endif
-
-ifeq ($(DEBUG),1)
-BIN_DIR := $(BIN_DIR)/debug
-else
-BIN_DIR := $(BIN_DIR)/release
-endif
-OBJ_DIR := $(BIN_DIR)/obj
-
-C_FILES := $(wildcard $(addsuffix /*.cpp,$(call list_get,,$(INC_DIR),)))
-O_FILES := $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%,$(C_FILES:.cpp=.o))
-S_FILES := $(O_FILES:.o=.s)
-II_FILES := $(O_FILES:.o=.ii)
-D_FILES := $(O_FILES:.o=.d)
-ifeq ($(COVERAGE),1)
-GCX_FILES := $(O_FILES:.o=.gcno) $(O_FILES:.o=.gcda)
-endif
-
-ifeq ($(DEBUG),1)
-BUILD_NAME := Debug
-C_DEFINE += $(call list_add,DEBUG)
-C_FLAGS += -g3
-else
-BUILD_NAME := Release
-C_DEFINE += $(call list_add,RELEASE)
-C_FLAGS += -O3
-endif
-ifeq ($(INTERMEDIATE),1)
-C_FLAGS += -save-temps=obj -fverbose-asm
-endif
-ifeq ($(COVERAGE),1)
-C_FLAGS += --coverage
-LNK_FLAGS += --coverage
+ifndef APPLICATION
+APPLICATION := test
 endif
 
 ifndef STD
 STD := 20
 endif
 
+APP_NAME := $(notdir $(APPLICATION))
+
+BIN_DIR := ./bin
+
+ifeq ($(COVERAGE),1)
+APP_NAME := $(APP_NAME)-coverage
+BIN_DIR := $(BIN_DIR)/coverage
+CXX_FLAGS += --coverage
+LNK_FLAGS += --coverage
+endif
+
+ifeq ($(DEBUG),1)
+BUILD_NAME := Debug
+BIN_DIR := $(BIN_DIR)/debug
+CXX_DEFINE += $(call list_add,DEBUG)
+CXX_FLAGS += -g3
+else
+BUILD_NAME := Release
+BIN_DIR := $(BIN_DIR)/release
+CXX_DEFINE += $(call list_add,RELEASE)
+CXX_FLAGS += -O3
+endif
+
+ifeq ($(INTERMEDIATE),1)
+CXX_FLAGS += -save-temps=obj -fverbose-asm
+endif
+
+SRC_DIR = ./source
+INC_DIR := $(call list_add,$(SRC_DIR)/library)
+INC_DIR += $(call list_add,$(SRC_DIR)/$(APPLICATION))
+OBJ_DIR := $(BIN_DIR)/obj
+
+CXX_FILES := $(wildcard $(addsuffix /*.cpp,$(call list_get,,$(INC_DIR),)))
+O_FILES := $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%,$(CXX_FILES:.cpp=.o))
+S_FILES := $(O_FILES:.o=.s)
+II_FILES := $(O_FILES:.o=.ii)
+D_FILES := $(O_FILES:.o=.d)
+GCX_FILES := $(O_FILES:.o=.gcno) $(O_FILES:.o=.gcda)
+
 BUILD_STD=C++$(STD)
-C_STD=c++$(STD)
+CXX_STD=c++$(STD)
 
-C_DEFINE += $(call list_add,APP_NAME="$(APP_NAME) ($(BUILD_NAME) $(BUILD_STD))")
-C_DEFINE += $(call list_add,STD=$(STD))
-C_FLAGS += -c -std=$(C_STD) -Wall -Werror $(call list_get,-I",$(INC_DIR),") $(call list_get,-D",$(C_DEFINE),")
+CXX_DEFINE += $(call list_add,APP_NAME="$(APP_NAME) ($(BUILD_NAME) $(BUILD_STD))")
+CXX_DEFINE += $(call list_add,STD=$(STD))
+CXX_FLAGS += -c -std=$(CXX_STD) -Wall -Werror $(call list_get,-I",$(INC_DIR),") $(call list_get,-D",$(CXX_DEFINE),")
 
-ifeq ($(CC),g++)
+ifeq ($(CXX),g++)
 LNK_FLAGS += -pthread
 endif
 
 BUILD_CFG := ./.vscode/c_cpp_properties.json
-BUILD_DEFINE := $(call list_get_csv,$(C_DEFINE))
+BUILD_DEFINE := $(call list_get_csv,$(CXX_DEFINE))
 BUILD_INCLUDE := $(call list_get_csv,$(INC_DIR) $(call list_add,$${workspaceFolder}/**))
 
 CFG_NAME := $(APP_NAME) - $(BUILD_NAME) $(BUILD_STD)
@@ -139,7 +127,7 @@ vscode:
             \"name\":\"$(CFG_NAME)\", \
             \"includePath\":[ $(BUILD_INCLUDE) ], \
             \"defines\":[ $(BUILD_DEFINE) ], \
-            \"cppStandard\":\"$(C_STD)\" \
+            \"cppStandard\":\"$(CXX_STD)\" \
         }" >$(BUILD_CFG).tmp
 	mv $(BUILD_CFG).tmp $(BUILD_CFG)
 
@@ -151,11 +139,11 @@ coverage: $(APP)
 $(APP) : $(O_FILES)
 	@echo -- BUILDING $(NAME)
 	mkdir -p $(@D)
-	$(CC) $(O_FILES) $(LNK_FLAGS) -o $@
+	$(CXX) $(O_FILES) $(LNK_FLAGS) -o $@
 
 -include $(D_FILES)
 
 $(OBJ_DIR)/%.o : $(SRC_DIR)/%.cpp
 	@echo -- COMPILING $<
 	mkdir -p $(@D)
-	$(CC) $< $(C_FLAGS) -MMD -o $@
+	$(CXX) $< $(CXX_FLAGS) -MMD -o $@
