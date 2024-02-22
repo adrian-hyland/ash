@@ -242,7 +242,7 @@ namespace Ash
 					{
 						using Callable = Function<FUNCTION, ARGUMENTS...>;
 
-						Callable *callable = new Callable(Ash::Callable::Function(function, std::forward<ARGUMENTS>(arguments)...));
+						Callable *callable = new Callable(Ash::Callable::Function<FUNCTION, ARGUMENTS...>(function, std::forward<ARGUMENTS>(arguments)...));
 
 						uintptr_t handle = ::_beginthreadex(nullptr, 0, runCallable<Callable>, callable, 0, nullptr);
 
