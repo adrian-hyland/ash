@@ -102,7 +102,7 @@ namespace Ash
 					Node   *m_Next;
 				};
 
-				constexpr ElementValue() : m_Node(new Node) {}
+				constexpr ElementValue() : m_Node(new Node()) {}
 
 				constexpr ElementValue(Node *node) : m_Node(node) {}
 
@@ -168,7 +168,7 @@ namespace Ash
 					Node   *m_Next;
 				};
 
-				constexpr ElementSequence() : m_Node(new Node), m_Offset(0) {}
+				constexpr ElementSequence() : m_Node(new Node()), m_Offset(0) {}
 
 				constexpr ElementSequence(Node *node) : m_Node(node), m_Offset(0) {}
 
