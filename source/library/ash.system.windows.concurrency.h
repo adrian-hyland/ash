@@ -64,7 +64,7 @@ namespace Ash
 							}
 							Ash::Timer::Value remaining = duration - elapsed;
 
-							if (!::SleepConditionVariableSRW(&m_Condition, &m_Lock, remaining.as<DWORD>(Ash::Timer::Value::Milliseconds), 0))
+							if (!::SleepConditionVariableSRW(&m_Condition, &m_Lock, remaining.as<DWORD>(Ash::Timer::Value::millisecond), 0))
 							{
 								return false;
 							}
