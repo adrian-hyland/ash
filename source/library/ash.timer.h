@@ -107,6 +107,8 @@ namespace Ash
 			Unit m_Unit;
 		};
 
+		inline Timer(Type type = Type::HighResolution) : Clock(type), m_Start(getTick()) {}
+
 		static inline Timer start(Type type = Type::HighResolution)
 		{
 			return Timer(type);
@@ -143,9 +145,6 @@ namespace Ash
 		{
 			return Value(Clock(type).getTick(), Ash::Timer::Value::Unit(Clock(type).getTickDuration()));
 		}
-
-	protected:
-		inline Timer(Type type) : Clock(type), m_Start(getTick()) {}
 
 	private:
 		Clock::Tick m_Start;
