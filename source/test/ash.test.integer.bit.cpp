@@ -189,20 +189,20 @@ namespace Ash
 				>
 				static Ash::Test::Assertion getBitSize()
 				{
-					TEST_IS_EQ(Ash::Integer::getBitSize(INTEGER(0)), 1);
+					TEST_IS_EQ(Ash::Integer::getBitLength(INTEGER(0)), 1);
 
 					for (size_t n = 0; n < Ash::Integer::getBitSize<INTEGER>(); n++)
 					{
 						INTEGER value = Ash::Integer::setBit(INTEGER(0), n);
-						TEST_IS_EQ(Ash::Integer::getBitSize(value), n + 1);
+						TEST_IS_EQ(Ash::Integer::getBitLength(value), n + 1);
 						if (n > 0)
 						{
 							value = Ash::Integer::setBit(value, 0);
-							TEST_IS_EQ(Ash::Integer::getBitSize(value), n + 1);
+							TEST_IS_EQ(Ash::Integer::getBitLength(value), n + 1);
 							if (n > 1)
 							{
 								value = Ash::Integer::setBit(value, n - 1);
-								TEST_IS_EQ(Ash::Integer::getBitSize(value), n + 1);
+								TEST_IS_EQ(Ash::Integer::getBitLength(value), n + 1);
 							}
 						}
 					}

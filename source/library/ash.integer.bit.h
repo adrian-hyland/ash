@@ -53,7 +53,7 @@ namespace Ash
 			typename INTEGER,
 			typename = Ash::Type::IsUnsignedInteger<INTEGER>
 		>
-		constexpr size_t getBitSize(INTEGER value)
+		constexpr size_t getBitLength(INTEGER value)
 		{
 			size_t size = getBitSize<INTEGER>() / 2;
 

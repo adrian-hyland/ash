@@ -35,7 +35,7 @@ namespace Ash
 
 		static constexpr Size fractionSize = std::numeric_limits<Type>::digits - 1;
 
-		static constexpr Size exponentSize = Ash::Integer::getBitSize<unsigned int>(maxExponent - minExponent);
+		static constexpr Size exponentSize = Ash::Integer::getBitLength<unsigned int>(maxExponent - minExponent);
 
 		static constexpr Type epsilon = std::numeric_limits<Type>::epsilon();
 

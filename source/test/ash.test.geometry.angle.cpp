@@ -171,7 +171,7 @@ namespace Ash
 					using Real = REAL;
 
 					Angle angle = Angle::perRotation / 2;
-					size_t exponent = Ash::Integer::getBitSize<unsigned int>(angle) - 1;
+					size_t exponent = Ash::Integer::getBitLength<unsigned int>(angle) - 1;
 					Real error = Real(1, -Real::fractionSize + exponent);
 					TEST_IS_LTE(angle.match(angle + error, Angle::MatchAbsolute), Real(1.0));
 					TEST_IS_EQ(angle.match(angle - error, Angle::MatchAbsolute), Real(0.5));
@@ -181,11 +181,11 @@ namespace Ash
 						angle = Angle::perRotation * n / 32;
 						if (angle <= -1.0)
 						{
-							exponent = Ash::Integer::getBitSize<unsigned int>(-angle) - 1;
+							exponent = Ash::Integer::getBitLength<unsigned int>(-angle) - 1;
 						}
 						else
 						{
-							exponent = -Ash::Integer::getBitSize<unsigned int>(-angle.reciprocal());
+							exponent = -Ash::Integer::getBitLength<unsigned int>(-angle.reciprocal());
 						}
 						error = Real(1, -Real::fractionSize + exponent);
 						TEST_IS_EQ(angle.match(angle + error, Angle::MatchAbsolute), Real(0.5));
@@ -202,11 +202,11 @@ namespace Ash
 						angle = Angle::perRotation * n / 32;
 						if (angle >= 1.0)
 						{
-							exponent = Ash::Integer::getBitSize<unsigned int>(angle) - 1;
+							exponent = Ash::Integer::getBitLength<unsigned int>(angle) - 1;
 						}
 						else
 						{
-							exponent = -Ash::Integer::getBitSize<unsigned int>(angle.reciprocal());
+							exponent = -Ash::Integer::getBitLength<unsigned int>(angle.reciprocal());
 						}
 						error = Real(1, -Real::fractionSize + exponent);
 						TEST_IS_EQ(angle.match(angle + error, Angle::MatchAbsolute), Real(0.5));
@@ -214,7 +214,7 @@ namespace Ash
 					}
 
 					angle = -Angle::perRotation / 2;
-					exponent = Ash::Integer::getBitSize<unsigned int>(-angle) - 1;
+					exponent = Ash::Integer::getBitLength<unsigned int>(-angle) - 1;
 					error = Real(1, -Real::fractionSize + exponent);
 					TEST_IS_EQ(angle.match(angle + error, Angle::MatchAbsolute), Real(0.5));
 					TEST_IS_LTE(angle.match(angle - error, Angle::MatchAbsolute), Real(1.0));
@@ -235,7 +235,7 @@ namespace Ash
 					using Real = REAL;
 
 					Angle angle = Angle::perRotation / 2;
-					size_t exponent = Ash::Integer::getBitSize<unsigned int>(angle) - 1;
+					size_t exponent = Ash::Integer::getBitLength<unsigned int>(angle) - 1;
 					Real error = Real(1, -Real::fractionSize + exponent);
 					TEST_IS_LTE(angle.match(angle + error, Angle::MatchAbsolute), Real(1.5));
 					TEST_IS_EQ(angle.match(angle - error, Angle::MatchAbsolute), Real(0.5));
@@ -245,11 +245,11 @@ namespace Ash
 						angle = Angle::perRotation * n / 32;
 						if (angle <= -1.0)
 						{
-							exponent = Ash::Integer::getBitSize<unsigned int>(-angle) - 1;
+							exponent = Ash::Integer::getBitLength<unsigned int>(-angle) - 1;
 						}
 						else
 						{
-							exponent = -Ash::Integer::getBitSize<unsigned int>(-angle.reciprocal());
+							exponent = -Ash::Integer::getBitLength<unsigned int>(-angle.reciprocal());
 						}
 						error = Real(1, -Real::fractionSize + exponent);
 						TEST_IS_LTE(angle.match(angle + error, Angle::MatchRelative), Real(1.0));
@@ -266,11 +266,11 @@ namespace Ash
 						angle = Angle::perRotation * n / 32;
 						if (angle >= 1.0)
 						{
-							exponent = Ash::Integer::getBitSize<unsigned int>(angle) - 1;
+							exponent = Ash::Integer::getBitLength<unsigned int>(angle) - 1;
 						}
 						else
 						{
-							exponent = -Ash::Integer::getBitSize<unsigned int>(angle.reciprocal());
+							exponent = -Ash::Integer::getBitLength<unsigned int>(angle.reciprocal());
 						}
 						error = Real(1, -Real::fractionSize + exponent);
 						TEST_IS_LTE(angle.match(angle + error, Angle::MatchRelative), Real(1.0));
@@ -278,7 +278,7 @@ namespace Ash
 					}
 
 					angle = -Angle::perRotation / 2;
-					exponent = Ash::Integer::getBitSize<unsigned int>(-angle) - 1;
+					exponent = Ash::Integer::getBitLength<unsigned int>(-angle) - 1;
 					error = Real(1, -Real::fractionSize + exponent);
 					TEST_IS_EQ(angle.match(angle + error, Angle::MatchAbsolute), Real(0.5));
 					TEST_IS_LTE(angle.match(angle - error, Angle::MatchAbsolute), Real(1.5));
@@ -299,7 +299,7 @@ namespace Ash
 					using Real = REAL;
 
 					Angle angle = Angle::perRotation / 2;
-					size_t exponent = Ash::Integer::getBitSize<unsigned int>(angle) - 1;
+					size_t exponent = Ash::Integer::getBitLength<unsigned int>(angle) - 1;
 					Real error = Real(1, -Real::fractionSize + exponent);
 					TEST_IS_TRUE(angle.isEqual(angle + error, Angle::MatchAbsolute, Real(1.0)));
 					TEST_IS_TRUE(angle.isEqual(angle - error, Angle::MatchAbsolute, Real(0.5)));
@@ -309,11 +309,11 @@ namespace Ash
 						angle = Angle::perRotation * n / 32;
 						if (angle <= -1.0)
 						{
-							exponent = Ash::Integer::getBitSize<unsigned int>(-angle) - 1;
+							exponent = Ash::Integer::getBitLength<unsigned int>(-angle) - 1;
 						}
 						else
 						{
-							exponent = -Ash::Integer::getBitSize<unsigned int>(-angle.reciprocal());
+							exponent = -Ash::Integer::getBitLength<unsigned int>(-angle.reciprocal());
 						}
 						error = Real(1, -Real::fractionSize + exponent);
 						TEST_IS_TRUE(angle.isEqual(angle + error, Angle::MatchAbsolute, Real(0.5)));
@@ -330,11 +330,11 @@ namespace Ash
 						angle = Angle::perRotation * n / 32;
 						if (angle >= 1.0)
 						{
-							exponent = Ash::Integer::getBitSize<unsigned int>(angle) - 1;
+							exponent = Ash::Integer::getBitLength<unsigned int>(angle) - 1;
 						}
 						else
 						{
-							exponent = -Ash::Integer::getBitSize<unsigned int>(angle.reciprocal());
+							exponent = -Ash::Integer::getBitLength<unsigned int>(angle.reciprocal());
 						}
 						error = Real(1, -Real::fractionSize + exponent);
 						TEST_IS_TRUE(angle.isEqual(angle + error, Angle::MatchAbsolute, Real(0.5)));
@@ -342,7 +342,7 @@ namespace Ash
 					}
 
 					angle = -Angle::perRotation / 2;
-					exponent = Ash::Integer::getBitSize<unsigned int>(-angle) - 1;
+					exponent = Ash::Integer::getBitLength<unsigned int>(-angle) - 1;
 					error = Real(1, -Real::fractionSize + exponent);
 					TEST_IS_TRUE(angle.isEqual(angle + error, Angle::MatchAbsolute, Real(0.5)));
 					TEST_IS_TRUE(angle.isEqual(angle - error, Angle::MatchAbsolute, Real(1.0)));
@@ -363,7 +363,7 @@ namespace Ash
 					using Real = REAL;
 
 					Angle angle = Angle::perRotation / 2;
-					size_t exponent = Ash::Integer::getBitSize<unsigned int>(angle) - 1;
+					size_t exponent = Ash::Integer::getBitLength<unsigned int>(angle) - 1;
 					Real error = Real(1, -Real::fractionSize + exponent);
 					TEST_IS_TRUE(angle.isEqual(angle + error, Angle::MatchAbsolute, Real(1.5)));
 					TEST_IS_TRUE(angle.isEqual(angle - error, Angle::MatchAbsolute, Real(0.5)));
@@ -373,11 +373,11 @@ namespace Ash
 						angle = Angle::perRotation * n / 32;
 						if (angle <= -1.0)
 						{
-							exponent = Ash::Integer::getBitSize<unsigned int>(-angle) - 1;
+							exponent = Ash::Integer::getBitLength<unsigned int>(-angle) - 1;
 						}
 						else
 						{
-							exponent = -Ash::Integer::getBitSize<unsigned int>(-angle.reciprocal());
+							exponent = -Ash::Integer::getBitLength<unsigned int>(-angle.reciprocal());
 						}
 						error = Real(1, -Real::fractionSize + exponent);
 						TEST_IS_TRUE(angle.isEqual(angle + error, Angle::MatchRelative, Real(1.0)));
@@ -394,11 +394,11 @@ namespace Ash
 						angle = Angle::perRotation * n / 32;
 						if (angle >= 1.0)
 						{
-							exponent = Ash::Integer::getBitSize<unsigned int>(angle) - 1;
+							exponent = Ash::Integer::getBitLength<unsigned int>(angle) - 1;
 						}
 						else
 						{
-							exponent = -Ash::Integer::getBitSize<unsigned int>(angle.reciprocal());
+							exponent = -Ash::Integer::getBitLength<unsigned int>(angle.reciprocal());
 						}
 						error = Real(1, -Real::fractionSize + exponent);
 						TEST_IS_TRUE(angle.isEqual(angle + error, Angle::MatchRelative, Real(1.0)));
@@ -406,7 +406,7 @@ namespace Ash
 					}
 
 					angle = -Angle::perRotation / 2;
-					exponent = Ash::Integer::getBitSize<unsigned int>(-angle) - 1;
+					exponent = Ash::Integer::getBitLength<unsigned int>(-angle) - 1;
 					error = Real(1, -Real::fractionSize + exponent);
 					TEST_IS_TRUE(angle.isEqual(angle + error, Angle::MatchAbsolute, Real(0.5)));
 					TEST_IS_TRUE(angle.isEqual(angle - error, Angle::MatchAbsolute, Real(1.5)));
