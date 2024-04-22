@@ -44,12 +44,11 @@ namespace Ash
 			template
 			<
 				typename VALUE = Unit,
-				typename = typename Ash::Type::Check<VALUE, Ash::Type::Requirement::IsSame, timespec>::template
-																Or<Ash::Type::Requirement::IsSame, timeval>::template
-																Or<Ash::Type::Requirement::IsSame, Unit>::template
-																Or<Ash::Type::Requirement::IsInteger>::template
-																Or<Ash::Type::Requirement::IsClass, Ash::Generic::Real>::template
-																Or<Ash::Type::Requirement::IsFloatingPoint>::IsValid
+				typename = typename Ash::Type::CheckIfAny<Ash::Type::Requirement::IsSame<VALUE, timespec>,
+				                                          Ash::Type::Requirement::IsSame<VALUE, timeval>,
+				                                          Ash::Type::Requirement::IsInteger<VALUE>,
+				                                          Ash::Type::Requirement::IsClass<VALUE, Ash::Generic::Real>,
+				                                          Ash::Type::Requirement::IsFloatingPoint<VALUE>>::IsValid
 			>
 			constexpr Value(VALUE value, Unit unit = nanosecond) : m_Unit()
 			{
@@ -61,7 +60,7 @@ namespace Ash
 				{
 					m_Unit = Unit((value.tv_sec >= 0) ? value.tv_sec * second + value.tv_usec * microsecond : 0);
 				}
-				else if constexpr (Ash::Type::isSame<VALUE, Unit> || Ash::Type::isInteger<VALUE>)
+				else if constexpr (Ash::Type::isInteger<VALUE>)
 				{
 					m_Unit = Unit((value > 0) ? value * unit : 0);
 				}
@@ -76,12 +75,11 @@ namespace Ash
 			template
 			<
 				typename VALUE = Unit,
-				typename = typename Ash::Type::Check<VALUE, Ash::Type::Requirement::IsSame, timespec>::template
-																Or<Ash::Type::Requirement::IsSame, timeval>::template
-																Or<Ash::Type::Requirement::IsSame, Unit>::template
-																Or<Ash::Type::Requirement::IsInteger>::template
-																Or<Ash::Type::Requirement::IsClass, Ash::Generic::Real>::template
-																Or<Ash::Type::Requirement::IsFloatingPoint>::IsValid
+				typename = typename Ash::Type::CheckIfAny<Ash::Type::Requirement::IsSame<VALUE, timespec>,
+				                                          Ash::Type::Requirement::IsSame<VALUE, timeval>,
+				                                          Ash::Type::Requirement::IsInteger<VALUE>,
+				                                          Ash::Type::Requirement::IsClass<VALUE, Ash::Generic::Real>,
+				                                          Ash::Type::Requirement::IsFloatingPoint<VALUE>>::IsValid
 			>
 			constexpr VALUE as(Unit unit = nanosecond) const
 			{
@@ -93,7 +91,7 @@ namespace Ash
 				{
 					return { decltype(VALUE::tv_sec)(m_Unit / second), decltype(VALUE::tv_usec)((m_Unit % second) / microsecond) };
 				}
-				else if constexpr (Ash::Type::isSame<VALUE, Unit> || Ash::Type::isInteger<VALUE>)
+				else if constexpr (Ash::Type::isInteger<VALUE>)
 				{
 					return VALUE(m_Unit / unit);
 				}
