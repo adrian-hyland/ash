@@ -76,66 +76,66 @@ namespace Ash
 					return {};
 				}
 
-				static Ash::Test::Assertion type()
+				static Ash::Test::Assertion withRange()
 				{
 					bool isSame;
 
-					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<0, 1>, unsigned char>;
+					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<0, 1>::Type, unsigned char>;
 					TEST_IS_TRUE(isSame);
 
-					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<uint8_t>::min(), std::numeric_limits<uint8_t>::max()>, uint8_t>;
+					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<uint8_t>::min(), std::numeric_limits<uint8_t>::max()>::Type, uint8_t>;
 					TEST_IS_TRUE(isSame);
-					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<uint16_t>::min(), std::numeric_limits<uint16_t>::max()>, uint16_t>;
+					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<uint16_t>::min(), std::numeric_limits<uint16_t>::max()>::Type, uint16_t>;
 					TEST_IS_TRUE(isSame);
-					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<uint32_t>::min(), std::numeric_limits<uint32_t>::max()>, uint32_t>;
+					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<uint32_t>::min(), std::numeric_limits<uint32_t>::max()>::Type, uint32_t>;
 					TEST_IS_TRUE(isSame);
-					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<uint64_t>::min(), std::numeric_limits<uint64_t>::max()>, uint64_t>;
-					TEST_IS_TRUE(isSame);
-
-					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<int8_t>::min(), std::numeric_limits<int8_t>::max()>, int8_t>;
-					TEST_IS_TRUE(isSame);
-					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<int16_t>::min(), std::numeric_limits<int16_t>::max()>, int16_t>;
-					TEST_IS_TRUE(isSame);
-					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<int32_t>::min(), std::numeric_limits<int32_t>::max()>, int32_t>;
-					TEST_IS_TRUE(isSame);
-					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<int64_t>::min(), std::numeric_limits<int64_t>::max()>, int64_t>;
+					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<uint64_t>::min(), std::numeric_limits<uint64_t>::max()>::Type, uint64_t>;
 					TEST_IS_TRUE(isSame);
 
-					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<uint8_t>::min(), std::numeric_limits<uint16_t>::max()>, uint16_t>;
+					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<int8_t>::min(), std::numeric_limits<int8_t>::max()>::Type, int8_t>;
 					TEST_IS_TRUE(isSame);
-					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<uint16_t>::min(), std::numeric_limits<uint32_t>::max()>, uint32_t>;
+					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<int16_t>::min(), std::numeric_limits<int16_t>::max()>::Type, int16_t>;
 					TEST_IS_TRUE(isSame);
-					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<uint32_t>::min(), std::numeric_limits<uint64_t>::max()>, uint64_t>;
+					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<int32_t>::min(), std::numeric_limits<int32_t>::max()>::Type, int32_t>;
 					TEST_IS_TRUE(isSame);
-
-					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<int8_t>::min(), std::numeric_limits<int16_t>::max()>, int16_t>;
-					TEST_IS_TRUE(isSame);
-					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<int16_t>::min(), std::numeric_limits<int32_t>::max()>, int32_t>;
-					TEST_IS_TRUE(isSame);
-					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<int32_t>::min(), std::numeric_limits<int64_t>::max()>, int64_t>;
+					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<int64_t>::min(), std::numeric_limits<int64_t>::max()>::Type, int64_t>;
 					TEST_IS_TRUE(isSame);
 
-					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<int8_t>::min(), std::numeric_limits<uint8_t>::max()>, int16_t>;
+					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<uint8_t>::min(), std::numeric_limits<uint16_t>::max()>::Type, uint16_t>;
 					TEST_IS_TRUE(isSame);
-					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<int16_t>::min(), std::numeric_limits<uint16_t>::max()>, int32_t>;
+					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<uint16_t>::min(), std::numeric_limits<uint32_t>::max()>::Type, uint32_t>;
 					TEST_IS_TRUE(isSame);
-					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<int32_t>::min(), std::numeric_limits<uint32_t>::max()>, int64_t>;
-					TEST_IS_TRUE(isSame);
-
-					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<uint8_t>::min(), std::numeric_limits<uint8_t>::max(), true>, int16_t>;
-					TEST_IS_TRUE(isSame);
-					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<uint16_t>::min(), std::numeric_limits<uint16_t>::max(), true>, int32_t>;
-					TEST_IS_TRUE(isSame);
-					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<uint32_t>::min(), std::numeric_limits<uint32_t>::max(), true>, int64_t>;
+					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<uint32_t>::min(), std::numeric_limits<uint64_t>::max()>::Type, uint64_t>;
 					TEST_IS_TRUE(isSame);
 
-					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<int8_t>::min(), std::numeric_limits<uint8_t>::max(), false>, uint8_t>;
+					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<int8_t>::min(), std::numeric_limits<int16_t>::max()>::Type, int16_t>;
 					TEST_IS_TRUE(isSame);
-					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<int16_t>::min(), std::numeric_limits<uint16_t>::max(), false>, uint16_t>;
+					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<int16_t>::min(), std::numeric_limits<int32_t>::max()>::Type, int32_t>;
 					TEST_IS_TRUE(isSame);
-					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<int32_t>::min(), std::numeric_limits<uint32_t>::max(), false>, uint32_t>;
+					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<int32_t>::min(), std::numeric_limits<int64_t>::max()>::Type, int64_t>;
 					TEST_IS_TRUE(isSame);
-					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<int64_t>::min(), std::numeric_limits<uint64_t>::max(), false>, uint64_t>;
+
+					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<int8_t>::min(), std::numeric_limits<uint8_t>::max()>::Type, int16_t>;
+					TEST_IS_TRUE(isSame);
+					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<int16_t>::min(), std::numeric_limits<uint16_t>::max()>::Type, int32_t>;
+					TEST_IS_TRUE(isSame);
+					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<int32_t>::min(), std::numeric_limits<uint32_t>::max()>::Type, int64_t>;
+					TEST_IS_TRUE(isSame);
+
+					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<uint8_t>::min(), std::numeric_limits<uint8_t>::max(), true>::Type, int16_t>;
+					TEST_IS_TRUE(isSame);
+					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<uint16_t>::min(), std::numeric_limits<uint16_t>::max(), true>::Type, int32_t>;
+					TEST_IS_TRUE(isSame);
+					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<uint32_t>::min(), std::numeric_limits<uint32_t>::max(), true>::Type, int64_t>;
+					TEST_IS_TRUE(isSame);
+
+					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<int8_t>::min(), std::numeric_limits<uint8_t>::max(), false>::Type, uint8_t>;
+					TEST_IS_TRUE(isSame);
+					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<int16_t>::min(), std::numeric_limits<uint16_t>::max(), false>::Type, uint16_t>;
+					TEST_IS_TRUE(isSame);
+					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<int32_t>::min(), std::numeric_limits<uint32_t>::max(), false>::Type, uint32_t>;
+					TEST_IS_TRUE(isSame);
+					isSame = Ash::Type::isSame<Ash::Integer::Value::WithRange<std::numeric_limits<int64_t>::min(), std::numeric_limits<uint64_t>::max(), false>::Type, uint64_t>;
 					TEST_IS_TRUE(isSame);
 
 					return {};
@@ -148,7 +148,7 @@ namespace Ash
 			testIntegerValue,
 
 			TEST_CASE(Ash::Test::Integer::Value::getSize),
-			TEST_CASE(Ash::Test::Integer::Value::type),
+			TEST_CASE(Ash::Test::Integer::Value::withRange),
 		);
 	}
 }
