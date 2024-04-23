@@ -4,6 +4,7 @@
 #include "ash.test.integer.value.h"
 #include "ash.test.integer.bit.h"
 #include "ash.test.integer.cycle.h"
+#include "ash.test.integer.math.h"
 
 
 namespace Ash
@@ -15,7 +16,8 @@ namespace Ash
 			testInteger,
 			Ash::Test::testIntegerValue,
 			Ash::Test::testIntegerBit,
-			Ash::Test::testIntegerCycle
+			Ash::Test::testIntegerCycle,
+			Ash::Test::testIntegerMath
 		);
 	}
 }
