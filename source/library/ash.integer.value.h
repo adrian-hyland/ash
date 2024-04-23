@@ -117,19 +117,18 @@ namespace Ash
 		{
 			template
 			<
-				auto     MIN_VALUE,
-				auto     MAX_VALUE,
-				bool     IS_SIGNED = (MIN_VALUE < 0) || (MAX_VALUE < 0),
-				typename = Ash::Type::IsInteger<decltype(MIN_VALUE)>,
-				typename = Ash::Type::IsInteger<decltype(MAX_VALUE)>
+				typename MIN_VALUE,
+				typename MAX_VALUE,
+				typename = Ash::Type::IsInteger<MIN_VALUE>,
+				typename = Ash::Type::IsInteger<MAX_VALUE>
 			>
-			constexpr size_t getBitSize()
+			constexpr size_t getRangeBitSize(MIN_VALUE minValue, MAX_VALUE maxValue, bool isSigned = Ash::Type::isSignedInteger<MIN_VALUE> || Ash::Type::isSignedInteger<MAX_VALUE>)
 			{
-				std::make_unsigned_t<decltype(MIN_VALUE)> absMinValue = (MIN_VALUE < 0) ? (IS_SIGNED ? -(MIN_VALUE + 1) : 0) : MIN_VALUE;
-				std::make_unsigned_t<decltype(MAX_VALUE)> absMaxValue = (MAX_VALUE < 0) ? (IS_SIGNED ? -(MAX_VALUE + 1) : 0) : MAX_VALUE;
+				std::make_unsigned_t<MIN_VALUE> absMinValue = (minValue < 0) ? (isSigned ? -(minValue + 1) : 0) : minValue;
+				std::make_unsigned_t<MAX_VALUE> absMaxValue = (maxValue < 0) ? (isSigned ? -(maxValue + 1) : 0) : maxValue;
 
-				size_t minByteSize = (Ash::Integer::getBitLength(absMinValue) + (IS_SIGNED ? 8 : 7)) / 8;
-				size_t maxByteSize = (Ash::Integer::getBitLength(absMaxValue) + (IS_SIGNED ? 8 : 7)) / 8;
+				size_t minByteSize = (Ash::Integer::getBitLength(absMinValue) + (isSigned ? 8 : 7)) / 8;
+				size_t maxByteSize = (Ash::Integer::getBitLength(absMaxValue) + (isSigned ? 8 : 7)) / 8;
 
 				size_t byteSize = std::max(minByteSize, maxByteSize);
 				return (byteSize == 1) ? 8 : 8 << Ash::Integer::getBitLength(byteSize - 1);
@@ -172,7 +171,7 @@ namespace Ash
 			>
 			struct WithRange
 			{
-				using Type = Ash::Integer::Value::WithBitSize<Ash::Integer::Value::getBitSize<MIN_VALUE, MAX_VALUE, IS_SIGNED>(), IS_SIGNED>::Type;
+				using Type = Ash::Integer::Value::WithBitSize<Ash::Integer::Value::getRangeBitSize(MIN_VALUE, MAX_VALUE, IS_SIGNED), IS_SIGNED>::Type;
 
 				static constexpr Type minValue = MIN_VALUE;
 				static constexpr Type maxValue = MAX_VALUE;

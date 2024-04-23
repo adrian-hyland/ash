@@ -11,66 +11,66 @@ namespace Ash
 		{
 			namespace Value
 			{
-				static Ash::Test::Assertion getSize()
+				static Ash::Test::Assertion getRangeBitSize()
 				{
 					size_t size;
 
-					size = Ash::Integer::Value::getBitSize<0, 1>();
+					size = Ash::Integer::Value::getRangeBitSize(0, 1);
 					TEST_IS_EQ(size, 8);
 
-					size = Ash::Integer::Value::getBitSize<std::numeric_limits<uint8_t>::min(), std::numeric_limits<uint8_t>::max()>();
+					size = Ash::Integer::Value::getRangeBitSize(std::numeric_limits<uint8_t>::min(), std::numeric_limits<uint8_t>::max());
 					TEST_IS_EQ(size, 8);
-					size = Ash::Integer::Value::getBitSize<std::numeric_limits<uint16_t>::min(), std::numeric_limits<uint16_t>::max()>();
+					size = Ash::Integer::Value::getRangeBitSize(std::numeric_limits<uint16_t>::min(), std::numeric_limits<uint16_t>::max());
 					TEST_IS_EQ(size, 16);
-					size = Ash::Integer::Value::getBitSize<std::numeric_limits<uint32_t>::min(), std::numeric_limits<uint32_t>::max()>();
+					size = Ash::Integer::Value::getRangeBitSize(std::numeric_limits<uint32_t>::min(), std::numeric_limits<uint32_t>::max());
 					TEST_IS_EQ(size, 32);
-					size = Ash::Integer::Value::getBitSize<std::numeric_limits<uint64_t>::min(), std::numeric_limits<uint64_t>::max()>();
+					size = Ash::Integer::Value::getRangeBitSize(std::numeric_limits<uint64_t>::min(), std::numeric_limits<uint64_t>::max());
 					TEST_IS_EQ(size, 64);
 
-					size = Ash::Integer::Value::getBitSize<std::numeric_limits<int8_t>::min(), std::numeric_limits<int8_t>::max()>();
+					size = Ash::Integer::Value::getRangeBitSize(std::numeric_limits<int8_t>::min(), std::numeric_limits<int8_t>::max());
 					TEST_IS_EQ(size, 8);
-					size = Ash::Integer::Value::getBitSize<std::numeric_limits<int16_t>::min(), std::numeric_limits<int16_t>::max()>();
+					size = Ash::Integer::Value::getRangeBitSize(std::numeric_limits<int16_t>::min(), std::numeric_limits<int16_t>::max());
 					TEST_IS_EQ(size, 16);
-					size = Ash::Integer::Value::getBitSize<std::numeric_limits<int32_t>::min(), std::numeric_limits<int32_t>::max()>();
+					size = Ash::Integer::Value::getRangeBitSize(std::numeric_limits<int32_t>::min(), std::numeric_limits<int32_t>::max());
 					TEST_IS_EQ(size, 32);
-					size = Ash::Integer::Value::getBitSize<std::numeric_limits<int64_t>::min(), std::numeric_limits<int64_t>::max()>();
+					size = Ash::Integer::Value::getRangeBitSize(std::numeric_limits<int64_t>::min(), std::numeric_limits<int64_t>::max());
 					TEST_IS_EQ(size, 64);
 
-					size = Ash::Integer::Value::getBitSize<std::numeric_limits<uint8_t>::min(), std::numeric_limits<uint16_t>::max()>();
+					size = Ash::Integer::Value::getRangeBitSize(std::numeric_limits<uint8_t>::min(), std::numeric_limits<uint16_t>::max());
 					TEST_IS_EQ(size, 16);
-					size = Ash::Integer::Value::getBitSize<std::numeric_limits<uint16_t>::min(), std::numeric_limits<uint32_t>::max()>();
+					size = Ash::Integer::Value::getRangeBitSize(std::numeric_limits<uint16_t>::min(), std::numeric_limits<uint32_t>::max());
 					TEST_IS_EQ(size, 32);
-					size = Ash::Integer::Value::getBitSize<std::numeric_limits<uint32_t>::min(), std::numeric_limits<uint64_t>::max()>();
+					size = Ash::Integer::Value::getRangeBitSize(std::numeric_limits<uint32_t>::min(), std::numeric_limits<uint64_t>::max());
 					TEST_IS_EQ(size, 64);
 
-					size = Ash::Integer::Value::getBitSize<std::numeric_limits<int8_t>::min(), std::numeric_limits<int16_t>::max()>();
+					size = Ash::Integer::Value::getRangeBitSize(std::numeric_limits<int8_t>::min(), std::numeric_limits<int16_t>::max());
 					TEST_IS_EQ(size, 16);
-					size = Ash::Integer::Value::getBitSize<std::numeric_limits<int16_t>::min(), std::numeric_limits<int32_t>::max()>();
+					size = Ash::Integer::Value::getRangeBitSize(std::numeric_limits<int16_t>::min(), std::numeric_limits<int32_t>::max());
 					TEST_IS_EQ(size, 32);
-					size = Ash::Integer::Value::getBitSize<std::numeric_limits<int32_t>::min(), std::numeric_limits<int64_t>::max()>();
+					size = Ash::Integer::Value::getRangeBitSize(std::numeric_limits<int32_t>::min(), std::numeric_limits<int64_t>::max());
 					TEST_IS_EQ(size, 64);
 
-					size = Ash::Integer::Value::getBitSize<std::numeric_limits<int8_t>::min(), std::numeric_limits<uint8_t>::max()>();
+					size = Ash::Integer::Value::getRangeBitSize(std::numeric_limits<int8_t>::min(), std::numeric_limits<uint8_t>::max());
 					TEST_IS_EQ(size, 16);
-					size = Ash::Integer::Value::getBitSize<std::numeric_limits<int16_t>::min(), std::numeric_limits<uint16_t>::max()>();
+					size = Ash::Integer::Value::getRangeBitSize(std::numeric_limits<int16_t>::min(), std::numeric_limits<uint16_t>::max());
 					TEST_IS_EQ(size, 32);
-					size = Ash::Integer::Value::getBitSize<std::numeric_limits<int32_t>::min(), std::numeric_limits<uint32_t>::max()>();
+					size = Ash::Integer::Value::getRangeBitSize(std::numeric_limits<int32_t>::min(), std::numeric_limits<uint32_t>::max());
 					TEST_IS_EQ(size, 64);
 
-					size = Ash::Integer::Value::getBitSize<std::numeric_limits<uint8_t>::min(), std::numeric_limits<uint8_t>::max(), true>();
+					size = Ash::Integer::Value::getRangeBitSize(std::numeric_limits<uint8_t>::min(), std::numeric_limits<uint8_t>::max(), true);
 					TEST_IS_EQ(size, 16);
-					size = Ash::Integer::Value::getBitSize<std::numeric_limits<uint16_t>::min(), std::numeric_limits<uint16_t>::max(), true>();
+					size = Ash::Integer::Value::getRangeBitSize(std::numeric_limits<uint16_t>::min(), std::numeric_limits<uint16_t>::max(), true);
 					TEST_IS_EQ(size, 32);
-					size = Ash::Integer::Value::getBitSize<std::numeric_limits<uint32_t>::min(), std::numeric_limits<uint32_t>::max(), true>();
+					size = Ash::Integer::Value::getRangeBitSize(std::numeric_limits<uint32_t>::min(), std::numeric_limits<uint32_t>::max(), true);
 					TEST_IS_EQ(size, 64);
 
-					size = Ash::Integer::Value::getBitSize<std::numeric_limits<int8_t>::min(), std::numeric_limits<uint8_t>::max(), false>();
+					size = Ash::Integer::Value::getRangeBitSize(std::numeric_limits<int8_t>::min(), std::numeric_limits<uint8_t>::max(), false);
 					TEST_IS_EQ(size, 8);
-					size = Ash::Integer::Value::getBitSize<std::numeric_limits<int16_t>::min(), std::numeric_limits<uint16_t>::max(), false>();
+					size = Ash::Integer::Value::getRangeBitSize(std::numeric_limits<int16_t>::min(), std::numeric_limits<uint16_t>::max(), false);
 					TEST_IS_EQ(size, 16);
-					size = Ash::Integer::Value::getBitSize<std::numeric_limits<int32_t>::min(), std::numeric_limits<uint32_t>::max(), false>();
+					size = Ash::Integer::Value::getRangeBitSize(std::numeric_limits<int32_t>::min(), std::numeric_limits<uint32_t>::max(), false);
 					TEST_IS_EQ(size, 32);
-					size = Ash::Integer::Value::getBitSize<std::numeric_limits<int64_t>::min(), std::numeric_limits<uint64_t>::max(), false>();
+					size = Ash::Integer::Value::getRangeBitSize(std::numeric_limits<int64_t>::min(), std::numeric_limits<uint64_t>::max(), false);
 					TEST_IS_EQ(size, 64);
 
 					return {};
@@ -147,7 +147,7 @@ namespace Ash
 		(
 			testIntegerValue,
 
-			TEST_CASE(Ash::Test::Integer::Value::getSize),
+			TEST_CASE(Ash::Test::Integer::Value::getRangeBitSize),
 			TEST_CASE(Ash::Test::Integer::Value::withRange),
 		);
 	}
