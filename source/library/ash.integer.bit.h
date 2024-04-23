@@ -13,28 +13,25 @@ namespace Ash
 			typename INTEGER,
 			typename = Ash::Type::IsInteger<INTEGER>
 		>
-		constexpr size_t getBitSize()
-		{
-			return sizeof(INTEGER) * 8;
-		}
+		constexpr size_t getBitSize = sizeof(INTEGER) * 8;
 
 		template
 		<
 			typename INTEGER,
 			typename = Ash::Type::IsUnsignedInteger<INTEGER>
 		>
-		constexpr INTEGER getBitMask(size_t from, size_t to = getBitSize<INTEGER>())
+		constexpr INTEGER getBitMask(size_t from, size_t to = getBitSize<INTEGER>)
 		{
 			if (from > to)
 			{
 				std::swap(from, to);
 			}
 
-			if (from >= getBitSize<INTEGER>())
+			if (from >= getBitSize<INTEGER>)
 			{
 				return 0;
 			}
-			else if (to >= getBitSize<INTEGER>() - 1)
+			else if (to >= getBitSize<INTEGER> - 1)
 			{
 				return INTEGER(-1) << from;
 			}
@@ -55,7 +52,7 @@ namespace Ash
 		>
 		constexpr size_t getBitLength(INTEGER value)
 		{
-			size_t size = getBitSize<INTEGER>() / 2;
+			size_t size = getBitSize<INTEGER> / 2;
 
 			for (size_t n = size; n > 0; n = n / 2)
 			{
