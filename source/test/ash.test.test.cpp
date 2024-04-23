@@ -31,7 +31,9 @@ namespace Ash
 
 			static Ash::Test::Assertion isNotNull()
 			{
-				TEST_IS_NOT_NULL((volatile void *)isNotNull);
+				static volatile const char *p = "test";
+
+				TEST_IS_NOT_NULL(p);
 
 				return {};
 			}
