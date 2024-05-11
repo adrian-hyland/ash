@@ -37,16 +37,14 @@ namespace Ash
 			typename = Ash::Type::IsClass<FROM_ALLOCATION, Ash::Memory::Generic::Allocation>,
 			typename = Ash::Type::IsClass<TO_ALLOCATION, Ash::Memory::Generic::Allocation>
 		>
-		constexpr size_t convert(const Ash::Memory::Value<FROM_ALLOCATION, typename FROM_ENCODING::Code> &from, Ash::Memory::Value<TO_ALLOCATION, typename TO_ENCODING::Code> &to, Ash::Unicode::Character replacementCharacter = TO_ENCODING::Character::replacement)
+		constexpr size_t convert(const Ash::Memory::Value<FROM_ALLOCATION, typename FROM_ENCODING::Code> &from, Ash::Memory::Value<TO_ALLOCATION, typename TO_ENCODING::Code> &to, size_t &toOffset, Ash::Unicode::Character replacementCharacter = TO_ENCODING::Character::replacement)
 		{
-			size_t offset = 0;
+			size_t fromOffset = 0;
 
-			to.clear();
-
-			while (offset < from.getLength())
+			while (fromOffset < from.getLength())
 			{
 				typename FROM_ENCODING::Character fromCharacter;
-				size_t decodeLength = FROM_ENCODING::decodeNext(from, offset, fromCharacter);
+				size_t decodeLength = FROM_ENCODING::decodeNext(from, fromOffset, fromCharacter);
 
 				typename TO_ENCODING::Character toCharacter(fromCharacter);
 				if (toCharacter.getLength() == 0)
@@ -58,15 +56,36 @@ namespace Ash
 					}
 				}
 
-				if (!to.append(toCharacter))
+				if (!to.set(toOffset, toCharacter))
 				{
 					break;
 				}
 
-				offset = offset + ((decodeLength != 0) ? decodeLength : FROM_ENCODING::minSize);
+				fromOffset = fromOffset + ((decodeLength != 0) ? decodeLength : FROM_ENCODING::minSize);
+				toOffset = toOffset + toCharacter.getLength();
 			}
 
-			return offset;
+			return fromOffset;
+		}
+
+		template
+		<
+			typename FROM_ENCODING,
+			typename TO_ENCODING,
+			typename FROM_ALLOCATION,
+			typename TO_ALLOCATION,
+			typename = Ash::Type::IsClass<FROM_ENCODING, Ash::Generic::Encoding>,
+			typename = Ash::Type::IsClass<TO_ENCODING, Ash::Generic::Encoding>,
+			typename = Ash::Type::IsClass<FROM_ALLOCATION, Ash::Memory::Generic::Allocation>,
+			typename = Ash::Type::IsClass<TO_ALLOCATION, Ash::Memory::Generic::Allocation>
+		>
+		constexpr size_t convert(const Ash::Memory::Value<FROM_ALLOCATION, typename FROM_ENCODING::Code> &from, Ash::Memory::Value<TO_ALLOCATION, typename TO_ENCODING::Code> &to, Ash::Unicode::Character replacementCharacter = TO_ENCODING::Character::replacement)
+		{
+			size_t toOffset = 0;
+
+			to.clear();
+
+			return convert<FROM_ENCODING, TO_ENCODING, FROM_ALLOCATION, TO_ALLOCATION>(from, to, toOffset, replacementCharacter);
 		}
 
 		template
