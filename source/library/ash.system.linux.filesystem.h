@@ -5,8 +5,7 @@
 #include <unistd.h>
 #include <sys/file.h>
 #include <sys/stat.h>
-#include "ash.utf8.h"
-#include "ash.wide.h"
+#include "ash.system.linux.string.h"
 
 
 namespace Ash
@@ -211,26 +210,16 @@ namespace Ash
 					}
 
 				protected:
-					using PathEncoding = Ash::Encoding::Utf8;
-
-					class Path : public Ash::String::ArrayBuffer<PathEncoding, 256, 50, 32>
+					class Path : public Ash::System::Linux::String<256, 50, 32>
 					{
 					public:
-						using String = Ash::String::ArrayBuffer<PathEncoding, 256, 50, 32>;
+						using String = Ash::System::Linux::String<256, 50, 32>;
 
-						constexpr Path() : String() { normalise(); }
+						constexpr Path() : String() {}
 
-						constexpr Path(const Ash::Encoding::CodeUnit8 *value) : String()
-						{
-							Ash::Utf8::View(value).convertTo(*this, '_');
-							normalise();
-						}
+						constexpr Path(const Ash::Encoding::CodeUnit8 *value) : String(value, '_') {}
 
-						constexpr Path(const Ash::Encoding::CodeUnitWide *value) : String()
-						{
-							Ash::Wide::View(value).convertTo(*this, '_');
-							normalise();
-						}
+						constexpr Path(const Ash::Encoding::CodeUnitWide *value) : String(value, '_') {}
 
 						template
 						<
@@ -239,19 +228,9 @@ namespace Ash
 							typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>,
 							typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
 						>
-						constexpr Path(const Ash::String::Value<ALLOCATION, ENCODING> &value) : String()
-						{
-							value.convertTo(*this, '_');
-							normalise();
-						}
+						constexpr Path(const Ash::String::Value<ALLOCATION, ENCODING> &value) : String(value, '_') {}
 
 						inline operator const char * () const { return reinterpret_cast<const char *>(String::at(0)); }
-
-					protected:
-						constexpr void normalise()
-						{
-							String::append('\0');
-						}
 					};
 
 					static constexpr int getFlags(Create create, Access access)
