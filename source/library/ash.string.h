@@ -178,31 +178,25 @@ namespace Ash
 
 				for (length = 0; !isNull(&value[length]); length = length + Encoding::minSize)
 					;
-				
-				return getCodeLength(value, length);
-			}
 
-			static constexpr size_t getCodeLength(const Code *value, size_t valueLength)
-			{
-				size_t length = 0;
-
-				for (;;)
+				if constexpr (Memory::isFixedCapacity && !Memory::isReference)
 				{
-					Character character;
-					size_t decodeLength = Encoding::decodeNext(Ash::Memory::View<Code>(value, valueLength), length, character);
-					if ((decodeLength == 0) || (Ash::Unicode::Character(character) == '\0'))
+					if (length > Memory::maxCapacity)
 					{
-						return length;
-					}
-					if constexpr (Memory::maxCapacity < std::numeric_limits<size_t>::max())
-					{
-						if ((decodeLength > Memory::maxCapacity) || (length > Memory::maxCapacity - decodeLength))
+						for (size_t offset = Memory::maxCapacity - Memory::maxCapacity % Encoding::minSize; offset != 0; offset = offset - Encoding::minSize)
 						{
-							return length;
+							Character character;
+							if (Encoding::decodePrevious(Ash::Memory::View<Code>(value, length), offset, character) != 0)
+							{
+								return offset;
+							}
 						}
+
+						return 0;
 					}
-					length = length + decodeLength;
 				}
+
+				return length;
 			}
 		};
 	}
