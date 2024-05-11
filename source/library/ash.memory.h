@@ -15,16 +15,85 @@ namespace Ash
 	{
 		template
 		<
-			typename TYPE,
-			size_t   TO_SIZE,
-			size_t   FROM_SIZE
+			typename TYPE
 		>
-		constexpr void copy(TYPE (&to)[TO_SIZE], const TYPE (&from)[FROM_SIZE])
+		constexpr size_t copyForward(TYPE *to, const TYPE *from, size_t length)
 		{
-			for (size_t n = 0; n < std::min(TO_SIZE, FROM_SIZE); n++)
+			for (size_t n : Ash::Iterate<size_t>::from(0, length))
 			{
 				to[n] = from[n];
 			}
+			return length;
+		}
+
+		template
+		<
+			typename TYPE
+		>
+		constexpr size_t copyBackward(TYPE *to, const TYPE *from, size_t length)
+		{
+			for (size_t n : Ash::Iterate<size_t>::from(0, length).reverse())
+			{
+				to[n] = from[n];
+			}
+			return length;
+		}
+
+		template
+		<
+			typename TYPE
+		>
+		constexpr size_t copy(TYPE *to, const TYPE *from, size_t length)
+		{
+			return ((from < to) && (from + length > to)) ? copyBackward(to, from, length) : copyForward(to, from, length);
+		}
+
+		template
+		<
+			typename TYPE
+		>
+		constexpr size_t moveForward(TYPE *to, TYPE *from, size_t length)
+		{
+			for (size_t n : Ash::Iterate<size_t>::from(0, length))
+			{
+				to[n] = std::move(from[n]);
+			}
+			return length;
+		}
+
+		template
+		<
+			typename TYPE
+		>
+		constexpr size_t moveBackward(TYPE *to, TYPE *from, size_t length)
+		{
+			for (size_t n : Ash::Iterate<size_t>::from(0, length).reverse())
+			{
+				to[n] = std::move(from[n]);
+			}
+			return length;
+		}
+
+		template
+		<
+			typename TYPE
+		>
+		constexpr size_t move(TYPE *to, TYPE *from, size_t length)
+		{
+			return ((from < to) && (from + length > to)) ? moveBackward(to, from, length) : moveForward(to, from, length);
+		}
+
+		template
+		<
+			typename TYPE
+		>
+		constexpr size_t clear(TYPE *content, size_t length)
+		{
+			for (size_t n : Ash::Iterate<size_t>::from(0, length))
+			{
+				content[n] = TYPE();
+			}
+			return length;
 		}
 
 		template
@@ -33,12 +102,20 @@ namespace Ash
 			size_t   TO_SIZE,
 			size_t   FROM_SIZE
 		>
-		constexpr void move(TYPE (&to)[TO_SIZE], TYPE (&from)[FROM_SIZE])
+		constexpr size_t copy(TYPE (&to)[TO_SIZE], const TYPE (&from)[FROM_SIZE])
 		{
-			for (size_t n = 0; n < std::min(TO_SIZE, FROM_SIZE); n++)
-			{
-				to[n] = std::move(from[n]);
-			}
+			return copyForward(to, from, std::min(TO_SIZE, FROM_SIZE));
+		}
+
+		template
+		<
+			typename TYPE,
+			size_t   TO_SIZE,
+			size_t   FROM_SIZE
+		>
+		constexpr size_t move(TYPE (&to)[TO_SIZE], TYPE (&from)[FROM_SIZE])
+		{
+			return moveForward(to, from, std::min(TO_SIZE, FROM_SIZE));
 		}
 
 		template
@@ -46,89 +123,9 @@ namespace Ash
 			typename TYPE,
 			size_t   SIZE
 		>
-		constexpr void clear(TYPE (&content)[SIZE])
+		constexpr size_t clear(TYPE (&content)[SIZE])
 		{
-			for (size_t n = 0; n < SIZE; n++)
-			{
-				content[n] = TYPE();
-			}
-		}
-
-		template
-		<
-			typename TYPE
-		>
-		constexpr void copy(TYPE *to, const TYPE *from, size_t length)
-		{
-			if constexpr (Ash::Type::isPrimitive<TYPE>)
-			{
-				if (length < sizeof(int) / sizeof(TYPE))
-				{
-					for (size_t n = 0; n < length; n++)
-					{
-						to[n] = from[n];
-					}
-				}
-				else
-				{
-					memcpy(to, from, length * sizeof(TYPE));
-				}
-			}
-			else
-			{
-				for (size_t n = 0; n < length; n++)
-				{
-					to[n] = from[n];
-				}
-			}
-		}
-
-		template
-		<
-			typename TYPE
-		>
-		constexpr void move(TYPE *to, TYPE *from, size_t length)
-		{
-			if constexpr (Ash::Type::isPrimitive<TYPE>)
-			{
-				memmove(to, from, length * sizeof(TYPE));
-			}
-			else
-			{
-				if (to < from)
-				{
-					for (size_t n = 0; n < length; n++)
-					{
-						to[n] = std::move(from[n]);
-					}
-				}
-				else
-				{
-					for (size_t n = length; n > 0; n--)
-					{
-						to[n - 1] = std::move(from[n - 1]);
-					}
-				}
-			}
-		}
-
-		template
-		<
-			typename TYPE
-		>
-		constexpr void clear(TYPE *content, size_t length)
-		{
-			if constexpr (Ash::Type::isPrimitive<TYPE>)
-			{
-				memset(content, 0, length * sizeof(TYPE));
-			}
-			else
-			{
-				for (size_t n = 0; n < length; n++)
-				{
-					content[n] = TYPE();
-				}
-			}
+			return clear(content, SIZE);
 		}
 
 		namespace Generic
@@ -224,7 +221,7 @@ namespace Ash
 			protected:
 				constexpr Array() : m_Content(nullptr), m_Length(0), m_Capacity(0) {}
 
-				inline ~Array() { deleteContent(); }
+				constexpr ~Array() { deleteContent(); }
 
 				constexpr const Type *getContent() const { return m_Content; }
 
@@ -249,7 +246,7 @@ namespace Ash
 				{
 					setLength(length);
 
-					Ash::Memory::copy(m_Content, content, length);
+					Ash::Memory::copyForward(m_Content, content, length);
 				}
 
 				static constexpr size_t minimumCapacity = Size(MINIMUM_CAPACITY).roundUp(BLOCK_SIZE).getValueOr(MINIMUM_CAPACITY);
@@ -292,7 +289,7 @@ namespace Ash
 				{
 					Type *content = new Type[capacity];
 
-					Ash::Memory::move(content, m_Content, (length < m_Length) ? length : m_Length);
+					Ash::Memory::moveForward(content, m_Content, (length < m_Length) ? length : m_Length);
 
 					delete [] m_Content;
 
@@ -398,7 +395,7 @@ namespace Ash
 			protected:
 				constexpr ArrayBuffer() : m_Buffer(), m_Content(m_Buffer), m_Length(0), m_Capacity(CAPACITY) {}
 
-				inline ~ArrayBuffer() { deleteContent<false>(); }
+				constexpr ~ArrayBuffer() { deleteContent<false>(); }
 
 				constexpr const Type *getContent() const { return m_Content; }
 
@@ -417,7 +414,7 @@ namespace Ash
 
 					if (value.m_Content == value.m_Buffer)
 					{
-						Ash::Memory::move(m_Buffer, value.m_Buffer, value.m_Length);
+						Ash::Memory::moveForward(m_Buffer, value.m_Buffer, value.m_Length);
 					}
 					else
 					{
@@ -435,7 +432,7 @@ namespace Ash
 				{
 					setLength(length);
 
-					Ash::Memory::copy(m_Content, content, length);
+					Ash::Memory::copyForward(m_Content, content, length);
 				}
 
 				static constexpr size_t minimumCapacity = Size(CAPACITY).roundUp(BLOCK_SIZE).getValueOr(CAPACITY);
@@ -490,7 +487,7 @@ namespace Ash
 
 					if (content != m_Content)
 					{
-						Ash::Memory::move(content, m_Content, (length < m_Length) ? length : m_Length);
+						Ash::Memory::moveForward(content, m_Content, (length < m_Length) ? length : m_Length);
 					}
 
 					if (m_Content != m_Buffer)
@@ -613,14 +610,14 @@ namespace Ash
 				{
 					setLength((length < CAPACITY) ? length : CAPACITY);
 
-					Ash::Memory::copy(m_Content, content, m_Length);
+					Ash::Memory::copyForward(m_Content, content, m_Length);
 				}
 
 				constexpr void move(Type *content, size_t length)
 				{
 					setLength((length < CAPACITY) ? length : CAPACITY);
 
-					Ash::Memory::move(m_Content, content, m_Length);
+					Ash::Memory::moveForward(m_Content, content, m_Length);
 				}
 
 			private:
@@ -675,7 +672,7 @@ namespace Ash
 						length = CAPACITY;
 					}
 
-					Ash::Memory::copy(m_Content, content, length);
+					Ash::Memory::copyForward(m_Content, content, length);
 					Ash::Memory::clear(&m_Content[length], CAPACITY - length);
 				}
 
@@ -686,7 +683,7 @@ namespace Ash
 						length = CAPACITY;
 					}
 
-					Ash::Memory::move(m_Content, content, length);
+					Ash::Memory::moveForward(m_Content, content, length);
 					Ash::Memory::clear(&m_Content[length], CAPACITY - length);
 				}
 
@@ -1189,7 +1186,7 @@ namespace Ash
 			{
 				if ((count > 0) && (offset < Allocation::getLength()) && (count < Allocation::getLength() - offset))
 				{
-					Ash::Memory::move(&(*this)[offset], &(*this)[offset + count], Allocation::getLength() - count - offset);
+					Ash::Memory::moveForward(&(*this)[offset], &(*this)[offset + count], Allocation::getLength() - count - offset);
 				}
 			}
 
@@ -1197,7 +1194,7 @@ namespace Ash
 			{
 				if ((count > 0) && (offset < Allocation::getLength()) && (count < Allocation::getLength() - offset))
 				{
-					Ash::Memory::move(&(*this)[offset + count], &(*this)[offset], Allocation::getLength() - count - offset);
+					Ash::Memory::moveBackward(&(*this)[offset + count], &(*this)[offset], Allocation::getLength() - count - offset);
 				}
 			}
 
