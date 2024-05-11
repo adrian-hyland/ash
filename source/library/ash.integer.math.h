@@ -25,7 +25,7 @@ namespace Ash
 		<
 			typename INTEGER_A,
 			typename INTEGER_B,
-			typename INTEGER_RETURN = Ash::Integer::Unsigned::WithMaxBitSize<Ash::Integer::getBitSize<INTEGER_A>, Ash::Integer::getBitSize<INTEGER_B>>::Type,
+			typename INTEGER_RETURN = typename Ash::Integer::Unsigned::WithMaxBitSize<Ash::Integer::getBitSize<INTEGER_A>, Ash::Integer::getBitSize<INTEGER_B>>::Type,
 			typename = Ash::Type::IsInteger<INTEGER_A>,
 			typename = Ash::Type::IsInteger<INTEGER_B>
 		>

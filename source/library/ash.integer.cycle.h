@@ -24,7 +24,7 @@ namespace Ash
 		class Cycle : Ash::Integer::Generic::Cycle
 		{
 		public:
-			using Value = Ash::Integer::Value::WithRange<START, END>::Type;
+			using Value = typename Ash::Integer::Value::WithRange<START, END>::Type;
 
 			using Type = Ash::Type::Option<int, intmax_t, sizeof(Value) < sizeof(int)>;
 

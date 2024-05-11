@@ -17,7 +17,7 @@ namespace Ash
 	<
 		typename TYPE,
 		bool     IS_FORWARD = true,
-		typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsInteger<TYPE>, Ash::Type::Requirement::IsPointer<TYPE>>::IsValid
+		typename = typename Ash::Type::CheckIfAny<Ash::Type::Requirement::IsInteger<TYPE>, Ash::Type::Requirement::IsPointer<TYPE>>::IsValid
 	>
 	class Iteration
 	{
@@ -153,7 +153,7 @@ namespace Ash
 		typename TYPE,
 		bool     IS_FORWARD = true,
 		size_t   DEPTH = 1,
-		typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsInteger<TYPE>, Ash::Type::Requirement::IsPointer<TYPE>>::IsValid
+		typename = typename Ash::Type::CheckIfAny<Ash::Type::Requirement::IsInteger<TYPE>, Ash::Type::Requirement::IsPointer<TYPE>>::IsValid
 	>
 	class Iterate : public Iterate<TYPE, IS_FORWARD, DEPTH - 1>
 	{

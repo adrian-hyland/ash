@@ -47,7 +47,7 @@ namespace Ash
 			>
 			struct WithMaxBitSize
 			{
-				using Type = Ash::Integer::Signed::WithMaxBitSize<std::max(BIT_SIZE_1, BIT_SIZE_2), BIT_SIZE_N...>::Type;
+				using Type = typename Ash::Integer::Signed::WithMaxBitSize<std::max(BIT_SIZE_1, BIT_SIZE_2), BIT_SIZE_N...>::Type;
 			};
 
 			template
@@ -57,7 +57,7 @@ namespace Ash
 			>
 			struct WithMaxBitSize<BIT_SIZE_1, BIT_SIZE_2>
 			{
-				using Type = Ash::Integer::Signed::WithBitSize<std::max(BIT_SIZE_1, BIT_SIZE_2)>::Type;
+				using Type = typename Ash::Integer::Signed::WithBitSize<std::max(BIT_SIZE_1, BIT_SIZE_2)>::Type;
 			};
 		}
 
@@ -99,7 +99,7 @@ namespace Ash
 			>
 			struct WithMaxBitSize
 			{
-				using Type = Ash::Integer::Unsigned::WithMaxBitSize<std::max(BIT_SIZE_1, BIT_SIZE_2), BIT_SIZE_N...>::Type;
+				using Type = typename Ash::Integer::Unsigned::WithMaxBitSize<std::max(BIT_SIZE_1, BIT_SIZE_2), BIT_SIZE_N...>::Type;
 			};
 
 			template
@@ -109,7 +109,7 @@ namespace Ash
 			>
 			struct WithMaxBitSize<BIT_SIZE_1, BIT_SIZE_2>
 			{
-				using Type = Ash::Integer::Unsigned::WithBitSize<std::max(BIT_SIZE_1, BIT_SIZE_2)>::Type;
+				using Type = typename Ash::Integer::Unsigned::WithBitSize<std::max(BIT_SIZE_1, BIT_SIZE_2)>::Type;
 			};
 		}
 
@@ -149,7 +149,7 @@ namespace Ash
 			>
 			struct WithBitSize<BIT_SIZE, true>
 			{
-				using Type = Ash::Integer::Signed::WithBitSize<BIT_SIZE>::Type;
+				using Type = typename Ash::Integer::Signed::WithBitSize<BIT_SIZE>::Type;
 			};
 
 			template
@@ -158,7 +158,7 @@ namespace Ash
 			>
 			struct WithBitSize<BIT_SIZE, false>
 			{
-				using Type = Ash::Integer::Unsigned::WithBitSize<BIT_SIZE>::Type;
+				using Type = typename Ash::Integer::Unsigned::WithBitSize<BIT_SIZE>::Type;
 			};
 
 			template
@@ -171,7 +171,7 @@ namespace Ash
 			>
 			struct WithRange
 			{
-				using Type = Ash::Integer::Value::WithBitSize<Ash::Integer::Value::getRangeBitSize(MIN_VALUE, MAX_VALUE, IS_SIGNED), IS_SIGNED>::Type;
+				using Type = typename Ash::Integer::Value::WithBitSize<Ash::Integer::Value::getRangeBitSize(MIN_VALUE, MAX_VALUE, IS_SIGNED), IS_SIGNED>::Type;
 
 				static constexpr Type minValue = MIN_VALUE;
 				static constexpr Type maxValue = MAX_VALUE;
