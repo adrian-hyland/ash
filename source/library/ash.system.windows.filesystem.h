@@ -1,8 +1,7 @@
 #pragma once
 
 #include <windows.h>
-#include "ash.utf8.h"
-#include "ash.wide.h"
+#include "ash.system.windows.string.h"
 
 
 namespace Ash
@@ -213,26 +212,16 @@ namespace Ash
 					}
 
 				protected:
-					using PathEncoding = Ash::Encoding::Wide;
-
-					class Path : public Ash::String::ArrayBuffer<PathEncoding, 128, 50, 32>
+					class Path : public Ash::System::Windows::String<128, 50, 32>
 					{
 					public:
-						using String = Ash::String::ArrayBuffer<PathEncoding, 128, 50, 32>;
+						using String = Ash::System::Windows::String<128, 50, 32>;
 
 						constexpr Path() : String() { normalise(); }
 
-						constexpr Path(const Ash::Encoding::CodeUnit8 *value) : String()
-						{
-							Ash::Utf8::View(value).convertTo(*this, '_');
-							normalise();
-						}
+						constexpr Path(const Ash::Encoding::CodeUnit8 *value) : String(value, '_') { normalise(); }
 
-						constexpr Path(const Ash::Encoding::CodeUnitWide *value) : String()
-						{
-							Ash::Wide::View(value).convertTo(*this, '_');
-							normalise();
-						}
+						constexpr Path(const Ash::Encoding::CodeUnitWide *value) : String(value, '_') { normalise(); }
 
 						template
 						<
@@ -241,23 +230,14 @@ namespace Ash
 							typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>,
 							typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
 						>
-						constexpr Path(const Ash::String::Value<ALLOCATION, ENCODING> &value) : String()
-						{
-							value.convertTo(*this, '_');
-							normalise();
-						}
+						constexpr Path(const Ash::String::Value<ALLOCATION, ENCODING> &value) : String(value, '_') { normalise(); }
 
-						constexpr operator const PathEncoding::Code * () const { return String::at(0); }
+						constexpr operator const Path::Encoding::Code * () const { return String::at(0); }
 
 					protected:
-						constexpr void normalise()
-						{
-							if (String::getLength() != 0)
-							{
-								String::insert(0, Ash::String::View<PathEncoding>(L"\\\\?\\"));
-							}
-							String::append('\0');
-						}
+						static constexpr Ash::String::View<Path::Encoding> prefix = L"\\\\?\\";
+
+						constexpr void normalise() { String::insert(0, prefix); }
 					};
 
 					static constexpr DWORD getCreateFlags(Create create)
