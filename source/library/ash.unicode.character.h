@@ -22,7 +22,7 @@ namespace Ash
 
 			static constexpr Value surrogateEnd = 0xDFFF;
 
-			constexpr Character(Value value) : m_Value(isValid(value) ? value : replacement) {}
+			constexpr Character(Value value = 0) : m_Value(isValid(value) ? value : replacement) {}
 
 			constexpr operator Value () const { return m_Value; }
 
