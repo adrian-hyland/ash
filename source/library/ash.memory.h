@@ -972,7 +972,7 @@ namespace Ash
 
 				if ((offset <= Allocation::getLength()) && ((valueLength <= Allocation::getLength() - offset) || Allocation::increaseLength(valueLength - Allocation::getLength() + offset)))
 				{
-					copy(offset, value);
+					copyForward(offset, value);
 					return true;
 				}
 				else
@@ -1033,7 +1033,7 @@ namespace Ash
 				else if ((offset <= Allocation::getLength()) && Allocation::increaseLength(valueLength))
 				{
 					shiftRight(offset, valueLength);
-					copy(offset, value);
+					copyForward(offset, value);
 					return true;
 				}
 				else
@@ -1427,9 +1427,9 @@ namespace Ash
 				typename FROM_ALLOCATION,
 				typename = Ash::Type::IsClass<FROM_ALLOCATION, Ash::Memory::Generic::Allocation>
 			>
-			constexpr void copy(size_t offset, const Memory::Value<FROM_ALLOCATION, Type> &value)
+			constexpr void copyForward(size_t offset, const Memory::Value<FROM_ALLOCATION, Type> &value)
 			{
-				Ash::Memory::copy(&(*this)[offset], value.at(0), value.getLength());
+				Ash::Memory::copyForward(&(*this)[offset], value.at(0), value.getLength());
 			}
 		};
 	}
