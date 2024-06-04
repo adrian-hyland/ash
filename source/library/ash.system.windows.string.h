@@ -48,7 +48,7 @@ namespace Ash
 					convert(value, replacementCharacter);
 				}
 
-				constexpr operator const Content::Encoding::Code * () const { return Content::at(0); }
+				constexpr operator const typename Content::Encoding::Code * () const { return Content::at(0); }
 
 			protected:
 				template
