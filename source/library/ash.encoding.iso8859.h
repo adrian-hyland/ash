@@ -457,16 +457,21 @@ namespace Ash
 				};
 			};
 
+			namespace Generic
+			{
+				class Part : Ash::Generic::Encoding {};
+			}
+
 			template
 			<
 				typename TABLE,
 				typename = Ash::Type::IsClass<TABLE, Ash::Encoding::Iso8859::Generic::Table>
 			>
-			class Part : Ash::Generic::Encoding
+			class Part : Ash::Encoding::Iso8859::Generic::Part
 			{
 			public:
 				using Table = TABLE;
-				
+
 				using Code = Ash::Encoding::Iso8859::Code;
 
 				static constexpr Table table = Table();
