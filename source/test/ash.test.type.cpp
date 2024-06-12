@@ -656,6 +656,8 @@ namespace Ash
 				TEST_IS_TRUE(isSame);
 				isSame = Ash::Type::isSame<TestBaseClass [], TestBaseClass []>;
 				TEST_IS_TRUE(isSame);
+				isSame = Ash::Type::isSame<int, int, int>;
+				TEST_IS_TRUE(isSame);
 
 				isSame = Ash::Type::isSame<bool, int>;
 				TEST_IS_FALSE(isSame);
@@ -712,6 +714,12 @@ namespace Ash
 				isSame = Ash::Type::isSame<int [][2], int []>;
 				TEST_IS_FALSE(isSame);
 				isSame = Ash::Type::isSame<TestBaseClass [], TestBaseClass>;
+				TEST_IS_FALSE(isSame);
+				isSame = Ash::Type::isSame<bool, int, int>;
+				TEST_IS_FALSE(isSame);
+				isSame = Ash::Type::isSame<int, bool, int>;
+				TEST_IS_FALSE(isSame);
+				isSame = Ash::Type::isSame<int, int, bool>;
 				TEST_IS_FALSE(isSame);
 
 				return {};
@@ -777,6 +785,12 @@ namespace Ash
 				TEST_IS_TRUE(isNotSame);
 				isNotSame = Ash::Type::isNotSame<TestBaseClass [], TestBaseClass>;
 				TEST_IS_TRUE(isNotSame);
+				isNotSame = Ash::Type::isNotSame<bool, int, int>;
+				TEST_IS_TRUE(isNotSame);
+				isNotSame = Ash::Type::isNotSame<int, bool, int>;
+				TEST_IS_TRUE(isNotSame);
+				isNotSame = Ash::Type::isNotSame<int, int, bool>;
+				TEST_IS_TRUE(isNotSame);
 
 				isNotSame = Ash::Type::isNotSame<bool, bool>;
 				TEST_IS_FALSE(isNotSame);
@@ -834,6 +848,8 @@ namespace Ash
 				TEST_IS_FALSE(isNotSame);
 				isNotSame = Ash::Type::isNotSame<TestBaseClass [], TestBaseClass []>;
 				TEST_IS_FALSE(isNotSame);
+				isNotSame = Ash::Type::isNotSame<int, int, int>;
+				TEST_IS_FALSE(isNotSame);
 
 				return {};
 			}
@@ -845,6 +861,14 @@ namespace Ash
 				isSameSize = Ash::Type::isSameSize<signed char, unsigned char>;
 				TEST_IS_TRUE(isSameSize);
 				isSameSize = Ash::Type::isSameSize<signed char, signed short>;
+				TEST_IS_FALSE(isSameSize);
+				isSameSize = Ash::Type::isSameSize<signed char, unsigned char, signed char>;
+				TEST_IS_TRUE(isSameSize);
+				isSameSize = Ash::Type::isSameSize<signed short, signed char, unsigned char>;
+				TEST_IS_FALSE(isSameSize);
+				isSameSize = Ash::Type::isSameSize<signed char, signed short, unsigned char>;
+				TEST_IS_FALSE(isSameSize);
+				isSameSize = Ash::Type::isSameSize<signed char, unsigned char, signed short>;
 				TEST_IS_FALSE(isSameSize);
 
 				return {};
