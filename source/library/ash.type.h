@@ -112,26 +112,52 @@ namespace Ash
 
 			template
 			<
-				typename LEFT_TYPE,
-				typename RIGHT_TYPE
+				typename TYPE_1,
+				typename TYPE_2,
+				typename ...TYPE_N
 			>
 			struct IsSame
 			{
-				using Type = LEFT_TYPE;
+				using Type = TYPE_1;
 
-				static constexpr bool isSatisfied = std::is_same_v<LEFT_TYPE, RIGHT_TYPE>;
+				static constexpr bool isSatisfied = std::is_same_v<TYPE_1, TYPE_2> && IsSame<TYPE_2, TYPE_N...>::isSatisfied;
 			};
 
 			template
 			<
-				typename LEFT_TYPE,
-				typename RIGHT_TYPE
+				typename TYPE_1,
+				typename TYPE_2
+			>
+			struct IsSame<TYPE_1, TYPE_2>
+			{
+				using Type = TYPE_1;
+
+				static constexpr bool isSatisfied = std::is_same_v<TYPE_1, TYPE_2>;
+			};
+
+			template
+			<
+				typename TYPE_1,
+				typename TYPE_2,
+				typename ...TYPE_N
 			>
 			struct IsSameSize
 			{
-				using Type = LEFT_TYPE;
+				using Type = TYPE_1;
 
-				static constexpr bool isSatisfied = (sizeof(LEFT_TYPE) == sizeof(RIGHT_TYPE));
+				static constexpr bool isSatisfied = (sizeof(TYPE_1) == sizeof(TYPE_2)) && IsSameSize<TYPE_2, TYPE_N...>::isSatisfied;
+			};
+
+			template
+			<
+				typename TYPE_1,
+				typename TYPE_2
+			>
+			struct IsSameSize<TYPE_1, TYPE_2>
+			{
+				using Type = TYPE_1;
+
+				static constexpr bool isSatisfied = (sizeof(TYPE_1) == sizeof(TYPE_2));
 			};
 		}
 
@@ -216,17 +242,17 @@ namespace Ash
 
 		template
 		<
-			typename LEFT_TYPE,
-			typename RIGHT_TYPE
+			typename TYPE,
+			typename ...NEXT_TYPE
 		>
-		constexpr bool isSame = Ash::Type::CheckIf<LEFT_TYPE, Ash::Type::Requirement::IsSame, RIGHT_TYPE>::isValid;
+		constexpr bool isSame = Ash::Type::CheckIf<TYPE, Ash::Type::Requirement::IsSame, NEXT_TYPE...>::isValid;
 
 		template
 		<
-			typename LEFT_TYPE,
-			typename RIGHT_TYPE
+			typename TYPE,
+			typename ...NEXT_TYPE
 		>
-		constexpr bool isNotSame = Ash::Type::CheckIf<LEFT_TYPE, Ash::Type::Requirement::IsSame, RIGHT_TYPE>::isNotValid;
+		constexpr bool isNotSame = Ash::Type::CheckIf<TYPE, Ash::Type::Requirement::IsSame, NEXT_TYPE...>::isNotValid;
 
 		template
 		<
@@ -290,10 +316,10 @@ namespace Ash
 
 		template
 		<
-			typename LEFT_TYPE,
-			typename RIGHT_TYPE
+			typename TYPE,
+			typename ...NEXT_TYPE
 		>
-		constexpr bool isSameSize = Ash::Type::CheckIf<LEFT_TYPE, Ash::Type::Requirement::IsSameSize, RIGHT_TYPE>::isValid;
+		constexpr bool isSameSize = Ash::Type::CheckIf<TYPE, Ash::Type::Requirement::IsSameSize, NEXT_TYPE...>::isValid;
 
 		template
 		<
@@ -329,17 +355,17 @@ namespace Ash
 
 		template
 		<
-			typename LEFT_TYPE,
-			typename RIGHT_TYPE
+			typename TYPE,
+			typename ...NEXT_TYPE
 		>
-		using IsSame = typename Ash::Type::CheckIf<LEFT_TYPE, Ash::Type::Requirement::IsSame, RIGHT_TYPE>::IsValid;
+		using IsSame = typename Ash::Type::CheckIf<TYPE, Ash::Type::Requirement::IsSame, NEXT_TYPE...>::IsValid;
 
 		template
 		<
-			typename LEFT_TYPE,
-			typename RIGHT_TYPE
+			typename TYPE,
+			typename ...NEXT_TYPE
 		>
-		using IsNotSame = typename Ash::Type::CheckIf<LEFT_TYPE, Ash::Type::Requirement::IsSame, RIGHT_TYPE>::IsNotValid;
+		using IsNotSame = typename Ash::Type::CheckIf<TYPE, Ash::Type::Requirement::IsSame, NEXT_TYPE...>::IsNotValid;
 
 		template
 		<
@@ -403,10 +429,10 @@ namespace Ash
 
 		template
 		<
-			typename LEFT_TYPE,
-			typename RIGHT_TYPE
+			typename TYPE,
+			typename ...NEXT_TYPE
 		>
-		using IsSameSize = typename Ash::Type::CheckIf<LEFT_TYPE, Ash::Type::Requirement::IsSameSize, RIGHT_TYPE>::IsValid;
+		using IsSameSize = typename Ash::Type::CheckIf<TYPE, Ash::Type::Requirement::IsSameSize, NEXT_TYPE...>::IsValid;
 
 		template
 		<
