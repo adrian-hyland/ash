@@ -13,39 +13,37 @@ namespace Ash
 			{
 				static Ash::Test::Assertion character(void)
 				{
-					// valid code points
-					for (Ash::Unicode::Character::Value code = 0; code < 0xD800; code++)
+					for (Ash::Unicode::Character::Value value : Ash::Iterate<Ash::Unicode::Character::Value>::between(0x00, 0xD7FF))
 					{
-						Ash::Encoding::Utf32be::Character character(code);
+						Ash::Encoding::Utf32be::Character character(value);
 
 						TEST_IS_EQ(character.getLength(), 4);
 
-						TEST_IS_EQ(uint8_t(*character.at(0)), ((code >> 24) & 0xFF));
-						TEST_IS_EQ(uint8_t(*character.at(1)), ((code >> 16) & 0xFF));
-						TEST_IS_EQ(uint8_t(*character.at(2)), ((code >> 8) & 0xFF));
-						TEST_IS_EQ(uint8_t(*character.at(3)), (code & 0xFF));
+						TEST_IS_EQ(uint8_t(*character.at(0)), (value >> 24) & 0xFF);
+						TEST_IS_EQ(uint8_t(*character.at(1)), (value >> 16) & 0xFF);
+						TEST_IS_EQ(uint8_t(*character.at(2)), (value >> 8) & 0xFF);
+						TEST_IS_EQ(uint8_t(*character.at(3)), value & 0xFF);
 
-						TEST_IS_EQ(Ash::Unicode::Character(character), code);
+						TEST_IS_EQ(Ash::Unicode::Character(character), value);
 					}
 
-					for (Ash::Unicode::Character::Value code = 0xE000; code < 0x110000; code++)
+					for (Ash::Unicode::Character::Value value : Ash::Iterate<Ash::Unicode::Character::Value>::between(0xE000, Ash::Unicode::Character::maximum))
 					{
-						Ash::Encoding::Utf32be::Character character(code);
+						Ash::Encoding::Utf32be::Character character(value);
 
 						TEST_IS_EQ(character.getLength(), 4);
 
-						TEST_IS_EQ(uint8_t(*character.at(0)), ((code >> 24) & 0xFF));
-						TEST_IS_EQ(uint8_t(*character.at(1)), ((code >> 16) & 0xFF));
-						TEST_IS_EQ(uint8_t(*character.at(2)), ((code >> 8) & 0xFF));
-						TEST_IS_EQ(uint8_t(*character.at(3)), (code & 0xFF));
+						TEST_IS_EQ(uint8_t(*character.at(0)), (value >> 24) & 0xFF);
+						TEST_IS_EQ(uint8_t(*character.at(1)), (value >> 16) & 0xFF);
+						TEST_IS_EQ(uint8_t(*character.at(2)), (value >> 8) & 0xFF);
+						TEST_IS_EQ(uint8_t(*character.at(3)), value & 0xFF);
 
-						TEST_IS_EQ(Ash::Unicode::Character(character), code);
+						TEST_IS_EQ(Ash::Unicode::Character(character), value);
 					}
 
-					// invalid code points
-					for (Ash::Unicode::Character::Value code = 0xD800; code < 0xE000; code++)
+					for (Ash::Unicode::Character::Value value : Ash::Iterate<Ash::Unicode::Character::Value>::between(Ash::Unicode::Character::surrogateStart, Ash::Unicode::Character::surrogateEnd))
 					{
-						Ash::Encoding::Utf32be::Character character(code);
+						Ash::Encoding::Utf32be::Character character(value);
 
 						TEST_IS_EQ(Ash::Unicode::Character(character), Ash::Unicode::Character::replacement);
 					}
@@ -64,9 +62,9 @@ namespace Ash
 
 					TEST_IS_ZERO(character.getLength());
 
-					for (Ash::Unicode::Character unicodeCharacter : Ash::Iterate<Ash::Unicode::Character::Value>::between(0, Ash::Unicode::Character::surrogateStart - 1) + Ash::Iterate<Ash::Unicode::Character::Value>::between(Ash::Unicode::Character::surrogateEnd + 1, Ash::Unicode::Character::maximum))
+					for (Ash::Unicode::Character value : Ash::Iterate<Ash::Unicode::Character::Value>::between(0, Ash::Unicode::Character::surrogateStart - 1) + Ash::Iterate<Ash::Unicode::Character::Value>::between(Ash::Unicode::Character::surrogateEnd + 1, Ash::Unicode::Character::maximum))
 					{
-						TEST_IS_TRUE(content.append(Ash::Encoding::Utf32be::Character(unicodeCharacter)));
+						TEST_IS_TRUE(content.append(Ash::Encoding::Utf32be::Character(value)));
 					}
 
 					expectedCharacter = 0;
@@ -91,50 +89,50 @@ namespace Ash
 
 					TEST_IS_ZERO(character.getLength());
 
-					for (Ash::Unicode::Character::Value code = 0; code < 0x100; code++)
+					for (Ash::Unicode::Character::Value value : Ash::Iterate<Ash::Unicode::Character::Value>::between(0x00, 0xFF))
 					{
 						Ash::Memory::Sequence<Ash::Encoding::Utf32be::Code, 1> invalidContent;
 
-						TEST_IS_TRUE(invalidContent.set(0, code));
+						TEST_IS_TRUE(invalidContent.set(0, value));
 
 						TEST_IS_ZERO(Ash::Encoding::Utf32be::decodeNext(invalidContent, 0, character));
 
 						TEST_IS_ZERO(character.getLength());
 					}
 
-					for (Ash::Unicode::Character::Value code = 0x100; code < 0x10000; code++)
+					for (Ash::Unicode::Character::Value value : Ash::Iterate<Ash::Unicode::Character::Value>::between(0x100, 0xFFFF))
 					{
 						Ash::Memory::Sequence<Ash::Encoding::Utf32be::Code, 2> invalidContent;
 
-						TEST_IS_TRUE(invalidContent.set(0, code >> 8));
-						TEST_IS_TRUE(invalidContent.set(1, code));
+						TEST_IS_TRUE(invalidContent.set(0, value >> 8));
+						TEST_IS_TRUE(invalidContent.set(1, value));
 
 						TEST_IS_ZERO(Ash::Encoding::Utf32be::decodeNext(invalidContent, 0, character));
 
 						TEST_IS_ZERO(character.getLength());
 					}
 
-					for (Ash::Unicode::Character::Value code = 0x10000; code < 0x1000000; code++)
+					for (Ash::Unicode::Character::Value value : Ash::Iterate<Ash::Unicode::Character::Value>::between(0x10000, 0xFFFFFF))
 					{
 						Ash::Memory::Sequence<Ash::Encoding::Utf32be::Code, 3> invalidContent;
 
-						TEST_IS_TRUE(invalidContent.set(0, code >> 16));
-						TEST_IS_TRUE(invalidContent.set(1, code >> 8));
-						TEST_IS_TRUE(invalidContent.set(2, code));
+						TEST_IS_TRUE(invalidContent.set(0, value >> 16));
+						TEST_IS_TRUE(invalidContent.set(1, value >> 8));
+						TEST_IS_TRUE(invalidContent.set(2, value));
 
 						TEST_IS_ZERO(Ash::Encoding::Utf32be::decodeNext(invalidContent, 0, character));
 
 						TEST_IS_ZERO(character.getLength());
 					}
 
-					for (Ash::Unicode::Character::Value code = 0x110000; code != 0; code++)
+					for (Ash::Unicode::Character::Value value : Ash::Iterate<Ash::Unicode::Character::Value>::between(0x110000, std::numeric_limits<Ash::Unicode::Character::Value>::max()))
 					{
 						Ash::Memory::Sequence<Ash::Encoding::Utf32be::Code, 4> invalidContent;
 
-						TEST_IS_TRUE(invalidContent.set(0, code >> 24));
-						TEST_IS_TRUE(invalidContent.set(1, code >> 16));
-						TEST_IS_TRUE(invalidContent.set(2, code >> 8));
-						TEST_IS_TRUE(invalidContent.set(3, code));
+						TEST_IS_TRUE(invalidContent.set(0, value >> 24));
+						TEST_IS_TRUE(invalidContent.set(1, value >> 16));
+						TEST_IS_TRUE(invalidContent.set(2, value >> 8));
+						TEST_IS_TRUE(invalidContent.set(3, value));
 
 						TEST_IS_ZERO(Ash::Encoding::Utf32be::decodeNext(invalidContent, 0, character));
 
@@ -155,9 +153,9 @@ namespace Ash
 
 					TEST_IS_ZERO(character.getLength());
 
-					for (Ash::Unicode::Character unicodeCharacter : Ash::Iterate<Ash::Unicode::Character::Value>::between(0, Ash::Unicode::Character::surrogateStart - 1) + Ash::Iterate<Ash::Unicode::Character::Value>::between(Ash::Unicode::Character::surrogateEnd + 1, Ash::Unicode::Character::maximum))
+					for (Ash::Unicode::Character::Value value : Ash::Iterate<Ash::Unicode::Character::Value>::between(0, Ash::Unicode::Character::surrogateStart - 1) + Ash::Iterate<Ash::Unicode::Character::Value>::between(Ash::Unicode::Character::surrogateEnd + 1, Ash::Unicode::Character::maximum))
 					{
-						TEST_IS_TRUE(content.append(Ash::Encoding::Utf32be::Character(unicodeCharacter)));
+						TEST_IS_TRUE(content.append(Ash::Encoding::Utf32be::Character(value)));
 					}
 
 					expectedCharacter = Ash::Unicode::Character::maximum;
@@ -182,50 +180,50 @@ namespace Ash
 
 					TEST_IS_ZERO(character.getLength());
 
-					for (Ash::Unicode::Character::Value code = 0; code < 0x100; code++)
+					for (Ash::Unicode::Character::Value value : Ash::Iterate<Ash::Unicode::Character::Value>::between(0x00, 0xFF))
 					{
 						Ash::Memory::Sequence<Ash::Encoding::Utf32be::Code, 1> invalidContent;
 
-						TEST_IS_TRUE(invalidContent.set(0, code));
+						TEST_IS_TRUE(invalidContent.set(0, value));
 
 						TEST_IS_ZERO(Ash::Encoding::Utf32be::decodePrevious(invalidContent, invalidContent.getLength(), character));
 
 						TEST_IS_ZERO(character.getLength());
 					}
 
-					for (Ash::Unicode::Character::Value code = 0x100; code < 0x10000; code++)
+					for (Ash::Unicode::Character::Value value : Ash::Iterate<Ash::Unicode::Character::Value>::between(0x100, 0xFFFF))
 					{
 						Ash::Memory::Sequence<Ash::Encoding::Utf32be::Code, 2> invalidContent;
 
-						TEST_IS_TRUE(invalidContent.set(0, code >> 8));
-						TEST_IS_TRUE(invalidContent.set(1, code));
+						TEST_IS_TRUE(invalidContent.set(0, value >> 8));
+						TEST_IS_TRUE(invalidContent.set(1, value));
 
 						TEST_IS_ZERO(Ash::Encoding::Utf32be::decodePrevious(invalidContent, invalidContent.getLength(), character));
 
 						TEST_IS_ZERO(character.getLength());
 					}
 
-					for (Ash::Unicode::Character::Value code = 0x10000; code < 0x1000000; code++)
+					for (Ash::Unicode::Character::Value value : Ash::Iterate<Ash::Unicode::Character::Value>::between(0x10000, 0xFFFFFF))
 					{
 						Ash::Memory::Sequence<Ash::Encoding::Utf32be::Code, 3> invalidContent;
 
-						TEST_IS_TRUE(invalidContent.set(0, code >> 16));
-						TEST_IS_TRUE(invalidContent.set(1, code >> 8));
-						TEST_IS_TRUE(invalidContent.set(2, code));
+						TEST_IS_TRUE(invalidContent.set(0, value >> 16));
+						TEST_IS_TRUE(invalidContent.set(1, value >> 8));
+						TEST_IS_TRUE(invalidContent.set(2, value));
 
 						TEST_IS_ZERO(Ash::Encoding::Utf32be::decodePrevious(invalidContent, invalidContent.getLength(), character));
 
 						TEST_IS_ZERO(character.getLength());
 					}
 
-					for (Ash::Unicode::Character::Value code = 0x110000; code != 0; code++)
+					for (Ash::Unicode::Character::Value value : Ash::Iterate<Ash::Unicode::Character::Value>::between(0x110000, std::numeric_limits<Ash::Unicode::Character::Value>::max()))
 					{
 						Ash::Memory::Sequence<Ash::Encoding::Utf32be::Code, 4> invalidContent;
 
-						TEST_IS_TRUE(invalidContent.set(0, code >> 24));
-						TEST_IS_TRUE(invalidContent.set(1, code >> 16));
-						TEST_IS_TRUE(invalidContent.set(2, code >> 8));
-						TEST_IS_TRUE(invalidContent.set(3, code));
+						TEST_IS_TRUE(invalidContent.set(0, value >> 24));
+						TEST_IS_TRUE(invalidContent.set(1, value >> 16));
+						TEST_IS_TRUE(invalidContent.set(2, value >> 8));
+						TEST_IS_TRUE(invalidContent.set(3, value));
 
 						TEST_IS_ZERO(Ash::Encoding::Utf32be::decodePrevious(invalidContent, invalidContent.getLength(), character));
 
