@@ -48,18 +48,21 @@ int main(int argumentCount, const char *argumentArray[])
 	Ash::Callable::Function helloWorldFunction = helloWorld;
 	backgroundThread.send(Ash::Memory::Unique::at(helloWorldFunction));
 
-	backgroundThread.send(Ash::Memory::Unique::newValue
+	backgroundThread.send
 	(
-		Ash::Callable::Function
+		Ash::Memory::Unique::newValue
 		(
-			[](Ash::Memory::View<const char *> arguments)
-			{
-				for (const char *s : arguments)
+			Ash::Callable::Function
+			(
+				[](Ash::Memory::View<const char *> arguments)
 				{
-					std::cout << "argument: " << s << "\n";
-				}
-			},
-			Ash::Memory::View<const char *>(argumentArray, argumentCount))
+					for (const char *s : arguments)
+					{
+						std::cout << "argument: " << s << "\n";
+					}
+				},
+				Ash::Memory::View<const char *>(argumentArray, argumentCount)
+			)
 		)
 	);
 
