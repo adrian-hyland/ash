@@ -18,7 +18,7 @@ namespace Ash
 		{
 			static Ash::Test::Assertion findAscii()
 			{
-				Ash::Ascii::String<> asciiString;
+				Ash::Ascii::String asciiString;
 				size_t offset;
 
 				offset = Ash::Encoding::find<Ash::Encoding::Ascii>(asciiString, 0, '1');
@@ -335,12 +335,12 @@ namespace Ash
 			{
 				Ash::String::Array<ENCODING> from;
 				Ash::String::Array<ENCODING> to;
-				Ash::Utf8::String<> utf8;
-				Ash::Utf16be::String<> utf16be;
-				Ash::Utf16le::String<> utf16le;
-				Ash::Utf32be::String<> utf32be;
-				Ash::Utf32le::String<> utf32le;
-				Ash::Wide::String<> wide;
+				Ash::Utf8::String utf8;
+				Ash::Utf16be::String utf16be;
+				Ash::Utf16le::String utf16le;
+				Ash::Utf32be::String utf32be;
+				Ash::Utf32le::String utf32le;
+				Ash::Wide::String wide;
 				size_t length;
 
 				if constexpr (Ash::Type::isSame<ENCODING, Ash::Encoding::Ascii>)
