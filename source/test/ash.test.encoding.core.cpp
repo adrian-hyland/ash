@@ -54,6 +54,7 @@ namespace Ash
 			>
 			static Ash::Test::Assertion findIso8859()
 			{
+				typename ENCODING::Table table;
 				Ash::String::Array<ENCODING> string;
 				size_t offset;
 
@@ -62,7 +63,7 @@ namespace Ash
 
 				for (typename ENCODING::Code code : Ash::Iterate<typename ENCODING::Code>::between(1, 0xFF))
 				{
-					if (ENCODING::table.isCodeValid(code))
+					if (table.isCodeValid(code))
 					{
 						TEST_IS_TRUE(string.append(code));
 					}
@@ -71,7 +72,7 @@ namespace Ash
 				offset = Ash::Encoding::find<ENCODING>(string, 0, '\x01');
 				TEST_IS_EQ(offset, 0);
 
-				offset = Ash::Encoding::find<ENCODING>(string, 0, ENCODING::table.getCharacter(ENCODING::table.startCode + ENCODING::table.size - 1));
+				offset = Ash::Encoding::find<ENCODING>(string, 0, table.getCharacter(table.startCode + table.size - 1));
 				TEST_IS_EQ(offset, string.getLength() - 1);
 
 				offset = Ash::Encoding::find<ENCODING>(string, 0, '\x00');
@@ -333,6 +334,7 @@ namespace Ash
 			>
 			static Ash::Test::Assertion convert()
 			{
+				using Character = typename ENCODING::Character;
 				Ash::String::Array<ENCODING> from;
 				Ash::String::Array<ENCODING> to;
 				Ash::Utf8::String utf8;
@@ -347,16 +349,18 @@ namespace Ash
 				{
 					for (Ash::Unicode::Character::Value value : Ash::Iterate<Ash::Unicode::Character::Value>::between(1, 0x7F))
 					{
-						TEST_IS_TRUE(from.append(typename ENCODING::Character(value)));
+						TEST_IS_TRUE(from.append(Character(value)));
 					}
 				}
 				else if constexpr (Ash::Type::isClass<ENCODING, Ash::Encoding::Iso8859::Generic::Part>)
 				{
-					for (Ash::Unicode::Character::Value value : Ash::Iterate<Ash::Unicode::Character::Value>::between(1, 0xFF))
+					typename ENCODING::Table table;
+
+					for (typename ENCODING::Code value : Ash::Iterate<typename ENCODING::Code>::between(1, 0xFF))
 					{
-						if (ENCODING::table.isCodeValid(value))
+						if (table.isCodeValid(value))
 						{
-							TEST_IS_TRUE(from.append(typename ENCODING::Character(value)));
+							TEST_IS_TRUE(from.append(Character(table.getCharacter(value))));
 						}
 					}
 				}
@@ -364,7 +368,7 @@ namespace Ash
 				{
 					for (Ash::Unicode::Character::Value value : Ash::Iterate<Ash::Unicode::Character::Value>::between(1, 0xD7FF) + Ash::Iterate<Ash::Unicode::Character::Value>::between(0xE000, Ash::Unicode::Character::maximum))
 					{
-						TEST_IS_TRUE(from.append(typename ENCODING::Character(value)));
+						TEST_IS_TRUE(from.append(Character(value)));
 					}
 				}
 
