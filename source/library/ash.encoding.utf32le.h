@@ -21,14 +21,14 @@ namespace Ash
 
 			static constexpr bool isBigEndian = false;
 
-			class Character : public Memory::Buffer<Code, maxSize>
+			class Character : public Ash::Memory::Buffer<Code, maxSize>
 			{
 			public:
 				static constexpr Ash::Unicode::Character replacement = Ash::Unicode::Character::replacement;
 
-				constexpr Character() : Memory::Buffer<Code, maxSize>() {}
+				constexpr Character() : Ash::Memory::Buffer<Code, maxSize>() {}
 
-				constexpr Character(Ash::Unicode::Character character) : Memory::Buffer<Code, maxSize>()
+				constexpr Character(Ash::Unicode::Character character) : Ash::Memory::Buffer<Code, maxSize>()
 				{
 					set(character);
 				}
@@ -89,7 +89,7 @@ namespace Ash
 				typename ALLOCATION,
 				typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>
 			>
-			static constexpr size_t decodeNext(const Memory::Value<ALLOCATION, Code> &value, size_t offset, Character &character)
+			static constexpr size_t decodeNext(const Ash::Memory::Value<ALLOCATION, Code> &value, size_t offset, Character &character)
 			{
 				Code code1 = 0;
 				Code code2 = 0;
@@ -110,7 +110,7 @@ namespace Ash
 				typename ALLOCATION,
 				typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>
 			>
-			static constexpr size_t decodePrevious(const Memory::Value<ALLOCATION, Code> &value, size_t offset, Character &character)
+			static constexpr size_t decodePrevious(const Ash::Memory::Value<ALLOCATION, Code> &value, size_t offset, Character &character)
 			{
 				Code code1 = 0;
 				Code code2 = 0;
