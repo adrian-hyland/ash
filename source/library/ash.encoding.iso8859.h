@@ -60,14 +60,14 @@ namespace Ash
 				class FromUnicode
 				{
 				public:
-					constexpr FromUnicode(const Ash::Encoding::CodeUnit16 (&unicodeValues)[size]) : m_Conversion()
+					constexpr FromUnicode(const Ash::Encoding::CodeUnit16 (&unicodeValues)[size]) : m_Mappings()
 					{
 						Code code = startCode;
 						for (Ash::Encoding::CodeUnit16 unicode : unicodeValues)
 						{
 							if (unicode != Ash::Unicode::Character::replacement)
 							{
-								insert(Conversion(unicode, code));
+								insert(Map(unicode, code));
 							}
 							code++;
 						}
@@ -86,9 +86,9 @@ namespace Ash
 						}
 
 						size_t from = 0;
-						size_t to = m_Conversion.getLength();
+						size_t to = m_Mappings.getLength();
 						
-						if ((character < m_Conversion.at(from)->from) || (character > m_Conversion.at(to - 1)->from))
+						if ((character < m_Mappings.at(from)->from) || (character > m_Mappings.at(to - 1)->from))
 						{
 							return replacementValue;
 						}
@@ -96,11 +96,11 @@ namespace Ash
 						while (to > from)
 						{
 							size_t middle = from + (to - from) / 2;
-							if (m_Conversion.at(middle)->from == character)
+							if (m_Mappings.at(middle)->from == character)
 							{
-								return m_Conversion.at(middle)->to;
+								return m_Mappings.at(middle)->to;
 							}
-							else if (m_Conversion.at(middle)->from > character)
+							else if (m_Mappings.at(middle)->from > character)
 							{
 								to = middle;
 							}
@@ -113,40 +113,40 @@ namespace Ash
 					}
 
 				protected:
-					struct Conversion
+					struct Map
 					{
-						constexpr Conversion() : from(0), to(0) {}
+						constexpr Map() : from(0), to(0) {}
 
-						constexpr Conversion(Ash::Encoding::CodeUnit16 fromValue, Code toValue) : from(fromValue), to(toValue) {}
+						constexpr Map(Ash::Encoding::CodeUnit16 fromValue, Code toValue) : from(fromValue), to(toValue) {}
 
 						Ash::Encoding::CodeUnit16 from;
 						Code                      to;
 					};
 
-					constexpr void insert(Conversion conversion)
+					constexpr void insert(Map map)
 					{
-						size_t offset = m_Conversion.getLength();
+						size_t offset = m_Mappings.getLength();
 						if (offset > 0)
 						{
-							if (conversion.from < m_Conversion.at(0)->from)
+							if (map.from < m_Mappings.at(0)->from)
 							{
 								offset = 0;
 							}
-							else if (conversion.from < m_Conversion.at(offset - 1)->from)
+							else if (map.from < m_Mappings.at(offset - 1)->from)
 							{
 								size_t from = 0;
 								size_t to = offset;
 								for (;;)
 								{
 									offset = from + (to - from) / 2;
-									if (conversion.from < m_Conversion.at(offset)->from)
+									if (map.from < m_Mappings.at(offset)->from)
 									{
 										to = offset;
 									}
 									else
 									{
 										offset++;
-										if (conversion.from > m_Conversion.at(offset)->from)
+										if (map.from > m_Mappings.at(offset)->from)
 										{
 											from = offset;
 										}
@@ -158,11 +158,11 @@ namespace Ash
 								}
 							}
 						}
-						m_Conversion.insert(offset, conversion);
+						m_Mappings.insert(offset, map);
 					}
 
 				private:
-					Ash::Memory::Buffer<Conversion, size> m_Conversion;
+					Ash::Memory::Buffer<Map, size> m_Mappings;
 				};
 
 			private:
