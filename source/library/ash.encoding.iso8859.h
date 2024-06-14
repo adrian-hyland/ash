@@ -62,7 +62,7 @@ namespace Ash
 				public:
 					constexpr FromUnicode(const Ash::Encoding::CodeUnit16 (&unicodeValues)[size]) : m_Conversion()
 					{
-						uint8_t code = startCode;
+						Code code = startCode;
 						for (Ash::Encoding::CodeUnit16 unicode : unicodeValues)
 						{
 							if (unicode != Ash::Unicode::Character::replacement)
@@ -474,8 +474,6 @@ namespace Ash
 
 				using Code = Ash::Encoding::Iso8859::Code;
 
-				static constexpr Table table = Table();
-
 				static constexpr size_t minSize = 1;
 
 				static constexpr size_t maxSize = 1;
@@ -484,14 +482,14 @@ namespace Ash
 
 				static constexpr bool isBigEndian = false;
 
-				class Character : public Memory::Buffer<Code, maxSize>
+				class Character : public Ash::Memory::Buffer<Code, maxSize>
 				{
 				public:
 					static constexpr Ash::Unicode::Character replacement = '?';
 
-					constexpr Character() : Memory::Buffer<Code, maxSize>() {}
+					constexpr Character() : Ash::Memory::Buffer<Code, maxSize>() {}
 
-					constexpr Character(Ash::Unicode::Character character) : Memory::Buffer<Code, maxSize>()
+					constexpr Character(Ash::Unicode::Character character) : Ash::Memory::Buffer<Code, maxSize>()
 					{
 						set(character);
 					}
@@ -502,15 +500,30 @@ namespace Ash
 						return character;
 					}
 
-					constexpr operator Ash::Unicode::Character () const { return (getLength() > 0) ? table.getCharacter((*this)[0]) : Ash::Unicode::Character(Ash::Unicode::Character::replacement); }
+					constexpr operator Ash::Unicode::Character () const { return (getLength() > 0) ? getCharacter((*this)[0]) : Ash::Unicode::Character(Ash::Unicode::Character::replacement); }
 
 				protected:
+					static const Table &getTable()
+					{
+						static Table table;
+
+						return table;
+					}
+
+					static constexpr bool isCodeValid(Code code) { return getTable().isCodeValid(code); }
+
+					static constexpr bool isCharacterValid(Ash::Unicode::Character character) { return getTable().isCharacterValid(character); }
+
+					static constexpr Ash::Unicode::Character getCharacter(Code code) { return getTable().getCharacter(code); }
+
+					static constexpr Code getCode(Ash::Unicode::Character character, Code replacement = '?') { return getTable().getCode(character, replacement); }
+
 					constexpr void set(Ash::Unicode::Character character)
 					{
-						if (table.isCharacterValid(character))
+						if (isCharacterValid(character))
 						{
 							setLength(1);
-							(*this)[0] = table.getCode(character);
+							(*this)[0] = getCode(character);
 						}
 						else
 						{
@@ -533,11 +546,11 @@ namespace Ash
 					typename ALLOCATION,
 					typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>
 				>
-				static constexpr size_t decodeNext(const Memory::Value<ALLOCATION, Code> &value, size_t offset, Character &character)
+				static constexpr size_t decodeNext(const Ash::Memory::Value<ALLOCATION, Code> &value, size_t offset, Character &character)
 				{
 					Code code = 0;
 
-					if (value.get(offset, code) && table.isCodeValid(code))
+					if (value.get(offset, code) && Character::isCodeValid(code))
 					{
 						return character.set(code);
 					}
@@ -553,11 +566,11 @@ namespace Ash
 					typename ALLOCATION,
 					typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>
 				>
-				static constexpr size_t decodePrevious(const Memory::Value<ALLOCATION, Code> &value, size_t offset, Character &character)
+				static constexpr size_t decodePrevious(const Ash::Memory::Value<ALLOCATION, Code> &value, size_t offset, Character &character)
 				{
 					Code code = 0;
 
-					if ((offset > 0) && value.get(--offset, code) && table.isCodeValid(code))
+					if ((offset > 0) && value.get(--offset, code) && Character::isCodeValid(code))
 					{
 						return character.set(code);
 					}
