@@ -13,198 +13,201 @@ namespace Ash
 				static Ash::Test::Assertion tableCore()
 				{
 					{
-						Ash::Encoding::Iso8859::Table<0x80, 0x00> testTable( {} );
+						using TestTable = Ash::Encoding::Iso8859::Table<0x80, 0>;
 						for (Ash::Encoding::Iso8859::Code code : Ash::Iterate<Ash::Encoding::Iso8859::Code>::between(0x00, 0x7F))
 						{
-							TEST_IS_TRUE(testTable.isCodeValid(code));
+							TEST_IS_TRUE(TestTable::isCodeValid(code));
 						}
 						for (Ash::Encoding::Iso8859::Code code : Ash::Iterate<Ash::Encoding::Iso8859::Code>::between(0x80, 0xFF))
 						{
-							TEST_IS_FALSE(testTable.isCodeValid(code));
+							TEST_IS_FALSE(TestTable::isCodeValid(code));
 						}
 						for (Ash::Unicode::Character character : Ash::Iterate<Ash::Unicode::Character::Value>::between(0x00, 0x7F))
 						{
-							TEST_IS_TRUE(testTable.isCharacterValid(character));
+							TEST_IS_TRUE(TestTable::isCharacterValid(character));
 						}
 						for (Ash::Unicode::Character character : Ash::Iterate<Ash::Unicode::Character::Value>::between(0x80, 0xFF))
 						{
-							TEST_IS_FALSE(testTable.isCharacterValid(character));
+							TEST_IS_FALSE(TestTable::isCharacterValid(character));
 						}
 						for (Ash::Encoding::Iso8859::Code code : Ash::Iterate<Ash::Encoding::Iso8859::Code>::between(0x00, 0x7F))
 						{
-							TEST_IS_EQ(testTable.getCharacter(code), code);
+							TEST_IS_EQ(TestTable::getCharacter(code), code);
 						}
 						for (Ash::Encoding::Iso8859::Code code : Ash::Iterate<Ash::Encoding::Iso8859::Code>::between(0x80, 0xFF))
 						{
-							TEST_IS_EQ(testTable.getCharacter(code), Ash::Unicode::Character::replacement);
+							TEST_IS_EQ(TestTable::getCharacter(code), Ash::Unicode::Character::replacement);
 						}
 						for (Ash::Unicode::Character character : Ash::Iterate<Ash::Unicode::Character::Value>::between(0x00, 0x7F))
 						{
-							TEST_IS_EQ(testTable.getCode(character), character);
+							TEST_IS_EQ(TestTable::getCode(character), character);
 						}
 						for (Ash::Unicode::Character character : Ash::Iterate<Ash::Unicode::Character::Value>::between(0x80, 0xFF))
 						{
-							TEST_IS_EQ(testTable.getCode(character, ' '), ' ');
+							TEST_IS_EQ(TestTable::getCode(character, ' '), ' ');
 						}
 					}
 
 					{
-						Ash::Encoding::Iso8859::Table<0x80, 0x01> testTable( { 0x1000 } );
+						static constexpr Ash::Encoding::CodeUnit16 values[] = { 0x1000 };
+						using TestTable = Ash::Encoding::Iso8859::Table<0x80, sizeof(values) / sizeof(values[0]), values>;
 						for (Ash::Encoding::Iso8859::Code code : Ash::Iterate<Ash::Encoding::Iso8859::Code>::between(0x00, 0x80))
 						{
-							TEST_IS_TRUE(testTable.isCodeValid(code));
+							TEST_IS_TRUE(TestTable::isCodeValid(code));
 						}
 						for (Ash::Encoding::Iso8859::Code code : Ash::Iterate<Ash::Encoding::Iso8859::Code>::between(0x81, 0xFF))
 						{
-							TEST_IS_FALSE(testTable.isCodeValid(code));
+							TEST_IS_FALSE(TestTable::isCodeValid(code));
 						}
 						for (Ash::Unicode::Character character : Ash::Iterate<Ash::Unicode::Character::Value>::between(0x00, 0x7F))
 						{
-							TEST_IS_TRUE(testTable.isCharacterValid(character));
+							TEST_IS_TRUE(TestTable::isCharacterValid(character));
 						}
 						for (Ash::Unicode::Character character : Ash::Iterate<Ash::Unicode::Character::Value>::between(0x80, 0xFF))
 						{
-							TEST_IS_FALSE(testTable.isCharacterValid(character));
+							TEST_IS_FALSE(TestTable::isCharacterValid(character));
 						}
 						for (Ash::Encoding::Iso8859::Code code : Ash::Iterate<Ash::Encoding::Iso8859::Code>::between(0x00, 0x7F))
 						{
-							TEST_IS_EQ(testTable.getCharacter(code), code);
+							TEST_IS_EQ(TestTable::getCharacter(code), code);
 						}
 						for (Ash::Encoding::Iso8859::Code code : Ash::Iterate<Ash::Encoding::Iso8859::Code>::between(0x81, 0xFF))
 						{
-							TEST_IS_EQ(testTable.getCharacter(code), Ash::Unicode::Character::replacement);
+							TEST_IS_EQ(TestTable::getCharacter(code), Ash::Unicode::Character::replacement);
 						}
 						for (Ash::Unicode::Character character : Ash::Iterate<Ash::Unicode::Character::Value>::between(0x00, 0x7F))
 						{
-							TEST_IS_EQ(testTable.getCode(character), character);
+							TEST_IS_EQ(TestTable::getCode(character), character);
 						}
 						for (Ash::Unicode::Character character : Ash::Iterate<Ash::Unicode::Character::Value>::between(0x80, 0xFF))
 						{
-							TEST_IS_EQ(testTable.getCode(character, ' '), ' ');
+							TEST_IS_EQ(TestTable::getCode(character, ' '), ' ');
 						}
-						TEST_IS_FALSE(testTable.isCharacterValid(0x0FFF));
-						TEST_IS_TRUE(testTable.isCharacterValid(0x1000));
-						TEST_IS_FALSE(testTable.isCharacterValid(0x1001));
-						TEST_IS_EQ(testTable.getCharacter(0x80), 0x1000);
-						TEST_IS_EQ(testTable.getCode(0x0FFF), '?');
-						TEST_IS_EQ(testTable.getCode(0x1000), 0x80);
-						TEST_IS_EQ(testTable.getCode(0x1001), '?');
+						TEST_IS_FALSE(TestTable::isCharacterValid(0x0FFF));
+						TEST_IS_TRUE(TestTable::isCharacterValid(0x1000));
+						TEST_IS_FALSE(TestTable::isCharacterValid(0x1001));
+						TEST_IS_EQ(TestTable::getCharacter(0x80), 0x1000);
+						TEST_IS_EQ(TestTable::getCode(0x0FFF), '?');
+						TEST_IS_EQ(TestTable::getCode(0x1000), 0x80);
+						TEST_IS_EQ(TestTable::getCode(0x1001), '?');
 					}
 
 					{
-						Ash::Encoding::Iso8859::Table<0x80, 0x02> testTable( { 0x1001, 0x1000 } );
+						static constexpr Ash::Encoding::CodeUnit16 values[] = { 0x1001, 0x1000 };
+						using TestTable = Ash::Encoding::Iso8859::Table<0x80, sizeof(values) / sizeof(values[0]), values>;
 						for (Ash::Encoding::Iso8859::Code code : Ash::Iterate<Ash::Encoding::Iso8859::Code>::between(0x00, 0x81))
 						{
-							TEST_IS_TRUE(testTable.isCodeValid(code));
+							TEST_IS_TRUE(TestTable::isCodeValid(code));
 						}
 						for (Ash::Encoding::Iso8859::Code code : Ash::Iterate<Ash::Encoding::Iso8859::Code>::between(0x82, 0xFF))
 						{
-							TEST_IS_FALSE(testTable.isCodeValid(code));
+							TEST_IS_FALSE(TestTable::isCodeValid(code));
 						}
 						for (Ash::Unicode::Character character : Ash::Iterate<Ash::Unicode::Character::Value>::between(0x00, 0x7F))
 						{
-							TEST_IS_TRUE(testTable.isCharacterValid(character));
+							TEST_IS_TRUE(TestTable::isCharacterValid(character));
 						}
 						for (Ash::Unicode::Character character : Ash::Iterate<Ash::Unicode::Character::Value>::between(0x80, 0xFF))
 						{
-							TEST_IS_FALSE(testTable.isCharacterValid(character));
+							TEST_IS_FALSE(TestTable::isCharacterValid(character));
 						}
 						for (Ash::Encoding::Iso8859::Code code : Ash::Iterate<Ash::Encoding::Iso8859::Code>::between(0x00, 0x7F))
 						{
-							TEST_IS_EQ(testTable.getCharacter(code), code);
+							TEST_IS_EQ(TestTable::getCharacter(code), code);
 						}
 						for (Ash::Encoding::Iso8859::Code code : Ash::Iterate<Ash::Encoding::Iso8859::Code>::between(0x82, 0xFF))
 						{
-							TEST_IS_EQ(testTable.getCharacter(code), Ash::Unicode::Character::replacement);
+							TEST_IS_EQ(TestTable::getCharacter(code), Ash::Unicode::Character::replacement);
 						}
 						for (Ash::Unicode::Character character : Ash::Iterate<Ash::Unicode::Character::Value>::between(0x00, 0x7F))
 						{
-							TEST_IS_EQ(testTable.getCode(character), character);
+							TEST_IS_EQ(TestTable::getCode(character), character);
 						}
 						for (Ash::Unicode::Character character : Ash::Iterate<Ash::Unicode::Character::Value>::between(0x80, 0xFF))
 						{
-							TEST_IS_EQ(testTable.getCode(character, ' '), ' ');
+							TEST_IS_EQ(TestTable::getCode(character, ' '), ' ');
 						}
-						TEST_IS_FALSE(testTable.isCharacterValid(0x0FFF));
-						TEST_IS_TRUE(testTable.isCharacterValid(0x1000));
-						TEST_IS_TRUE(testTable.isCharacterValid(0x1001));
-						TEST_IS_FALSE(testTable.isCharacterValid(0x1002));
-						TEST_IS_EQ(testTable.getCharacter(0x80), 0x1001);
-						TEST_IS_EQ(testTable.getCharacter(0x81), 0x1000);
-						TEST_IS_EQ(testTable.getCode(0x0FFF), '?');
-						TEST_IS_EQ(testTable.getCode(0x1000), 0x81);
-						TEST_IS_EQ(testTable.getCode(0x1001), 0x80);
-						TEST_IS_EQ(testTable.getCode(0x1002), '?');
+						TEST_IS_FALSE(TestTable::isCharacterValid(0x0FFF));
+						TEST_IS_TRUE(TestTable::isCharacterValid(0x1000));
+						TEST_IS_TRUE(TestTable::isCharacterValid(0x1001));
+						TEST_IS_FALSE(TestTable::isCharacterValid(0x1002));
+						TEST_IS_EQ(TestTable::getCharacter(0x80), 0x1001);
+						TEST_IS_EQ(TestTable::getCharacter(0x81), 0x1000);
+						TEST_IS_EQ(TestTable::getCode(0x0FFF), '?');
+						TEST_IS_EQ(TestTable::getCode(0x1000), 0x81);
+						TEST_IS_EQ(TestTable::getCode(0x1001), 0x80);
+						TEST_IS_EQ(TestTable::getCode(0x1002), '?');
 					}
 
 					{
-						Ash::Encoding::Iso8859::Table<0x80, 0x0A> testTable( { 0x1008, 0x1001, 0x1009, 0x1000, 0x1004, 0x1002, 0x1006, 0x1003, 0x1007, 0x1005 } );
+						static constexpr Ash::Encoding::CodeUnit16 values[] = { 0x1008, 0x1001, 0x1009, 0x1000, 0x1004, 0x1002, 0x1006, 0x1003, 0x1007, 0x1005 };
+						using TestTable = Ash::Encoding::Iso8859::Table<0x80, sizeof(values) / sizeof(values[0]), values>;
 						for (Ash::Encoding::Iso8859::Code code : Ash::Iterate<Ash::Encoding::Iso8859::Code>::between(0x00, 0x89))
 						{
-							TEST_IS_TRUE(testTable.isCodeValid(code));
+							TEST_IS_TRUE(TestTable::isCodeValid(code));
 						}
 						for (Ash::Encoding::Iso8859::Code code : Ash::Iterate<Ash::Encoding::Iso8859::Code>::between(0x8A, 0xFF))
 						{
-							TEST_IS_FALSE(testTable.isCodeValid(code));
+							TEST_IS_FALSE(TestTable::isCodeValid(code));
 						}
 						for (Ash::Unicode::Character character : Ash::Iterate<Ash::Unicode::Character::Value>::between(0x00, 0x7F))
 						{
-							TEST_IS_TRUE(testTable.isCharacterValid(character));
+							TEST_IS_TRUE(TestTable::isCharacterValid(character));
 						}
 						for (Ash::Unicode::Character character : Ash::Iterate<Ash::Unicode::Character::Value>::between(0x8A, 0xFF))
 						{
-							TEST_IS_FALSE(testTable.isCharacterValid(character));
+							TEST_IS_FALSE(TestTable::isCharacterValid(character));
 						}
 						for (Ash::Encoding::Iso8859::Code code : Ash::Iterate<Ash::Encoding::Iso8859::Code>::between(0x00, 0x7F))
 						{
-							TEST_IS_EQ(testTable.getCharacter(code), code);
+							TEST_IS_EQ(TestTable::getCharacter(code), code);
 						}
 						for (Ash::Encoding::Iso8859::Code code : Ash::Iterate<Ash::Encoding::Iso8859::Code>::between(0x8A, 0xFF))
 						{
-							TEST_IS_EQ(testTable.getCharacter(code), Ash::Unicode::Character::replacement);
+							TEST_IS_EQ(TestTable::getCharacter(code), Ash::Unicode::Character::replacement);
 						}
 						for (Ash::Unicode::Character character : Ash::Iterate<Ash::Unicode::Character::Value>::between(0x00, 0x7F))
 						{
-							TEST_IS_EQ(testTable.getCode(character), character);
+							TEST_IS_EQ(TestTable::getCode(character), character);
 						}
 						for (Ash::Unicode::Character character : Ash::Iterate<Ash::Unicode::Character::Value>::between(0x80, 0xFF))
 						{
-							TEST_IS_EQ(testTable.getCode(character, ' '), ' ');
+							TEST_IS_EQ(TestTable::getCode(character, ' '), ' ');
 						}
-						TEST_IS_FALSE(testTable.isCharacterValid(0x0FFF));
-						TEST_IS_TRUE(testTable.isCharacterValid(0x1000));
-						TEST_IS_TRUE(testTable.isCharacterValid(0x1001));
-						TEST_IS_TRUE(testTable.isCharacterValid(0x1002));
-						TEST_IS_TRUE(testTable.isCharacterValid(0x1003));
-						TEST_IS_TRUE(testTable.isCharacterValid(0x1004));
-						TEST_IS_TRUE(testTable.isCharacterValid(0x1005));
-						TEST_IS_TRUE(testTable.isCharacterValid(0x1006));
-						TEST_IS_TRUE(testTable.isCharacterValid(0x1007));
-						TEST_IS_TRUE(testTable.isCharacterValid(0x1008));
-						TEST_IS_TRUE(testTable.isCharacterValid(0x1009));
-						TEST_IS_FALSE(testTable.isCharacterValid(0x100A));
-						TEST_IS_EQ(testTable.getCharacter(0x80), 0x1008);
-						TEST_IS_EQ(testTable.getCharacter(0x81), 0x1001);
-						TEST_IS_EQ(testTable.getCharacter(0x82), 0x1009);
-						TEST_IS_EQ(testTable.getCharacter(0x83), 0x1000);
-						TEST_IS_EQ(testTable.getCharacter(0x84), 0x1004);
-						TEST_IS_EQ(testTable.getCharacter(0x85), 0x1002);
-						TEST_IS_EQ(testTable.getCharacter(0x86), 0x1006);
-						TEST_IS_EQ(testTable.getCharacter(0x87), 0x1003);
-						TEST_IS_EQ(testTable.getCharacter(0x88), 0x1007);
-						TEST_IS_EQ(testTable.getCharacter(0x89), 0x1005);
-						TEST_IS_EQ(testTable.getCode(0x0FFF), '?');
-						TEST_IS_EQ(testTable.getCode(0x1000), 0x83);
-						TEST_IS_EQ(testTable.getCode(0x1001), 0x81);
-						TEST_IS_EQ(testTable.getCode(0x1002), 0x85);
-						TEST_IS_EQ(testTable.getCode(0x1003), 0x87);
-						TEST_IS_EQ(testTable.getCode(0x1004), 0x84);
-						TEST_IS_EQ(testTable.getCode(0x1005), 0x89);
-						TEST_IS_EQ(testTable.getCode(0x1006), 0x86);
-						TEST_IS_EQ(testTable.getCode(0x1007), 0x88);
-						TEST_IS_EQ(testTable.getCode(0x1008), 0x80);
-						TEST_IS_EQ(testTable.getCode(0x1009), 0x82);
-						TEST_IS_EQ(testTable.getCode(0x100A), '?');
+						TEST_IS_FALSE(TestTable::isCharacterValid(0x0FFF));
+						TEST_IS_TRUE(TestTable::isCharacterValid(0x1000));
+						TEST_IS_TRUE(TestTable::isCharacterValid(0x1001));
+						TEST_IS_TRUE(TestTable::isCharacterValid(0x1002));
+						TEST_IS_TRUE(TestTable::isCharacterValid(0x1003));
+						TEST_IS_TRUE(TestTable::isCharacterValid(0x1004));
+						TEST_IS_TRUE(TestTable::isCharacterValid(0x1005));
+						TEST_IS_TRUE(TestTable::isCharacterValid(0x1006));
+						TEST_IS_TRUE(TestTable::isCharacterValid(0x1007));
+						TEST_IS_TRUE(TestTable::isCharacterValid(0x1008));
+						TEST_IS_TRUE(TestTable::isCharacterValid(0x1009));
+						TEST_IS_FALSE(TestTable::isCharacterValid(0x100A));
+						TEST_IS_EQ(TestTable::getCharacter(0x80), 0x1008);
+						TEST_IS_EQ(TestTable::getCharacter(0x81), 0x1001);
+						TEST_IS_EQ(TestTable::getCharacter(0x82), 0x1009);
+						TEST_IS_EQ(TestTable::getCharacter(0x83), 0x1000);
+						TEST_IS_EQ(TestTable::getCharacter(0x84), 0x1004);
+						TEST_IS_EQ(TestTable::getCharacter(0x85), 0x1002);
+						TEST_IS_EQ(TestTable::getCharacter(0x86), 0x1006);
+						TEST_IS_EQ(TestTable::getCharacter(0x87), 0x1003);
+						TEST_IS_EQ(TestTable::getCharacter(0x88), 0x1007);
+						TEST_IS_EQ(TestTable::getCharacter(0x89), 0x1005);
+						TEST_IS_EQ(TestTable::getCode(0x0FFF), '?');
+						TEST_IS_EQ(TestTable::getCode(0x1000), 0x83);
+						TEST_IS_EQ(TestTable::getCode(0x1001), 0x81);
+						TEST_IS_EQ(TestTable::getCode(0x1002), 0x85);
+						TEST_IS_EQ(TestTable::getCode(0x1003), 0x87);
+						TEST_IS_EQ(TestTable::getCode(0x1004), 0x84);
+						TEST_IS_EQ(TestTable::getCode(0x1005), 0x89);
+						TEST_IS_EQ(TestTable::getCode(0x1006), 0x86);
+						TEST_IS_EQ(TestTable::getCode(0x1007), 0x88);
+						TEST_IS_EQ(TestTable::getCode(0x1008), 0x80);
+						TEST_IS_EQ(TestTable::getCode(0x1009), 0x82);
+						TEST_IS_EQ(TestTable::getCode(0x100A), '?');
 					}
 
 					return {};
@@ -217,20 +220,20 @@ namespace Ash
 				>
 				static Ash::Test::Assertion table()
 				{
-					TABLE testTable;
+					using Table = TABLE;
 					for (Ash::Encoding::Iso8859::Code code : Ash::Iterate<Ash::Encoding::Iso8859::Code>::between(0x00, 0xFF))
 					{
-						if (testTable.isCodeValid(code))
+						if (Table::isCodeValid(code))
 						{
-							TEST_IS_TRUE(testTable.isCodeValid(code));
-							Ash::Unicode::Character character = testTable.getCharacter(code);
+							TEST_IS_TRUE(Table::isCodeValid(code));
+							Ash::Unicode::Character character = Table::getCharacter(code);
 							TEST_IS_NOT_EQ(character, Ash::Unicode::Character::replacement);
-							TEST_IS_EQ(testTable.getCode(character), code);
+							TEST_IS_EQ(Table::getCode(character), code);
 						}
 						else
 						{
-							TEST_IS_FALSE(testTable.isCodeValid(code));
-							TEST_IS_EQ(testTable.getCharacter(code), Ash::Unicode::Character::replacement);
+							TEST_IS_FALSE(Table::isCodeValid(code));
+							TEST_IS_EQ(Table::getCharacter(code), Ash::Unicode::Character::replacement);
 						}
 					}
 
@@ -247,8 +250,6 @@ namespace Ash
 					using Table = TABLE;
 					using Character = typename Ash::Encoding::Iso8859::Part<Table>::Character;
 
-					Table table;
-
 					for (Ash::Unicode::Character::Value value : Ash::Iterate<Ash::Unicode::Character::Value>::between(0x00, 0x9F))
 					{
 						Character character(value);
@@ -264,11 +265,11 @@ namespace Ash
 					{
 						Character character(value);
 
-						if (table.isCharacterValid(value))
+						if (Table::isCharacterValid(value))
 						{
 							TEST_IS_EQ(character.getLength(), 1);
 
-							TEST_IS_EQ(Ash::Unicode::Character(*character.at(0)), table.getCode(character));
+							TEST_IS_EQ(Ash::Unicode::Character(*character.at(0)), Table::getCode(character));
 
 							TEST_IS_EQ(Ash::Unicode::Character(character), value);
 						}
@@ -292,7 +293,6 @@ namespace Ash
 					using Part = typename Ash::Encoding::Iso8859::Part<Table>;
 					using Character = Part::Character;
 
-					Table table;
 					Ash::Memory::Array<Ash::Encoding::Iso8859::Code> content;
 					Character character;
 					Ash::Encoding::Iso8859::Code expectedCode = 0;
@@ -304,9 +304,9 @@ namespace Ash
 
 					for (Ash::Encoding::Iso8859::Code code : Ash::Iterate<Ash::Encoding::Iso8859::Code>::between(0x00, 0xFF))
 					{
-						if (table.isCodeValid(code))
+						if (Table::isCodeValid(code))
 						{
-							TEST_IS_TRUE(content.append(Character(table.getCharacter(code))));
+							TEST_IS_TRUE(content.append(Character(Table::getCharacter(code))));
 						}
 					}
 
@@ -317,14 +317,14 @@ namespace Ash
 
 						TEST_IS_NOT_ZERO(length);
 
-						TEST_IS_EQ(Ash::Unicode::Character(character), table.getCharacter(expectedCode));
+						TEST_IS_EQ(Ash::Unicode::Character(character), Table::getCharacter(expectedCode));
 
 						offset = offset + length;
 						do
 						{
 							expectedCode++;
 						}
-						while (!table.isCodeValid(expectedCode));
+						while (!Table::isCodeValid(expectedCode));
 					}
 
 					TEST_IS_ZERO(Part::decodeNext(content, offset, character));
@@ -333,7 +333,7 @@ namespace Ash
 
 					for (Ash::Encoding::Iso8859::Code code : Ash::Iterate<Ash::Unicode::Character::Value>::between(0xA0, 0xFF))
 					{
-						if (!table.isCodeValid(code))
+						if (!Table::isCodeValid(code))
 						{
 							Ash::Memory::Sequence<Ash::Encoding::Iso8859::Code, 1> invalidContent;
 
@@ -359,7 +359,6 @@ namespace Ash
 					using Part = typename Ash::Encoding::Iso8859::Part<Table>;
 					using Character = Part::Character;
 
-					Table table;
 					Ash::Memory::Array<Ash::Encoding::Iso8859::Code> content;
 					Character character;
 					Ash::Encoding::Iso8859::Code expectedCode = 0;
@@ -371,9 +370,9 @@ namespace Ash
 
 					for (Ash::Encoding::Iso8859::Code code : Ash::Iterate<Ash::Encoding::Iso8859::Code>::between(0x00, 0xFF))
 					{
-						if (table.isCodeValid(code))
+						if (Table::isCodeValid(code))
 						{
-							TEST_IS_TRUE(content.append(Character(table.getCharacter(code))));
+							TEST_IS_TRUE(content.append(Character(Table::getCharacter(code))));
 						}
 					}
 
@@ -381,7 +380,7 @@ namespace Ash
 					offset = content.getLength();
 					while (offset > 0)
 					{
-						while (!table.isCodeValid(expectedCode))
+						while (!Table::isCodeValid(expectedCode))
 						{
 							expectedCode--;
 						}
@@ -390,7 +389,7 @@ namespace Ash
 
 						TEST_IS_NOT_ZERO(length);
 
-						TEST_IS_EQ(Ash::Unicode::Character(character), table.getCharacter(expectedCode));
+						TEST_IS_EQ(Ash::Unicode::Character(character), Table::getCharacter(expectedCode));
 
 						offset = offset - length;
 						expectedCode--;
@@ -402,7 +401,7 @@ namespace Ash
 
 					for (Ash::Encoding::Iso8859::Code code : Ash::Iterate<Ash::Unicode::Character::Value>::between(0xA0, 0xFF))
 					{
-						if (!table.isCodeValid(code))
+						if (!Table::isCodeValid(code))
 						{
 							Ash::Memory::Sequence<Ash::Encoding::Iso8859::Code, 1> invalidContent;
 

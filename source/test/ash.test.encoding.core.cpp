@@ -54,7 +54,7 @@ namespace Ash
 			>
 			static Ash::Test::Assertion findIso8859()
 			{
-				typename ENCODING::Table table;
+				using Table = typename ENCODING::Table;
 				Ash::String::Array<ENCODING> string;
 				size_t offset;
 
@@ -63,7 +63,7 @@ namespace Ash
 
 				for (typename ENCODING::Code code : Ash::Iterate<typename ENCODING::Code>::between(1, 0xFF))
 				{
-					if (table.isCodeValid(code))
+					if (Table::isCodeValid(code))
 					{
 						TEST_IS_TRUE(string.append(code));
 					}
@@ -72,7 +72,7 @@ namespace Ash
 				offset = Ash::Encoding::find<ENCODING>(string, 0, '\x01');
 				TEST_IS_EQ(offset, 0);
 
-				offset = Ash::Encoding::find<ENCODING>(string, 0, table.getCharacter(table.startCode + table.size - 1));
+				offset = Ash::Encoding::find<ENCODING>(string, 0, Table::getCharacter(Table::startCode + Table::size - 1));
 				TEST_IS_EQ(offset, string.getLength() - 1);
 
 				offset = Ash::Encoding::find<ENCODING>(string, 0, '\x00');
@@ -354,13 +354,13 @@ namespace Ash
 				}
 				else if constexpr (Ash::Type::isClass<ENCODING, Ash::Encoding::Iso8859::Generic::Part>)
 				{
-					typename ENCODING::Table table;
+					using Table = ENCODING::Table;
 
 					for (typename ENCODING::Code value : Ash::Iterate<typename ENCODING::Code>::between(1, 0xFF))
 					{
-						if (table.isCodeValid(value))
+						if (Table::isCodeValid(value))
 						{
-							TEST_IS_TRUE(from.append(Character(table.getCharacter(value))));
+							TEST_IS_TRUE(from.append(Character(Table::getCharacter(value))));
 						}
 					}
 				}
