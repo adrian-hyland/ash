@@ -26,6 +26,8 @@ namespace Ash
 			>
 			using GetType = std::remove_cv_t<std::remove_reference_t<Ash::Type::Index<INDEX, TYPE, NEXT_TYPE...>>>;
 
+			constexpr Argument() : Next(), m_Value() {}
+
 			template
 			<
 				typename ...NEXT_ARGUMENT
@@ -99,6 +101,8 @@ namespace Ash
 				size_t INDEX
 			>
 			using GetType = std::remove_cv_t<std::remove_reference_t<Ash::Type::Index<INDEX, TYPE>>>;
+
+			constexpr Argument() : m_Value() {}
 
 			constexpr Argument(const Type &argument) : m_Value()
 			{
