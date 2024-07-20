@@ -19,7 +19,7 @@ namespace Ash
 			class Trace
 			{
 			public:
-				static constexpr size_t getAllocatedCount()
+				static size_t getAllocatedCount()
 				{
 					size_t count = 0;
 
