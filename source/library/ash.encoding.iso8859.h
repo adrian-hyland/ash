@@ -20,9 +20,9 @@ namespace Ash
 
 			template
 			<
-				Ash::Encoding::CodeUnit16       START_CODE,
-				size_t                          SIZE = 0x100 - START_CODE,
-				const Ash::Encoding::CodeUnit16 LOOKUP[SIZE] = lookupNull
+				Ash::Encoding::CodeUnit16        START_CODE,
+				size_t                           SIZE = 0x100 - START_CODE,
+				const Ash::Encoding::CodeUnit16 *LOOKUP = lookupNull
 			>
 			class Table : Generic::Table
 			{
@@ -203,7 +203,7 @@ namespace Ash
 				static constexpr Code getCode(Ash::Unicode::Character character, Code replacementValue = '?') { return (character < startCode) ? Code(character) : replacementValue; }
 			};
 
-			using Table1 = Table<0x100, 0>;
+			using Table1 = Table<0x100, 0, lookupNull>;
 
 			constexpr Ash::Encoding::CodeUnit16 lookup2[] =
 			{
