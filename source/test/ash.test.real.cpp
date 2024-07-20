@@ -488,15 +488,19 @@ namespace Ash
 			{
 				using Real = Ash::Real<FLOAT>;
 
-				Real root = Real(Real::min).squareRoot();
-				TEST_IS_TRUE(Real(Real::min).isEqual(root * root, Real::MatchAbsolute, 0.5));
-				TEST_IS_TRUE(Real(Real::min).isEqual(root * root, Real::MatchRelative, 0.5));
+				Real value = Real::min;
+				Real root = value.squareRoot() + Real(1, Real::minExponent + Real::fractionSize);
+				TEST_IS_TRUE(value.isEqual(root * root, Real::MatchAbsolute, 0.5));
+				TEST_IS_TRUE(value.isEqual(root * root, Real::MatchRelative, 0.5));
 
-				root = Real(Real::max).squareRoot();
-				TEST_IS_TRUE(Real(Real::max).isEqual(root * root, Real::MatchAbsolute, 0.5));
-				TEST_IS_TRUE(Real(Real::max).isEqual(root * root, Real::MatchRelative, 0.5));
+				value = Real::max - Real(1, Real::maxExponent - Real::fractionSize);
+				root = value.squareRoot();
+				TEST_IS_TRUE(value.isEqual(root * root, Real::MatchAbsolute, 0.5));
+				TEST_IS_TRUE(value.isEqual(root * root, Real::MatchRelative, 0.5));
 
-				TEST_IS_FALSE(Real(1.0).negate().squareRoot().isValid());
+				value = -1.0;
+				root = value.squareRoot();
+				TEST_IS_FALSE(root.isValid());
 
 				return {};
 			}
