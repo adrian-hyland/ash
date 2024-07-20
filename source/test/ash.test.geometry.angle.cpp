@@ -12,15 +12,13 @@ namespace Ash
 			{
 				template
 				<
-					template <typename> typename ANGLE,
-					typename                     REAL,
-					typename                     = Ash::Type::IsClass<ANGLE<REAL>, Ash::Geometry::Generic::Angle>,
-					typename                     = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+					typename ANGLE,
+					typename = Ash::Type::IsClass<ANGLE, Ash::Geometry::Generic::Angle>
 				>
 				static Ash::Test::Assertion sine()
 				{
-					using Angle = ANGLE<REAL>;
-					using Real = REAL;
+					using Angle = ANGLE;
+					using Real = Angle::Real;
 
 					TEST_IS_TRUE(Angle(-Angle::perRotation / 24 * 12).sine().isEqual(-Real(0.00),              Real::MatchRelative, Real(3.0)));
 					TEST_IS_TRUE(Angle(-Angle::perRotation / 24 * 10).sine().isEqual(-Real(0.50),              Real::MatchRelative, Real(3.0)));
@@ -45,15 +43,13 @@ namespace Ash
 
 				template
 				<
-					template <typename> typename ANGLE,
-					typename                     REAL,
-					typename                     = Ash::Type::IsClass<ANGLE<REAL>, Ash::Geometry::Generic::Angle>,
-					typename                     = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+					typename ANGLE,
+					typename = Ash::Type::IsClass<ANGLE, Ash::Geometry::Generic::Angle>
 				>
 				static Ash::Test::Assertion cosine()
 				{
-					using Angle = ANGLE<REAL>;
-					using Real = REAL;
+					using Angle = ANGLE;
+					using Real = Angle::Real;
 
 					TEST_IS_TRUE(Angle(-Angle::perRotation / 24 * 12).cosine().isEqual(-Real(1.00),              Real::MatchRelative, Real(3.0)));
 					TEST_IS_TRUE(Angle(-Angle::perRotation / 24 * 10).cosine().isEqual(-Real(0.75).squareRoot(), Real::MatchRelative, Real(3.0)));
@@ -78,15 +74,13 @@ namespace Ash
 
 				template
 				<
-					template <typename> typename ANGLE,
-					typename                     REAL,
-					typename                     = Ash::Type::IsClass<ANGLE<REAL>, Ash::Geometry::Generic::Angle>,
-					typename                     = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+					typename ANGLE,
+					typename = Ash::Type::IsClass<ANGLE, Ash::Geometry::Generic::Angle>
 				>
 				static Ash::Test::Assertion tangent()
 				{
-					using Angle = ANGLE<REAL>;
-					using Real = REAL;
+					using Angle = ANGLE;
+					using Real = Angle::Real;
 
 					TEST_IS_TRUE(Angle(-Angle::perRotation / 24 * 12).tangent().isEqual( Real(0.00),                           Real::MatchRelative, Real(5.0)));
 					TEST_IS_TRUE(Angle(-Angle::perRotation / 24 * 10).tangent().isEqual( Real(3.00).reciprocal().squareRoot(), Real::MatchRelative, Real(5.0)));
@@ -117,15 +111,13 @@ namespace Ash
 
 				template
 				<
-					template <typename> typename ANGLE,
-					typename                     REAL,
-					typename                     = Ash::Type::IsClass<ANGLE<REAL>, Ash::Geometry::Generic::Angle>,
-					typename                     = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+					typename ANGLE,
+					typename = Ash::Type::IsClass<ANGLE, Ash::Geometry::Generic::Angle>
 				>
 				static Ash::Test::Assertion arcTangent()
 				{
-					using Angle = ANGLE<REAL>;
-					using Real = REAL;
+					using Angle = ANGLE;
+					using Real = Angle::Real;
 
 					TEST_IS_TRUE(Angle::arcTangent(-Real::infinity                      ).isEqual(-Angle::perRotation / 24 * 6, Real::MatchRelative, Real(1.0)));
 					TEST_IS_TRUE(Angle::arcTangent(-Real(3.00).squareRoot()             ).isEqual(-Angle::perRotation / 24 * 4, Real::MatchRelative, Real(1.0)));
@@ -160,15 +152,13 @@ namespace Ash
 
 				template
 				<
-					template <typename> typename ANGLE,
-					typename                     REAL,
-					typename                     = Ash::Type::IsClass<ANGLE<REAL>, Ash::Geometry::Generic::Angle>,
-					typename                     = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+					typename ANGLE,
+					typename = Ash::Type::IsClass<ANGLE, Ash::Geometry::Generic::Angle>
 				>
 				static Ash::Test::Assertion matchAbsolute()
 				{
-					using Angle = ANGLE<REAL>;
-					using Real = REAL;
+					using Angle = ANGLE;
+					using Real = Angle::Real;
 
 					Angle angle = Angle::perRotation / 2;
 					size_t exponent = Ash::Integer::getBitLength<unsigned int>(angle) - 1;
@@ -224,15 +214,13 @@ namespace Ash
 
 				template
 				<
-					template <typename> typename ANGLE,
-					typename                     REAL,
-					typename                     = Ash::Type::IsClass<ANGLE<REAL>, Ash::Geometry::Generic::Angle>,
-					typename                     = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+					typename ANGLE,
+					typename = Ash::Type::IsClass<ANGLE, Ash::Geometry::Generic::Angle>
 				>
 				static Ash::Test::Assertion matchRelative()
 				{
-					using Angle = ANGLE<REAL>;
-					using Real = REAL;
+					using Angle = ANGLE;
+					using Real = Angle::Real;
 
 					Angle angle = Angle::perRotation / 2;
 					size_t exponent = Ash::Integer::getBitLength<unsigned int>(angle) - 1;
@@ -288,15 +276,13 @@ namespace Ash
 
 				template
 				<
-					template <typename> typename ANGLE,
-					typename                     REAL,
-					typename                     = Ash::Type::IsClass<ANGLE<REAL>, Ash::Geometry::Generic::Angle>,
-					typename                     = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+					typename ANGLE,
+					typename = Ash::Type::IsClass<ANGLE, Ash::Geometry::Generic::Angle>
 				>
 				static Ash::Test::Assertion isEqualAbsolute()
 				{
-					using Angle = ANGLE<REAL>;
-					using Real = REAL;
+					using Angle = ANGLE;
+					using Real = Angle::Real;
 
 					Angle angle = Angle::perRotation / 2;
 					size_t exponent = Ash::Integer::getBitLength<unsigned int>(angle) - 1;
@@ -352,15 +338,13 @@ namespace Ash
 
 				template
 				<
-					template <typename> typename ANGLE,
-					typename                     REAL,
-					typename                     = Ash::Type::IsClass<ANGLE<REAL>, Ash::Geometry::Generic::Angle>,
-					typename                     = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+					typename ANGLE,
+					typename = Ash::Type::IsClass<ANGLE, Ash::Geometry::Generic::Angle>
 				>
 				static Ash::Test::Assertion isEqualRelative()
 				{
-					using Angle = ANGLE<REAL>;
-					using Real = REAL;
+					using Angle = ANGLE;
+					using Real = Angle::Real;
 
 					Angle angle = Angle::perRotation / 2;
 					size_t exponent = Ash::Integer::getBitLength<unsigned int>(angle) - 1;
@@ -416,18 +400,17 @@ namespace Ash
 
 				template
 				<
-					template <typename> typename FROM_ANGLE,
-					template <typename> typename TO_ANGLE,
-					typename                     REAL,
-					typename                     = Ash::Type::IsClass<FROM_ANGLE<REAL>, Ash::Geometry::Generic::Angle>,
-					typename                     = Ash::Type::IsClass<TO_ANGLE<REAL>, Ash::Geometry::Generic::Angle>,
-					typename                     = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+					typename FROM_ANGLE,
+					typename TO_ANGLE,
+					typename = Ash::Type::IsClass<FROM_ANGLE, Ash::Geometry::Generic::Angle>,
+					typename = Ash::Type::IsClass<TO_ANGLE, Ash::Geometry::Generic::Angle>,
+					typename = Ash::Type::IsSame<typename FROM_ANGLE::Real, typename TO_ANGLE::Real>
 				>
-				static Ash::Test::Assertion convert()
+				static Ash::Test::Assertion convertAngle()
 				{
-					using FromAngle = FROM_ANGLE<REAL>;
-					using ToAngle = TO_ANGLE<REAL>;
-					using Real = REAL;
+					using FromAngle = FROM_ANGLE;
+					using ToAngle = TO_ANGLE;
+					using Real = FromAngle::Real;
 
 					for (int n = -24; n <= 24; n++)
 					{
@@ -446,14 +429,18 @@ namespace Ash
 				>
 				static Ash::Test::Assertion convert()
 				{
-					TEST_GENERIC(Ash::Test::Geometry::Angle::convert, Ash::Geometry::Radian, Ash::Geometry::Degree,  REAL);
-					TEST_GENERIC(Ash::Test::Geometry::Angle::convert, Ash::Geometry::Radian, Ash::Geometry::Gradian, REAL);
+					using Radian = Ash::Geometry::Radian<REAL>;
+					using Degree = Ash::Geometry::Degree<REAL>;
+					using Gradian = Ash::Geometry::Gradian<REAL>;
 
-					TEST_GENERIC(Ash::Test::Geometry::Angle::convert, Ash::Geometry::Degree, Ash::Geometry::Radian,  REAL);
-					TEST_GENERIC(Ash::Test::Geometry::Angle::convert, Ash::Geometry::Degree, Ash::Geometry::Gradian, REAL);
+					TEST_GENERIC(Ash::Test::Geometry::Angle::convertAngle, Radian, Degree);
+					TEST_GENERIC(Ash::Test::Geometry::Angle::convertAngle, Radian, Gradian);
 
-					TEST_GENERIC(Ash::Test::Geometry::Angle::convert, Ash::Geometry::Gradian, Ash::Geometry::Radian, REAL);
-					TEST_GENERIC(Ash::Test::Geometry::Angle::convert, Ash::Geometry::Gradian, Ash::Geometry::Degree, REAL);
+					TEST_GENERIC(Ash::Test::Geometry::Angle::convertAngle, Degree, Radian);
+					TEST_GENERIC(Ash::Test::Geometry::Angle::convertAngle, Degree, Gradian);
+
+					TEST_GENERIC(Ash::Test::Geometry::Angle::convertAngle, Gradian, Radian);
+					TEST_GENERIC(Ash::Test::Geometry::Angle::convertAngle, Gradian, Degree);
 
 					return {};
 				}
@@ -461,28 +448,26 @@ namespace Ash
 
 			template
 			<
-				template <typename> typename ANGLE,
-				typename                     REAL,
-				typename                     = Ash::Type::IsClass<ANGLE<REAL>, Ash::Geometry::Generic::Angle>,
-				typename                     = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+				typename ANGLE,
+				typename = Ash::Type::IsClass<ANGLE, Ash::Geometry::Generic::Angle>
 			>
 			static Ash::Test::Assertion angle()
 			{
-				TEST_GENERIC(Ash::Test::Geometry::Angle::sine, ANGLE,  REAL);
+				TEST_GENERIC(Ash::Test::Geometry::Angle::sine, ANGLE);
 
-				TEST_GENERIC(Ash::Test::Geometry::Angle::cosine, ANGLE,  REAL);
+				TEST_GENERIC(Ash::Test::Geometry::Angle::cosine, ANGLE);
 
-				TEST_GENERIC(Ash::Test::Geometry::Angle::tangent, ANGLE,  REAL);
+				TEST_GENERIC(Ash::Test::Geometry::Angle::tangent, ANGLE);
 
-				TEST_GENERIC(Ash::Test::Geometry::Angle::arcTangent, ANGLE,  REAL);
+				TEST_GENERIC(Ash::Test::Geometry::Angle::arcTangent, ANGLE);
 
-				TEST_GENERIC(Ash::Test::Geometry::Angle::matchAbsolute, ANGLE,  REAL);
+				TEST_GENERIC(Ash::Test::Geometry::Angle::matchAbsolute, ANGLE);
 
-				TEST_GENERIC(Ash::Test::Geometry::Angle::matchRelative, ANGLE,  REAL);
+				TEST_GENERIC(Ash::Test::Geometry::Angle::matchRelative, ANGLE);
 
-				TEST_GENERIC(Ash::Test::Geometry::Angle::isEqualAbsolute, ANGLE,  REAL);
+				TEST_GENERIC(Ash::Test::Geometry::Angle::isEqualAbsolute, ANGLE);
 
-				TEST_GENERIC(Ash::Test::Geometry::Angle::isEqualRelative, ANGLE,  REAL);
+				TEST_GENERIC(Ash::Test::Geometry::Angle::isEqualRelative, ANGLE);
 
 				return {};
 			}
@@ -492,17 +477,17 @@ namespace Ash
 		(
 			testAngle,
 
-			TEST_CASE_GENERIC(Ash::Test::Geometry::angle, Ash::Geometry::Radian, Ash::Float),
-			TEST_CASE_GENERIC(Ash::Test::Geometry::angle, Ash::Geometry::Radian, Ash::Double),
-			TEST_CASE_GENERIC(Ash::Test::Geometry::angle, Ash::Geometry::Radian, Ash::LongDouble),
+			TEST_CASE_GENERIC(Ash::Test::Geometry::angle, Ash::Geometry::Radian<Ash::Float>),
+			TEST_CASE_GENERIC(Ash::Test::Geometry::angle, Ash::Geometry::Radian<Ash::Double>),
+			TEST_CASE_GENERIC(Ash::Test::Geometry::angle, Ash::Geometry::Radian<Ash::LongDouble>),
 
-			TEST_CASE_GENERIC(Ash::Test::Geometry::angle, Ash::Geometry::Degree, Ash::Float),
-			TEST_CASE_GENERIC(Ash::Test::Geometry::angle, Ash::Geometry::Degree, Ash::Double),
-			TEST_CASE_GENERIC(Ash::Test::Geometry::angle, Ash::Geometry::Degree, Ash::LongDouble),
+			TEST_CASE_GENERIC(Ash::Test::Geometry::angle, Ash::Geometry::Degree<Ash::Float>),
+			TEST_CASE_GENERIC(Ash::Test::Geometry::angle, Ash::Geometry::Degree<Ash::Double>),
+			TEST_CASE_GENERIC(Ash::Test::Geometry::angle, Ash::Geometry::Degree<Ash::LongDouble>),
 
-			TEST_CASE_GENERIC(Ash::Test::Geometry::angle, Ash::Geometry::Gradian, Ash::Float),
-			TEST_CASE_GENERIC(Ash::Test::Geometry::angle, Ash::Geometry::Gradian, Ash::Double),
-			TEST_CASE_GENERIC(Ash::Test::Geometry::angle, Ash::Geometry::Gradian, Ash::LongDouble),
+			TEST_CASE_GENERIC(Ash::Test::Geometry::angle, Ash::Geometry::Gradian<Ash::Float>),
+			TEST_CASE_GENERIC(Ash::Test::Geometry::angle, Ash::Geometry::Gradian<Ash::Double>),
+			TEST_CASE_GENERIC(Ash::Test::Geometry::angle, Ash::Geometry::Gradian<Ash::LongDouble>),
 
 			TEST_CASE_GENERIC(Ash::Test::Geometry::Angle::convert, Ash::Float),
 			TEST_CASE_GENERIC(Ash::Test::Geometry::Angle::convert, Ash::Double),

@@ -132,15 +132,13 @@ namespace Ash
 
 				template
 				<
-					template <typename> typename ANGLE,
-					typename                     REAL,
-					typename                     = Ash::Type::IsClass<ANGLE<REAL>, Ash::Geometry::Generic::Angle>,
-					typename                     = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+					typename ANGLE,
+					typename = Ash::Type::IsClass<ANGLE, Ash::Geometry::Generic::Angle>
 				>
 				static Ash::Test::Assertion rotate()
 				{
-					using Real = REAL;
-					using Angle = ANGLE<Real>;
+					using Angle = ANGLE;
+					using Real = Angle::Real;
 					using Coordinate = Ash::Geometry::Coordinate2D<Real>;
 
 					Coordinate coordinate(5.0, Angle(0.0));
@@ -223,17 +221,17 @@ namespace Ash
 			TEST_CASE_GENERIC(Ash::Test::Geometry::Coordinate2D::invalid, Ash::Double),
 			TEST_CASE_GENERIC(Ash::Test::Geometry::Coordinate2D::invalid, Ash::LongDouble),
 
-			TEST_CASE_GENERIC(Ash::Test::Geometry::Coordinate2D::rotate, Ash::Geometry::Radian, Ash::Float),
-			TEST_CASE_GENERIC(Ash::Test::Geometry::Coordinate2D::rotate, Ash::Geometry::Radian, Ash::Double),
-			TEST_CASE_GENERIC(Ash::Test::Geometry::Coordinate2D::rotate, Ash::Geometry::Radian, Ash::LongDouble),
+			TEST_CASE_GENERIC(Ash::Test::Geometry::Coordinate2D::rotate, Ash::Geometry::Radian<Ash::Float>),
+			TEST_CASE_GENERIC(Ash::Test::Geometry::Coordinate2D::rotate, Ash::Geometry::Radian<Ash::Double>),
+			TEST_CASE_GENERIC(Ash::Test::Geometry::Coordinate2D::rotate, Ash::Geometry::Radian<Ash::LongDouble>),
 
-			TEST_CASE_GENERIC(Ash::Test::Geometry::Coordinate2D::rotate, Ash::Geometry::Degree, Ash::Float),
-			TEST_CASE_GENERIC(Ash::Test::Geometry::Coordinate2D::rotate, Ash::Geometry::Degree, Ash::Double),
-			TEST_CASE_GENERIC(Ash::Test::Geometry::Coordinate2D::rotate, Ash::Geometry::Degree, Ash::LongDouble),
+			TEST_CASE_GENERIC(Ash::Test::Geometry::Coordinate2D::rotate, Ash::Geometry::Degree<Ash::Float>),
+			TEST_CASE_GENERIC(Ash::Test::Geometry::Coordinate2D::rotate, Ash::Geometry::Degree<Ash::Double>),
+			TEST_CASE_GENERIC(Ash::Test::Geometry::Coordinate2D::rotate, Ash::Geometry::Degree<Ash::LongDouble>),
 
-			TEST_CASE_GENERIC(Ash::Test::Geometry::Coordinate2D::rotate, Ash::Geometry::Gradian, Ash::Float),
-			TEST_CASE_GENERIC(Ash::Test::Geometry::Coordinate2D::rotate, Ash::Geometry::Gradian, Ash::Double),
-			TEST_CASE_GENERIC(Ash::Test::Geometry::Coordinate2D::rotate, Ash::Geometry::Gradian, Ash::LongDouble),
+			TEST_CASE_GENERIC(Ash::Test::Geometry::Coordinate2D::rotate, Ash::Geometry::Gradian<Ash::Float>),
+			TEST_CASE_GENERIC(Ash::Test::Geometry::Coordinate2D::rotate, Ash::Geometry::Gradian<Ash::Double>),
+			TEST_CASE_GENERIC(Ash::Test::Geometry::Coordinate2D::rotate, Ash::Geometry::Gradian<Ash::LongDouble>),
 		);
 	}
 }
