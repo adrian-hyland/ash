@@ -88,7 +88,8 @@ INC_DIR += $(call list_add,$(SRC_DIR)/$(APPLICATION))
 OBJ_DIR := $(BIN_DIR)/obj
 
 CXX_FILES := $(wildcard $(addsuffix /*.cpp,$(call list_get,,$(INC_DIR),)))
-O_FILES := $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%,$(CXX_FILES:.cpp=.o))
+C_FILES := $(wildcard $(addsuffix /*.c,$(call list_get,,$(INC_DIR),)))
+O_FILES := $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%,$(CXX_FILES:.cpp=.o) $(C_FILES:.c=.o))
 S_FILES := $(O_FILES:.o=.s)
 II_FILES := $(O_FILES:.o=.ii)
 D_FILES := $(O_FILES:.o=.d)
@@ -99,7 +100,7 @@ CXX_STD=c++$(STD)
 
 CXX_DEFINE += $(call list_add,APP_NAME="$(APP_NAME) ($(BUILD_NAME) $(BUILD_STD))")
 CXX_DEFINE += $(call list_add,STD=$(STD))
-CXX_FLAGS += -c -std=$(CXX_STD) -Wall -Werror $(call list_get,-I",$(INC_DIR),") $(call list_get,-D",$(CXX_DEFINE),")
+CXX_FLAGS += -c -Wall -Werror $(call list_get,-I",$(INC_DIR),") $(call list_get,-D",$(CXX_DEFINE),")
 
 ifeq ($(CXX),g++)
 LNK_FLAGS += -pthread
@@ -146,4 +147,9 @@ $(APP) : $(O_FILES)
 $(OBJ_DIR)/%.o : $(SRC_DIR)/%.cpp
 	@echo -- COMPILING $<
 	mkdir -p $(@D)
-	$(CXX) $< $(CXX_FLAGS) -MMD -o $@
+	$(CXX) $< $(CXX_FLAGS) -std=$(CXX_STD) -MMD -o $@
+
+$(OBJ_DIR)/%.o : $(SRC_DIR)/%.c
+	@echo -- COMPILING $<
+	mkdir -p $(@D)
+	$(CC) $< $(CXX_FLAGS) -MMD -o $@
