@@ -354,7 +354,7 @@ namespace Ash
 				}
 				else if constexpr (Ash::Type::isClass<ENCODING, Ash::Encoding::Iso8859::Generic::Part>)
 				{
-					using Table = ENCODING::Table;
+					using Table = typename ENCODING::Table;
 
 					for (typename ENCODING::Code value : Ash::Iterate<typename ENCODING::Code>::between(1, 0xFF))
 					{
