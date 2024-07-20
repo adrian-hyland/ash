@@ -37,7 +37,7 @@ list_add = ¬$(call escape,$(1))¬¬
 # @return The list of text items
 # @note By using list_add() and list_get() you can manipulate text items that have any spaces in them.
 # @note This would normally be quite difficult using the normal text functions as these use the space to separate out each text item.
-list_get = $(patsubst ¬%,$(1)%,$(patsubst %¬¬,%$(3),$(patsubst ¬%¬¬,$(1)%$(3),$(2))))
+list_get = $(subst ¬,$(1),$(subst ¬¬,$(3),$(subst ¬¬¬,$(3)$(1),$(2))))
 
 # @brief Gets the comma separated list of text items from an item list
 # @param $(1) The item list
