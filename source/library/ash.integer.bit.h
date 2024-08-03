@@ -98,5 +98,24 @@ namespace Ash
 		{
 			return (value & getBitMask<INTEGER>(bit, bit)) != 0;
 		}
+
+		template
+		<
+			typename INTEGER,
+			typename = Ash::Type::IsUnsignedInteger<INTEGER>
+		>
+		constexpr size_t getBitCount(INTEGER value)
+		{
+			constexpr size_t bitCount[] = { 0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4 };
+
+			size_t count = 0;
+			while (value != 0)
+			{
+				count = count + bitCount[value & 0x0F];
+				value = value >> 4;
+			}
+
+			return count;
+		}
 	}
 }
