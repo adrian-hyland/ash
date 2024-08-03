@@ -209,6 +209,59 @@ namespace Ash
 
 					return {};
 				}
+
+				template
+				<
+					typename INTEGER,
+					typename = Ash::Type::IsUnsignedInteger<INTEGER>
+				>
+				static Ash::Test::Assertion getBitCount()
+				{
+					TEST_IS_EQ(Ash::Integer::getBitCount(INTEGER(0)), 0);
+					TEST_IS_EQ(Ash::Integer::getBitCount(INTEGER(~0)), Ash::Integer::getBitSize<INTEGER>);
+
+					static struct
+					{
+						uint8_t value;
+						size_t  count;
+					} valueCount[] =
+					{
+						{ 0x01, 1 },
+						{ 0x12, 2 },
+						{ 0x23, 3 },
+						{ 0x34, 3 },
+						{ 0x45, 3 },
+						{ 0x56, 4 },
+						{ 0x67, 5 },
+						{ 0x78, 4 },
+						{ 0x89, 3 },
+						{ 0x9A, 4 },
+						{ 0xAB, 5 },
+						{ 0xBC, 5 },
+						{ 0xCD, 5 },
+						{ 0xDE, 6 },
+						{ 0xEF, 7 },
+						{ 0xF0, 4 }
+					};
+
+					size_t offset = 0;
+					while (offset < sizeof(valueCount) / sizeof(valueCount[0]))
+					{
+						INTEGER value = 0;
+						size_t count = 0;
+						for (size_t n = 0; (n < Ash::Integer::getBitSize<INTEGER>) && (offset < sizeof(valueCount) / sizeof(valueCount[0])); n = n + 8)
+						{
+							value = (value << 8) | valueCount[offset].value;
+							count = count + valueCount[offset].count;
+							
+							TEST_IS_EQ(Ash::Integer::getBitCount(value), count);
+							
+							offset++;
+						}
+					}
+
+					return {};
+				}
 			}
 		}
 
@@ -240,6 +293,11 @@ namespace Ash
 			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getBitSize, uint16_t),
 			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getBitSize, uint32_t),
 			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getBitSize, uint64_t),
+
+			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getBitCount, uint8_t),
+			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getBitCount, uint16_t),
+			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getBitCount, uint32_t),
+			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getBitCount, uint64_t),
 		);
 	}
 }
