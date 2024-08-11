@@ -49,39 +49,39 @@ namespace Ash
 
 			template
 			<
-				typename ENCODING,
-				typename = Ash::Type::IsClass<ENCODING, Ash::Encoding::Iso8859::Generic::Part>
+				typename PART,
+				typename = Ash::Type::IsClass<PART, Ash::Encoding::SingleByte::Generic::Table>
 			>
 			static Ash::Test::Assertion findIso8859()
 			{
-				using Table = typename ENCODING::Table;
-				Ash::String::Array<ENCODING> string;
+				using Part = PART;
+				Ash::String::Array<Part> string;
 				size_t offset;
 
-				offset = Ash::Encoding::find<ENCODING>(string, 0, '1');
+				offset = Ash::Encoding::find<Part>(string, 0, '1');
 				TEST_IS_EQ(offset, string.getLength());
 
-				for (typename ENCODING::Code code : Ash::Iterate<typename ENCODING::Code>::between(1, 0xFF))
+				for (typename Part::Code code : Ash::Iterate<typename Part::Code>::between(1, 0xFF))
 				{
-					if (Table::isCodeValid(code))
+					if (Part::Lookup::isCodeValid(code))
 					{
 						TEST_IS_TRUE(string.append(code));
 					}
 				}
 
-				offset = Ash::Encoding::find<ENCODING>(string, 0, '\x01');
+				offset = Ash::Encoding::find<Part>(string, 0, '\x01');
 				TEST_IS_EQ(offset, 0);
 
-				offset = Ash::Encoding::find<ENCODING>(string, 0, Table::getCharacter(Table::startCode + Table::size - 1));
+				offset = Ash::Encoding::find<Part>(string, 0, Part::Lookup::getCharacter(Part::Lookup::startCode + Part::Lookup::size - 1));
 				TEST_IS_EQ(offset, string.getLength() - 1);
 
-				offset = Ash::Encoding::find<ENCODING>(string, 0, '\x00');
+				offset = Ash::Encoding::find<Part>(string, 0, '\x00');
 				TEST_IS_EQ(offset, string.getLength());
 
-				offset = Ash::Encoding::find<ENCODING>(string, 1, '\x01');
+				offset = Ash::Encoding::find<Part>(string, 1, '\x01');
 				TEST_IS_EQ(offset, string.getLength());
 
-				offset = Ash::Encoding::find<ENCODING>(string, string.getLength(), '\x01');
+				offset = Ash::Encoding::find<Part>(string, string.getLength(), '\x01');
 				TEST_IS_EQ(offset, string.getLength());
 				
 				return {};
@@ -352,15 +352,13 @@ namespace Ash
 						TEST_IS_TRUE(from.append(Character(value)));
 					}
 				}
-				else if constexpr (Ash::Type::isClass<ENCODING, Ash::Encoding::Iso8859::Generic::Part>)
+				else if constexpr (Ash::Type::isClass<ENCODING, Ash::Encoding::SingleByte::Generic::Table>)
 				{
-					using Table = typename ENCODING::Table;
-
 					for (typename ENCODING::Code value : Ash::Iterate<typename ENCODING::Code>::between(1, 0xFF))
 					{
-						if (Table::isCodeValid(value))
+						if (ENCODING::Lookup::isCodeValid(value))
 						{
-							TEST_IS_TRUE(from.append(Character(Table::getCharacter(value))));
+							TEST_IS_TRUE(from.append(Character(ENCODING::Lookup::getCharacter(value))));
 						}
 					}
 				}
