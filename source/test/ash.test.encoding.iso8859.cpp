@@ -12,26 +12,26 @@ namespace Ash
 			{
 				template
 				<
-					typename PART,
-					typename = Ash::Type::IsClass<PART, Ash::Encoding::SingleByte::Generic::Table>
+					typename TABLE,
+					typename = Ash::Type::IsClass<TABLE, Ash::Encoding::SingleByte::Generic::Table>
 				>
 				static Ash::Test::Assertion lookup()
 				{
-					using Part = PART;
+					using Table = TABLE;
 
 					for (Ash::Encoding::SingleByte::Code code : Ash::Iterate<Ash::Encoding::SingleByte::Code>::between(0x00, 0xFF))
 					{
-						if (Part::Lookup::isCodeValid(code))
+						if (Table::Lookup::isCodeValid(code))
 						{
-							TEST_IS_TRUE(Part::Lookup::isCodeValid(code));
-							Ash::Unicode::Character character = Part::Lookup::getCharacter(code);
+							TEST_IS_TRUE(Table::Lookup::isCodeValid(code));
+							Ash::Unicode::Character character = Table::Lookup::getCharacter(code);
 							TEST_IS_NOT_EQ(character, Ash::Unicode::Character::replacement);
-							TEST_IS_EQ(Part::Lookup::getCode(character), code);
+							TEST_IS_EQ(Table::Lookup::getCode(character), code);
 						}
 						else
 						{
-							TEST_IS_FALSE(Part::Lookup::isCodeValid(code));
-							TEST_IS_EQ(Part::Lookup::getCharacter(code), Ash::Unicode::Character::replacement);
+							TEST_IS_FALSE(Table::Lookup::isCodeValid(code));
+							TEST_IS_EQ(Table::Lookup::getCharacter(code), Ash::Unicode::Character::replacement);
 						}
 					}
 
@@ -40,13 +40,13 @@ namespace Ash
 
 				template
 				<
-					typename PART,
-					typename = Ash::Type::IsClass<PART, Ash::Encoding::SingleByte::Generic::Table>
+					typename TABLE,
+					typename = Ash::Type::IsClass<TABLE, Ash::Encoding::SingleByte::Generic::Table>
 				>
 				static Ash::Test::Assertion character()
 				{
-					using Part = PART;
-					using Character = Part::Character;
+					using Table = TABLE;
+					using Character = Table::Character;
 
 					for (Ash::Unicode::Character::Value value : Ash::Iterate<Ash::Unicode::Character::Value>::between(0x00, 0x9F))
 					{
@@ -63,11 +63,11 @@ namespace Ash
 					{
 						Character character(value);
 
-						if (Part::Lookup::isCharacterValid(value))
+						if (Table::Lookup::isCharacterValid(value))
 						{
 							TEST_IS_EQ(character.getLength(), 1);
 
-							TEST_IS_EQ(Ash::Unicode::Character(*character.at(0)), Part::Lookup::getCode(character));
+							TEST_IS_EQ(Ash::Unicode::Character(*character.at(0)), Table::Lookup::getCode(character));
 
 							TEST_IS_EQ(Ash::Unicode::Character(character), value);
 						}
@@ -82,61 +82,61 @@ namespace Ash
 
 				template
 				<
-					typename PART,
-					typename = Ash::Type::IsClass<PART, Ash::Encoding::SingleByte::Generic::Table>
+					typename TABLE,
+					typename = Ash::Type::IsClass<TABLE, Ash::Encoding::SingleByte::Generic::Table>
 				>
 				static Ash::Test::Assertion decodeNext()
 				{
-					using Part = PART;
-					using Character = Part::Character;
+					using Table = TABLE;
+					using Character = Table::Character;
 
 					Ash::Memory::Array<Ash::Encoding::SingleByte::Code> content;
 					Character character;
 					Ash::Encoding::SingleByte::Code expectedCode = 0;
 					size_t offset = 0;
 
-					TEST_IS_ZERO(Part::decodeNext(content, offset, character));
+					TEST_IS_ZERO(Table::decodeNext(content, offset, character));
 
 					TEST_IS_ZERO(character.getLength());
 
 					for (Ash::Encoding::SingleByte::Code code : Ash::Iterate<Ash::Encoding::SingleByte::Code>::between(0x00, 0xFF))
 					{
-						if (Part::Lookup::isCodeValid(code))
+						if (Table::Lookup::isCodeValid(code))
 						{
-							TEST_IS_TRUE(content.append(Character(Part::Lookup::getCharacter(code))));
+							TEST_IS_TRUE(content.append(Character(Table::Lookup::getCharacter(code))));
 						}
 					}
 
 					expectedCode = 0;
 					while (offset < content.getLength())
 					{
-						size_t length = Part::decodeNext(content, offset, character);
+						size_t length = Table::decodeNext(content, offset, character);
 
 						TEST_IS_NOT_ZERO(length);
 
-						TEST_IS_EQ(Ash::Unicode::Character(character), Part::Lookup::getCharacter(expectedCode));
+						TEST_IS_EQ(Ash::Unicode::Character(character), Table::Lookup::getCharacter(expectedCode));
 
 						offset = offset + length;
 						do
 						{
 							expectedCode++;
 						}
-						while (!Part::Lookup::isCodeValid(expectedCode));
+						while (!Table::Lookup::isCodeValid(expectedCode));
 					}
 
-					TEST_IS_ZERO(Part::decodeNext(content, offset, character));
+					TEST_IS_ZERO(Table::decodeNext(content, offset, character));
 
 					TEST_IS_ZERO(character.getLength());
 
 					for (Ash::Encoding::SingleByte::Code code : Ash::Iterate<Ash::Encoding::SingleByte::Code>::between(0xA0, 0xFF))
 					{
-						if (!Part::Lookup::isCodeValid(code))
+						if (!Table::Lookup::isCodeValid(code))
 						{
 							Ash::Memory::Sequence<Ash::Encoding::SingleByte::Code, 1> invalidContent;
 
 							TEST_IS_TRUE(invalidContent.set(0, code));
 
-							TEST_IS_ZERO(Part::decodeNext(invalidContent, 0, character));
+							TEST_IS_ZERO(Table::decodeNext(invalidContent, 0, character));
 
 							TEST_IS_ZERO(character.getLength());
 						}
@@ -147,28 +147,28 @@ namespace Ash
 
 				template
 				<
-					typename PART,
-					typename = Ash::Type::IsClass<PART, Ash::Encoding::SingleByte::Generic::Table>
+					typename TABLE,
+					typename = Ash::Type::IsClass<TABLE, Ash::Encoding::SingleByte::Generic::Table>
 				>
 				static Ash::Test::Assertion decodePrevious()
 				{
-					using Part = PART;
-					using Character = Part::Character;
+					using Table = TABLE;
+					using Character = Table::Character;
 
 					Ash::Memory::Array<Ash::Encoding::SingleByte::Code> content;
 					Character character;
 					Ash::Encoding::SingleByte::Code expectedCode = 0;
 					size_t offset = 0;
 
-					TEST_IS_ZERO(Part::decodePrevious(content, offset, character));
+					TEST_IS_ZERO(Table::decodePrevious(content, offset, character));
 
 					TEST_IS_ZERO(character.getLength());
 
 					for (Ash::Encoding::SingleByte::Code code : Ash::Iterate<Ash::Encoding::SingleByte::Code>::between(0x00, 0xFF))
 					{
-						if (Part::Lookup::isCodeValid(code))
+						if (Table::Lookup::isCodeValid(code))
 						{
-							TEST_IS_TRUE(content.append(Character(Part::Lookup::getCharacter(code))));
+							TEST_IS_TRUE(content.append(Character(Table::Lookup::getCharacter(code))));
 						}
 					}
 
@@ -176,34 +176,34 @@ namespace Ash
 					offset = content.getLength();
 					while (offset > 0)
 					{
-						while (!Part::Lookup::isCodeValid(expectedCode))
+						while (!Table::Lookup::isCodeValid(expectedCode))
 						{
 							expectedCode--;
 						}
 
-						size_t length = Part::decodePrevious(content, offset, character);
+						size_t length = Table::decodePrevious(content, offset, character);
 
 						TEST_IS_NOT_ZERO(length);
 
-						TEST_IS_EQ(Ash::Unicode::Character(character), Part::Lookup::getCharacter(expectedCode));
+						TEST_IS_EQ(Ash::Unicode::Character(character), Table::Lookup::getCharacter(expectedCode));
 
 						offset = offset - length;
 						expectedCode--;
 					}
 
-					TEST_IS_ZERO(Part::decodePrevious(content, offset, character));
+					TEST_IS_ZERO(Table::decodePrevious(content, offset, character));
 
 					TEST_IS_ZERO(character.getLength());
 
 					for (Ash::Encoding::SingleByte::Code code : Ash::Iterate<Ash::Encoding::SingleByte::Code>::between(0xA0, 0xFF))
 					{
-						if (!Part::Lookup::isCodeValid(code))
+						if (!Table::Lookup::isCodeValid(code))
 						{
 							Ash::Memory::Sequence<Ash::Encoding::SingleByte::Code, 1> invalidContent;
 
 							TEST_IS_TRUE(invalidContent.set(0, code));
 
-							TEST_IS_ZERO(Part::decodePrevious(invalidContent, invalidContent.getLength(), character));
+							TEST_IS_ZERO(Table::decodePrevious(invalidContent, invalidContent.getLength(), character));
 
 							TEST_IS_ZERO(character.getLength());
 						}
@@ -217,66 +217,66 @@ namespace Ash
 		TEST_UNIT
 		(
 			testIso8859,
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::lookup, Ash::Encoding::Iso8859::Part1),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::lookup, Ash::Encoding::Iso8859::Part2),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::lookup, Ash::Encoding::Iso8859::Part3),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::lookup, Ash::Encoding::Iso8859::Part4),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::lookup, Ash::Encoding::Iso8859::Part5),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::lookup, Ash::Encoding::Iso8859::Part6),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::lookup, Ash::Encoding::Iso8859::Part7),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::lookup, Ash::Encoding::Iso8859::Part8),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::lookup, Ash::Encoding::Iso8859::Part9),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::lookup, Ash::Encoding::Iso8859::Part10),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::lookup, Ash::Encoding::Iso8859::Part11),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::lookup, Ash::Encoding::Iso8859::Part13),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::lookup, Ash::Encoding::Iso8859::Part14),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::lookup, Ash::Encoding::Iso8859::Part15),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::lookup, Ash::Encoding::Iso8859::Part16),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::character, Ash::Encoding::Iso8859::Part1),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::character, Ash::Encoding::Iso8859::Part2),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::character, Ash::Encoding::Iso8859::Part3),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::character, Ash::Encoding::Iso8859::Part4),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::character, Ash::Encoding::Iso8859::Part5),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::character, Ash::Encoding::Iso8859::Part6),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::character, Ash::Encoding::Iso8859::Part7),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::character, Ash::Encoding::Iso8859::Part8),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::character, Ash::Encoding::Iso8859::Part9),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::character, Ash::Encoding::Iso8859::Part10),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::character, Ash::Encoding::Iso8859::Part11),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::character, Ash::Encoding::Iso8859::Part13),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::character, Ash::Encoding::Iso8859::Part14),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::character, Ash::Encoding::Iso8859::Part15),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::character, Ash::Encoding::Iso8859::Part16),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodeNext, Ash::Encoding::Iso8859::Part1),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodeNext, Ash::Encoding::Iso8859::Part2),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodeNext, Ash::Encoding::Iso8859::Part3),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodeNext, Ash::Encoding::Iso8859::Part4),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodeNext, Ash::Encoding::Iso8859::Part5),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodeNext, Ash::Encoding::Iso8859::Part6),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodeNext, Ash::Encoding::Iso8859::Part7),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodeNext, Ash::Encoding::Iso8859::Part8),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodeNext, Ash::Encoding::Iso8859::Part9),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodeNext, Ash::Encoding::Iso8859::Part10),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodeNext, Ash::Encoding::Iso8859::Part11),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodeNext, Ash::Encoding::Iso8859::Part13),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodeNext, Ash::Encoding::Iso8859::Part14),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodeNext, Ash::Encoding::Iso8859::Part15),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodeNext, Ash::Encoding::Iso8859::Part16),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodePrevious, Ash::Encoding::Iso8859::Part1),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodePrevious, Ash::Encoding::Iso8859::Part2),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodePrevious, Ash::Encoding::Iso8859::Part3),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodePrevious, Ash::Encoding::Iso8859::Part4),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodePrevious, Ash::Encoding::Iso8859::Part5),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodePrevious, Ash::Encoding::Iso8859::Part6),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodePrevious, Ash::Encoding::Iso8859::Part7),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodePrevious, Ash::Encoding::Iso8859::Part8),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodePrevious, Ash::Encoding::Iso8859::Part9),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodePrevious, Ash::Encoding::Iso8859::Part10),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodePrevious, Ash::Encoding::Iso8859::Part11),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodePrevious, Ash::Encoding::Iso8859::Part13),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodePrevious, Ash::Encoding::Iso8859::Part14),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodePrevious, Ash::Encoding::Iso8859::Part15),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodePrevious, Ash::Encoding::Iso8859::Part16),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::lookup, Ash::Encoding::Iso8859::Part1::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::lookup, Ash::Encoding::Iso8859::Part2::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::lookup, Ash::Encoding::Iso8859::Part3::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::lookup, Ash::Encoding::Iso8859::Part4::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::lookup, Ash::Encoding::Iso8859::Part5::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::lookup, Ash::Encoding::Iso8859::Part6::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::lookup, Ash::Encoding::Iso8859::Part7::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::lookup, Ash::Encoding::Iso8859::Part8::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::lookup, Ash::Encoding::Iso8859::Part9::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::lookup, Ash::Encoding::Iso8859::Part10::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::lookup, Ash::Encoding::Iso8859::Part11::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::lookup, Ash::Encoding::Iso8859::Part13::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::lookup, Ash::Encoding::Iso8859::Part14::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::lookup, Ash::Encoding::Iso8859::Part15::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::lookup, Ash::Encoding::Iso8859::Part16::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::character, Ash::Encoding::Iso8859::Part1::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::character, Ash::Encoding::Iso8859::Part2::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::character, Ash::Encoding::Iso8859::Part3::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::character, Ash::Encoding::Iso8859::Part4::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::character, Ash::Encoding::Iso8859::Part5::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::character, Ash::Encoding::Iso8859::Part6::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::character, Ash::Encoding::Iso8859::Part7::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::character, Ash::Encoding::Iso8859::Part8::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::character, Ash::Encoding::Iso8859::Part9::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::character, Ash::Encoding::Iso8859::Part10::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::character, Ash::Encoding::Iso8859::Part11::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::character, Ash::Encoding::Iso8859::Part13::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::character, Ash::Encoding::Iso8859::Part14::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::character, Ash::Encoding::Iso8859::Part15::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::character, Ash::Encoding::Iso8859::Part16::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodeNext, Ash::Encoding::Iso8859::Part1::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodeNext, Ash::Encoding::Iso8859::Part2::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodeNext, Ash::Encoding::Iso8859::Part3::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodeNext, Ash::Encoding::Iso8859::Part4::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodeNext, Ash::Encoding::Iso8859::Part5::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodeNext, Ash::Encoding::Iso8859::Part6::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodeNext, Ash::Encoding::Iso8859::Part7::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodeNext, Ash::Encoding::Iso8859::Part8::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodeNext, Ash::Encoding::Iso8859::Part9::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodeNext, Ash::Encoding::Iso8859::Part10::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodeNext, Ash::Encoding::Iso8859::Part11::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodeNext, Ash::Encoding::Iso8859::Part13::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodeNext, Ash::Encoding::Iso8859::Part14::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodeNext, Ash::Encoding::Iso8859::Part15::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodeNext, Ash::Encoding::Iso8859::Part16::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodePrevious, Ash::Encoding::Iso8859::Part1::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodePrevious, Ash::Encoding::Iso8859::Part2::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodePrevious, Ash::Encoding::Iso8859::Part3::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodePrevious, Ash::Encoding::Iso8859::Part4::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodePrevious, Ash::Encoding::Iso8859::Part5::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodePrevious, Ash::Encoding::Iso8859::Part6::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodePrevious, Ash::Encoding::Iso8859::Part7::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodePrevious, Ash::Encoding::Iso8859::Part8::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodePrevious, Ash::Encoding::Iso8859::Part9::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodePrevious, Ash::Encoding::Iso8859::Part10::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodePrevious, Ash::Encoding::Iso8859::Part11::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodePrevious, Ash::Encoding::Iso8859::Part13::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodePrevious, Ash::Encoding::Iso8859::Part14::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodePrevious, Ash::Encoding::Iso8859::Part15::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::Iso8859::decodePrevious, Ash::Encoding::Iso8859::Part16::Table),
 		);
 	}
 }

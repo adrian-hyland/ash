@@ -49,39 +49,39 @@ namespace Ash
 
 			template
 			<
-				typename PART,
-				typename = Ash::Type::IsClass<PART, Ash::Encoding::SingleByte::Generic::Table>
+				typename TABLE,
+				typename = Ash::Type::IsClass<TABLE, Ash::Encoding::SingleByte::Generic::Table>
 			>
 			static Ash::Test::Assertion findIso8859()
 			{
-				using Part = PART;
-				Ash::String::Array<Part> string;
+				using Table = TABLE;
+				Ash::String::Array<Table> string;
 				size_t offset;
 
-				offset = Ash::Encoding::find<Part>(string, 0, '1');
+				offset = Ash::Encoding::find<Table>(string, 0, '1');
 				TEST_IS_EQ(offset, string.getLength());
 
-				for (typename Part::Code code : Ash::Iterate<typename Part::Code>::between(1, 0xFF))
+				for (typename Table::Code code : Ash::Iterate<typename Table::Code>::between(1, 0xFF))
 				{
-					if (Part::Lookup::isCodeValid(code))
+					if (Table::Lookup::isCodeValid(code))
 					{
 						TEST_IS_TRUE(string.append(code));
 					}
 				}
 
-				offset = Ash::Encoding::find<Part>(string, 0, '\x01');
+				offset = Ash::Encoding::find<Table>(string, 0, '\x01');
 				TEST_IS_EQ(offset, 0);
 
-				offset = Ash::Encoding::find<Part>(string, 0, Part::Lookup::getCharacter(Part::Lookup::startCode + Part::Lookup::size - 1));
+				offset = Ash::Encoding::find<Table>(string, 0, Table::Lookup::getCharacter(Table::Lookup::startCode + Table::Lookup::size - 1));
 				TEST_IS_EQ(offset, string.getLength() - 1);
 
-				offset = Ash::Encoding::find<Part>(string, 0, '\x00');
+				offset = Ash::Encoding::find<Table>(string, 0, '\x00');
 				TEST_IS_EQ(offset, string.getLength());
 
-				offset = Ash::Encoding::find<Part>(string, 1, '\x01');
+				offset = Ash::Encoding::find<Table>(string, 1, '\x01');
 				TEST_IS_EQ(offset, string.getLength());
 
-				offset = Ash::Encoding::find<Part>(string, string.getLength(), '\x01');
+				offset = Ash::Encoding::find<Table>(string, string.getLength(), '\x01');
 				TEST_IS_EQ(offset, string.getLength());
 				
 				return {};
@@ -421,21 +421,21 @@ namespace Ash
 			testEncodingCore,
 
 			TEST_CASE(Ash::Test::Encoding::findAscii),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::findIso8859, Ash::Encoding::Iso8859::Part1),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::findIso8859, Ash::Encoding::Iso8859::Part2),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::findIso8859, Ash::Encoding::Iso8859::Part3),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::findIso8859, Ash::Encoding::Iso8859::Part4),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::findIso8859, Ash::Encoding::Iso8859::Part5),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::findIso8859, Ash::Encoding::Iso8859::Part6),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::findIso8859, Ash::Encoding::Iso8859::Part7),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::findIso8859, Ash::Encoding::Iso8859::Part8),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::findIso8859, Ash::Encoding::Iso8859::Part9),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::findIso8859, Ash::Encoding::Iso8859::Part10),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::findIso8859, Ash::Encoding::Iso8859::Part11),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::findIso8859, Ash::Encoding::Iso8859::Part13),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::findIso8859, Ash::Encoding::Iso8859::Part14),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::findIso8859, Ash::Encoding::Iso8859::Part15),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::findIso8859, Ash::Encoding::Iso8859::Part16),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::findIso8859, Ash::Encoding::Iso8859::Part1::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::findIso8859, Ash::Encoding::Iso8859::Part2::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::findIso8859, Ash::Encoding::Iso8859::Part3::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::findIso8859, Ash::Encoding::Iso8859::Part4::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::findIso8859, Ash::Encoding::Iso8859::Part5::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::findIso8859, Ash::Encoding::Iso8859::Part6::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::findIso8859, Ash::Encoding::Iso8859::Part7::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::findIso8859, Ash::Encoding::Iso8859::Part8::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::findIso8859, Ash::Encoding::Iso8859::Part9::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::findIso8859, Ash::Encoding::Iso8859::Part10::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::findIso8859, Ash::Encoding::Iso8859::Part11::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::findIso8859, Ash::Encoding::Iso8859::Part13::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::findIso8859, Ash::Encoding::Iso8859::Part14::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::findIso8859, Ash::Encoding::Iso8859::Part15::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::findIso8859, Ash::Encoding::Iso8859::Part16::Table),
 			TEST_CASE_GENERIC(Ash::Test::Encoding::find, Ash::Encoding::Utf8),
 			TEST_CASE_GENERIC(Ash::Test::Encoding::find, Ash::Encoding::Utf16le),
 			TEST_CASE_GENERIC(Ash::Test::Encoding::find, Ash::Encoding::Utf16be),
@@ -444,21 +444,21 @@ namespace Ash
 			TEST_CASE_GENERIC(Ash::Test::Encoding::find, Ash::Encoding::Wide),
 
 			TEST_CASE_GENERIC(Ash::Test::Encoding::contains, Ash::Encoding::Ascii),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::contains, Ash::Encoding::Iso8859::Part1),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::contains, Ash::Encoding::Iso8859::Part2),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::contains, Ash::Encoding::Iso8859::Part3),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::contains, Ash::Encoding::Iso8859::Part4),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::contains, Ash::Encoding::Iso8859::Part5),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::contains, Ash::Encoding::Iso8859::Part6),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::contains, Ash::Encoding::Iso8859::Part7),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::contains, Ash::Encoding::Iso8859::Part8),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::contains, Ash::Encoding::Iso8859::Part9),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::contains, Ash::Encoding::Iso8859::Part10),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::contains, Ash::Encoding::Iso8859::Part11),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::contains, Ash::Encoding::Iso8859::Part13),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::contains, Ash::Encoding::Iso8859::Part14),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::contains, Ash::Encoding::Iso8859::Part15),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::contains, Ash::Encoding::Iso8859::Part16),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::contains, Ash::Encoding::Iso8859::Part1::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::contains, Ash::Encoding::Iso8859::Part2::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::contains, Ash::Encoding::Iso8859::Part3::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::contains, Ash::Encoding::Iso8859::Part4::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::contains, Ash::Encoding::Iso8859::Part5::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::contains, Ash::Encoding::Iso8859::Part6::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::contains, Ash::Encoding::Iso8859::Part7::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::contains, Ash::Encoding::Iso8859::Part8::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::contains, Ash::Encoding::Iso8859::Part9::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::contains, Ash::Encoding::Iso8859::Part10::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::contains, Ash::Encoding::Iso8859::Part11::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::contains, Ash::Encoding::Iso8859::Part13::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::contains, Ash::Encoding::Iso8859::Part14::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::contains, Ash::Encoding::Iso8859::Part15::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::contains, Ash::Encoding::Iso8859::Part16::Table),
 			TEST_CASE_GENERIC(Ash::Test::Encoding::contains, Ash::Encoding::Utf8),
 			TEST_CASE_GENERIC(Ash::Test::Encoding::contains, Ash::Encoding::Utf16le),
 			TEST_CASE_GENERIC(Ash::Test::Encoding::contains, Ash::Encoding::Utf16be),
@@ -467,21 +467,21 @@ namespace Ash
 			TEST_CASE_GENERIC(Ash::Test::Encoding::contains, Ash::Encoding::Wide),
 
 			TEST_CASE_GENERIC(Ash::Test::Encoding::skipAnyOf, Ash::Encoding::Ascii),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::skipAnyOf, Ash::Encoding::Iso8859::Part1),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::skipAnyOf, Ash::Encoding::Iso8859::Part2),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::skipAnyOf, Ash::Encoding::Iso8859::Part3),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::skipAnyOf, Ash::Encoding::Iso8859::Part4),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::skipAnyOf, Ash::Encoding::Iso8859::Part5),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::skipAnyOf, Ash::Encoding::Iso8859::Part6),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::skipAnyOf, Ash::Encoding::Iso8859::Part7),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::skipAnyOf, Ash::Encoding::Iso8859::Part8),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::skipAnyOf, Ash::Encoding::Iso8859::Part9),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::skipAnyOf, Ash::Encoding::Iso8859::Part10),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::skipAnyOf, Ash::Encoding::Iso8859::Part11),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::skipAnyOf, Ash::Encoding::Iso8859::Part13),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::skipAnyOf, Ash::Encoding::Iso8859::Part14),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::skipAnyOf, Ash::Encoding::Iso8859::Part15),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::skipAnyOf, Ash::Encoding::Iso8859::Part16),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::skipAnyOf, Ash::Encoding::Iso8859::Part1::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::skipAnyOf, Ash::Encoding::Iso8859::Part2::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::skipAnyOf, Ash::Encoding::Iso8859::Part3::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::skipAnyOf, Ash::Encoding::Iso8859::Part4::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::skipAnyOf, Ash::Encoding::Iso8859::Part5::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::skipAnyOf, Ash::Encoding::Iso8859::Part6::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::skipAnyOf, Ash::Encoding::Iso8859::Part7::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::skipAnyOf, Ash::Encoding::Iso8859::Part8::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::skipAnyOf, Ash::Encoding::Iso8859::Part9::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::skipAnyOf, Ash::Encoding::Iso8859::Part10::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::skipAnyOf, Ash::Encoding::Iso8859::Part11::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::skipAnyOf, Ash::Encoding::Iso8859::Part13::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::skipAnyOf, Ash::Encoding::Iso8859::Part14::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::skipAnyOf, Ash::Encoding::Iso8859::Part15::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::skipAnyOf, Ash::Encoding::Iso8859::Part16::Table),
 			TEST_CASE_GENERIC(Ash::Test::Encoding::skipAnyOf, Ash::Encoding::Utf8),
 			TEST_CASE_GENERIC(Ash::Test::Encoding::skipAnyOf, Ash::Encoding::Utf16le),
 			TEST_CASE_GENERIC(Ash::Test::Encoding::skipAnyOf, Ash::Encoding::Utf16be),
@@ -490,21 +490,21 @@ namespace Ash
 			TEST_CASE_GENERIC(Ash::Test::Encoding::skipAnyOf, Ash::Encoding::Wide),
 
 			TEST_CASE_GENERIC(Ash::Test::Encoding::skipNoneOf, Ash::Encoding::Ascii),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::skipNoneOf, Ash::Encoding::Iso8859::Part1),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::skipNoneOf, Ash::Encoding::Iso8859::Part2),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::skipNoneOf, Ash::Encoding::Iso8859::Part3),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::skipNoneOf, Ash::Encoding::Iso8859::Part4),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::skipNoneOf, Ash::Encoding::Iso8859::Part5),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::skipNoneOf, Ash::Encoding::Iso8859::Part6),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::skipNoneOf, Ash::Encoding::Iso8859::Part7),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::skipNoneOf, Ash::Encoding::Iso8859::Part8),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::skipNoneOf, Ash::Encoding::Iso8859::Part9),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::skipNoneOf, Ash::Encoding::Iso8859::Part10),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::skipNoneOf, Ash::Encoding::Iso8859::Part11),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::skipNoneOf, Ash::Encoding::Iso8859::Part13),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::skipNoneOf, Ash::Encoding::Iso8859::Part14),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::skipNoneOf, Ash::Encoding::Iso8859::Part15),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::skipNoneOf, Ash::Encoding::Iso8859::Part16),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::skipNoneOf, Ash::Encoding::Iso8859::Part1::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::skipNoneOf, Ash::Encoding::Iso8859::Part2::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::skipNoneOf, Ash::Encoding::Iso8859::Part3::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::skipNoneOf, Ash::Encoding::Iso8859::Part4::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::skipNoneOf, Ash::Encoding::Iso8859::Part5::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::skipNoneOf, Ash::Encoding::Iso8859::Part6::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::skipNoneOf, Ash::Encoding::Iso8859::Part7::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::skipNoneOf, Ash::Encoding::Iso8859::Part8::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::skipNoneOf, Ash::Encoding::Iso8859::Part9::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::skipNoneOf, Ash::Encoding::Iso8859::Part10::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::skipNoneOf, Ash::Encoding::Iso8859::Part11::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::skipNoneOf, Ash::Encoding::Iso8859::Part13::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::skipNoneOf, Ash::Encoding::Iso8859::Part14::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::skipNoneOf, Ash::Encoding::Iso8859::Part15::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::skipNoneOf, Ash::Encoding::Iso8859::Part16::Table),
 			TEST_CASE_GENERIC(Ash::Test::Encoding::skipNoneOf, Ash::Encoding::Utf8),
 			TEST_CASE_GENERIC(Ash::Test::Encoding::skipNoneOf, Ash::Encoding::Utf16le),
 			TEST_CASE_GENERIC(Ash::Test::Encoding::skipNoneOf, Ash::Encoding::Utf16be),
@@ -513,21 +513,21 @@ namespace Ash
 			TEST_CASE_GENERIC(Ash::Test::Encoding::skipNoneOf, Ash::Encoding::Wide),
 
 			TEST_CASE_GENERIC(Ash::Test::Encoding::token, Ash::Encoding::Ascii),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::token, Ash::Encoding::Iso8859::Part1),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::token, Ash::Encoding::Iso8859::Part2),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::token, Ash::Encoding::Iso8859::Part3),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::token, Ash::Encoding::Iso8859::Part4),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::token, Ash::Encoding::Iso8859::Part5),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::token, Ash::Encoding::Iso8859::Part6),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::token, Ash::Encoding::Iso8859::Part7),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::token, Ash::Encoding::Iso8859::Part8),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::token, Ash::Encoding::Iso8859::Part9),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::token, Ash::Encoding::Iso8859::Part10),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::token, Ash::Encoding::Iso8859::Part11),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::token, Ash::Encoding::Iso8859::Part13),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::token, Ash::Encoding::Iso8859::Part14),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::token, Ash::Encoding::Iso8859::Part15),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::token, Ash::Encoding::Iso8859::Part16),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::token, Ash::Encoding::Iso8859::Part1::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::token, Ash::Encoding::Iso8859::Part2::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::token, Ash::Encoding::Iso8859::Part3::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::token, Ash::Encoding::Iso8859::Part4::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::token, Ash::Encoding::Iso8859::Part5::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::token, Ash::Encoding::Iso8859::Part6::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::token, Ash::Encoding::Iso8859::Part7::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::token, Ash::Encoding::Iso8859::Part8::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::token, Ash::Encoding::Iso8859::Part9::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::token, Ash::Encoding::Iso8859::Part10::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::token, Ash::Encoding::Iso8859::Part11::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::token, Ash::Encoding::Iso8859::Part13::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::token, Ash::Encoding::Iso8859::Part14::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::token, Ash::Encoding::Iso8859::Part15::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::token, Ash::Encoding::Iso8859::Part16::Table),
 			TEST_CASE_GENERIC(Ash::Test::Encoding::token, Ash::Encoding::Utf8),
 			TEST_CASE_GENERIC(Ash::Test::Encoding::token, Ash::Encoding::Utf16le),
 			TEST_CASE_GENERIC(Ash::Test::Encoding::token, Ash::Encoding::Utf16be),
@@ -536,21 +536,21 @@ namespace Ash
 			TEST_CASE_GENERIC(Ash::Test::Encoding::token, Ash::Encoding::Wide),
 
 			TEST_CASE_GENERIC(Ash::Test::Encoding::convert, Ash::Encoding::Ascii),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::convert, Ash::Encoding::Iso8859::Part1),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::convert, Ash::Encoding::Iso8859::Part2),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::convert, Ash::Encoding::Iso8859::Part3),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::convert, Ash::Encoding::Iso8859::Part4),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::convert, Ash::Encoding::Iso8859::Part5),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::convert, Ash::Encoding::Iso8859::Part6),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::convert, Ash::Encoding::Iso8859::Part7),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::convert, Ash::Encoding::Iso8859::Part8),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::convert, Ash::Encoding::Iso8859::Part9),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::convert, Ash::Encoding::Iso8859::Part10),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::convert, Ash::Encoding::Iso8859::Part11),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::convert, Ash::Encoding::Iso8859::Part13),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::convert, Ash::Encoding::Iso8859::Part14),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::convert, Ash::Encoding::Iso8859::Part15),
-			TEST_CASE_GENERIC(Ash::Test::Encoding::convert, Ash::Encoding::Iso8859::Part16),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::convert, Ash::Encoding::Iso8859::Part1::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::convert, Ash::Encoding::Iso8859::Part2::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::convert, Ash::Encoding::Iso8859::Part3::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::convert, Ash::Encoding::Iso8859::Part4::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::convert, Ash::Encoding::Iso8859::Part5::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::convert, Ash::Encoding::Iso8859::Part6::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::convert, Ash::Encoding::Iso8859::Part7::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::convert, Ash::Encoding::Iso8859::Part8::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::convert, Ash::Encoding::Iso8859::Part9::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::convert, Ash::Encoding::Iso8859::Part10::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::convert, Ash::Encoding::Iso8859::Part11::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::convert, Ash::Encoding::Iso8859::Part13::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::convert, Ash::Encoding::Iso8859::Part14::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::convert, Ash::Encoding::Iso8859::Part15::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::convert, Ash::Encoding::Iso8859::Part16::Table),
 			TEST_CASE_GENERIC(Ash::Test::Encoding::convert, Ash::Encoding::Utf8),
 			TEST_CASE_GENERIC(Ash::Test::Encoding::convert, Ash::Encoding::Utf16le),
 			TEST_CASE_GENERIC(Ash::Test::Encoding::convert, Ash::Encoding::Utf16be),
