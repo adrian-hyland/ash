@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ash.encoding.h"
+#include "ash.encoding.singlebyte.h"
 
 
 namespace Ash
@@ -9,201 +9,9 @@ namespace Ash
 	{
 		namespace Iso8859
 		{
-			using Code = uint8_t;
-
-			namespace Generic
-			{
-				class Table {};
-			}
-
-			constexpr Ash::Encoding::CodeUnit16 lookupNull[] = {};
-
-			template
-			<
-				Ash::Encoding::CodeUnit16        START_CODE,
-				size_t                           SIZE = 0x100 - START_CODE,
-				const Ash::Encoding::CodeUnit16 *LOOKUP = lookupNull
-			>
-			class Table : Generic::Table
-			{
-			public:
-				static constexpr Ash::Encoding::CodeUnit16 startCode = START_CODE;
-
-				static constexpr size_t size = SIZE;
-
-				static constexpr bool isCodeValid(Code code) { return getInstance().m_ToUnicode.isValid(code); }
-
-				static constexpr bool isCharacterValid(Ash::Unicode::Character character) { return getInstance().m_FromUnicode.isValid(character); }
-
-				static constexpr Ash::Unicode::Character getCharacter(Code code) { return getInstance().m_ToUnicode.convert(code); }
-
-				static constexpr Code getCode(Ash::Unicode::Character character, Code replacement = '?') { return getInstance().m_FromUnicode.convert(character, replacement); }
-
-			protected:
-				constexpr Table() : m_ToUnicode(LOOKUP), m_FromUnicode(LOOKUP) {}
-
-				static Table &getInstance()
-				{
-					static Table table;
-
-					return table;
-				}
-
-				class ToUnicode : public Ash::Memory::Sequence<Ash::Encoding::CodeUnit16, size>
-				{
-				public:
-					using Content = Ash::Memory::Sequence<Ash::Encoding::CodeUnit16, size>;
-
-					constexpr ToUnicode(const Ash::Encoding::CodeUnit16 values[size]) : Content(values, size) {}
-
-					constexpr bool isValid(Code code) const
-					{
-						return (code < startCode) || (Content::getOr(code - startCode, Ash::Unicode::Character::replacement) != Ash::Unicode::Character::replacement);
-					}
-
-					constexpr Ash::Unicode::Character convert(Code code) const
-					{
-						return (code < startCode) ? code : Content::getOr(code - startCode, Ash::Unicode::Character::replacement);
-					}
-				};
-
-				class FromUnicode
-				{
-				public:
-					constexpr FromUnicode(const Ash::Encoding::CodeUnit16 values[size]) : m_Mappings()
-					{
-						Code code = startCode;
-						for (size_t n = 0; n < size; n++)
-						{
-							if (values[n] != Ash::Unicode::Character::replacement)
-							{
-								insert(Map(values[n], code));
-							}
-							code++;
-						}
-					}
-
-					constexpr bool isValid(Ash::Unicode::Character character) const
-					{
-						return (character == '\0') || (convert(character, '\0') != '\0');
-					}
-
-					constexpr Code convert(Ash::Unicode::Character character, Code replacementValue = '?') const
-					{
-						if (character < startCode)
-						{
-							return character;
-						}
-
-						size_t from = 0;
-						size_t to = m_Mappings.getLength();
-						
-						if ((character < m_Mappings.at(from)->from) || (character > m_Mappings.at(to - 1)->from))
-						{
-							return replacementValue;
-						}
-
-						while (to > from)
-						{
-							size_t middle = from + (to - from) / 2;
-							if (m_Mappings.at(middle)->from == character)
-							{
-								return m_Mappings.at(middle)->to;
-							}
-							else if (m_Mappings.at(middle)->from > character)
-							{
-								to = middle;
-							}
-							else
-							{
-								from = middle + 1;
-							}
-						}
-						return replacementValue;
-					}
-
-				protected:
-					struct Map
-					{
-						constexpr Map() : from(0), to(0) {}
-
-						constexpr Map(Ash::Encoding::CodeUnit16 fromValue, Code toValue) : from(fromValue), to(toValue) {}
-
-						Ash::Encoding::CodeUnit16 from;
-						Code                      to;
-					};
-
-					constexpr void insert(Map map)
-					{
-						size_t offset = m_Mappings.getLength();
-						if (offset > 0)
-						{
-							if (map.from < m_Mappings.at(0)->from)
-							{
-								offset = 0;
-							}
-							else if (map.from < m_Mappings.at(offset - 1)->from)
-							{
-								size_t from = 0;
-								size_t to = offset;
-								for (;;)
-								{
-									offset = from + (to - from) / 2;
-									if (map.from < m_Mappings.at(offset)->from)
-									{
-										to = offset;
-									}
-									else
-									{
-										offset++;
-										if (map.from > m_Mappings.at(offset)->from)
-										{
-											from = offset;
-										}
-										else
-										{
-											break;
-										}
-									}
-								}
-							}
-						}
-						m_Mappings.insert(offset, map);
-					}
-
-				private:
-					Ash::Memory::Buffer<Map, size> m_Mappings;
-				};
-
-			private:
-				ToUnicode   m_ToUnicode;
-				FromUnicode m_FromUnicode;
-
-				Table(const Table &table) = delete;
-				Table &operator = (const Table &table) = delete;
-			};
-
-			template
-			<
-				Ash::Encoding::CodeUnit16 START_CODE
-			>
-			class Table<START_CODE, 0, lookupNull> : Generic::Table
-			{
-			public:
-				static constexpr Ash::Encoding::CodeUnit16 startCode = START_CODE;
-
-				static constexpr size_t size = 0;
-
-				static constexpr bool isCodeValid(Code code) { return code < startCode; }
-
-				static constexpr bool isCharacterValid(Ash::Unicode::Character character) { return character < startCode; }
-
-				static constexpr Ash::Unicode::Character getCharacter(Code code) { return (code < startCode) ? code : Ash::Unicode::Character::replacement; }
-
-				static constexpr Code getCode(Ash::Unicode::Character character, Code replacementValue = '?') { return (character < startCode) ? Code(character) : replacementValue; }
-			};
-
-			using Table1 = Table<0x100, 0, lookupNull>;
+			using Lookup1 = Ash::Encoding::SingleByte::Lookup<0x100, 0, nullptr>;
+			using Part1 = Ash::Encoding::SingleByte::Table<Lookup1>;
+			using WestEuropean = Part1;
 
 			constexpr Ash::Encoding::CodeUnit16 lookup2[] =
 			{
@@ -214,7 +22,9 @@ namespace Ash
 				0x0155, 0x00E1, 0x00E2, 0x0103, 0x00E4, 0x013A, 0x0107, 0x00E7, 0x010D, 0x00E9, 0x0119, 0x00EB, 0x011B, 0x00ED, 0x00EE, 0x010F,
 				0x0111, 0x0144, 0x0148, 0x00F3, 0x00F4, 0x0151, 0x00F6, 0x00F7, 0x0159, 0x016F, 0x00FA, 0x0171, 0x00FC, 0x00FD, 0x0163, 0x02D9
 			};
-			using Table2 = Table<0xA1, sizeof(lookup2) / sizeof(lookup2[0]), lookup2>;
+			using Lookup2 = Ash::Encoding::SingleByte::Lookup<0xA1, sizeof(lookup2) / sizeof(lookup2[0]), lookup2>;
+			using Part2 = Ash::Encoding::SingleByte::Table<Lookup2>;
+			using CentralEuropean = Part2;
 
 			constexpr Ash::Encoding::CodeUnit16 lookup3[] =
 			{
@@ -225,7 +35,9 @@ namespace Ash
 				0x00E0, 0x00E1, 0x00E2, 0xFFFD, 0x00E4, 0x010B, 0x0109, 0x00E7, 0x00E8, 0x00E9, 0x00EA, 0x00EB, 0x00EC, 0x00ED, 0x00EE, 0x00EF,
 				0xFFFD, 0x00F1, 0x00F2, 0x00F3, 0x00F4, 0x0121, 0x00F6, 0x00F7, 0x011D, 0x00F9, 0x00FA, 0x00FB, 0x00FC, 0x016D, 0x015D, 0x02D9
 			};
-			using Table3 = Table<0xA1, sizeof(lookup3) / sizeof(lookup3[0]), lookup3>;
+			using Lookup3 = Ash::Encoding::SingleByte::Lookup<0xA1, sizeof(lookup3) / sizeof(lookup3[0]), lookup3>;
+			using Part3 = Ash::Encoding::SingleByte::Table<Lookup3>;
+			using SouthEuropean = Part3;
 
 			constexpr Ash::Encoding::CodeUnit16 lookup4[] =
 			{
@@ -236,7 +48,9 @@ namespace Ash
 				0x0101, 0x00E1, 0x00E2, 0x00E3, 0x00E4, 0x00E5, 0x00E6, 0x012F, 0x010D, 0x00E9, 0x0119, 0x00EB, 0x0117, 0x00ED, 0x00EE, 0x012B,
 				0x0111, 0x0146, 0x014D, 0x0137, 0x00F4, 0x00F5, 0x00F6, 0x00F7, 0x00F8, 0x0173, 0x00FA, 0x00FB, 0x00FC, 0x0169, 0x016B, 0x02D9
 			};
-			using Table4 = Table<0xA1, sizeof(lookup4) / sizeof(lookup4[0]), lookup4>;
+			using Lookup4 = Ash::Encoding::SingleByte::Lookup<0xA1, sizeof(lookup4) / sizeof(lookup4[0]), lookup4>;
+			using Part4 = Ash::Encoding::SingleByte::Table<Lookup4>;
+			using NorthEuropean = Part4;
 
 			constexpr Ash::Encoding::CodeUnit16 lookup5[] =
 			{
@@ -247,7 +61,9 @@ namespace Ash
 				0x0440, 0x0441, 0x0442, 0x0443, 0x0444, 0x0445, 0x0446, 0x0447, 0x0448, 0x0449, 0x044A, 0x044B, 0x044C, 0x044D, 0x044E, 0x044F,
 				0x2116, 0x0451, 0x0452, 0x0453, 0x0454, 0x0455, 0x0456, 0x0457, 0x0458, 0x0459, 0x045A, 0x045B, 0x045C, 0x045D, 0x045E, 0x045F
 			};
-			using Table5 = Table<0xA1, sizeof(lookup5) / sizeof(lookup5[0]), lookup5>;
+			using Lookup5 = Ash::Encoding::SingleByte::Lookup<0xA1, sizeof(lookup5) / sizeof(lookup5[0]), lookup5>;
+			using Part5 = Ash::Encoding::SingleByte::Table<Lookup5>;
+			using Cyrillic = Part5;
 
 			constexpr Ash::Encoding::CodeUnit16 lookup6[] =
 			{
@@ -258,7 +74,9 @@ namespace Ash
 				0x0640, 0x0641, 0x0642, 0x0643, 0x0644, 0x0645, 0x0646, 0x0647, 0x0648, 0x0649, 0x064A, 0x064B, 0x064C, 0x064D, 0x064E, 0x064F,
 				0x0650, 0x0651, 0x0652
 			};
-			using Table6 = Table<0xA1, sizeof(lookup6) / sizeof(lookup6[0]), lookup6>;
+			using Lookup6 = Ash::Encoding::SingleByte::Lookup<0xA1, sizeof(lookup6) / sizeof(lookup6[0]), lookup6>;
+			using Part6 = Ash::Encoding::SingleByte::Table<Lookup6>;
+			using Arabic = Part6;
 
 			constexpr Ash::Encoding::CodeUnit16 lookup7[] =
 			{
@@ -269,7 +87,9 @@ namespace Ash
 				0x03B0, 0x03B1, 0x03B2, 0x03B3, 0x03B4, 0x03B5, 0x03B6, 0x03B7, 0x03B8, 0x03B9, 0x03BA, 0x03BB, 0x03BC, 0x03BD, 0x03BE, 0x03BF,
 				0x03C0, 0x03C1, 0x03C2, 0x03C3, 0x03C4, 0x03C5, 0x03C6, 0x03C7, 0x03C8, 0x03C9, 0x03CA, 0x03CB, 0x03CC, 0x03CD, 0x03CE
 			};
-			using Table7 = Table<0xA1, sizeof(lookup7) / sizeof(lookup7[0]), lookup7>;
+			using Lookup7 = Ash::Encoding::SingleByte::Lookup<0xA1, sizeof(lookup7) / sizeof(lookup7[0]), lookup7>;
+			using Part7 = Ash::Encoding::SingleByte::Table<Lookup7>;
+			using Greek = Part7;
 
 			constexpr Ash::Encoding::CodeUnit16 lookup8[] =
 			{
@@ -280,7 +100,9 @@ namespace Ash
 				0x05D0, 0x05D1, 0x05D2, 0x05D3, 0x05D4, 0x05D5, 0x05D6, 0x05D7, 0x05D8, 0x05D9, 0x05DA, 0x05DB, 0x05DC, 0x05DD, 0x05DE, 0x05DF,
 				0x05E0, 0x05E1, 0x05E2, 0x05E3, 0x05E4, 0x05E5, 0x05E6, 0x05E7, 0x05E8, 0x05E9, 0x05EA, 0xFFFD, 0xFFFD, 0x200E, 0x200F
 			};
-			using Table8 = Table<0xA1, sizeof(lookup8) / sizeof(lookup8[0]), lookup8>;
+			using Lookup8 = Ash::Encoding::SingleByte::Lookup<0xA1, sizeof(lookup8) / sizeof(lookup8[0]), lookup8>;
+			using Part8 = Ash::Encoding::SingleByte::Table<Lookup8>;
+			using Hebrew = Part8;
 
 			constexpr Ash::Encoding::CodeUnit16 lookup9[] =
 			{
@@ -288,7 +110,9 @@ namespace Ash
 				0x00E0, 0x00E1, 0x00E2, 0x00E3, 0x00E4, 0x00E5, 0x00E6, 0x00E7, 0x00E8, 0x00E9, 0x00EA, 0x00EB, 0x00EC, 0x00ED, 0x00EE, 0x00EF,
 				0x011F, 0x00F1, 0x00F2, 0x00F3, 0x00F4, 0x00F5, 0x00F6, 0x00F7, 0x00F8, 0x00F9, 0x00FA, 0x00FB, 0x00FC, 0x0131, 0x015F, 0x00FF
 			};
-			using Table9 = Table<0xD0, sizeof(lookup9) / sizeof(lookup9[0]), lookup9>;
+			using Lookup9 = Ash::Encoding::SingleByte::Lookup<0xD0, sizeof(lookup9) / sizeof(lookup9[0]), lookup9>;
+			using Part9 = Ash::Encoding::SingleByte::Table<Lookup9>;
+			using Turkish = Part9;
 
 			constexpr Ash::Encoding::CodeUnit16 lookup10[] =
 			{
@@ -299,7 +123,9 @@ namespace Ash
 				0x0101, 0x00E1, 0x00E2, 0x00E3, 0x00E4, 0x00E5, 0x00E6, 0x012F, 0x010D, 0x00E9, 0x0119, 0x00EB, 0x0117, 0x00ED, 0x00EE, 0x00EF,
 				0x00F0, 0x0146, 0x014D, 0x00F3, 0x00F4, 0x00F5, 0x00F6, 0x0169, 0x00F8, 0x0173, 0x00FA, 0x00FB, 0x00FC, 0x00FD, 0x00FE, 0x0138
 			};
-			using Table10 = Table<0xA1, sizeof(lookup10) / sizeof(lookup10[0]), lookup10>;
+			using Lookup10 = Ash::Encoding::SingleByte::Lookup<0xA1, sizeof(lookup10) / sizeof(lookup10[0]), lookup10>;
+			using Part10 = Ash::Encoding::SingleByte::Table<Lookup10>;
+			using Nordic = Part10;
 
 			constexpr Ash::Encoding::CodeUnit16 lookup11[] =
 			{
@@ -310,7 +136,9 @@ namespace Ash
 				0x0E40, 0x0E41, 0x0E42, 0x0E43, 0x0E44, 0x0E45, 0x0E46, 0x0E47, 0x0E48, 0x0E49, 0x0E4A, 0x0E4B, 0x0E4C, 0x0E4D, 0x0E4E, 0x0E4F,
 				0x0E50, 0x0E51, 0x0E52, 0x0E53, 0x0E54, 0x0E55, 0x0E56, 0x0E57, 0x0E58, 0x0E59, 0x0E5A, 0x0E5B
 			};
-			using Table11 = Table<0xA1, sizeof(lookup11) / sizeof(lookup11[0]), lookup11>;
+			using Lookup11 = Ash::Encoding::SingleByte::Lookup<0xA1, sizeof(lookup11) / sizeof(lookup11[0]), lookup11>;
+			using Part11 = Ash::Encoding::SingleByte::Table<Lookup11>;
+			using Thai = Part11;
 
 			constexpr Ash::Encoding::CodeUnit16 lookup13[] =
 			{
@@ -321,7 +149,9 @@ namespace Ash
 				0x0105, 0x012F, 0x0101, 0x0107, 0x00E4, 0x00E5, 0x0119, 0x0113, 0x010D, 0x00E9, 0x017A, 0x0117, 0x0123, 0x0137, 0x012B, 0x013C,
 				0x0161, 0x0144, 0x0146, 0x00F3, 0x014D, 0x00F5, 0x00F6, 0x00F7, 0x0173, 0x0142, 0x015B, 0x016B, 0x00FC, 0x017C, 0x017E, 0x2019
 			};
-			using Table13 = Table<0xA1, sizeof(lookup13) / sizeof(lookup13[0]), lookup13>;
+			using Lookup13 = Ash::Encoding::SingleByte::Lookup<0xA1, sizeof(lookup13) / sizeof(lookup13[0]), lookup13>;
+			using Part13 = Ash::Encoding::SingleByte::Table<Lookup13>;
+			using Baltic = Part13;
 
 			constexpr Ash::Encoding::CodeUnit16 lookup14[] =
 			{
@@ -332,7 +162,9 @@ namespace Ash
 				0x00E0, 0x00E1, 0x00E2, 0x00E3, 0x00E4, 0x00E5, 0x00E6, 0x00E7, 0x00E8, 0x00E9, 0x00EA, 0x00EB, 0x00EC, 0x00ED, 0x00EE, 0x00EF,
 				0x0175, 0x00F1, 0x00F2, 0x00F3, 0x00F4, 0x00F5, 0x00F6, 0x1E6B, 0x00F8, 0x00F9, 0x00FA, 0x00FB, 0x00FC, 0x00FD, 0x0177, 0x00FF
 			};
-			using Table14 = Table<0xA1, sizeof(lookup14) / sizeof(lookup14[0]), lookup14>;
+			using Lookup14 = Ash::Encoding::SingleByte::Lookup<0xA1, sizeof(lookup14) / sizeof(lookup14[0]), lookup14>;
+			using Part14 = Ash::Encoding::SingleByte::Table<Lookup14>;
+			using Celtic = Part14;
 
 			constexpr Ash::Encoding::CodeUnit16 lookup15[] =
 			{
@@ -343,7 +175,9 @@ namespace Ash
 				0x00E0, 0x00E1, 0x00E2, 0x00E3, 0x00E4, 0x00E5, 0x00E6, 0x00E7, 0x00E8, 0x00E9, 0x00EA, 0x00EB, 0x00EC, 0x00ED, 0x00EE, 0x00EF,
 				0x00F0, 0x00F1, 0x00F2, 0x00F3, 0x00F4, 0x00F5, 0x00F6, 0x00F7, 0x00F8, 0x00F9, 0x00FA, 0x00FB, 0x00FC, 0x00FD, 0x00FE, 0x00FF
 			};
-			using Table15 = Table<0xA4, sizeof(lookup15) / sizeof(lookup15[0]), lookup15>;
+			using Lookup15 = Ash::Encoding::SingleByte::Lookup<0xA4, sizeof(lookup15) / sizeof(lookup15[0]), lookup15>;
+			using Part15 = Ash::Encoding::SingleByte::Table<Lookup15>;
+			using WestEuropeanNew = Part15;
 
 			constexpr Ash::Encoding::CodeUnit16 lookup16[] =
 			{
@@ -354,164 +188,8 @@ namespace Ash
 				0x00E0, 0x00E1, 0x00E2, 0x0103, 0x00E4, 0x0107, 0x00E6, 0x00E7, 0x00E8, 0x00E9, 0x00EA, 0x00EB, 0x00EC, 0x00ED, 0x00EE, 0x00EF,
 				0x0111, 0x0144, 0x00F2, 0x00F3, 0x00F4, 0x0151, 0x00F6, 0x015B, 0x0171, 0x00F9, 0x00FA, 0x00FB, 0x00FC, 0x0119, 0x021B, 0x00FF
 			};
-			using Table16 = Table<0xA1, sizeof(lookup16) / sizeof(lookup16[0]), lookup16>;
-
-			namespace Generic
-			{
-				class Part : Ash::Generic::Encoding {};
-			}
-
-			template
-			<
-				typename TABLE,
-				typename = Ash::Type::IsClass<TABLE, Ash::Encoding::Iso8859::Generic::Table>
-			>
-			class Part : Ash::Encoding::Iso8859::Generic::Part
-			{
-			public:
-				using Table = TABLE;
-
-				using Code = Ash::Encoding::Iso8859::Code;
-
-				static constexpr size_t minSize = 1;
-
-				static constexpr size_t maxSize = 1;
-
-				static constexpr bool isLittleEndian = false;
-
-				static constexpr bool isBigEndian = false;
-
-				class Character : public Ash::Memory::Buffer<Code, maxSize>
-				{
-				public:
-					static constexpr Ash::Unicode::Character replacement = '?';
-
-					constexpr Character() : Ash::Memory::Buffer<Code, maxSize>() {}
-
-					constexpr Character(Ash::Unicode::Character character) : Ash::Memory::Buffer<Code, maxSize>()
-					{
-						set(character);
-					}
-
-					constexpr Ash::Unicode::Character operator = (Ash::Unicode::Character character)
-					{
-						set(character);
-						return character;
-					}
-
-					constexpr operator Ash::Unicode::Character () const { return (getLength() > 0) ? Table::getCharacter((*this)[0]) : Ash::Unicode::Character(Ash::Unicode::Character::replacement); }
-
-				protected:
-					constexpr void set(Ash::Unicode::Character character)
-					{
-						if (Table::isCharacterValid(character))
-						{
-							setLength(1);
-							(*this)[0] = Table::getCode(character);
-						}
-						else
-						{
-							setLength(0);
-						}
-					}
-
-					constexpr size_t set(Code code)
-					{
-						setLength(1);
-						(*this)[0] = code;
-						return 1;
-					}
-
-					friend Part;
-				};
-
-				template
-				<
-					typename ALLOCATION,
-					typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>
-				>
-				static constexpr size_t decodeNext(const Ash::Memory::Value<ALLOCATION, Code> &value, size_t offset, Character &character)
-				{
-					Code code = 0;
-
-					if (value.get(offset, code) && Table::isCodeValid(code))
-					{
-						return character.set(code);
-					}
-					else
-					{
-						character.clear();
-						return 0;
-					}
-				}
-
-				template
-				<
-					typename ALLOCATION,
-					typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>
-				>
-				static constexpr size_t decodePrevious(const Ash::Memory::Value<ALLOCATION, Code> &value, size_t offset, Character &character)
-				{
-					Code code = 0;
-
-					if ((offset > 0) && value.get(--offset, code) && Table::isCodeValid(code))
-					{
-						return character.set(code);
-					}
-					else
-					{
-						character.clear();
-						return 0;
-					}
-				}
-
-			private:
-				Part();
-			};
-
-			using Part1 = Ash::Encoding::Iso8859::Part<Table1>;
-			using WestEuropean = Part1;
-
-			using Part2 = Ash::Encoding::Iso8859::Part<Table2>;
-			using CentralEuropean = Part2;
-
-			using Part3 = Ash::Encoding::Iso8859::Part<Table3>;
-			using SouthEuropean = Part3;
-
-			using Part4 = Ash::Encoding::Iso8859::Part<Table4>;
-			using NorthEuropean = Part4;
-
-			using Part5 = Ash::Encoding::Iso8859::Part<Table5>;
-			using Cyrillic = Part5;
-
-			using Part6 = Ash::Encoding::Iso8859::Part<Table6>;
-			using Arabic = Part6;
-
-			using Part7 = Ash::Encoding::Iso8859::Part<Table7>;
-			using Greek = Part7;
-
-			using Part8 = Ash::Encoding::Iso8859::Part<Table8>;
-			using Hebrew = Part8;
-
-			using Part9 = Ash::Encoding::Iso8859::Part<Table9>;
-			using Turkish = Part9;
-
-			using Part10 = Ash::Encoding::Iso8859::Part<Table10>;
-			using Nordic = Part10;
-
-			using Part11 = Ash::Encoding::Iso8859::Part<Table11>;
-			using Thai = Part11;
-
-			using Part13 = Ash::Encoding::Iso8859::Part<Table13>;
-			using Baltic = Part13;
-
-			using Part14 = Ash::Encoding::Iso8859::Part<Table14>;
-			using Celtic = Part14;
-
-			using Part15 = Ash::Encoding::Iso8859::Part<Table15>;
-			using WestEuropeanNew = Part15;
-
-			using Part16 = Ash::Encoding::Iso8859::Part<Table16>;
+			using Lookup16 = Ash::Encoding::SingleByte::Lookup<0xA1, sizeof(lookup16) / sizeof(lookup16[0]), lookup16>;
+			using Part16 = Ash::Encoding::SingleByte::Table<Lookup16>;
 			using Romanian = Part16;
 		}
 	}
