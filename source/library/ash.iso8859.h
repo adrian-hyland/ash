@@ -9,51 +9,6 @@ namespace Ash
 {
 	namespace Iso8859
 	{
-		template
-		<
-			typename TABLE,
-			typename ALLOCATION,
-			typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>,
-			typename = Ash::Type::IsClass<TABLE, Ash::Encoding::Iso8859::Generic::Table>
-		>
-		using Value = Ash::String::Value<ALLOCATION, Ash::Encoding::Iso8859::Part<TABLE>>;
-
-		template
-		<
-			typename TABLE,
-			size_t   CAPACITY,
-			typename = Ash::Type::IsClass<TABLE, Ash::Encoding::Iso8859::Generic::Table>
-		>
-		using Buffer = Ash::String::Buffer<Ash::Encoding::Iso8859::Part<TABLE>, CAPACITY>;
-
-		template
-		<
-			typename TABLE,
-			typename = Ash::Type::IsClass<TABLE, Ash::Encoding::Iso8859::Generic::Table>
-		>
-		using View = Ash::String::View<Ash::Encoding::Iso8859::Part<TABLE>>;
-
-		template
-		<
-			typename TABLE,
-			size_t   MINIMUM_CAPACITY    = 32,
-			size_t   PERCENTAGE_INCREASE = 50,
-			size_t   BLOCK_SIZE          = 32,
-			typename = Ash::Type::IsClass<TABLE, Ash::Encoding::Iso8859::Generic::Table>
-		>
-		using String = Ash::String::Array<Ash::Encoding::Iso8859::Part<TABLE>, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
-
-		template
-		<
-			typename TABLE,
-			size_t   CAPACITY            = 32,
-			size_t   PERCENTAGE_INCREASE = 50,
-			size_t   BLOCK_SIZE          = 32,
-			typename = Ash::Type::IsClass<TABLE, Ash::Encoding::Iso8859::Generic::Table>
-		>
-		using StringBuffer = Ash::String::ArrayBuffer<Ash::Encoding::Iso8859::Part<TABLE>, CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
-
-
 		namespace Part1
 		{
 			template
@@ -61,31 +16,31 @@ namespace Ash
 				typename ALLOCATION,
 				typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>
 			>
-			using Value = Ash::Iso8859::Value<Ash::Encoding::Iso8859::Table1, ALLOCATION>;
+			using Value = Ash::String::Value<ALLOCATION, Ash::Encoding::Iso8859::Part1>;
 
 			template
 			<
-				size_t   CAPACITY
+				size_t CAPACITY
 			>
-			using Buffer = Ash::Iso8859::Buffer<Ash::Encoding::Iso8859::Table1, CAPACITY>;
+			using Buffer = Ash::String::Buffer<Ash::Encoding::Iso8859::Part1, CAPACITY>;
 
-			using View = Ash::Iso8859::View<Ash::Encoding::Iso8859::Table1>;
-
-			template
-			<
-				size_t   MINIMUM_CAPACITY    = 32,
-				size_t   PERCENTAGE_INCREASE = 50,
-				size_t   BLOCK_SIZE          = 32
-			>
-			using String = Ash::Iso8859::String<Ash::Encoding::Iso8859::Table1, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+			using View = Ash::String::View<Ash::Encoding::Iso8859::Part1>;
 
 			template
 			<
-				size_t   CAPACITY            = 32,
-				size_t   PERCENTAGE_INCREASE = 50,
-				size_t   BLOCK_SIZE          = 32
+				size_t MINIMUM_CAPACITY    = 32,
+				size_t PERCENTAGE_INCREASE = 50,
+				size_t BLOCK_SIZE          = 32
 			>
-			using StringBuffer = Ash::Iso8859::StringBuffer<Ash::Encoding::Iso8859::Table1, CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+			using String = Ash::String::Array<Ash::Encoding::Iso8859::Part1, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+
+			template
+			<
+				size_t CAPACITY            = 32,
+				size_t PERCENTAGE_INCREASE = 50,
+				size_t BLOCK_SIZE          = 32
+			>
+			using StringBuffer = Ash::String::ArrayBuffer<Ash::Encoding::Iso8859::Part1, CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
 		}
 
 
@@ -96,31 +51,31 @@ namespace Ash
 				typename ALLOCATION,
 				typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>
 			>
-			using Value = Ash::Iso8859::Value<Ash::Encoding::Iso8859::Table2, ALLOCATION>;
+			using Value = Ash::String::Value<ALLOCATION, Ash::Encoding::Iso8859::Part2>;
 
 			template
 			<
-				size_t   CAPACITY
+				size_t CAPACITY
 			>
-			using Buffer = Ash::Iso8859::Buffer<Ash::Encoding::Iso8859::Table2, CAPACITY>;
+			using Buffer = Ash::String::Buffer<Ash::Encoding::Iso8859::Part2, CAPACITY>;
 
-			using View = Ash::Iso8859::View<Ash::Encoding::Iso8859::Table2>;
-
-			template
-			<
-				size_t   MINIMUM_CAPACITY    = 32,
-				size_t   PERCENTAGE_INCREASE = 50,
-				size_t   BLOCK_SIZE          = 32
-			>
-			using String = Ash::Iso8859::String<Ash::Encoding::Iso8859::Table2, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+			using View = Ash::String::View<Ash::Encoding::Iso8859::Part2>;
 
 			template
 			<
-				size_t   CAPACITY            = 32,
-				size_t   PERCENTAGE_INCREASE = 50,
-				size_t   BLOCK_SIZE          = 32
+				size_t MINIMUM_CAPACITY    = 32,
+				size_t PERCENTAGE_INCREASE = 50,
+				size_t BLOCK_SIZE          = 32
 			>
-			using StringBuffer = Ash::Iso8859::StringBuffer<Ash::Encoding::Iso8859::Table2, CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+			using String = Ash::String::Array<Ash::Encoding::Iso8859::Part2, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+
+			template
+			<
+				size_t CAPACITY            = 32,
+				size_t PERCENTAGE_INCREASE = 50,
+				size_t BLOCK_SIZE          = 32
+			>
+			using StringBuffer = Ash::String::ArrayBuffer<Ash::Encoding::Iso8859::Part2, CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
 		}
 
 
@@ -131,31 +86,31 @@ namespace Ash
 				typename ALLOCATION,
 				typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>
 			>
-			using Value = Ash::Iso8859::Value<Ash::Encoding::Iso8859::Table3, ALLOCATION>;
+			using Value = Ash::String::Value<ALLOCATION, Ash::Encoding::Iso8859::Part3>;
 
 			template
 			<
-				size_t   CAPACITY
+				size_t CAPACITY
 			>
-			using Buffer = Ash::Iso8859::Buffer<Ash::Encoding::Iso8859::Table3, CAPACITY>;
+			using Buffer = Ash::String::Buffer<Ash::Encoding::Iso8859::Part3, CAPACITY>;
 
-			using View = Ash::Iso8859::View<Ash::Encoding::Iso8859::Table3>;
-
-			template
-			<
-				size_t   MINIMUM_CAPACITY    = 32,
-				size_t   PERCENTAGE_INCREASE = 50,
-				size_t   BLOCK_SIZE          = 32
-			>
-			using String = Ash::Iso8859::String<Ash::Encoding::Iso8859::Table3, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+			using View = Ash::String::View<Ash::Encoding::Iso8859::Part3>;
 
 			template
 			<
-				size_t   CAPACITY            = 32,
-				size_t   PERCENTAGE_INCREASE = 50,
-				size_t   BLOCK_SIZE          = 32
+				size_t MINIMUM_CAPACITY    = 32,
+				size_t PERCENTAGE_INCREASE = 50,
+				size_t BLOCK_SIZE          = 32
 			>
-			using StringBuffer = Ash::Iso8859::StringBuffer<Ash::Encoding::Iso8859::Table3, CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+			using String = Ash::String::Array<Ash::Encoding::Iso8859::Part3, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+
+			template
+			<
+				size_t CAPACITY            = 32,
+				size_t PERCENTAGE_INCREASE = 50,
+				size_t BLOCK_SIZE          = 32
+			>
+			using StringBuffer = Ash::String::ArrayBuffer<Ash::Encoding::Iso8859::Part3, CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
 		}
 
 
@@ -166,31 +121,31 @@ namespace Ash
 				typename ALLOCATION,
 				typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>
 			>
-			using Value = Ash::Iso8859::Value<Ash::Encoding::Iso8859::Table4, ALLOCATION>;
+			using Value = Ash::String::Value<ALLOCATION, Ash::Encoding::Iso8859::Part4>;
 
 			template
 			<
-				size_t   CAPACITY
+				size_t CAPACITY
 			>
-			using Buffer = Ash::Iso8859::Buffer<Ash::Encoding::Iso8859::Table4, CAPACITY>;
+			using Buffer = Ash::String::Buffer<Ash::Encoding::Iso8859::Part4, CAPACITY>;
 
-			using View = Ash::Iso8859::View<Ash::Encoding::Iso8859::Table4>;
-
-			template
-			<
-				size_t   MINIMUM_CAPACITY    = 32,
-				size_t   PERCENTAGE_INCREASE = 50,
-				size_t   BLOCK_SIZE          = 32
-			>
-			using String = Ash::Iso8859::String<Ash::Encoding::Iso8859::Table4, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+			using View = Ash::String::View<Ash::Encoding::Iso8859::Part4>;
 
 			template
 			<
-				size_t   CAPACITY            = 32,
-				size_t   PERCENTAGE_INCREASE = 50,
-				size_t   BLOCK_SIZE          = 32
+				size_t MINIMUM_CAPACITY    = 32,
+				size_t PERCENTAGE_INCREASE = 50,
+				size_t BLOCK_SIZE          = 32
 			>
-			using StringBuffer = Ash::Iso8859::StringBuffer<Ash::Encoding::Iso8859::Table4, CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+			using String = Ash::String::Array<Ash::Encoding::Iso8859::Part4, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+
+			template
+			<
+				size_t CAPACITY            = 32,
+				size_t PERCENTAGE_INCREASE = 50,
+				size_t BLOCK_SIZE          = 32
+			>
+			using StringBuffer = Ash::String::ArrayBuffer<Ash::Encoding::Iso8859::Part4, CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
 		}
 
 
@@ -201,31 +156,31 @@ namespace Ash
 				typename ALLOCATION,
 				typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>
 			>
-			using Value = Ash::Iso8859::Value<Ash::Encoding::Iso8859::Table5, ALLOCATION>;
+			using Value = Ash::String::Value<ALLOCATION, Ash::Encoding::Iso8859::Part5>;
 
 			template
 			<
-				size_t   CAPACITY
+				size_t CAPACITY
 			>
-			using Buffer = Ash::Iso8859::Buffer<Ash::Encoding::Iso8859::Table5, CAPACITY>;
+			using Buffer = Ash::String::Buffer<Ash::Encoding::Iso8859::Part5, CAPACITY>;
 
-			using View = Ash::Iso8859::View<Ash::Encoding::Iso8859::Table5>;
-
-			template
-			<
-				size_t   MINIMUM_CAPACITY    = 32,
-				size_t   PERCENTAGE_INCREASE = 50,
-				size_t   BLOCK_SIZE          = 32
-			>
-			using String = Ash::Iso8859::String<Ash::Encoding::Iso8859::Table5, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+			using View = Ash::String::View<Ash::Encoding::Iso8859::Part5>;
 
 			template
 			<
-				size_t   CAPACITY            = 32,
-				size_t   PERCENTAGE_INCREASE = 50,
-				size_t   BLOCK_SIZE          = 32
+				size_t MINIMUM_CAPACITY    = 32,
+				size_t PERCENTAGE_INCREASE = 50,
+				size_t BLOCK_SIZE          = 32
 			>
-			using StringBuffer = Ash::Iso8859::StringBuffer<Ash::Encoding::Iso8859::Table5, CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+			using String = Ash::String::Array<Ash::Encoding::Iso8859::Part5, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+
+			template
+			<
+				size_t CAPACITY            = 32,
+				size_t PERCENTAGE_INCREASE = 50,
+				size_t BLOCK_SIZE          = 32
+			>
+			using StringBuffer = Ash::String::ArrayBuffer<Ash::Encoding::Iso8859::Part5, CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
 		}
 
 
@@ -236,31 +191,31 @@ namespace Ash
 				typename ALLOCATION,
 				typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>
 			>
-			using Value = Ash::Iso8859::Value<Ash::Encoding::Iso8859::Table6, ALLOCATION>;
+			using Value = Ash::String::Value<ALLOCATION, Ash::Encoding::Iso8859::Part6>;
 
 			template
 			<
-				size_t   CAPACITY
+				size_t CAPACITY
 			>
-			using Buffer = Ash::Iso8859::Buffer<Ash::Encoding::Iso8859::Table6, CAPACITY>;
+			using Buffer = Ash::String::Buffer<Ash::Encoding::Iso8859::Part6, CAPACITY>;
 
-			using View = Ash::Iso8859::View<Ash::Encoding::Iso8859::Table6>;
-
-			template
-			<
-				size_t   MINIMUM_CAPACITY    = 32,
-				size_t   PERCENTAGE_INCREASE = 50,
-				size_t   BLOCK_SIZE          = 32
-			>
-			using String = Ash::Iso8859::String<Ash::Encoding::Iso8859::Table6, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+			using View = Ash::String::View<Ash::Encoding::Iso8859::Part6>;
 
 			template
 			<
-				size_t   CAPACITY            = 32,
-				size_t   PERCENTAGE_INCREASE = 50,
-				size_t   BLOCK_SIZE          = 32
+				size_t MINIMUM_CAPACITY    = 32,
+				size_t PERCENTAGE_INCREASE = 50,
+				size_t BLOCK_SIZE          = 32
 			>
-			using StringBuffer = Ash::Iso8859::StringBuffer<Ash::Encoding::Iso8859::Table6, CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+			using String = Ash::String::Array<Ash::Encoding::Iso8859::Part6, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+
+			template
+			<
+				size_t CAPACITY            = 32,
+				size_t PERCENTAGE_INCREASE = 50,
+				size_t BLOCK_SIZE          = 32
+			>
+			using StringBuffer = Ash::String::ArrayBuffer<Ash::Encoding::Iso8859::Part6, CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
 		}
 
 
@@ -271,31 +226,31 @@ namespace Ash
 				typename ALLOCATION,
 				typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>
 			>
-			using Value = Ash::Iso8859::Value<Ash::Encoding::Iso8859::Table7, ALLOCATION>;
+			using Value = Ash::String::Value<ALLOCATION, Ash::Encoding::Iso8859::Part7>;
 
 			template
 			<
-				size_t   CAPACITY
+				size_t CAPACITY
 			>
-			using Buffer = Ash::Iso8859::Buffer<Ash::Encoding::Iso8859::Table7, CAPACITY>;
+			using Buffer = Ash::String::Buffer<Ash::Encoding::Iso8859::Part7, CAPACITY>;
 
-			using View = Ash::Iso8859::View<Ash::Encoding::Iso8859::Table7>;
-
-			template
-			<
-				size_t   MINIMUM_CAPACITY    = 32,
-				size_t   PERCENTAGE_INCREASE = 50,
-				size_t   BLOCK_SIZE          = 32
-			>
-			using String = Ash::Iso8859::String<Ash::Encoding::Iso8859::Table7, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+			using View = Ash::String::View<Ash::Encoding::Iso8859::Part7>;
 
 			template
 			<
-				size_t   CAPACITY            = 32,
-				size_t   PERCENTAGE_INCREASE = 50,
-				size_t   BLOCK_SIZE          = 32
+				size_t MINIMUM_CAPACITY    = 32,
+				size_t PERCENTAGE_INCREASE = 50,
+				size_t BLOCK_SIZE          = 32
 			>
-			using StringBuffer = Ash::Iso8859::StringBuffer<Ash::Encoding::Iso8859::Table7, CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+			using String = Ash::String::Array<Ash::Encoding::Iso8859::Part7, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+
+			template
+			<
+				size_t CAPACITY            = 32,
+				size_t PERCENTAGE_INCREASE = 50,
+				size_t BLOCK_SIZE          = 32
+			>
+			using StringBuffer = Ash::String::ArrayBuffer<Ash::Encoding::Iso8859::Part7, CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
 		}
 
 
@@ -306,31 +261,31 @@ namespace Ash
 				typename ALLOCATION,
 				typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>
 			>
-			using Value = Ash::Iso8859::Value<Ash::Encoding::Iso8859::Table8, ALLOCATION>;
+			using Value = Ash::String::Value<ALLOCATION, Ash::Encoding::Iso8859::Part8>;
 
 			template
 			<
-				size_t   CAPACITY
+				size_t CAPACITY
 			>
-			using Buffer = Ash::Iso8859::Buffer<Ash::Encoding::Iso8859::Table8, CAPACITY>;
+			using Buffer = Ash::String::Buffer<Ash::Encoding::Iso8859::Part8, CAPACITY>;
 
-			using View = Ash::Iso8859::View<Ash::Encoding::Iso8859::Table8>;
-
-			template
-			<
-				size_t   MINIMUM_CAPACITY    = 32,
-				size_t   PERCENTAGE_INCREASE = 50,
-				size_t   BLOCK_SIZE          = 32
-			>
-			using String = Ash::Iso8859::String<Ash::Encoding::Iso8859::Table8, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+			using View = Ash::String::View<Ash::Encoding::Iso8859::Part8>;
 
 			template
 			<
-				size_t   CAPACITY            = 32,
-				size_t   PERCENTAGE_INCREASE = 50,
-				size_t   BLOCK_SIZE          = 32
+				size_t MINIMUM_CAPACITY    = 32,
+				size_t PERCENTAGE_INCREASE = 50,
+				size_t BLOCK_SIZE          = 32
 			>
-			using StringBuffer = Ash::Iso8859::StringBuffer<Ash::Encoding::Iso8859::Table8, CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+			using String = Ash::String::Array<Ash::Encoding::Iso8859::Part8, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+
+			template
+			<
+				size_t CAPACITY            = 32,
+				size_t PERCENTAGE_INCREASE = 50,
+				size_t BLOCK_SIZE          = 32
+			>
+			using StringBuffer = Ash::String::ArrayBuffer<Ash::Encoding::Iso8859::Part8, CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
 		}
 
 
@@ -341,31 +296,31 @@ namespace Ash
 				typename ALLOCATION,
 				typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>
 			>
-			using Value = Ash::Iso8859::Value<Ash::Encoding::Iso8859::Table9, ALLOCATION>;
+			using Value = Ash::String::Value<ALLOCATION, Ash::Encoding::Iso8859::Part9>;
 
 			template
 			<
-				size_t   CAPACITY
+				size_t CAPACITY
 			>
-			using Buffer = Ash::Iso8859::Buffer<Ash::Encoding::Iso8859::Table9, CAPACITY>;
+			using Buffer = Ash::String::Buffer<Ash::Encoding::Iso8859::Part9, CAPACITY>;
 
-			using View = Ash::Iso8859::View<Ash::Encoding::Iso8859::Table9>;
-
-			template
-			<
-				size_t   MINIMUM_CAPACITY    = 32,
-				size_t   PERCENTAGE_INCREASE = 50,
-				size_t   BLOCK_SIZE          = 32
-			>
-			using String = Ash::Iso8859::String<Ash::Encoding::Iso8859::Table9, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+			using View = Ash::String::View<Ash::Encoding::Iso8859::Part9>;
 
 			template
 			<
-				size_t   CAPACITY            = 32,
-				size_t   PERCENTAGE_INCREASE = 50,
-				size_t   BLOCK_SIZE          = 32
+				size_t MINIMUM_CAPACITY    = 32,
+				size_t PERCENTAGE_INCREASE = 50,
+				size_t BLOCK_SIZE          = 32
 			>
-			using StringBuffer = Ash::Iso8859::StringBuffer<Ash::Encoding::Iso8859::Table9, CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+			using String = Ash::String::Array<Ash::Encoding::Iso8859::Part9, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+
+			template
+			<
+				size_t CAPACITY            = 32,
+				size_t PERCENTAGE_INCREASE = 50,
+				size_t BLOCK_SIZE          = 32
+			>
+			using StringBuffer = Ash::String::ArrayBuffer<Ash::Encoding::Iso8859::Part9, CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
 		}
 
 
@@ -376,31 +331,31 @@ namespace Ash
 				typename ALLOCATION,
 				typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>
 			>
-			using Value = Ash::Iso8859::Value<Ash::Encoding::Iso8859::Table10, ALLOCATION>;
+			using Value = Ash::String::Value<ALLOCATION, Ash::Encoding::Iso8859::Part10>;
 
 			template
 			<
-				size_t   CAPACITY
+				size_t CAPACITY
 			>
-			using Buffer = Ash::Iso8859::Buffer<Ash::Encoding::Iso8859::Table10, CAPACITY>;
+			using Buffer = Ash::String::Buffer<Ash::Encoding::Iso8859::Part10, CAPACITY>;
 
-			using View = Ash::Iso8859::View<Ash::Encoding::Iso8859::Table10>;
-
-			template
-			<
-				size_t   MINIMUM_CAPACITY    = 32,
-				size_t   PERCENTAGE_INCREASE = 50,
-				size_t   BLOCK_SIZE          = 32
-			>
-			using String = Ash::Iso8859::String<Ash::Encoding::Iso8859::Table10, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+			using View = Ash::String::View<Ash::Encoding::Iso8859::Part10>;
 
 			template
 			<
-				size_t   CAPACITY            = 32,
-				size_t   PERCENTAGE_INCREASE = 50,
-				size_t   BLOCK_SIZE          = 32
+				size_t MINIMUM_CAPACITY    = 32,
+				size_t PERCENTAGE_INCREASE = 50,
+				size_t BLOCK_SIZE          = 32
 			>
-			using StringBuffer = Ash::Iso8859::StringBuffer<Ash::Encoding::Iso8859::Table10, CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+			using String = Ash::String::Array<Ash::Encoding::Iso8859::Part10, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+
+			template
+			<
+				size_t CAPACITY            = 32,
+				size_t PERCENTAGE_INCREASE = 50,
+				size_t BLOCK_SIZE          = 32
+			>
+			using StringBuffer = Ash::String::ArrayBuffer<Ash::Encoding::Iso8859::Part10, CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
 		}
 
 
@@ -411,31 +366,31 @@ namespace Ash
 				typename ALLOCATION,
 				typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>
 			>
-			using Value = Ash::Iso8859::Value<Ash::Encoding::Iso8859::Table11, ALLOCATION>;
+			using Value = Ash::String::Value<ALLOCATION, Ash::Encoding::Iso8859::Part11>;
 
 			template
 			<
-				size_t   CAPACITY
+				size_t CAPACITY
 			>
-			using Buffer = Ash::Iso8859::Buffer<Ash::Encoding::Iso8859::Table11, CAPACITY>;
+			using Buffer = Ash::String::Buffer<Ash::Encoding::Iso8859::Part11, CAPACITY>;
 
-			using View = Ash::Iso8859::View<Ash::Encoding::Iso8859::Table11>;
-
-			template
-			<
-				size_t   MINIMUM_CAPACITY    = 32,
-				size_t   PERCENTAGE_INCREASE = 50,
-				size_t   BLOCK_SIZE          = 32
-			>
-			using String = Ash::Iso8859::String<Ash::Encoding::Iso8859::Table11, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+			using View = Ash::String::View<Ash::Encoding::Iso8859::Part11>;
 
 			template
 			<
-				size_t   CAPACITY            = 32,
-				size_t   PERCENTAGE_INCREASE = 50,
-				size_t   BLOCK_SIZE          = 32
+				size_t MINIMUM_CAPACITY    = 32,
+				size_t PERCENTAGE_INCREASE = 50,
+				size_t BLOCK_SIZE          = 32
 			>
-			using StringBuffer = Ash::Iso8859::StringBuffer<Ash::Encoding::Iso8859::Table11, CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+			using String = Ash::String::Array<Ash::Encoding::Iso8859::Part11, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+
+			template
+			<
+				size_t CAPACITY            = 32,
+				size_t PERCENTAGE_INCREASE = 50,
+				size_t BLOCK_SIZE          = 32
+			>
+			using StringBuffer = Ash::String::ArrayBuffer<Ash::Encoding::Iso8859::Part11, CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
 		}
 
 
@@ -446,31 +401,31 @@ namespace Ash
 				typename ALLOCATION,
 				typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>
 			>
-			using Value = Ash::Iso8859::Value<Ash::Encoding::Iso8859::Table13, ALLOCATION>;
+			using Value = Ash::String::Value<ALLOCATION, Ash::Encoding::Iso8859::Part13>;
 
 			template
 			<
-				size_t   CAPACITY
+				size_t CAPACITY
 			>
-			using Buffer = Ash::Iso8859::Buffer<Ash::Encoding::Iso8859::Table13, CAPACITY>;
+			using Buffer = Ash::String::Buffer<Ash::Encoding::Iso8859::Part13, CAPACITY>;
 
-			using View = Ash::Iso8859::View<Ash::Encoding::Iso8859::Table13>;
-
-			template
-			<
-				size_t   MINIMUM_CAPACITY    = 32,
-				size_t   PERCENTAGE_INCREASE = 50,
-				size_t   BLOCK_SIZE          = 32
-			>
-			using String = Ash::Iso8859::String<Ash::Encoding::Iso8859::Table13, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+			using View = Ash::String::View<Ash::Encoding::Iso8859::Part13>;
 
 			template
 			<
-				size_t   CAPACITY            = 32,
-				size_t   PERCENTAGE_INCREASE = 50,
-				size_t   BLOCK_SIZE          = 32
+				size_t MINIMUM_CAPACITY    = 32,
+				size_t PERCENTAGE_INCREASE = 50,
+				size_t BLOCK_SIZE          = 32
 			>
-			using StringBuffer = Ash::Iso8859::StringBuffer<Ash::Encoding::Iso8859::Table13, CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+			using String = Ash::String::Array<Ash::Encoding::Iso8859::Part13, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+
+			template
+			<
+				size_t CAPACITY            = 32,
+				size_t PERCENTAGE_INCREASE = 50,
+				size_t BLOCK_SIZE          = 32
+			>
+			using StringBuffer = Ash::String::ArrayBuffer<Ash::Encoding::Iso8859::Part13, CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
 		}
 
 
@@ -481,31 +436,31 @@ namespace Ash
 				typename ALLOCATION,
 				typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>
 			>
-			using Value = Ash::Iso8859::Value<Ash::Encoding::Iso8859::Table14, ALLOCATION>;
+			using Value = Ash::String::Value<ALLOCATION, Ash::Encoding::Iso8859::Part14>;
 
 			template
 			<
-				size_t   CAPACITY
+				size_t CAPACITY
 			>
-			using Buffer = Ash::Iso8859::Buffer<Ash::Encoding::Iso8859::Table14, CAPACITY>;
+			using Buffer = Ash::String::Buffer<Ash::Encoding::Iso8859::Part14, CAPACITY>;
 
-			using View = Ash::Iso8859::View<Ash::Encoding::Iso8859::Table14>;
-
-			template
-			<
-				size_t   MINIMUM_CAPACITY    = 32,
-				size_t   PERCENTAGE_INCREASE = 50,
-				size_t   BLOCK_SIZE          = 32
-			>
-			using String = Ash::Iso8859::String<Ash::Encoding::Iso8859::Table14, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+			using View = Ash::String::View<Ash::Encoding::Iso8859::Part14>;
 
 			template
 			<
-				size_t   CAPACITY            = 32,
-				size_t   PERCENTAGE_INCREASE = 50,
-				size_t   BLOCK_SIZE          = 32
+				size_t MINIMUM_CAPACITY    = 32,
+				size_t PERCENTAGE_INCREASE = 50,
+				size_t BLOCK_SIZE          = 32
 			>
-			using StringBuffer = Ash::Iso8859::StringBuffer<Ash::Encoding::Iso8859::Table14, CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+			using String = Ash::String::Array<Ash::Encoding::Iso8859::Part14, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+
+			template
+			<
+				size_t CAPACITY            = 32,
+				size_t PERCENTAGE_INCREASE = 50,
+				size_t BLOCK_SIZE          = 32
+			>
+			using StringBuffer = Ash::String::ArrayBuffer<Ash::Encoding::Iso8859::Part14, CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
 		}
 
 
@@ -516,31 +471,31 @@ namespace Ash
 				typename ALLOCATION,
 				typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>
 			>
-			using Value = Ash::Iso8859::Value<Ash::Encoding::Iso8859::Table15, ALLOCATION>;
+			using Value = Ash::String::Value<ALLOCATION, Ash::Encoding::Iso8859::Part15>;
 
 			template
 			<
-				size_t   CAPACITY
+				size_t CAPACITY
 			>
-			using Buffer = Ash::Iso8859::Buffer<Ash::Encoding::Iso8859::Table15, CAPACITY>;
+			using Buffer = Ash::String::Buffer<Ash::Encoding::Iso8859::Part15, CAPACITY>;
 
-			using View = Ash::Iso8859::View<Ash::Encoding::Iso8859::Table15>;
-
-			template
-			<
-				size_t   MINIMUM_CAPACITY    = 32,
-				size_t   PERCENTAGE_INCREASE = 50,
-				size_t   BLOCK_SIZE          = 32
-			>
-			using String = Ash::Iso8859::String<Ash::Encoding::Iso8859::Table15, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+			using View = Ash::String::View<Ash::Encoding::Iso8859::Part15>;
 
 			template
 			<
-				size_t   CAPACITY            = 32,
-				size_t   PERCENTAGE_INCREASE = 50,
-				size_t   BLOCK_SIZE          = 32
+				size_t MINIMUM_CAPACITY    = 32,
+				size_t PERCENTAGE_INCREASE = 50,
+				size_t BLOCK_SIZE          = 32
 			>
-			using StringBuffer = Ash::Iso8859::StringBuffer<Ash::Encoding::Iso8859::Table15, CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+			using String = Ash::String::Array<Ash::Encoding::Iso8859::Part15, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+
+			template
+			<
+				size_t CAPACITY            = 32,
+				size_t PERCENTAGE_INCREASE = 50,
+				size_t BLOCK_SIZE          = 32
+			>
+			using StringBuffer = Ash::String::ArrayBuffer<Ash::Encoding::Iso8859::Part15, CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
 		}
 
 
@@ -551,31 +506,31 @@ namespace Ash
 				typename ALLOCATION,
 				typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>
 			>
-			using Value = Ash::Iso8859::Value<Ash::Encoding::Iso8859::Table16, ALLOCATION>;
+			using Value = Ash::String::Value<ALLOCATION, Ash::Encoding::Iso8859::Part16>;
 
 			template
 			<
-				size_t   CAPACITY
+				size_t CAPACITY
 			>
-			using Buffer = Ash::Iso8859::Buffer<Ash::Encoding::Iso8859::Table16, CAPACITY>;
+			using Buffer = Ash::String::Buffer<Ash::Encoding::Iso8859::Part16, CAPACITY>;
 
-			using View = Ash::Iso8859::View<Ash::Encoding::Iso8859::Table16>;
-
-			template
-			<
-				size_t   MINIMUM_CAPACITY    = 32,
-				size_t   PERCENTAGE_INCREASE = 50,
-				size_t   BLOCK_SIZE          = 32
-			>
-			using String = Ash::Iso8859::String<Ash::Encoding::Iso8859::Table16, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+			using View = Ash::String::View<Ash::Encoding::Iso8859::Part16>;
 
 			template
 			<
-				size_t   CAPACITY            = 32,
-				size_t   PERCENTAGE_INCREASE = 50,
-				size_t   BLOCK_SIZE          = 32
+				size_t MINIMUM_CAPACITY    = 32,
+				size_t PERCENTAGE_INCREASE = 50,
+				size_t BLOCK_SIZE          = 32
 			>
-			using StringBuffer = Ash::Iso8859::StringBuffer<Ash::Encoding::Iso8859::Table16, CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+			using String = Ash::String::Array<Ash::Encoding::Iso8859::Part16, MINIMUM_CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+
+			template
+			<
+				size_t CAPACITY            = 32,
+				size_t PERCENTAGE_INCREASE = 50,
+				size_t BLOCK_SIZE          = 32
+			>
+			using StringBuffer = Ash::String::ArrayBuffer<Ash::Encoding::Iso8859::Part16, CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
 		}
 
 		namespace WestEuropean = Part1;
