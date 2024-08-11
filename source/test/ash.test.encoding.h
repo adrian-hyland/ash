@@ -1,4 +1,5 @@
 #include "ash.test.encoding.ascii.h"
+#include "ash.test.encoding.singlebyte.h"
 #include "ash.test.encoding.iso8859.h"
 #include "ash.test.encoding.wide.h"
 #include "ash.test.encoding.utf8.h"
@@ -18,6 +19,7 @@ namespace Ash
 			testEncoding,
 
 			Ash::Test::testAscii,
+			Ash::Test::testSingleByte,
 			Ash::Test::testIso8859,
 			Ash::Test::testWide,
 			Ash::Test::testUtf8,
