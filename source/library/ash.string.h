@@ -172,13 +172,8 @@ namespace Ash
 				}
 			}
 
-			static constexpr size_t getCodeLength(const Code *value)
+			static constexpr size_t getCodeLength(const Code *value, size_t length)
 			{
-				size_t length = 0;
-
-				for (length = 0; !isNull(&value[length]); length = length + Encoding::minSize)
-					;
-
 				if constexpr (Memory::isFixedCapacity && !Memory::isReference)
 				{
 					if (length > Memory::maxCapacity)
@@ -197,6 +192,16 @@ namespace Ash
 				}
 
 				return length;
+			}
+
+			static constexpr size_t getCodeLength(const Code *value)
+			{
+				size_t length = 0;
+
+				for (length = 0; !isNull(&value[length]); length = length + Encoding::minSize)
+					;
+
+				return getCodeLength(value, length);
 			}
 		};
 	}
