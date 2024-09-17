@@ -867,7 +867,7 @@ namespace Ash
 				return { &(*this)[offset], length };
 			}
 
-			constexpr Area<Type> getArea(size_t offset)
+			constexpr Area<Type> getArea(size_t offset = 0)
 			{
 				if (offset > Allocation::getLength())
 				{
@@ -892,7 +892,7 @@ namespace Ash
 				return { &(*this)[offset], length };
 			}
 
-			constexpr View<Type> getView(size_t offset) const
+			constexpr View<Type> getView(size_t offset = 0) const
 			{
 				if (offset > Allocation::getLength())
 				{
