@@ -34,6 +34,12 @@ namespace Ash
 						Never
 					};
 
+					enum Inherit
+					{
+						Allow,
+						Deny
+					};
+
 					using Handle = FILE *;
 
 					using Position = off64_t;
@@ -71,19 +77,19 @@ namespace Ash
 						typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>,
 						typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
 					>
-					inline bool open(const Ash::String::Value<ALLOCATION, ENCODING> &fileName, Create create, Access access)
+					inline bool open(const Ash::String::Value<ALLOCATION, ENCODING> &fileName, Create create, Access access, Inherit inherit = Inherit::Deny)
 					{
-						return open(Path(fileName), create, access);
+						return open(Path(fileName), create, access, inherit);
 					}
 
-					inline bool open(const Ash::Encoding::CodeUnit8 *fileName, Create create, Access access)
+					inline bool open(const Ash::Encoding::CodeUnit8 *fileName, Create create, Access access, Inherit inherit = Inherit::Deny)
 					{
-						return open(Path(fileName), create, access);
+						return open(Path(fileName), create, access, inherit);
 					}
 
-					inline bool open(const Ash::Encoding::CodeUnitWide *fileName, Create create, Access access)
+					inline bool open(const Ash::Encoding::CodeUnitWide *fileName, Create create, Access access, Inherit inherit = Inherit::Deny)
 					{
-						return open(Path(fileName), create, access);
+						return open(Path(fileName), create, access, inherit);
 					}
 
 					inline void close()
@@ -233,7 +239,7 @@ namespace Ash
 						inline operator const char * () const { return reinterpret_cast<const char *>(String::at(0)); }
 					};
 
-					static constexpr int getFlags(Create create, Access access)
+					static constexpr int getFlags(Create create, Access access, Inherit inherit)
 					{
 						int flags = 0;
 
@@ -259,14 +265,19 @@ namespace Ash
 							flags = flags + O_RDWR;
 						}
 
+						if (inherit == Inherit::Deny)
+						{
+							flags = flags + O_CLOEXEC;
+						}
+
 						return flags;
 					}
 
-					inline bool open(const Path &path, Create create, Access access)
+					inline bool open(const Path &path, Create create, Access access, Inherit inherit)
 					{
 						close();
 
-						int file = ::open(path, getFlags(create, access), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+						int file = ::open(path, getFlags(create, access, inherit), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 						if (file < 0)
 						{
 							return false;

@@ -30,6 +30,12 @@ namespace Ash
 						Never
 					};
 
+					enum Inherit
+					{
+						Allow,
+						Deny
+					};
+
 					using Handle = HANDLE;
 
 					using Position = int64_t;
@@ -67,19 +73,19 @@ namespace Ash
 						typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>,
 						typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
 					>
-					inline bool open(const Ash::String::Value<ALLOCATION, ENCODING> &fileName, Create create, Access access)
+					inline bool open(const Ash::String::Value<ALLOCATION, ENCODING> &fileName, Create create, Access access, Inherit inherit = Inherit::Deny)
 					{
-						return open(Path(fileName), create, access);
+						return open(Path(fileName), create, access, inherit);
 					}
 
-					inline bool open(const Ash::Encoding::CodeUnit8 *fileName, Create create, Access access)
+					inline bool open(const Ash::Encoding::CodeUnit8 *fileName, Create create, Access access, Inherit inherit = Inherit::Deny)
 					{
-						return open(Path(fileName), create, access);
+						return open(Path(fileName), create, access, inherit);
 					}
 
-					inline bool open(const Ash::Encoding::CodeUnitWide *fileName, Create create, Access access)
+					inline bool open(const Ash::Encoding::CodeUnitWide *fileName, Create create, Access access, Inherit inherit = Inherit::Deny)
 					{
-						return open(Path(fileName), create, access);
+						return open(Path(fileName), create, access, inherit);
 					}
 
 					inline void close()
@@ -284,11 +290,24 @@ namespace Ash
 						}
 					}
 
-					inline bool open(const Path &path, Create create, Access access)
+					static constexpr SECURITY_ATTRIBUTES getSecurityAttributes(Inherit inherit)
+					{
+						SECURITY_ATTRIBUTES securityAttributes = {};
+
+						securityAttributes.nLength = sizeof(SECURITY_ATTRIBUTES);
+						securityAttributes.lpSecurityDescriptor = nullptr;
+						securityAttributes.bInheritHandle = (inherit == Inherit::Allow);
+
+						return securityAttributes;
+					}
+
+					inline bool open(const Path &path, Create create, Access access, Inherit inherit)
 					{
 						close();
 
-						m_Handle = ::CreateFileW(path, getAccessFlags(access), getShareFlags(access), nullptr, getCreateFlags(create), FILE_ATTRIBUTE_NORMAL, nullptr);
+						SECURITY_ATTRIBUTES securityAttributes = getSecurityAttributes(inherit);
+
+						m_Handle = ::CreateFileW(path, getAccessFlags(access), getShareFlags(access), &securityAttributes, getCreateFlags(create), FILE_ATTRIBUTE_NORMAL, nullptr);
 
 						return m_Handle != INVALID_HANDLE_VALUE;
 					}
