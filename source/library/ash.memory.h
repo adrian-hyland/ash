@@ -961,12 +961,7 @@ namespace Ash
 				}
 			}
 
-			template
-			<
-				typename VALUE_ALLOCATION,
-				typename = Ash::Type::IsClass<VALUE_ALLOCATION, Ash::Memory::Generic::Allocation>
-			>
-			constexpr bool set(size_t offset, const Memory::Value<VALUE_ALLOCATION, Type> &value)
+			constexpr bool set(size_t offset, View<Type> value)
 			{
 				size_t valueLength = value.getLength();
 
@@ -1017,12 +1012,7 @@ namespace Ash
 				}
 			}
 
-			template
-			<
-				typename VALUE_ALLOCATION,
-				typename = Ash::Type::IsClass<VALUE_ALLOCATION, Ash::Memory::Generic::Allocation>
-			>
-			constexpr bool insert(size_t offset, const Memory::Value<VALUE_ALLOCATION, Type> &value)
+			constexpr bool insert(size_t offset, View<Type> value)
 			{
 				size_t valueLength = value.getLength();
 
@@ -1052,12 +1042,7 @@ namespace Ash
 				return set(Allocation::getLength(), value);
 			}
 
-			template
-			<
-				typename VALUE_ALLOCATION,
-				typename = Ash::Type::IsClass<VALUE_ALLOCATION, Ash::Memory::Generic::Allocation>
-			>
-			constexpr bool append(const Value<VALUE_ALLOCATION, Type> &value)
+			constexpr bool append(View<Type> value)
 			{
 				return set(Allocation::getLength(), value);
 			}
@@ -1093,12 +1078,7 @@ namespace Ash
 				return remove(offset);
 			}
 
-			template
-			<
-				typename VALUE_ALLOCATION,
-				typename = Ash::Type::IsClass<VALUE_ALLOCATION, Ash::Memory::Generic::Allocation>
-			>
-			constexpr size_t match(size_t offset, const Value<VALUE_ALLOCATION, Type> &value) const
+			constexpr size_t match(size_t offset, View<Type> value) const
 			{
 				size_t length = 0;
 
@@ -1161,12 +1141,7 @@ namespace Ash
 				return offset;
 			}
 
-			template
-			<
-				typename VALUE_ALLOCATION,
-				typename = Ash::Type::IsClass<VALUE_ALLOCATION, Ash::Memory::Generic::Allocation>
-			>
-			constexpr size_t find(size_t offset, const Value<VALUE_ALLOCATION, Type> &value) const
+			constexpr size_t find(size_t offset, View<Type> value) const
 			{
 				if (value.getLength() <= Allocation::getLength())
 				{
@@ -1422,12 +1397,7 @@ namespace Ash
 				return Allocation::getContent()[offset];
 			}
 
-			template
-			<
-				typename FROM_ALLOCATION,
-				typename = Ash::Type::IsClass<FROM_ALLOCATION, Ash::Memory::Generic::Allocation>
-			>
-			constexpr void copyForward(size_t offset, const Memory::Value<FROM_ALLOCATION, Type> &value)
+			constexpr void copyForward(size_t offset, View<Type> value)
 			{
 				Ash::Memory::copyForward(&(*this)[offset], value.at(0), value.getLength());
 			}

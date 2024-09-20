@@ -153,12 +153,7 @@ namespace Ash
 				friend Utf8;
 			};
 
-			template
-			<
-				typename ALLOCATION,
-				typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>
-			>
-			static constexpr size_t decodeNext(const Ash::Memory::Value<ALLOCATION, Code> &value, size_t offset, Character &character)
+			static constexpr size_t decodeNext(Ash::Memory::View<Code> value, size_t offset, Character &character)
 			{
 				Code code1 = 0;
 				Code code2 = 0;
@@ -198,12 +193,7 @@ namespace Ash
 				return 0;
 			}
 
-			template
-			<
-				typename ALLOCATION,
-				typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>
-			>
-			static constexpr size_t decodePrevious(const Ash::Memory::Value<ALLOCATION, Code> &value, size_t offset, Character &character)
+			static constexpr size_t decodePrevious(Ash::Memory::View<Code> value, size_t offset, Character &character)
 			{
 				Code code1 = 0;
 				Code code2 = 0;

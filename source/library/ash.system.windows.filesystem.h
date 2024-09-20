@@ -68,12 +68,10 @@ namespace Ash
 
 					template
 					<
-						typename ALLOCATION,
 						typename ENCODING,
-						typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>,
 						typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
 					>
-					inline bool open(const Ash::String::Value<ALLOCATION, ENCODING> &fileName, Create create, Access access, Inherit inherit = Inherit::Deny)
+					inline bool open(Ash::String::View<ENCODING> fileName, Create create, Access access, Inherit inherit = Inherit::Deny)
 					{
 						return open(Path(fileName), create, access, inherit);
 					}
@@ -193,12 +191,10 @@ namespace Ash
 
 					template
 					<
-						typename ALLOCATION,
 						typename TYPE,
-						typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>,
 						typename = Ash::Type::IsByteSizeInteger<TYPE>
 					>
-					inline bool write(const Ash::Memory::Value<ALLOCATION, TYPE> &content)
+					inline bool write(Ash::Memory::View<TYPE> content)
 					{
 						DWORD writeLength;
 
@@ -207,12 +203,10 @@ namespace Ash
 
 					template
 					<
-						typename ALLOCATION,
 						typename TYPE,
-						typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>,
 						typename = Ash::Type::IsByteSizeInteger<TYPE>
 					>
-					inline bool append(const Ash::Memory::Value<ALLOCATION, TYPE> &content)
+					inline bool append(Ash::Memory::View<TYPE> content)
 					{
 						return movePositionToEnd() && write(content);
 					}
@@ -231,12 +225,10 @@ namespace Ash
 
 						template
 						<
-							typename ALLOCATION,
 							typename ENCODING,
-							typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>,
 							typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
 						>
-						constexpr Path(const Ash::String::Value<ALLOCATION, ENCODING> &value) : String(value, '_') { normalise(); }
+						constexpr Path(Ash::String::View<ENCODING> value) : String(value, '_') { normalise(); }
 
 						constexpr operator const Path::Encoding::Code * () const { return String::at(0); }
 

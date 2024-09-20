@@ -72,12 +72,10 @@ namespace Ash
 
 					template
 					<
-						typename ALLOCATION,
 						typename ENCODING,
-						typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>,
 						typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
 					>
-					inline bool open(const Ash::String::Value<ALLOCATION, ENCODING> &fileName, Create create, Access access, Inherit inherit = Inherit::Deny)
+					inline bool open(Ash::String::View<ENCODING> fileName, Create create, Access access, Inherit inherit = Inherit::Deny)
 					{
 						return open(Path(fileName), create, access, inherit);
 					}
@@ -193,24 +191,20 @@ namespace Ash
 
 					template
 					<
-						typename ALLOCATION,
 						typename TYPE,
-						typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>,
 						typename = Ash::Type::IsByteSizeInteger<TYPE>
 					>
-					inline bool write(const Ash::Memory::Value<ALLOCATION, TYPE> &content)
+					inline bool write(Ash::Memory::View<TYPE> content)
 					{
 						return (m_Handle != nullptr) && (::fwrite(content.at(0), sizeof(TYPE), content.getLength(), m_Handle) == content.getLength());
 					}
 
 					template
 					<
-						typename ALLOCATION,
 						typename TYPE,
-						typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>,
 						typename = Ash::Type::IsByteSizeInteger<TYPE>
 					>
-					inline bool append(const Ash::Memory::Value<ALLOCATION, TYPE> &content)
+					inline bool append(Ash::Memory::View<TYPE> content)
 					{
 						return movePositionToEnd() && write(content);
 					}
@@ -229,12 +223,10 @@ namespace Ash
 
 						template
 						<
-							typename ALLOCATION,
 							typename ENCODING,
-							typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>,
 							typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
 						>
-						constexpr Path(const Ash::String::Value<ALLOCATION, ENCODING> &value) : String(value, '_') {}
+						constexpr Path(Ash::String::View<ENCODING> value) : String(value, '_') {}
 
 						inline operator const char * () const { return reinterpret_cast<const char *>(String::at(0)); }
 					};
