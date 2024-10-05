@@ -22,29 +22,77 @@ namespace Ash
 
 			constexpr Summary() : m_Minimum(0), m_Maximum(0), m_Total(0), m_Variance(0), m_Count(0) {}
 
-			constexpr Summary add(Real value) const
+			template
+			<
+				typename VALUE,
+				typename ...NEXT_VALUE,
+				typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsClass<VALUE, Ash::Generic::Real>, Ash::Type::Requirement::IsFloatingPoint<VALUE>>::IsValid
+			>
+			constexpr Summary(VALUE value, NEXT_VALUE ...nextValue) : Summary()
 			{
-				Summary result;
+				add(value, nextValue...);
+			}
 
+			template
+			<
+				typename VALUE,
+				typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsClass<VALUE, Ash::Generic::Real>, Ash::Type::Requirement::IsFloatingPoint<VALUE>>::IsValid
+			>
+			constexpr Summary &add(VALUE value)
+			{
 				if (m_Count == 0)
 				{
-					result.m_Count = 1;
-					result.m_Minimum = value;
-					result.m_Maximum = value;
-					result.m_Total = value;
-					result.m_Variance = 0;
+					m_Count = 1;
+					m_Minimum = value;
+					m_Maximum = value;
+					m_Total = value;
+					m_Variance = 0;
 				}
 				else
 				{
-					result.m_Count = m_Count + 1;
-					result.m_Minimum = (value < m_Minimum) ? value : m_Minimum;
-					result.m_Maximum = (value > m_Maximum) ? value : m_Maximum;
-					result.m_Total = m_Total + value;
-					Real meanDifference = result.getMean() - getMean();
-					result.m_Variance = m_Variance + Real(value - result.getMean()).square() + meanDifference * (m_Count * (meanDifference - 2 * getMean()) + 2 * m_Total);
+					Count count = m_Count;
+					Real total = m_Total;
+					Real mean = getMean();
+					m_Count = m_Count + 1;
+					if (value < m_Minimum)
+					{
+						m_Minimum = value;
+					}
+					if (value > m_Maximum)
+					{
+						m_Maximum = value;
+					}
+					m_Total = m_Total + value;
+					Real meanDifference = getMean() - mean;
+					m_Variance = m_Variance + Real(value - getMean()).square() + meanDifference * (count * (meanDifference - 2 * mean) + 2 * total);
 				}
 
-				return result;
+				return *this;
+			}
+
+			template
+			<
+				typename VALUE,
+				typename ...NEXT_VALUE,
+				typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsClass<VALUE, Ash::Generic::Real>, Ash::Type::Requirement::IsFloatingPoint<VALUE>>::IsValid
+			>
+			constexpr Summary &add(VALUE value, NEXT_VALUE ...nextValue)
+			{
+				add(value);
+				if constexpr (sizeof...(nextValue) != 0)
+				{
+					add(nextValue...);
+				}
+				return *this;
+			}
+
+			constexpr bool isEqual(const Summary &summary, Real::Match match = Real::Match::Absolute, Real tolerance = 1.0) const
+			{
+				return (m_Count == summary.m_Count) &&
+				       m_Minimum.isEqual(summary.m_Minimum, match, tolerance) &&
+				       m_Maximum.isEqual(summary.m_Maximum, match, tolerance) &&
+						 m_Variance.isEqual(summary.m_Variance, match, tolerance) &&
+						 m_Total.isEqual(summary.m_Total, match, tolerance);
 			}
 
 			constexpr Count getCount() const { return m_Count; }
