@@ -8,9 +8,16 @@ namespace Ash
 	{
 		namespace Statistic
 		{
+			template
+			<
+				typename REAL,
+				typename = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+			>
 			static Ash::Test::Assertion summary()
 			{
-				Ash::Statistic::Summary<Ash::Double> summary;
+				using Real = REAL;
+
+				Ash::Statistic::Summary<Real> summary;
 				TEST_IS_EQ(summary.getCount(), 0);
 				TEST_IS_TRUE(summary.getTotal().isEqual(0));
 				TEST_IS_FALSE(summary.getMean().isValid());
@@ -20,20 +27,22 @@ namespace Ash
 				TEST_IS_TRUE(summary.getMaximum().isEqual(0));
 				TEST_IS_TRUE(summary.getRange().isEqual(0));
 
-				Double set[] = { 5, 4, 6, 3, 7, 2, 8, 1, 9 };
-				Double total = 0;
+				Real set[] = { 5, 4, 6, 3, 7, 2, 8, 1, 9 };
+				Real total = 0;
+				Real mean = 0;
+				Real variance = 0;
 				for (size_t n = 0; n < sizeof(set) / sizeof(set[0]); n++)
 				{
 					total = total + set[n];
-					summary = summary.add(set[n]);
+					summary.add(set[n]);
 					TEST_IS_EQ(summary.getCount(), n + 1);
 					TEST_IS_TRUE(summary.getTotal().isEqual(total));
-					Double mean = total / (n + 1);
+					mean = total / (n + 1);
 					TEST_IS_TRUE(summary.getMean().isEqual(mean));
-					Double variance = 0;
+					variance = 0;
 					for (size_t m = 0; m <= n; m++)
 					{
-						variance = variance + Double(set[m] - mean).square();
+						variance = variance + Real(set[m] - mean).square();
 					}
 					variance = variance / (n + 1);
 					TEST_IS_TRUE(summary.getVariance().isEqual(variance));
@@ -58,6 +67,9 @@ namespace Ash
 					}
 				}
 
+				TEST_IS_TRUE(summary.isEqual(Ash::Statistic::Summary<Real>(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0)));
+				TEST_IS_FALSE(summary.isEqual(Ash::Statistic::Summary<Real>()));
+
 				return {};
 			}
 		}
@@ -65,7 +77,9 @@ namespace Ash
 		TEST_UNIT
 		(
 			testStatistic,
-			TEST_CASE(Ash::Test::Statistic::summary)
+			TEST_CASE_GENERIC(Ash::Test::Statistic::summary, Ash::Float),
+			TEST_CASE_GENERIC(Ash::Test::Statistic::summary, Ash::Double),
+			TEST_CASE_GENERIC(Ash::Test::Statistic::summary, Ash::LongDouble),
 		);
 	}
 }
