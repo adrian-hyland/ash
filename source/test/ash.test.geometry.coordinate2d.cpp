@@ -89,18 +89,18 @@ namespace Ash
 
 						TEST_IS_EQ(coord.x, x[n]);
 						TEST_IS_EQ(coord.y, y[n]);
-						TEST_IS_TRUE(Ash::Geometry::Degree<Real>(coord.getAngle()).isEqual(angle[n], Real::MatchRelative));
-						TEST_IS_TRUE(coord.getRadius().isEqual(1, Real::MatchRelative));
+						TEST_IS_TRUE(Ash::Geometry::Degree<Real>(coord.getAngle()).isEqual(angle[n], Real::Match::Relative));
+						TEST_IS_TRUE(coord.getRadius().isEqual(1, Real::Match::Relative));
 					}
 
 					for (size_t n = 0; n < sizeof(angle) / sizeof(angle[0]); n++)
 					{
 						Coordinate coord(Real(1), angle[n]);
 
-						TEST_IS_TRUE(coord.x.isEqual(x[n], Real::MatchRelative, Real(3.0)));
-						TEST_IS_TRUE(coord.y.isEqual(y[n], Real::MatchRelative, Real(3.0)));
-						TEST_IS_TRUE(Ash::Geometry::Degree<Real>(coord.getAngle()).isEqual(angle[n], Real::MatchRelative));
-						TEST_IS_TRUE(coord.getRadius().isEqual(1, Real::MatchRelative));
+						TEST_IS_TRUE(coord.x.isEqual(x[n], Real::Match::Relative, Real(3.0)));
+						TEST_IS_TRUE(coord.y.isEqual(y[n], Real::Match::Relative, Real(3.0)));
+						TEST_IS_TRUE(Ash::Geometry::Degree<Real>(coord.getAngle()).isEqual(angle[n], Real::Match::Relative));
+						TEST_IS_TRUE(coord.getRadius().isEqual(1, Real::Match::Relative));
 					}
 					
 					return {};
@@ -145,64 +145,64 @@ namespace Ash
 					Coordinate rotatedCoordinate = coordinate;
 					Angle angle;
 
-					TEST_IS_TRUE(rotatedCoordinate.x.isEqual(Real(5.0), Real::MatchRelative));
-					TEST_IS_TRUE(rotatedCoordinate.y.isEqual(Real(0.0), Real::MatchRelative));
+					TEST_IS_TRUE(rotatedCoordinate.x.isEqual(Real(5.0), Real::Match::Relative));
+					TEST_IS_TRUE(rotatedCoordinate.y.isEqual(Real(0.0), Real::Match::Relative));
 
 					for (int n = 0; n < 8; n++)
 					{
 						angle = Angle::perRotation * n / 32;
 						rotatedCoordinate = coordinate.rotate(angle);
-						TEST_IS_TRUE(rotatedCoordinate.getAngle().isEqual(angle, Real::MatchRelative));
-						TEST_IS_TRUE(rotatedCoordinate.getRadius().isEqual(Real(5.0), Real::MatchRelative));
+						TEST_IS_TRUE(rotatedCoordinate.getAngle().isEqual(angle, Real::Match::Relative));
+						TEST_IS_TRUE(rotatedCoordinate.getRadius().isEqual(Real(5.0), Real::Match::Relative));
 					}
 
 					angle = Angle::perRotation * 8 / 32;
 					rotatedCoordinate = coordinate.rotate(angle);
-					TEST_IS_TRUE(rotatedCoordinate.getAngle().isEqual(angle, Real::MatchRelative));
-					TEST_IS_TRUE(rotatedCoordinate.getRadius().isEqual(Real(5.0), Real::MatchRelative));
-					TEST_IS_TRUE(rotatedCoordinate.isEqual(Coordinate(coordinate.y, coordinate.x), Real::MatchRelative));
+					TEST_IS_TRUE(rotatedCoordinate.getAngle().isEqual(angle, Real::Match::Relative));
+					TEST_IS_TRUE(rotatedCoordinate.getRadius().isEqual(Real(5.0), Real::Match::Relative));
+					TEST_IS_TRUE(rotatedCoordinate.isEqual(Coordinate(coordinate.y, coordinate.x), Real::Match::Relative));
 
 					for (int n = 9; n < 16; n++)
 					{
 						angle = Angle::perRotation * n / 32;
 						rotatedCoordinate = coordinate.rotate(angle);
-						TEST_IS_TRUE(rotatedCoordinate.getAngle().isEqual(angle, Real::MatchRelative));
-						TEST_IS_TRUE(rotatedCoordinate.getRadius().isEqual(Real(5.0), Real::MatchRelative));
+						TEST_IS_TRUE(rotatedCoordinate.getAngle().isEqual(angle, Real::Match::Relative));
+						TEST_IS_TRUE(rotatedCoordinate.getRadius().isEqual(Real(5.0), Real::Match::Relative));
 					}
 
 					angle = Angle::perRotation * 16 / 32;
 					rotatedCoordinate = coordinate.rotate(angle);
-					TEST_IS_TRUE(rotatedCoordinate.getAngle().isEqual(angle, Real::MatchRelative));
-					TEST_IS_TRUE(rotatedCoordinate.getRadius().isEqual(Real(5.0), Real::MatchRelative));
-					TEST_IS_TRUE(rotatedCoordinate.isEqual(Coordinate(-coordinate.x, coordinate.y), Real::MatchRelative));
+					TEST_IS_TRUE(rotatedCoordinate.getAngle().isEqual(angle, Real::Match::Relative));
+					TEST_IS_TRUE(rotatedCoordinate.getRadius().isEqual(Real(5.0), Real::Match::Relative));
+					TEST_IS_TRUE(rotatedCoordinate.isEqual(Coordinate(-coordinate.x, coordinate.y), Real::Match::Relative));
 
 					for (int n = 0; n < -8; n--)
 					{
 						angle = Angle::perRotation * n / 32;
 						rotatedCoordinate = coordinate.rotate(angle);
-						TEST_IS_TRUE(rotatedCoordinate.getAngle().isEqual(angle, Real::MatchRelative));
-						TEST_IS_TRUE(rotatedCoordinate.getRadius().isEqual(Real(5.0), Real::MatchRelative));
+						TEST_IS_TRUE(rotatedCoordinate.getAngle().isEqual(angle, Real::Match::Relative));
+						TEST_IS_TRUE(rotatedCoordinate.getRadius().isEqual(Real(5.0), Real::Match::Relative));
 					}
 
 					angle = Angle::perRotation * -8 / 32;
 					rotatedCoordinate = coordinate.rotate(angle);
-					TEST_IS_TRUE(rotatedCoordinate.getAngle().isEqual(angle, Real::MatchRelative));
-					TEST_IS_TRUE(rotatedCoordinate.getRadius().isEqual(Real(5.0), Real::MatchRelative));
-					TEST_IS_TRUE(rotatedCoordinate.isEqual(Coordinate(coordinate.y, -coordinate.x), Real::MatchRelative));
+					TEST_IS_TRUE(rotatedCoordinate.getAngle().isEqual(angle, Real::Match::Relative));
+					TEST_IS_TRUE(rotatedCoordinate.getRadius().isEqual(Real(5.0), Real::Match::Relative));
+					TEST_IS_TRUE(rotatedCoordinate.isEqual(Coordinate(coordinate.y, -coordinate.x), Real::Match::Relative));
 
 					for (int n = -9; n < -16; n--)
 					{
 						angle = Angle::perRotation * n / 32;
 						rotatedCoordinate = coordinate.rotate(angle);
-						TEST_IS_TRUE(rotatedCoordinate.getAngle().isEqual(angle, Real::MatchRelative));
-						TEST_IS_TRUE(rotatedCoordinate.getRadius().isEqual(Real(5.0), Real::MatchRelative));
+						TEST_IS_TRUE(rotatedCoordinate.getAngle().isEqual(angle, Real::Match::Relative));
+						TEST_IS_TRUE(rotatedCoordinate.getRadius().isEqual(Real(5.0), Real::Match::Relative));
 					}
 
 					angle = Angle::perRotation * -16 / 32;
 					rotatedCoordinate = coordinate.rotate(angle);
-					TEST_IS_TRUE(rotatedCoordinate.getAngle().isEqual(angle, Real::MatchRelative));
-					TEST_IS_TRUE(rotatedCoordinate.getRadius().isEqual(Real(5.0), Real::MatchRelative));
-					TEST_IS_TRUE(rotatedCoordinate.isEqual(Coordinate(-coordinate.x, -coordinate.y), Real::MatchRelative));
+					TEST_IS_TRUE(rotatedCoordinate.getAngle().isEqual(angle, Real::Match::Relative));
+					TEST_IS_TRUE(rotatedCoordinate.getRadius().isEqual(Real(5.0), Real::Match::Relative));
+					TEST_IS_TRUE(rotatedCoordinate.isEqual(Coordinate(-coordinate.x, -coordinate.y), Real::Match::Relative));
 
 					return {};
 				}

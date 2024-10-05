@@ -150,8 +150,8 @@ namespace Ash
 						line = line + Vector(5, angle);
 					}
 
-					TEST_IS_TRUE(line.startPoint.isEqual(Point(-10, -10), Real::MatchRelative, 2));
-					TEST_IS_TRUE(line.endPoint.isEqual(Point(10, 10), Real::MatchRelative, 2));
+					TEST_IS_TRUE(line.startPoint.isEqual(Point(-10, -10), Real::Match::Relative, 2));
+					TEST_IS_TRUE(line.endPoint.isEqual(Point(10, 10), Real::Match::Relative, 2));
 
 					return {};
 				}
@@ -175,8 +175,8 @@ namespace Ash
 						line = line - Vector(5, angle);
 					}
 
-					TEST_IS_TRUE(line.startPoint.isEqual(Point(-10, -10), Real::MatchRelative, 2));
-					TEST_IS_TRUE(line.endPoint.isEqual(Point(10, 10), Real::MatchRelative, 2));
+					TEST_IS_TRUE(line.startPoint.isEqual(Point(-10, -10), Real::Match::Relative, 2));
+					TEST_IS_TRUE(line.endPoint.isEqual(Point(10, 10), Real::Match::Relative, 2));
 
 					return {};
 				}

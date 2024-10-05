@@ -27,7 +27,7 @@ namespace Ash
 						vector = vector + Vector(5, angle);
 					}
 
-					TEST_IS_TRUE(vector.isEqual(Vector(0, 0), Real::MatchRelative, 2));
+					TEST_IS_TRUE(vector.isEqual(Vector(0, 0), Real::Match::Relative, 2));
 
 					return {};
 				}
@@ -49,7 +49,7 @@ namespace Ash
 						vector = vector - Vector(5, angle);
 					}
 
-					TEST_IS_TRUE(vector.isEqual(Vector(0, 0), Real::MatchRelative, 2));
+					TEST_IS_TRUE(vector.isEqual(Vector(0, 0), Real::Match::Relative, 2));
 
 					return {};
 				}
@@ -65,20 +65,20 @@ namespace Ash
 					using Vector = Ash::Geometry::Vector2D<Real>;
 
 					Vector vector = Vector(-2, 3) * 4;
-					TEST_IS_TRUE(vector.x.isEqual(-8, Real::MatchRelative));
-					TEST_IS_TRUE(vector.y.isEqual(12, Real::MatchRelative));
+					TEST_IS_TRUE(vector.x.isEqual(-8, Real::Match::Relative));
+					TEST_IS_TRUE(vector.y.isEqual(12, Real::Match::Relative));
 
 					vector = vector * -5;
-					TEST_IS_TRUE(vector.x.isEqual(40, Real::MatchRelative));
-					TEST_IS_TRUE(vector.y.isEqual(-60, Real::MatchRelative));
+					TEST_IS_TRUE(vector.x.isEqual(40, Real::Match::Relative));
+					TEST_IS_TRUE(vector.y.isEqual(-60, Real::Match::Relative));
 
 					vector = vector * 1;
-					TEST_IS_TRUE(vector.x.isEqual(40, Real::MatchRelative));
-					TEST_IS_TRUE(vector.y.isEqual(-60, Real::MatchRelative));
+					TEST_IS_TRUE(vector.x.isEqual(40, Real::Match::Relative));
+					TEST_IS_TRUE(vector.y.isEqual(-60, Real::Match::Relative));
 
 					vector = vector * 0;
-					TEST_IS_TRUE(vector.x.isEqual(0, Real::MatchRelative));
-					TEST_IS_TRUE(vector.y.isEqual(0, Real::MatchRelative));
+					TEST_IS_TRUE(vector.x.isEqual(0, Real::Match::Relative));
+					TEST_IS_TRUE(vector.y.isEqual(0, Real::Match::Relative));
 
 					return {};
 				}
@@ -94,16 +94,16 @@ namespace Ash
 					using Vector = Ash::Geometry::Vector2D<Real>;
 
 					Vector vector = Vector(-40, 60) / 4;
-					TEST_IS_TRUE(vector.x.isEqual(-10, Real::MatchRelative));
-					TEST_IS_TRUE(vector.y.isEqual(15, Real::MatchRelative));
+					TEST_IS_TRUE(vector.x.isEqual(-10, Real::Match::Relative));
+					TEST_IS_TRUE(vector.y.isEqual(15, Real::Match::Relative));
 
 					vector = vector / -5;
-					TEST_IS_TRUE(vector.x.isEqual(2, Real::MatchRelative));
-					TEST_IS_TRUE(vector.y.isEqual(-3, Real::MatchRelative));
+					TEST_IS_TRUE(vector.x.isEqual(2, Real::Match::Relative));
+					TEST_IS_TRUE(vector.y.isEqual(-3, Real::Match::Relative));
 
 					vector = vector / 1;
-					TEST_IS_TRUE(vector.x.isEqual(2, Real::MatchRelative));
-					TEST_IS_TRUE(vector.y.isEqual(-3, Real::MatchRelative));
+					TEST_IS_TRUE(vector.x.isEqual(2, Real::Match::Relative));
+					TEST_IS_TRUE(vector.y.isEqual(-3, Real::Match::Relative));
 
 					return {};
 				}
@@ -119,12 +119,12 @@ namespace Ash
 					using Vector = Ash::Geometry::Vector2D<Real>;
 
 					Vector vector = -Vector(1, 2);
-					TEST_IS_TRUE(vector.x.isEqual(-1, Real::MatchRelative));
-					TEST_IS_TRUE(vector.y.isEqual(-2, Real::MatchRelative));
+					TEST_IS_TRUE(vector.x.isEqual(-1, Real::Match::Relative));
+					TEST_IS_TRUE(vector.y.isEqual(-2, Real::Match::Relative));
 
 					vector = -vector;
-					TEST_IS_TRUE(vector.x.isEqual(1, Real::MatchRelative));
-					TEST_IS_TRUE(vector.y.isEqual(2, Real::MatchRelative));
+					TEST_IS_TRUE(vector.x.isEqual(1, Real::Match::Relative));
+					TEST_IS_TRUE(vector.y.isEqual(2, Real::Match::Relative));
 
 					return {};
 				}
@@ -268,8 +268,8 @@ namespace Ash
 							vector = vector.rotate(Angle(-reflectorAngle));
 							reflection = reflection.rotate(Angle(-reflectorAngle));
 
-							TEST_IS_TRUE(vector.x.isEqual(reflection.x, Real::MatchRelative, 5));
-							TEST_IS_TRUE(vector.y.isEqual(reflection.y.negate(), Real::MatchRelative, 5));
+							TEST_IS_TRUE(vector.x.isEqual(reflection.x, Real::Match::Relative, 5));
+							TEST_IS_TRUE(vector.y.isEqual(reflection.y.negate(), Real::Match::Relative, 5));
 						}
 					}
 

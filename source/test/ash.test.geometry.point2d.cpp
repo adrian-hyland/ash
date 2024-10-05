@@ -28,7 +28,7 @@ namespace Ash
 						point = point + Vector(5, angle);
 					}
 
-					TEST_IS_TRUE(point.isEqual(Point(10, 10), Real::MatchRelative, 2));
+					TEST_IS_TRUE(point.isEqual(Point(10, 10), Real::Match::Relative, 2));
 
 					return {};
 				}
@@ -64,12 +64,12 @@ namespace Ash
 					using Point = Ash::Geometry::Point2D<Real>;
 
 					Point point = -Point(1, 2);
-					TEST_IS_TRUE(point.x.isEqual(-1, Real::MatchRelative));
-					TEST_IS_TRUE(point.y.isEqual(-2, Real::MatchRelative));
+					TEST_IS_TRUE(point.x.isEqual(-1, Real::Match::Relative));
+					TEST_IS_TRUE(point.y.isEqual(-2, Real::Match::Relative));
 
 					point = -point;
-					TEST_IS_TRUE(point.x.isEqual(1, Real::MatchRelative));
-					TEST_IS_TRUE(point.y.isEqual(2, Real::MatchRelative));
+					TEST_IS_TRUE(point.x.isEqual(1, Real::Match::Relative));
+					TEST_IS_TRUE(point.y.isEqual(2, Real::Match::Relative));
 
 					return {};
 				}

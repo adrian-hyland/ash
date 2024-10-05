@@ -53,7 +53,7 @@ namespace Ash
 		public:
 			using Real = REAL;
 
-			using MatchType = typename Real::MatchType;
+			using Match = typename Real::Match;
 
 			static constexpr bool isRadian = (PER_ROTATION == 0);
 
@@ -77,7 +77,7 @@ namespace Ash
 			>
 			constexpr Angle(const ANGLE &angle) : Real(normalise(angle * perRotation / angle.perRotation)) {}
 
-			constexpr Real match(Angle angle, MatchType matchType = MatchType::MatchRelative) const
+			constexpr Real match(Angle angle, Match matchType = Match::Relative) const
 			{
 				Real thisValue = *this;
 
@@ -99,7 +99,7 @@ namespace Ash
 				return thisValue.match(angle, matchType);
 			}
 
-			constexpr bool isEqual(Angle angle, MatchType matchType = MatchType::MatchRelative, Real tolerance = 1.0) const
+			constexpr bool isEqual(Angle angle, Match matchType = Match::Relative, Real tolerance = 1.0) const
 			{
 				Real error = match(angle, matchType);
 			

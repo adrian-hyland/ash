@@ -85,18 +85,18 @@ namespace Ash
 
 		constexpr Real getAbsolute() const { return std::fabs(m_Value); }
 
-		enum MatchType
+		enum Match
 		{
-			MatchAbsolute,
-			MatchRelative
+			Absolute,
+			Relative
 		};
 
-		constexpr Real match(Real value, MatchType matchType = MatchAbsolute) const
+		constexpr Real match(Real value, Match matchType = Match::Absolute) const
 		{
-			return (matchType == MatchAbsolute) ? matchAbsolute(value) : matchRelative(value);
+			return (matchType == Match::Absolute) ? matchAbsolute(value) : matchRelative(value);
 		}
 
-		constexpr bool isEqual(Real value, MatchType matchType = MatchAbsolute, Real tolerance = 1.0) const
+		constexpr bool isEqual(Real value, Match matchType = Match::Absolute, Real tolerance = 1.0) const
 		{
 			Real error = match(value, matchType);
 			

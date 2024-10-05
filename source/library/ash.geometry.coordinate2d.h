@@ -22,7 +22,7 @@ namespace Ash
 		{
 			using Real = REAL;
 
-			using MatchType = typename Real::MatchType;
+			using Match = typename Real::Match;
 
 			using Angle = Ash::Geometry::Radian<Real>;
 
@@ -45,7 +45,7 @@ namespace Ash
 
 			constexpr bool isValid() const { return x.isValid() && y.isValid(); }
 
-			constexpr bool isEqual(Coordinate2D coordinate, MatchType matchType = MatchType::MatchRelative, Real tolerance = 1.0) const { return x.isEqual(coordinate.x, matchType, tolerance) && y.isEqual(coordinate.y, matchType, tolerance); }
+			constexpr bool isEqual(Coordinate2D coordinate, Match match = Match::Relative, Real tolerance = 1.0) const { return x.isEqual(coordinate.x, match, tolerance) && y.isEqual(coordinate.y, match, tolerance); }
 
 			template
 			<
