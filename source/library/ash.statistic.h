@@ -26,7 +26,7 @@ namespace Ash
 			<
 				typename VALUE,
 				typename ...NEXT_VALUE,
-				typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsClass<VALUE, Ash::Generic::Real>, Ash::Type::Requirement::IsFloatingPoint<VALUE>>::IsValid
+				typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsClass<VALUE, Ash::Generic::Real>, Ash::Type::Requirement::IsFloatingPoint<VALUE>, Ash::Type::Requirement::IsInteger<VALUE>>::IsValid
 			>
 			constexpr Summary(VALUE value, NEXT_VALUE ...nextValue) : Summary()
 			{
@@ -36,7 +36,7 @@ namespace Ash
 			template
 			<
 				typename VALUE,
-				typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsClass<VALUE, Ash::Generic::Real>, Ash::Type::Requirement::IsFloatingPoint<VALUE>>::IsValid
+				typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsClass<VALUE, Ash::Generic::Real>, Ash::Type::Requirement::IsFloatingPoint<VALUE>, Ash::Type::Requirement::IsInteger<VALUE>>::IsValid
 			>
 			constexpr Summary &add(VALUE value)
 			{
@@ -74,7 +74,7 @@ namespace Ash
 			<
 				typename VALUE,
 				typename ...NEXT_VALUE,
-				typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsClass<VALUE, Ash::Generic::Real>, Ash::Type::Requirement::IsFloatingPoint<VALUE>>::IsValid
+				typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsClass<VALUE, Ash::Generic::Real>, Ash::Type::Requirement::IsFloatingPoint<VALUE>, Ash::Type::Requirement::IsInteger<VALUE>>::IsValid
 			>
 			constexpr Summary &add(VALUE value, NEXT_VALUE ...nextValue)
 			{
