@@ -15,10 +15,12 @@ namespace Ash
 		using Condition = Ash::System::Windows::Concurrency::Condition;
 		using Mutex = Ash::System::Windows::Concurrency::Mutex;
 		using Thread = Ash::System::Windows::Concurrency::Thread;
+		using Process = Ash::System::Windows::Concurrency::Process;
 #elif defined __linux__
 		using Condition = Ash::System::Linux::Concurrency::Condition;
 		using Mutex = Ash::System::Linux::Concurrency::Mutex;
 		using Thread = Ash::System::Linux::Concurrency::Thread;
+		using Process = Ash::System::Linux::Concurrency::Process;
 #endif
 
 		class Event : public Condition
