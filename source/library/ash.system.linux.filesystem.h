@@ -227,8 +227,6 @@ namespace Ash
 							typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
 						>
 						constexpr Path(Ash::String::View<ENCODING> value) : String(value, '_') {}
-
-						inline operator const char * () const { return reinterpret_cast<const char *>(String::at(0)); }
 					};
 
 					static constexpr int getFlags(Create create, Access access, Inherit inherit)

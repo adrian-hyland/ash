@@ -230,8 +230,6 @@ namespace Ash
 						>
 						constexpr Path(Ash::String::View<ENCODING> value) : String(value, '_') { normalise(); }
 
-						constexpr operator const Path::Encoding::Code * () const { return String::at(0); }
-
 					protected:
 						static constexpr Ash::String::View<Path::Encoding> prefix = L"\\\\?\\";
 
