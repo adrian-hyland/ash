@@ -16,7 +16,7 @@ namespace Ash
 				size_t PERCENTAGE_INCREASE = 50,
 				size_t BLOCK_SIZE          = 32
 			>
-			class String : protected Ash::Utf8::StringBuffer<CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>
+			class String : public Ash::Utf8::StringBuffer<CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>
 			{
 			public:
 				using Content = Ash::Utf8::StringBuffer<CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
@@ -50,6 +50,8 @@ namespace Ash
 				}
 
 				constexpr operator const Code *() const { return Content::at(0); }
+
+				constexpr operator const char *() const { return reinterpret_cast<const char *>(Content::at(0)); }
 
 			protected:
 				template
