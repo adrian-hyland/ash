@@ -1047,20 +1047,23 @@ namespace Ash
 				return set(Allocation::getLength(), value);
 			}
 
-			constexpr bool remove(size_t offset)
+			constexpr bool remove(size_t offset, size_t length = 1)
 			{
-				size_t length = Allocation::getLength();
-
-				if (offset >= length)
+				if ((offset >= Allocation::getLength()) || (length > Allocation::getLength() - offset))
 				{
 					return false;
 				}
 
-				shiftLeft(offset, 1);
-
-				if (!Allocation::decreaseLength(1))
+				if (length != 0)
 				{
-					(*this)[length - 1] = Type();
+					shiftLeft(offset, length);
+					if (!Allocation::decreaseLength(length))
+					{
+						for (size_t n = Allocation::getLength() - length; n < Allocation::getLength(); n++)
+						{
+							(*this)[n] = Type();
+						}
+					}
 				}
 
 				return true;
@@ -1099,21 +1102,8 @@ namespace Ash
 
 			constexpr size_t find(size_t offset, const Type &value) const
 			{
-				if constexpr (Ash::Type::isByteSizeInteger<Type>)
-				{
-					const Type *location = (offset < Allocation::getLength()) ? (const Type *)memchr(&(*this)[offset], value, Allocation::getLength() - offset) : nullptr;
-					offset = (location != nullptr) ? location - &(*this)[0] : Allocation::getLength();
-				}
-				else if constexpr (Ash::Type::isSame<Type, wchar_t>)
-				{
-					const Type *location = (offset < Allocation::getLength()) ? (const Type *)wmemchr(&(*this)[offset], value, Allocation::getLength() - offset) : nullptr;
-					offset = (location != nullptr) ? location - &(*this)[0] : Allocation::getLength();
-				}
-				else
-				{
-					for (; (offset < Allocation::getLength()) && ((*this)[offset] != value); offset++)
-						;
-				}
+				for (; (offset < Allocation::getLength()) && ((*this)[offset] != value); offset++)
+					;
 
 				return offset;
 			}
