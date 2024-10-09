@@ -76,6 +76,8 @@ namespace Ash
 
 			constexpr Value(const Code *value, size_t length) : Memory(value, getCodeLength(value, length)) {}
 
+			constexpr Value(Ash::Memory::View<Code> value) : Memory(value.at(0), getCodeLength(value.at(0), value.getLength())) {}
+
 			constexpr Value(const Value &value) : Memory(value) {}
 
 			constexpr Value(Value &&value) noexcept : Memory(std::move(value)) {}
@@ -92,6 +94,18 @@ namespace Ash
 				Memory::operator = (std::move(value));
 
 				return *this;
+			}
+
+			constexpr operator View<Encoding> () const { return { &(*this)[0], Allocation::getLength() }; }
+
+			constexpr View<Encoding> getView(size_t offset, size_t length) const
+			{
+				return Memory::getView(offset, length);
+			}
+
+			constexpr View<Encoding> getView(size_t offset = 0) const
+			{
+				return Memory::getView(offset);
 			}
 
 			constexpr size_t getNextCharacter(size_t offset, Character &character) const
@@ -198,8 +212,11 @@ namespace Ash
 			{
 				size_t length = 0;
 
-				for (length = 0; !isNull(&value[length]); length = length + Encoding::minSize)
-					;
+				if (value != nullptr)
+				{
+					for (length = 0; !isNull(&value[length]); length = length + Encoding::minSize)
+						;
+				}
 
 				return getCodeLength(value, length);
 			}
