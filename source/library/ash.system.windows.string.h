@@ -16,22 +16,25 @@ namespace Ash
 				size_t PERCENTAGE_INCREASE = 50,
 				size_t BLOCK_SIZE          = 32
 			>
-			class String : protected Ash::Wide::StringBuffer<CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>
+			class String : public Ash::Wide::StringBuffer<CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>
 			{
 			public:
 				using Content = Ash::Wide::StringBuffer<CAPACITY, PERCENTAGE_INCREASE, BLOCK_SIZE>;
+				using Encoding = typename Content::Encoding;
+				using Code = typename Encoding::Code;
+				using Character = typename Encoding::Character;
 
 				constexpr String() : Content()
 				{
 					Content::append('\0');
 				}
 
-				constexpr String(const Ash::Encoding::CodeUnit8 *value, Ash::Unicode::Character replacementCharacter = Content::Encoding::Character::replacement) : Content()
+				constexpr String(const Ash::Encoding::CodeUnit8 *value, Ash::Unicode::Character replacementCharacter = Character::replacement) : Content()
 				{
 					convert(Ash::Utf8::View(value), replacementCharacter);
 				}
 
-				constexpr String(const Ash::Encoding::CodeUnitWide *value, Ash::Unicode::Character replacementCharacter = Content::Encoding::Character::replacement) : Content()
+				constexpr String(const Ash::Encoding::CodeUnitWide *value, Ash::Unicode::Character replacementCharacter = Character::replacement) : Content()
 				{
 					convert(Ash::Wide::View(value), replacementCharacter);
 				}
@@ -41,12 +44,12 @@ namespace Ash
 					typename FROM_ENCODING,
 					typename = Ash::Type::IsClass<FROM_ENCODING, Ash::Generic::Encoding>
 				>
-				constexpr String(Ash::String::View<FROM_ENCODING> value, Ash::Unicode::Character replacementCharacter = Content::Encoding::Character::replacement) : Content()
+				constexpr String(Ash::String::View<FROM_ENCODING> value, Ash::Unicode::Character replacementCharacter = Character::replacement) : Content()
 				{
 					convert(value, replacementCharacter);
 				}
 
-				constexpr operator const typename Content::Encoding::Code *() const { return Content::at(0); }
+				constexpr operator const Code *() const { return Content::at(0); }
 
 			protected:
 				template
