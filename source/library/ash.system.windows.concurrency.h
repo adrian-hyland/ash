@@ -565,17 +565,59 @@ namespace Ash
 								}
 							}
 
+							template
+							<
+								typename ENCODING,
+								typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
+							>
+							constexpr Setting(Ash::String::View<ENCODING> name, const Ash::Encoding::Ascii::Code *value) : Setting(name, Ash::Ascii::View(value)) {}
+
+							template
+							<
+								typename ENCODING,
+								typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
+							>
+							constexpr Setting(Ash::String::View<ENCODING> name, const Ash::Encoding::Utf8::Code *value) : Setting(name, Ash::Utf8::View(value)) {}
+
+							template
+							<
+								typename ENCODING,
+								typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
+							>
+							constexpr Setting(Ash::String::View<ENCODING> name, const Ash::Encoding::Wide::Code *value) : Setting(name, Ash::Wide::View(value)) {}
+
+							template
+							<
+								typename ENCODING,
+								typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
+							>
+							constexpr Setting(const Ash::Encoding::Ascii::Code *name, Ash::String::View<ENCODING> value) : Setting(Ash::Ascii::View(name), value) {}
+
 							constexpr Setting(const Ash::Encoding::Ascii::Code *name, const Ash::Encoding::Ascii::Code *value) : Setting(Ash::Ascii::View(name), Ash::Ascii::View(value)) {}
 
 							constexpr Setting(const Ash::Encoding::Ascii::Code *name, const Ash::Encoding::Utf8::Code *value) : Setting(Ash::Ascii::View(name), Ash::Utf8::View(value)) {}
 
 							constexpr Setting(const Ash::Encoding::Ascii::Code *name, const Ash::Encoding::Wide::Code *value) : Setting(Ash::Ascii::View(name), Ash::Wide::View(value)) {}
 
+							template
+							<
+								typename ENCODING,
+								typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
+							>
+							constexpr Setting(const Ash::Encoding::Utf8::Code *name, Ash::String::View<ENCODING> value) : Setting(Ash::Utf8::View(name), value) {}
+
 							constexpr Setting(const Ash::Encoding::Utf8::Code *name, const Ash::Encoding::Ascii::Code *value) : Setting(Ash::Utf8::View(name), Ash::Ascii::View(value)) {}
 
 							constexpr Setting(const Ash::Encoding::Utf8::Code *name, const Ash::Encoding::Utf8::Code *value) : Setting(Ash::Utf8::View(name), Ash::Utf8::View(value)) {}
 
 							constexpr Setting(const Ash::Encoding::Utf8::Code *name, const Ash::Encoding::Wide::Code *value) : Setting(Ash::Utf8::View(name), Ash::Wide::View(value)) {}
+
+							template
+							<
+								typename ENCODING,
+								typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
+							>
+							constexpr Setting(const Ash::Encoding::Wide::Code *name, Ash::String::View<ENCODING> value) : Setting(Ash::Wide::View(name), value) {}
 
 							constexpr Setting(const Ash::Encoding::Wide::Code *name, const Ash::Encoding::Ascii::Code *value) : Setting(Ash::Wide::View(name), Ash::Ascii::View(value)) {}
 
