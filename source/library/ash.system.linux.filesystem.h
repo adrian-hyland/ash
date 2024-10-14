@@ -80,14 +80,19 @@ namespace Ash
 						return open(Path(fileName), create, access, inherit);
 					}
 
-					inline bool open(const Ash::Encoding::CodeUnit8 *fileName, Create create, Access access, Inherit inherit = Inherit::Deny)
+					inline bool open(const Ash::Encoding::Ascii::Code *fileName, Create create, Access access, Inherit inherit = Inherit::Deny)
 					{
-						return open(Path(fileName), create, access, inherit);
+						return open(Path(Ash::Ascii::View(fileName)), create, access, inherit);
 					}
 
-					inline bool open(const Ash::Encoding::CodeUnitWide *fileName, Create create, Access access, Inherit inherit = Inherit::Deny)
+					inline bool open(const Ash::Encoding::Utf8::Code *fileName, Create create, Access access, Inherit inherit = Inherit::Deny)
 					{
-						return open(Path(fileName), create, access, inherit);
+						return open(Path(Ash::Utf8::View(fileName)), create, access, inherit);
+					}
+
+					inline bool open(const Ash::Encoding::Wide::Code *fileName, Create create, Access access, Inherit inherit = Inherit::Deny)
+					{
+						return open(Path(Ash::Wide::View(fileName)), create, access, inherit);
 					}
 
 					inline void close()
@@ -210,16 +215,12 @@ namespace Ash
 					}
 
 				protected:
-					class Path : public Ash::System::Linux::String<256, 50, 32>
+					class Path : public Ash::System::Linux::String<256, 0, 1>
 					{
 					public:
-						using String = Ash::System::Linux::String<256, 50, 32>;
+						using String = Ash::System::Linux::String<256, 0, 1>;
 
 						constexpr Path() : String() {}
-
-						constexpr Path(const Ash::Encoding::CodeUnit8 *value) : String(value, '_') {}
-
-						constexpr Path(const Ash::Encoding::CodeUnitWide *value) : String(value, '_') {}
 
 						template
 						<
