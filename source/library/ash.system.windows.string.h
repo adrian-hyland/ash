@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ash.ascii.h"
 #include "ash.wide.h"
 #include "ash.utf8.h"
 
@@ -29,12 +30,17 @@ namespace Ash
 					Content::append('\0');
 				}
 
-				constexpr String(const Ash::Encoding::CodeUnit8 *value, Ash::Unicode::Character replacementCharacter = Character::replacement) : Content()
+				constexpr String(const Ash::Encoding::Ascii::Code *value, Ash::Unicode::Character replacementCharacter = Character::replacement) : Content()
+				{
+					convert(Ash::Ascii::View(value), replacementCharacter);
+				}
+
+				constexpr String(const Ash::Encoding::Utf8::Code *value, Ash::Unicode::Character replacementCharacter = Character::replacement) : Content()
 				{
 					convert(Ash::Utf8::View(value), replacementCharacter);
 				}
 
-				constexpr String(const Ash::Encoding::CodeUnitWide *value, Ash::Unicode::Character replacementCharacter = Character::replacement) : Content()
+				constexpr String(const Ash::Encoding::Wide::Code *value, Ash::Unicode::Character replacementCharacter = Character::replacement) : Content()
 				{
 					convert(Ash::Wide::View(value), replacementCharacter);
 				}
