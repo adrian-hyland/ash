@@ -76,14 +76,19 @@ namespace Ash
 						return open(Path(fileName), create, access, inherit);
 					}
 
-					inline bool open(const Ash::Encoding::CodeUnit8 *fileName, Create create, Access access, Inherit inherit = Inherit::Deny)
+					inline bool open(const Ash::Encoding::Ascii::Code *fileName, Create create, Access access, Inherit inherit = Inherit::Deny)
 					{
-						return open(Path(fileName), create, access, inherit);
+						return open(Path(Ash::Ascii::View(fileName)), create, access, inherit);
 					}
 
-					inline bool open(const Ash::Encoding::CodeUnitWide *fileName, Create create, Access access, Inherit inherit = Inherit::Deny)
+					inline bool open(const Ash::Encoding::Utf8::Code *fileName, Create create, Access access, Inherit inherit = Inherit::Deny)
 					{
-						return open(Path(fileName), create, access, inherit);
+						return open(Path(Ash::Utf8::View(fileName)), create, access, inherit);
+					}
+
+					inline bool open(const Ash::Encoding::Wide::Code *fileName, Create create, Access access, Inherit inherit = Inherit::Deny)
+					{
+						return open(Path(Ash::Wide::View(fileName)), create, access, inherit);
 					}
 
 					inline void close()
@@ -212,28 +217,45 @@ namespace Ash
 					}
 
 				protected:
-					class Path : public Ash::System::Windows::String<128, 50, 32>
+					class Path : public Ash::System::Windows::String<128, 0, 1>
 					{
 					public:
-						using String = Ash::System::Windows::String<128, 50, 32>;
+						using String = Ash::System::Windows::String<128, 0, 1>;
 
-						constexpr Path() : String() { normalise(); }
-
-						constexpr Path(const Ash::Encoding::CodeUnit8 *value) : String(value, '_') { normalise(); }
-
-						constexpr Path(const Ash::Encoding::CodeUnitWide *value) : String(value, '_') { normalise(); }
+						inline Path() : String(getFullPath(String())) {}
 
 						template
 						<
 							typename ENCODING,
 							typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
 						>
-						constexpr Path(Ash::String::View<ENCODING> value) : String(value, '_') { normalise(); }
+						inline Path(Ash::String::View<ENCODING> value) : String(getFullPath(String(value, '_'))) {}
 
 					protected:
 						static constexpr Ash::String::View<Path::Encoding> prefix = L"\\\\?\\";
 
-						constexpr void normalise() { String::insert(0, prefix); }
+						static constexpr Ash::String::View<Path::Encoding> unc = L"\\?\\UNC";
+
+						static inline String getFullPath(const String &path)
+						{
+							String fullPath;
+
+							fullPath.setLength(::GetFullPathNameW(path.at(0), 0, nullptr, nullptr));
+							::GetFullPathNameW(path.at(0),fullPath.getLength(), fullPath.at(0), nullptr);
+
+							if ((fullPath.getLength() > 3) && (*fullPath.at(0) == '\\') && (*fullPath.at(1) == '\\'))
+							{
+								if (((*fullPath.at(2) != '.') && (*fullPath.at(2) != '?')) || (*fullPath.at(3) != '\\'))
+								{
+									fullPath.insert(1, unc);
+								}
+								return fullPath;
+							}
+
+							fullPath.insert(0, prefix);
+
+							return fullPath;
+						}
 					};
 
 					static constexpr DWORD getCreateFlags(Create create)
