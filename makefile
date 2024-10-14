@@ -138,7 +138,7 @@ coverage: $(APP)
 
 
 $(APP) : $(O_FILES)
-	@echo -- BUILDING $(NAME)
+	@echo -- BUILDING $@
 	mkdir -p $(@D)
 	$(CXX) $(O_FILES) $(LNK_FLAGS) -o $@
 
