@@ -135,6 +135,11 @@ namespace Ash
 				return Ash::Encoding::find<ENCODING>(*this, offset, character);
 			}
 
+			constexpr size_t reverseFind(size_t offset, Ash::Unicode::Character character) const
+			{
+				return Ash::Encoding::reverseFind<ENCODING>(*this, offset, character);
+			}
+
 			constexpr bool contains(Ash::Unicode::Character character) const
 			{
 				return Ash::Encoding::contains<ENCODING>(*this, character);
