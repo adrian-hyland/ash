@@ -19,6 +19,15 @@ namespace Ash
 		>
 		constexpr size_t copyForward(TYPE *to, const TYPE *from, size_t length)
 		{
+			if (!std::is_constant_evaluated())
+			{
+				if constexpr (Ash::Type::isPrimitive<TYPE>)
+				{
+					::memmove(to, from, length * sizeof(TYPE));
+					return length;
+				}
+			}
+
 			for (size_t n : Ash::Iterate<size_t>::from(0, length))
 			{
 				to[n] = from[n];
@@ -32,6 +41,15 @@ namespace Ash
 		>
 		constexpr size_t copyBackward(TYPE *to, const TYPE *from, size_t length)
 		{
+			if (!std::is_constant_evaluated())
+			{
+				if constexpr (Ash::Type::isPrimitive<TYPE>)
+				{
+					::memmove(to, from, length * sizeof(TYPE));
+					return length;
+				}
+			}
+
 			for (size_t n : Ash::Iterate<size_t>::from(0, length).reverse())
 			{
 				to[n] = from[n];
@@ -54,6 +72,15 @@ namespace Ash
 		>
 		constexpr size_t moveForward(TYPE *to, TYPE *from, size_t length)
 		{
+			if (!std::is_constant_evaluated())
+			{
+				if constexpr (Ash::Type::isPrimitive<TYPE>)
+				{
+					::memmove(to, from, length * sizeof(TYPE));
+					return length;
+				}
+			}
+
 			for (size_t n : Ash::Iterate<size_t>::from(0, length))
 			{
 				to[n] = std::move(from[n]);
@@ -67,6 +94,15 @@ namespace Ash
 		>
 		constexpr size_t moveBackward(TYPE *to, TYPE *from, size_t length)
 		{
+			if (!std::is_constant_evaluated())
+			{
+				if constexpr (Ash::Type::isPrimitive<TYPE>)
+				{
+					::memmove(to, from, length * sizeof(TYPE));
+					return length;
+				}
+			}
+
 			for (size_t n : Ash::Iterate<size_t>::from(0, length).reverse())
 			{
 				to[n] = std::move(from[n]);
@@ -89,6 +125,15 @@ namespace Ash
 		>
 		constexpr size_t clear(TYPE *content, size_t length)
 		{
+			if (!std::is_constant_evaluated())
+			{
+				if constexpr (Ash::Type::isPrimitive<TYPE>)
+				{
+					::memset(content, TYPE(), length * sizeof(TYPE));
+					return length;
+				}
+			}
+
 			for (size_t n : Ash::Iterate<size_t>::from(0, length))
 			{
 				content[n] = TYPE();
@@ -1102,10 +1147,47 @@ namespace Ash
 
 			constexpr size_t find(size_t offset, const Type &value) const
 			{
+				if (offset >= Allocation::getLength())
+				{
+					return Allocation::getLength();
+				}
+
+				if (!std::is_constant_evaluated())
+				{
+					if constexpr (Ash::Type::isByteSizeInteger<Type>)
+					{
+						const Type *location = (const Type *)memchr(&(*this)[offset], value, Allocation::getLength() - offset);
+						return (location != nullptr) ? location - &(*this)[0] : Allocation::getLength();
+					}
+					else if constexpr (Ash::Type::isSame<Type, wchar_t>)
+					{
+						const Type *location = (const Type *)wmemchr(&(*this)[offset], value, Allocation::getLength() - offset);
+						return (location != nullptr) ? location - &(*this)[0] : Allocation::getLength();
+					}
+				}
+
 				for (; (offset < Allocation::getLength()) && ((*this)[offset] != value); offset++)
 					;
 
 				return offset;
+			}
+
+			constexpr size_t reverseFind(size_t offset, const Type &value) const
+			{
+				if (offset >= Allocation::getLength())
+				{
+					return Allocation::getLength();
+				}
+
+				for (; offset > 0; offset--)
+				{
+					if ((*this)[offset] == value)
+					{
+						return offset;
+					}
+				}
+
+				return ((*this)[offset] == value) ? offset : Allocation::getLength();
 			}
 
 			template
@@ -1117,23 +1199,75 @@ namespace Ash
 			{
 				if constexpr (ALIGNMENT > 1)
 				{
-					offset = find(offset, value);
-					while ((offset < Allocation::getLength()) && (offset % ALIGNMENT != ALIGNMENT_OFFSET))
+					size_t alignment = offset - (offset % ALIGNMENT) + ALIGNMENT_OFFSET;
+					if (alignment < offset)
 					{
-						offset = find(offset + 1, value);
+						if ((Allocation::getLength() < ALIGNMENT) || (alignment >= Allocation::getLength() - ALIGNMENT))
+						{
+							return Allocation::getLength();
+						}
+						alignment = alignment + ALIGNMENT;
 					}
+					else if (alignment >= Allocation::getLength())
+					{
+						return Allocation::getLength();
+					}
+					offset = alignment;
+
+					for (; (offset < Allocation::getLength()) && ((*this)[offset] != value); offset = offset + ALIGNMENT)
+						;
+
+					return offset;
 				}
 				else
 				{
-					offset = find(offset, value);
+					return find(offset, value);
 				}
+			}
 
-				return offset;
+			template
+			<
+				size_t ALIGNMENT,
+				size_t ALIGNMENT_OFFSET = 0
+			>
+			constexpr size_t reverseFind(size_t offset, const Type &value) const
+			{
+				if constexpr (ALIGNMENT > 1)
+				{
+					size_t alignment = offset - (offset % ALIGNMENT) + ALIGNMENT_OFFSET;
+					if (alignment > offset)
+					{
+						if ((alignment < ALIGNMENT) || (alignment - ALIGNMENT >= Allocation::getLength()))
+						{
+							return Allocation::getLength();
+						}
+						alignment = alignment - ALIGNMENT;
+					}
+					else if (alignment >= Allocation::getLength())
+					{
+						return Allocation::getLength();
+					}
+					offset = alignment;
+
+					for (; offset >= ALIGNMENT; offset = offset - ALIGNMENT)
+					{
+						if ((*this)[offset] == value)
+						{
+							return offset;
+						}
+					}
+
+					return ((*this)[offset] == value) ? offset : Allocation::getLength();
+				}
+				else
+				{
+					return reverseFind(offset, value);
+				}
 			}
 
 			constexpr size_t find(size_t offset, View<Type> value) const
 			{
-				if (value.getLength() <= Allocation::getLength())
+				if ((value.getLength() > 0) && (value.getLength() <= Allocation::getLength()))
 				{
 					for (; offset <= Allocation::getLength() - value.getLength(); offset++)
 					{
@@ -1141,6 +1275,27 @@ namespace Ash
 						{
 							return offset;
 						}
+					}
+				}
+
+				return Allocation::getLength();
+			}
+
+
+			constexpr size_t reverseFind(size_t offset, View<Type> value) const
+			{
+				if ((value.getLength() > 0) && (value.getLength() <= Allocation::getLength() - value.getLength()))
+				{
+					for (; offset > 0; offset--)
+					{
+						if (match(offset, value) == value.getLength())
+						{
+							return offset;
+						}
+					}
+					if (match(0, value) == value.getLength())
+					{
+						return 0;
 					}
 				}
 
