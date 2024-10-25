@@ -109,14 +109,17 @@ namespace Ash
 					{
 						if (characterEncoding.get(ENCODING::minSize - 1, characterCode))
 						{
-							while (offset <= value.getLength() - characterEncoding.getLength())
+							for (; offset <= value.getLength() - characterEncoding.getLength(); offset = offset + ENCODING::minSize)
 							{
 								offset = value.template find<ENCODING::minSize, ENCODING::minSize - 1>(offset, characterCode);
+								if (offset == value.getLength())
+								{
+									return offset;
+								}
 								if (value.match(offset - (ENCODING::minSize - 1), characterEncoding) == characterEncoding.getLength())
 								{
 									return offset - (ENCODING::minSize - 1);
 								}
-								offset = offset + ENCODING::minSize;
 							}
 						}
 					}
@@ -124,14 +127,90 @@ namespace Ash
 					{
 						if (characterEncoding.get(0, characterCode))
 						{
-							while (offset <= value.getLength() - characterEncoding.getLength())
+							for (; offset <= value.getLength() - characterEncoding.getLength(); offset = offset + ENCODING::minSize)
 							{
 								offset = value.template find<ENCODING::minSize>(offset, characterCode);
+								if (offset == value.getLength())
+								{
+									return offset;
+								}
 								if (value.match(offset, characterEncoding) == characterEncoding.getLength())
 								{
 									return offset;
 								}
-								offset = offset + ENCODING::minSize;
+							}
+						}
+					}
+				}
+			}
+			
+			return value.getLength();
+		}
+
+		template
+		<
+			typename ENCODING,
+			typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
+		>
+		constexpr size_t reverseFind(Ash::Memory::View<typename ENCODING::Code> value, size_t offset, Ash::Unicode::Character character)
+		{
+			typename ENCODING::Character characterEncoding(character);
+			typename ENCODING::Code characterCode;
+			
+			if (characterEncoding.getLength() <= value.getLength())
+			{
+				if (characterEncoding.getLength() == 1)
+				{
+					if (characterEncoding.get(0, characterCode))
+					{
+						return value.reverseFind(offset, characterCode);
+					}
+				}
+				else if (characterEncoding.getLength() > 1)
+				{
+					if constexpr (ENCODING::isBigEndian)
+					{
+						if (characterEncoding.get(ENCODING::minSize - 1, characterCode) && (offset < value.getLength()))
+						{
+							offset = offset + ENCODING::minSize - 1 - (offset % ENCODING::minSize);
+							for (; offset >= ENCODING::minSize; offset = offset - ENCODING::minSize)
+							{
+								offset = value.template reverseFind<ENCODING::minSize, ENCODING::minSize - 1>(offset, characterCode);
+								if (offset == value.getLength())
+								{
+									return offset;
+								}
+								if (value.match(offset - (ENCODING::minSize - 1), characterEncoding) == characterEncoding.getLength())
+								{
+									return offset - (ENCODING::minSize - 1);
+								}
+							}
+							if ((offset == ENCODING::minSize - 1) && (value.match(0, characterEncoding) == characterEncoding.getLength()))
+							{
+								return 0;
+							}
+						}
+					}
+					else
+					{
+						if (characterEncoding.get(0, characterCode) && (offset < value.getLength()))
+						{
+							offset = offset - (offset % ENCODING::minSize);
+							for (; offset >= ENCODING::minSize; offset = offset - ENCODING::minSize)
+							{
+								offset = value.template reverseFind<ENCODING::minSize>(offset, characterCode);
+								if (offset == value.getLength())
+								{
+									return offset;
+								}
+								if (value.match(offset, characterEncoding) == characterEncoding.getLength())
+								{
+									return offset;
+								}
+							}
+							if ((offset == 0) && (value.match(0, characterEncoding) == characterEncoding.getLength()))
+							{
+								return 0;
 							}
 						}
 					}
