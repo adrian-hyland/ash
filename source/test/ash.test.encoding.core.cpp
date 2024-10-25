@@ -127,7 +127,7 @@ namespace Ash
 				{
 					TEST_IS_EQ(offset, 0x101 * ENCODING::minSize);
 				}
-				offset = Ash::Encoding::find<ENCODING>(string, offset + ENCODING::minSize, 0x01);
+				offset = Ash::Encoding::find<ENCODING>(string, offset + ENCODING::minSize, 0x0102);
 				TEST_IS_EQ(offset, string.getLength());
 
 				offset = Ash::Encoding::find<ENCODING>(string, 0, 0x800);
@@ -151,7 +151,7 @@ namespace Ash
 				{
 					TEST_IS_EQ(offset, (0xFFFF - (0xE000 - 0xD800)) * ENCODING::minSize);
 				}
-				offset = Ash::Encoding::find<ENCODING>(string, offset + ENCODING::minSize, 0x800);
+				offset = Ash::Encoding::find<ENCODING>(string, offset + ENCODING::minSize, 0x10000);
 				TEST_IS_EQ(offset, string.getLength());
 
 				offset = Ash::Encoding::find<ENCODING>(string, 0, Ash::Unicode::Character::maximum);
@@ -164,6 +164,159 @@ namespace Ash
 					TEST_IS_EQ(offset, (0xFFFF - (0xE000 - 0xD800)) * ENCODING::minSize + (Ash::Unicode::Character::maximum - 0x10000) * ENCODING::maxSize);
 				}
 				offset = Ash::Encoding::find<ENCODING>(string, offset + ENCODING::minSize, Ash::Unicode::Character::maximum);
+				TEST_IS_EQ(offset, string.getLength());
+				
+				return {};
+			}
+
+			static Ash::Test::Assertion reverseFindAscii()
+			{
+				Ash::Ascii::String<> asciiString;
+				size_t offset;
+
+				offset = Ash::Encoding::reverseFind<Ash::Encoding::Ascii>(asciiString, 0, '1');
+				TEST_IS_EQ(offset, asciiString.getLength());
+
+				for (Ash::Encoding::Ascii::Code code : Ash::Iterate<Ash::Encoding::Ascii::Code>::between(1, 127))
+				{
+					TEST_IS_TRUE(asciiString.append(code));
+				}
+
+				offset = Ash::Encoding::reverseFind<Ash::Encoding::Ascii>(asciiString, asciiString.getLength() - 1, '\x01');
+				TEST_IS_EQ(offset, 0);
+
+				offset = Ash::Encoding::reverseFind<Ash::Encoding::Ascii>(asciiString, asciiString.getLength() - 1, '\x7F');
+				TEST_IS_EQ(offset, 0x7E);
+
+				offset = Ash::Encoding::reverseFind<Ash::Encoding::Ascii>(asciiString, asciiString.getLength() - 1, '\x00');
+				TEST_IS_EQ(offset, asciiString.getLength());
+
+				offset = Ash::Encoding::reverseFind<Ash::Encoding::Ascii>(asciiString, asciiString.getLength() - 2, '\x7F');
+				TEST_IS_EQ(offset, asciiString.getLength());
+
+				offset = Ash::Encoding::reverseFind<Ash::Encoding::Ascii>(asciiString, asciiString.getLength(), '\x7F');
+				TEST_IS_EQ(offset, asciiString.getLength());
+				
+				return {};
+			}
+
+			template
+			<
+				typename TABLE,
+				typename = Ash::Type::IsClass<TABLE, Ash::Encoding::SingleByte::Generic::Table>
+			>
+			static Ash::Test::Assertion reverseFindIso8859()
+			{
+				using Table = TABLE;
+				Ash::String::Array<Table> string;
+				size_t offset;
+
+				offset = Ash::Encoding::reverseFind<Table>(string, 0, '1');
+				TEST_IS_EQ(offset, string.getLength());
+
+				for (typename Table::Code code : Ash::Iterate<typename Table::Code>::between(1, 0xFF))
+				{
+					if (Table::Lookup::isCodeValid(code))
+					{
+						TEST_IS_TRUE(string.append(code));
+					}
+				}
+
+				offset = Ash::Encoding::reverseFind<Table>(string, string.getLength() - 1, '\x01');
+				TEST_IS_EQ(offset, 0);
+
+				offset = Ash::Encoding::reverseFind<Table>(string, string.getLength() - 1, Table::Lookup::getCharacter(Table::Lookup::startCode + Table::Lookup::size - 1));
+				TEST_IS_EQ(offset, string.getLength() - 1);
+
+				offset = Ash::Encoding::reverseFind<Table>(string, string.getLength() - 1, '\x00');
+				TEST_IS_EQ(offset, string.getLength());
+
+				offset = Ash::Encoding::reverseFind<Table>(string, string.getLength() - 2, Table::Lookup::getCharacter(Table::Lookup::startCode + Table::Lookup::size - 1));
+				TEST_IS_EQ(offset, string.getLength());
+
+				offset = Ash::Encoding::reverseFind<Table>(string, string.getLength(), '\x01');
+				TEST_IS_EQ(offset, string.getLength());
+				
+				return {};
+			}
+
+			template
+			<
+				typename ENCODING,
+				typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
+			>
+			static Ash::Test::Assertion reverseFind()
+			{
+				Ash::String::Array<ENCODING> string;
+				size_t offset;
+
+				offset = Ash::Encoding::reverseFind<ENCODING>(string, 0, '1');
+				TEST_IS_EQ(offset, string.getLength());
+
+				for (Ash::Unicode::Character::Value value : Ash::Iterate<Ash::Unicode::Character::Value>::between(1, 0xD7FF) + Ash::Iterate<Ash::Unicode::Character::Value>::between(0xE000, Ash::Unicode::Character::maximum))
+				{
+					TEST_IS_TRUE(string.append(typename ENCODING::Character(value)));
+				}
+
+				offset = Ash::Encoding::reverseFind<ENCODING>(string, string.getLength() - 1, 0x00);
+				TEST_IS_EQ(offset, string.getLength());
+
+				offset = Ash::Encoding::reverseFind<ENCODING>(string, string.getLength() - 1, 0x01);
+				TEST_IS_EQ(offset, 0);
+				offset = Ash::Encoding::reverseFind<ENCODING>(string, string.getLength() - ENCODING::maxSize - 1, Ash::Unicode::Character::maximum);
+				TEST_IS_EQ(offset, string.getLength());
+
+				offset = Ash::Encoding::reverseFind<ENCODING>(string, string.getLength() - 1, 0x80);
+				TEST_IS_EQ(offset, 0x7F * ENCODING::minSize);
+				offset = Ash::Encoding::reverseFind<ENCODING>(string, offset - ENCODING::minSize, 0x80);
+				TEST_IS_EQ(offset, string.getLength());
+
+				offset = Ash::Encoding::reverseFind<ENCODING>(string, string.getLength() - 1, 0x102);
+				if constexpr (Ash::Type::isSame<ENCODING, Ash::Encoding::Utf8>)
+				{
+					TEST_IS_EQ(offset, 0x7F + 2 * (0x102 - 0x80));
+				}
+				else
+				{
+					TEST_IS_EQ(offset, 0x101 * ENCODING::minSize);
+				}
+				offset = Ash::Encoding::reverseFind<ENCODING>(string, offset - ENCODING::minSize, 0x0102);
+				TEST_IS_EQ(offset, string.getLength());
+
+				offset = Ash::Encoding::reverseFind<ENCODING>(string, string.getLength() - 1, 0x800);
+				if constexpr (Ash::Type::isSame<ENCODING, Ash::Encoding::Utf8>)
+				{
+					TEST_IS_EQ(offset, 0x7F + 2 * (0x800 - 0x80));
+				}
+				else
+				{
+					TEST_IS_EQ(offset, 0x7FF * ENCODING::minSize);
+				}
+				offset = Ash::Encoding::reverseFind<ENCODING>(string, offset - ENCODING::minSize, 0x800);
+				TEST_IS_EQ(offset, string.getLength());
+
+				offset = Ash::Encoding::reverseFind<ENCODING>(string, string.getLength() - 1, 0x10000);
+				if constexpr (Ash::Type::isSame<ENCODING, Ash::Encoding::Utf8>)
+				{
+					TEST_IS_EQ(offset, 0x7F + 2 * (0x800 - 0x80) + 3 * (0x10000 - 0x800 - (0xE000 - 0xD800)));
+				}
+				else
+				{
+					TEST_IS_EQ(offset, (0xFFFF - (0xE000 - 0xD800)) * ENCODING::minSize);
+				}
+				offset = Ash::Encoding::reverseFind<ENCODING>(string, offset - ENCODING::minSize, 0x10000);
+				TEST_IS_EQ(offset, string.getLength());
+
+				offset = Ash::Encoding::reverseFind<ENCODING>(string, string.getLength() - 1, Ash::Unicode::Character::maximum);
+				if constexpr (Ash::Type::isSame<ENCODING, Ash::Encoding::Utf8>)
+				{
+					TEST_IS_EQ(offset, 0x7F + 2 * (0x800 - 0x80) + 3 * (0x10000 - 0x800 - (0xE000 - 0xD800)) + 4 * (Ash::Unicode::Character::maximum - 0x10000));
+				}
+				else
+				{
+					TEST_IS_EQ(offset, (0xFFFF - (0xE000 - 0xD800)) * ENCODING::minSize + (Ash::Unicode::Character::maximum - 0x10000) * ENCODING::maxSize);
+				}
+				offset = Ash::Encoding::reverseFind<ENCODING>(string, offset - ENCODING::minSize, Ash::Unicode::Character::maximum);
 				TEST_IS_EQ(offset, string.getLength());
 				
 				return {};
@@ -442,6 +595,29 @@ namespace Ash
 			TEST_CASE_GENERIC(Ash::Test::Encoding::find, Ash::Encoding::Utf32le),
 			TEST_CASE_GENERIC(Ash::Test::Encoding::find, Ash::Encoding::Utf32be),
 			TEST_CASE_GENERIC(Ash::Test::Encoding::find, Ash::Encoding::Wide),
+
+			TEST_CASE(Ash::Test::Encoding::reverseFindAscii),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::reverseFindIso8859, Ash::Encoding::Iso8859::Part1::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::reverseFindIso8859, Ash::Encoding::Iso8859::Part2::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::reverseFindIso8859, Ash::Encoding::Iso8859::Part3::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::reverseFindIso8859, Ash::Encoding::Iso8859::Part4::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::reverseFindIso8859, Ash::Encoding::Iso8859::Part5::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::reverseFindIso8859, Ash::Encoding::Iso8859::Part6::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::reverseFindIso8859, Ash::Encoding::Iso8859::Part7::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::reverseFindIso8859, Ash::Encoding::Iso8859::Part8::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::reverseFindIso8859, Ash::Encoding::Iso8859::Part9::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::reverseFindIso8859, Ash::Encoding::Iso8859::Part10::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::reverseFindIso8859, Ash::Encoding::Iso8859::Part11::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::reverseFindIso8859, Ash::Encoding::Iso8859::Part13::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::reverseFindIso8859, Ash::Encoding::Iso8859::Part14::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::reverseFindIso8859, Ash::Encoding::Iso8859::Part15::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::reverseFindIso8859, Ash::Encoding::Iso8859::Part16::Table),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::reverseFind, Ash::Encoding::Utf8),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::reverseFind, Ash::Encoding::Utf16le),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::reverseFind, Ash::Encoding::Utf16be),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::reverseFind, Ash::Encoding::Utf32le),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::reverseFind, Ash::Encoding::Utf32be),
+			TEST_CASE_GENERIC(Ash::Test::Encoding::reverseFind, Ash::Encoding::Wide),
 
 			TEST_CASE_GENERIC(Ash::Test::Encoding::contains, Ash::Encoding::Ascii),
 			TEST_CASE_GENERIC(Ash::Test::Encoding::contains, Ash::Encoding::Iso8859::Part1::Table),
