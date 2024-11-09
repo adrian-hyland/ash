@@ -238,6 +238,7 @@ namespace Ash
 		constexpr size_t skipAnyOf(Ash::Memory::View<typename ENCODING::Code> value, size_t offset, std::initializer_list<Ash::Unicode::Character> characterList)
 		{
 			typename ENCODING::Character character;
+			size_t start = offset;
 			size_t decodeLength = 0;
 
 			for (; offset < value.getLength(); offset = offset + decodeLength)
@@ -256,7 +257,7 @@ namespace Ash
 				}
 			}
 
-			return offset;
+			return offset - start;
 		}
 
 		template
@@ -267,6 +268,7 @@ namespace Ash
 		constexpr size_t skipNoneOf(Ash::Memory::View<typename ENCODING::Code> value, size_t offset, std::initializer_list<Ash::Unicode::Character> characterList)
 		{
 			typename ENCODING::Character character;
+			size_t start = offset;
 			size_t decodeLength = 0;
 
 			for (; offset < value.getLength(); offset = offset + decodeLength)
@@ -285,7 +287,7 @@ namespace Ash
 				}
 			}
 
-			return offset;
+			return offset - start;
 		}
 
 		template
@@ -297,12 +299,12 @@ namespace Ash
 		>
 		constexpr size_t token(Ash::Memory::View<typename ENCODING::Code> value, size_t offset, std::initializer_list<Ash::Unicode::Character> delimiters, Ash::Memory::Value<TOKEN_ALLOCATION, typename ENCODING::Code> &tokenValue)
 		{
-			size_t start = skipAnyOf<ENCODING>(value, offset, delimiters);
-			size_t end = skipNoneOf<ENCODING>(value, start, delimiters);
+			size_t delimiterLength = skipAnyOf<ENCODING>(value, offset, delimiters);
+			size_t tokenLength = skipNoneOf<ENCODING>(value, offset + delimiterLength, delimiters);
 
-			tokenValue = Ash::Memory::Value<TOKEN_ALLOCATION, typename ENCODING::Code>(value.at(start), end - start);
+			tokenValue = Ash::Memory::Value<TOKEN_ALLOCATION, typename ENCODING::Code>(value.at(offset + delimiterLength), tokenLength);
 
-			return end;
+			return delimiterLength + tokenLength;
 		}
 	}
 }

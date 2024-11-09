@@ -356,10 +356,10 @@ namespace Ash
 				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, 0, { 'c', 'a' }), ENCODING::minSize);
 				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, 0, { 'b', 'c' }), 0);
 				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, 0, { 'b' }), 0);
-				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, ENCODING::minSize, { 'a' }), ENCODING::minSize);
-				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, ENCODING::minSize, { 'c', 'a' }), ENCODING::minSize);
-				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, ENCODING::minSize, { 'b', 'c' }), ENCODING::minSize);
-				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, ENCODING::minSize, { 'b' }), ENCODING::minSize);
+				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, ENCODING::minSize, { 'a' }), 0);
+				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, ENCODING::minSize, { 'c', 'a' }), 0);
+				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, ENCODING::minSize, { 'b', 'c' }), 0);
+				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, ENCODING::minSize, { 'b' }), 0);
 
 				TEST_IS_TRUE(string.append(typename ENCODING::Character('a')));
 				TEST_IS_TRUE(string.append(typename ENCODING::Character('a')));
@@ -367,10 +367,10 @@ namespace Ash
 				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, 0, { 'c', 'a' }), 3 * ENCODING::minSize);
 				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, 0, { 'b', 'c' }), 0);
 				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, 0, { 'b' }), 0);
-				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, 2 * ENCODING::minSize, { 'a' }), 3 * ENCODING::minSize);
-				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, 2 * ENCODING::minSize, { 'c', 'a' }), 3 * ENCODING::minSize);
-				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, 2 * ENCODING::minSize, { 'b', 'c' }), 2 * ENCODING::minSize);
-				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, 2 * ENCODING::minSize, { 'b' }), 2 * ENCODING::minSize);
+				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, 2 * ENCODING::minSize, { 'a' }), ENCODING::minSize);
+				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, 2 * ENCODING::minSize, { 'c', 'a' }), ENCODING::minSize);
+				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, 2 * ENCODING::minSize, { 'b', 'c' }), 0);
+				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, 2 * ENCODING::minSize, { 'b' }), 2 * 0);
 
 				TEST_IS_TRUE(string.append(typename ENCODING::Character('b')));
 				TEST_IS_TRUE(string.append(typename ENCODING::Character('b')));
@@ -379,11 +379,11 @@ namespace Ash
 				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, 0, { 'b', 'c' }), 0);
 				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, 0, { 'a' }), 3 * ENCODING::minSize);
 				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, 0, { 'b' }), 0);
-				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, 4 * ENCODING::minSize, { 'a', 'b' }), 5 * ENCODING::minSize);
-				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, 4 * ENCODING::minSize, { 'c', 'a' }), 4 * ENCODING::minSize);
-				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, 4 * ENCODING::minSize, { 'b', 'c' }), 5 * ENCODING::minSize);
-				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, 4 * ENCODING::minSize, { 'a' }), 4 * ENCODING::minSize);
-				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, 4 * ENCODING::minSize, { 'b' }), 5 * ENCODING::minSize);
+				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, 4 * ENCODING::minSize, { 'a', 'b' }), ENCODING::minSize);
+				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, 4 * ENCODING::minSize, { 'c', 'a' }), 0);
+				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, 4 * ENCODING::minSize, { 'b', 'c' }), ENCODING::minSize);
+				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, 4 * ENCODING::minSize, { 'a' }), 0);
+				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, 4 * ENCODING::minSize, { 'b' }), ENCODING::minSize);
 
 				return {};
 			}
@@ -404,10 +404,10 @@ namespace Ash
 				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, 0, { 'c', 'a' }), 0);
 				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, 0, { 'b', 'c' }), ENCODING::minSize);
 				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, 0, { 'b' }), ENCODING::minSize);
-				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, ENCODING::minSize, { 'a' }), ENCODING::minSize);
-				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, ENCODING::minSize, { 'c', 'a' }), ENCODING::minSize);
-				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, ENCODING::minSize, { 'b', 'c' }), ENCODING::minSize);
-				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, ENCODING::minSize, { 'b' }), ENCODING::minSize);
+				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, ENCODING::minSize, { 'a' }), 0);
+				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, ENCODING::minSize, { 'c', 'a' }), 0);
+				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, ENCODING::minSize, { 'b', 'c' }), 0);
+				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, ENCODING::minSize, { 'b' }), 0);
 
 				TEST_IS_TRUE(string.append(typename ENCODING::Character('a')));
 				TEST_IS_TRUE(string.append(typename ENCODING::Character('a')));
@@ -415,10 +415,10 @@ namespace Ash
 				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, 0, { 'c', 'a' }), 0);
 				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, 0, { 'b', 'c' }), 3 * ENCODING::minSize);
 				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, 0, { 'b' }), 3 * ENCODING::minSize);
-				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, 2 * ENCODING::minSize, { 'a' }), 2 * ENCODING::minSize);
-				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, 2 * ENCODING::minSize, { 'c', 'a' }), 2 * ENCODING::minSize);
-				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, 2 * ENCODING::minSize, { 'b', 'c' }), 3 * ENCODING::minSize);
-				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, 2 * ENCODING::minSize, { 'b' }), 3 * ENCODING::minSize);
+				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, 2 * ENCODING::minSize, { 'a' }), 0);
+				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, 2 * ENCODING::minSize, { 'c', 'a' }), 0);
+				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, 2 * ENCODING::minSize, { 'b', 'c' }), ENCODING::minSize);
+				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, 2 * ENCODING::minSize, { 'b' }), ENCODING::minSize);
 
 				TEST_IS_TRUE(string.append(typename ENCODING::Character('b')));
 				TEST_IS_TRUE(string.append(typename ENCODING::Character('b')));
@@ -429,11 +429,11 @@ namespace Ash
 				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, 0, { 'a' }), 0);
 				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, 0, { 'b' }), 3 * ENCODING::minSize);
 				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, 0, { 'c' }), 5 * ENCODING::minSize);
-				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, 4 * ENCODING::minSize, { 'a', 'b' }), 4 * ENCODING::minSize);
-				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, 4 * ENCODING::minSize, { 'c', 'a' }), 5 * ENCODING::minSize);
-				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, 4 * ENCODING::minSize, { 'b', 'c' }), 4 * ENCODING::minSize);
-				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, 4 * ENCODING::minSize, { 'a' }), 5 * ENCODING::minSize);
-				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, 4 * ENCODING::minSize, { 'b' }), 4 * ENCODING::minSize);
+				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, 4 * ENCODING::minSize, { 'a', 'b' }), 0);
+				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, 4 * ENCODING::minSize, { 'c', 'a' }), ENCODING::minSize);
+				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, 4 * ENCODING::minSize, { 'b', 'c' }), 0);
+				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, 4 * ENCODING::minSize, { 'a' }), ENCODING::minSize);
+				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, 4 * ENCODING::minSize, { 'b' }), 0);
 
 				return {};
 			}
@@ -452,28 +452,33 @@ namespace Ash
 
 				Ash::Ascii::View("/test/folder/source.c").convertTo(string);
 
-				size_t offset = Ash::Encoding::token<ENCODING>(string, 0, { '/' }, token);
-				TEST_IS_EQ(offset, 5 * ENCODING::minSize);
+				size_t offset = 0;
+				size_t length = Ash::Encoding::token<ENCODING>(string, offset, { '/' }, token);
+				TEST_IS_EQ(length, 5 * ENCODING::minSize);
 				TEST_IS_EQ(string.match(ENCODING::minSize, token), token.getLength());
 				TEST_IS_EQ(token.getLength(), 4 * ENCODING::minSize);
 
-				offset = Ash::Encoding::token<ENCODING>(string, offset, { '/' }, token);
-				TEST_IS_EQ(offset, 12 * ENCODING::minSize);
+				offset = offset + length;
+				length = Ash::Encoding::token<ENCODING>(string, offset, { '/' }, token);
+				TEST_IS_EQ(length, 7 * ENCODING::minSize);
 				TEST_IS_EQ(string.match(6 * ENCODING::minSize, token), token.getLength());
 				TEST_IS_EQ(token.getLength(), 6 * ENCODING::minSize);
 
-				offset = Ash::Encoding::token<ENCODING>(string, offset, { '/' }, token);
-				TEST_IS_EQ(offset, 21 * ENCODING::minSize);
+				offset = offset + length;
+				length = Ash::Encoding::token<ENCODING>(string, offset, { '/' }, token);
+				TEST_IS_EQ(length, 9 * ENCODING::minSize);
 				TEST_IS_EQ(string.match(13 * ENCODING::minSize, token), token.getLength());
 				TEST_IS_EQ(token.getLength(), 8 * ENCODING::minSize);
 
-				offset = Ash::Encoding::token<ENCODING>(token, 0, { '.' }, filename);
-				TEST_IS_EQ(offset, 6 * ENCODING::minSize);
+				offset = 0;
+				length = Ash::Encoding::token<ENCODING>(token, 0, { '.' }, filename);
+				TEST_IS_EQ(length, 6 * ENCODING::minSize);
 				TEST_IS_EQ(token.match(0, filename), filename.getLength());
 				TEST_IS_EQ(filename.getLength(), 6 * ENCODING::minSize);
 
-				offset = Ash::Encoding::token<ENCODING>(token, offset, { '.' }, extension);
-				TEST_IS_EQ(offset, 8 * ENCODING::minSize);
+				offset = offset + length;
+				length = Ash::Encoding::token<ENCODING>(token, offset, { '.' }, extension);
+				TEST_IS_EQ(length, 2 * ENCODING::minSize);
 				TEST_IS_EQ(token.match(7 * ENCODING::minSize, extension), extension.getLength());
 				TEST_IS_EQ(extension.getLength(), 1 * ENCODING::minSize);
 
