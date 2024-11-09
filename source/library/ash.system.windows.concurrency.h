@@ -303,7 +303,7 @@ namespace Ash
 						>
 						constexpr CommandLine(const Ash::System::Windows::FileSystem::Path &command, ARGUMENTS ...arguments) : m_Content(), m_ArgumentOffset(0)
 						{
-							m_Content = command.getValue();
+							m_Content = getFullPath(command);
 							m_ArgumentOffset = m_Content.getLength();
 							m_Content.set(m_ArgumentOffset++, '\0');
 							m_Content.set(m_ArgumentOffset, '\0');
