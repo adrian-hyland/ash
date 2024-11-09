@@ -16,6 +16,591 @@ namespace Ash
 		{
 			namespace FileSystem
 			{
+				class Path
+				{
+				public:
+					using Encoding = Ash::Encoding::Utf8;
+
+					using Content = Ash::String::ArrayBuffer<Encoding, 256>;
+
+					using View = Ash::String::View<Encoding>;
+
+					using Drive = Ash::Unicode::Character;
+
+					class Type
+					{
+					public:
+						using Value = unsigned int;
+
+						static constexpr Value invalid              = 0x00;
+						static constexpr Value relative             = 0x80;
+						static constexpr Value absolute             = 0x40;
+						static constexpr Value relativeContained    = relative | 0x01;
+						static constexpr Value relativeUncontained  = relative | 0x02;
+						static constexpr Value absoluteRoot         = absolute | 0x01;
+						static constexpr Value absoluteDrive        = absolute | 0x02;
+						static constexpr Value absoluteNetworkShare = absolute | 0x03;
+
+						constexpr Type(Value value) : m_Value(value) {}
+
+						constexpr operator Value () const { return m_Value; }
+
+						constexpr bool isValid() const { return m_Value != invalid; }
+
+						constexpr bool isRelative() const { return (m_Value & relative) != 0; }
+
+						constexpr bool isAbsolute() const { return (m_Value & absolute) != 0; }
+
+					private:
+						Value m_Value;
+					};
+
+					static constexpr bool supportRoot = true;
+
+					static constexpr bool supportDrive = false;
+
+					static constexpr bool supportNetworkShare = false;
+
+					static constexpr Ash::Unicode::Character separator = '/';
+
+					constexpr Path() : m_Content() { clear(); }
+
+					template
+					<
+						typename ENCODING,
+						typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
+					>
+					constexpr Path(Ash::String::View<ENCODING> path) : m_Content()
+					{
+						if (!setPath(path) || !m_Content.append('\0'))
+						{
+							clear();
+						}
+					}
+
+					template
+					<
+						typename ...COMPONENT
+					>
+					constexpr Path(COMPONENT ...components)
+					{
+						if (!setCurrentComponent() || !appendComponent(components...) || !m_Content.append('\0'))
+						{
+							clear();
+						}
+					}
+
+					constexpr Path(const Ash::Encoding::Ascii::Code *value) : Path(Ash::Ascii::View(value)) {}
+
+					constexpr Path(const Ash::Encoding::Utf8::Code *value) : Path(Ash::Utf8::View(value)) {}
+
+					constexpr Path(const Ash::Encoding::Wide::Code *value) : Path(Ash::Wide::View(value)) {}
+
+					constexpr operator const Encoding::Code *() const { return m_Content.at(0); }
+
+					constexpr View getValue() const
+					{
+						return m_Content.getView(0, m_Content.getLength() - 1);
+					}
+
+					constexpr Type getType() const
+					{
+						Ash::Unicode::Character initialCharacter = m_Content.getOr(0, '\0');
+						if (isDot(initialCharacter))
+						{
+							size_t offset = 1;
+							size_t depth = 0;
+							while (offset < m_Content.getLength() - 1)
+							{
+								size_t count = getParentComponentCount(offset);
+								if (count > depth)
+								{
+									return Type::relativeUncontained;
+								}
+								depth = depth - count + getChildComponentCount(offset);
+							}
+							return Type::relativeContained;
+						}
+						else if (isSeparator(initialCharacter))
+						{
+							return Type::absoluteRoot;
+						}
+						else
+						{
+							return Type::invalid;
+						}
+					}
+
+					constexpr bool isValid() const
+					{
+						return m_Content.getOr(0, '\0') != '\0';
+					}
+
+					constexpr bool isRelative() const
+					{
+						return isDot(m_Content.getOr(0, '\0'));
+					}
+
+					constexpr bool isAbsolute() const
+					{
+						return isValid() && !isRelative();
+					}
+
+					constexpr Path reduce() const
+					{
+						Path reducedPath;
+
+						if (m_Content.getLength() > 1)
+						{
+							size_t offset = skipBaseComponents();
+							reducedPath.m_Content = m_Content.getView(0, offset);
+							bool isRelative = isCurrentComponent(reducedPath.m_Content);
+							while (offset < m_Content.getLength() - 1)
+							{
+								size_t currentOffset = offset;
+								if (offset == 0)
+								{
+									offset++;
+								}
+								size_t childCount = getChildComponentCount(offset);
+								size_t parentCount = getParentComponentCount(offset);
+								if (parentCount < childCount)
+								{
+									reducedPath.m_Content.append(getComponents(currentOffset, childCount - parentCount));
+								}
+								else if (isRelative)
+								{
+									for (size_t n = 0; n < parentCount - childCount; n++)
+									{
+										reducedPath.m_Content.append(separator);
+										reducedPath.m_Content.append(dot);
+										reducedPath.m_Content.append(dot);
+									}
+								}
+							}
+
+							if (reducedPath.m_Content.getLength() == 0)
+							{
+								reducedPath.m_Content.append(separator);
+							}
+
+							reducedPath.m_Content.append('\0');
+						}
+
+						return reducedPath;
+					}
+
+					static constexpr Path fromBase(const Path &basePath, const Path &relativePath)
+					{
+						Path path;
+						if (!path.setBase(basePath) || !path.appendRelative(relativePath))
+						{
+							path.clear();
+						}
+						return path;
+					}
+
+					static inline Path fromCurrentDirectory(const Path &relativePath)
+					{
+						Path path;
+						if (!path.setCurrentDirectory() || !path.appendRelative(relativePath))
+						{
+							path.clear();
+						}
+						return path;
+					}
+
+					static constexpr Path fromRoot(const Path &relativePath)
+					{
+						Path path;
+						if (!path.setRoot() || !path.appendRelative(relativePath))
+						{
+							path.clear();
+						}
+						return path;
+					}
+
+					static constexpr Path fromDrive(Drive driveLetter, const Path &relativePath)
+					{
+						return {};
+					}
+
+					template
+					<
+						typename NAME_ENCODING,
+						typename SHARE_ENCODING,
+						typename = Ash::Type::IsClass<NAME_ENCODING, Ash::Generic::Encoding>,
+						typename = Ash::Type::IsClass<SHARE_ENCODING, Ash::Generic::Encoding>
+					>
+					static constexpr Path fromNetworkShare(Ash::String::View<NAME_ENCODING> name, Ash::String::View<SHARE_ENCODING> share, const Path &relativePath)
+					{
+						return {};
+					}
+
+					template
+					<
+						typename NAME_ENCODING,
+						typename = Ash::Type::IsClass<NAME_ENCODING, Ash::Generic::Encoding>
+					>
+					static constexpr Path fromNetworkShare(Ash::String::View<NAME_ENCODING> name, const Ash::Encoding::Ascii::Code *share, const Path &relativePath)
+					{
+						return fromNetworkShare(name, Ash::Ascii::View(share), relativePath);
+					}
+
+					template
+					<
+						typename NAME_ENCODING,
+						typename = Ash::Type::IsClass<NAME_ENCODING, Ash::Generic::Encoding>
+					>
+					static constexpr Path fromNetworkShare(Ash::String::View<NAME_ENCODING> name, const Ash::Encoding::Utf8::Code *share, const Path &relativePath)
+					{
+						return fromNetworkShare(name, Ash::Utf8::View(share), relativePath);
+					}
+
+					template
+					<
+						typename NAME_ENCODING,
+						typename = Ash::Type::IsClass<NAME_ENCODING, Ash::Generic::Encoding>
+					>
+					static constexpr Path fromNetworkShare(Ash::String::View<NAME_ENCODING> name, const Ash::Encoding::Wide::Code *share, const Path &relativePath)
+					{
+						return fromNetworkShare(name, Ash::Wide::View(share), relativePath);
+					}
+
+					template
+					<
+						typename SHARE_ENCODING,
+						typename = Ash::Type::IsClass<SHARE_ENCODING, Ash::Generic::Encoding>
+					>
+					static constexpr Path fromNetworkShare(const Ash::Encoding::Ascii::Code *name, Ash::String::View<SHARE_ENCODING> share, const Path &relativePath)
+					{
+						return fromNetworkShare(Ash::Ascii::View(name), share, relativePath);
+					}
+
+					template
+					<
+						typename SHARE_ENCODING,
+						typename = Ash::Type::IsClass<SHARE_ENCODING, Ash::Generic::Encoding>
+					>
+					static constexpr Path fromNetworkShare(const Ash::Encoding::Utf8::Code *name, Ash::String::View<SHARE_ENCODING> share, const Path &relativePath)
+					{
+						return fromNetworkShare(Ash::Utf8::View(name), share, relativePath);
+					}
+
+					template
+					<
+						typename SHARE_ENCODING,
+						typename = Ash::Type::IsClass<SHARE_ENCODING, Ash::Generic::Encoding>
+					>
+					static constexpr Path fromNetworkShare(const Ash::Encoding::Wide::Code *name, Ash::String::View<SHARE_ENCODING> share, const Path &relativePath)
+					{
+						return fromNetworkShare(Ash::Wide::View(name), share, relativePath);
+					}
+
+					static constexpr Path fromNetworkShare(const Ash::Encoding::Ascii::Code *name, const Ash::Encoding::Ascii::Code *share, const Path &relativePath)
+					{
+						return fromNetworkShare(Ash::Ascii::View(name), Ash::Ascii::View(share), relativePath);
+					}
+
+					static constexpr Path fromNetworkShare(const Ash::Encoding::Ascii::Code *name, const Ash::Encoding::Utf8::Code *share, const Path &relativePath)
+					{
+						return fromNetworkShare(Ash::Ascii::View(name), Ash::Utf8::View(share), relativePath);
+					}
+
+					static constexpr Path fromNetworkShare(const Ash::Encoding::Ascii::Code *name, const Ash::Encoding::Wide::Code *share, const Path &relativePath)
+					{
+						return fromNetworkShare(Ash::Ascii::View(name), Ash::Wide::View(share), relativePath);
+					}
+
+					static constexpr Path fromNetworkShare(const Ash::Encoding::Utf8::Code *name, const Ash::Encoding::Ascii::Code *share, const Path &relativePath)
+					{
+						return fromNetworkShare(Ash::Utf8::View(name), Ash::Ascii::View(share), relativePath);
+					}
+
+					static constexpr Path fromNetworkShare(const Ash::Encoding::Utf8::Code *name, const Ash::Encoding::Utf8::Code *share, const Path &relativePath)
+					{
+						return fromNetworkShare(Ash::Utf8::View(name), Ash::Utf8::View(share), relativePath);
+					}
+
+					static constexpr Path fromNetworkShare(const Ash::Encoding::Utf8::Code *name, const Ash::Encoding::Wide::Code *share, const Path &relativePath)
+					{
+						return fromNetworkShare(Ash::Utf8::View(name), Ash::Wide::View(share), relativePath);
+					}
+
+					static constexpr Path fromNetworkShare(const Ash::Encoding::Wide::Code *name, const Ash::Encoding::Ascii::Code *share, const Path &relativePath)
+					{
+						return fromNetworkShare(Ash::Wide::View(name), Ash::Ascii::View(share), relativePath);
+					}
+
+					static constexpr Path fromNetworkShare(const Ash::Encoding::Wide::Code *name, const Ash::Encoding::Utf8::Code *share, const Path &relativePath)
+					{
+						return fromNetworkShare(Ash::Wide::View(name), Ash::Utf8::View(share), relativePath);
+					}
+
+					static constexpr Path fromNetworkShare(const Ash::Encoding::Wide::Code *name, const Ash::Encoding::Wide::Code *share, const Path &relativePath)
+					{
+						return fromNetworkShare(Ash::Wide::View(name), Ash::Wide::View(share), relativePath);
+					}
+
+				protected:
+					static constexpr Ash::Unicode::Character dot = '.';
+
+					static constexpr bool isDot(Ash::Unicode::Character character)
+					{
+						return character == dot;
+					}
+
+					static constexpr bool isSeparator(Ash::Unicode::Character character)
+					{
+						return character == separator;
+					}
+
+					static constexpr bool isValidComponent(View component)
+					{
+						return component.skipNoneOf(0, { '/', '\0' }) == component.getLength();
+					}
+
+					static constexpr bool isCurrentComponent(View component)
+					{
+						return (component.getLength() == 1) && isDot(*component.at(0));
+					}
+
+					static constexpr bool isParentComponent(View component)
+					{
+						return (component.getLength() == 2) && isDot(*component.at(0)) && isDot(*component.at(1));
+					}
+
+					template
+					<
+						typename ENCODING,
+						typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
+					>
+					static constexpr size_t getComponent(Ash::String::View<ENCODING> path, size_t offset, Ash::String::View<ENCODING> &component)
+					{
+						return path.token(offset, { separator, '\0' }, component);
+					}
+
+					constexpr size_t getComponent(size_t offset, View &component) const
+					{
+						return getComponent(m_Content.getView(), offset, component);
+					}
+
+					constexpr size_t skipComponent(size_t offset) const
+					{
+						View component;
+						return getComponent(offset, component);
+					}
+
+					constexpr size_t skipBaseComponents() const
+					{
+						return m_Content.skipNoneOf(0, { separator, '\0' });
+					}
+
+					constexpr View getComponents(size_t offset, size_t componentCount) const
+					{
+						size_t end = offset;
+						for (size_t n = 0; n < componentCount; n++)
+						{
+							end = end + skipComponent(end);
+						}
+						return m_Content.getView(offset, end - offset);
+					}
+
+					constexpr size_t getParentComponentCount(size_t &offset) const
+					{
+						size_t count = 0;
+						while (offset < m_Content.getLength() - 1)
+						{
+							View component;
+							size_t length = getComponent(offset, component);
+							if (!isParentComponent(component))
+							{
+								break;
+							}
+							count++;
+							offset = offset + length;
+						}
+						return count;
+					}
+
+					constexpr size_t getChildComponentCount(size_t &offset) const
+					{
+						size_t count = 0;
+						while (offset < m_Content.getLength() - 1)
+						{
+							View component;
+							size_t length = getComponent(offset, component);
+							if (isParentComponent(component))
+							{
+								break;
+							}
+							count++;
+							offset = offset + length;
+						}
+						return count;
+					}
+
+					constexpr void clear()
+					{
+						m_Content.clear();
+						m_Content.set(0, '\0');
+					}
+
+					constexpr bool setRoot()
+					{
+						m_Content.clear();
+						
+						return true;
+					}
+
+					constexpr bool setCurrentComponent()
+					{
+						m_Content.clear();
+
+						bool ok = m_Content.append(dot);
+						
+						return ok;
+					}
+
+					constexpr bool setBase(const Path &path)
+					{
+						m_Content.clear();
+
+						bool ok = ((*path.m_Content.at(0) == separator) && (*path.m_Content.at(1) == '\0')) || m_Content.append(path.m_Content.getView(0, path.m_Content.getLength() - 1));
+						
+						return ok;
+					}
+
+					inline bool setCurrentDirectory()
+					{
+						m_Content.clear();
+
+						Ash::Encoding::Utf8::Code *currentDirectory = (Ash::Encoding::Utf8::Code *)::getcwd(nullptr, 0);
+						bool ok = (currentDirectory != nullptr) && (((currentDirectory[0] == separator) && (currentDirectory[1] == '\0')) || m_Content.append(Ash::Utf8::View(currentDirectory)));
+						if (currentDirectory != nullptr)
+						{
+							free(currentDirectory);
+						}
+						
+						return ok;
+					}
+
+					template
+					<
+						typename ENCODING,
+						typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
+					>
+					constexpr bool setPath(Ash::String::View<ENCODING> path)
+					{
+						bool ok = true;
+						size_t offset = 0;
+
+						Ash::Unicode::Character initialCharacter = path.getOr(0, '\0');
+						if (isSeparator(initialCharacter))
+						{
+							ok = setRoot();
+						}
+						else
+						{
+							ok = setCurrentComponent();
+						}
+
+						while (ok && (offset < path.getLength()))
+						{
+							Ash::String::View<ENCODING> component;
+							offset = offset + getComponent(path, offset, component);
+							ok = appendComponent(component);
+						}
+
+						ok = ok && ((m_Content.getLength() != 0) || m_Content.append(separator));
+
+						return ok;
+					}
+
+					constexpr bool appendRelative(const Path &path)
+					{
+						size_t length = path.skipBaseComponents();
+						bool ok = path.isRelative();
+						ok = ok && (((m_Content.getLength() != 0) || (*path.m_Content.at(length) != '\0')) || m_Content.append(separator));
+						ok = ok && m_Content.append(path.m_Content.getView(length));
+						return ok;
+					}
+
+					template
+					<
+						typename ENCODING,
+						typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
+					>
+					constexpr bool appendComponent(Ash::String::View<ENCODING> component)
+					{
+						Content value;
+						if (component.convertTo(value, '_') != component.getLength())
+						{
+							return false;
+						}
+						if ((value.getLength() == 0) || isCurrentComponent(value))
+						{
+							return true;
+						}
+						return isValidComponent(value) && m_Content.append(separator) && m_Content.append(value);
+					}
+
+					template
+					<
+						typename COMPONENT,
+						typename ...NEXT_COMPONENT
+					>
+					constexpr bool appendComponent(COMPONENT component, NEXT_COMPONENT ...nextComponent)
+					{
+						return appendComponent(component) && appendComponent(nextComponent...);
+					}
+
+					constexpr bool appendComponent(const Ash::Encoding::Ascii::Code *component)
+					{
+						return appendComponent(Ash::Ascii::View(component));
+					}
+
+					template
+					<
+						typename ...NEXT
+					>
+					constexpr bool appendComponent(const Ash::Encoding::Ascii::Code *component, NEXT ...nextComponent)
+					{
+						return appendComponent(Ash::Ascii::View(component)) && appendComponent(nextComponent...);
+					}
+
+					constexpr bool appendComponent(const Ash::Encoding::Utf8::Code *component)
+					{
+						return appendComponent(Ash::Utf8::View(component));
+					}
+
+					template
+					<
+						typename ...NEXT
+					>
+					constexpr bool appendComponent(Content &content, const Ash::Encoding::Utf8::Code *component, NEXT ...nextComponent)
+					{
+						return appendComponent(Ash::Utf8::View(component)) && appendComponent(nextComponent...);
+					}
+
+					constexpr bool appendComponent(const Ash::Encoding::Wide::Code *component)
+					{
+						return appendComponent(Ash::Wide::View(component));
+					}
+
+					template
+					<
+						typename ...NEXT
+					>
+					constexpr bool appendComponent(const Ash::Encoding::Wide::Code *component, NEXT ...nextComponent)
+					{
+						return appendComponent(Ash::Wide::View(component)) && appendComponent(nextComponent...);
+					}
+
+				private:
+					Content m_Content;
+				};
+
 				class File
 				{
 				public:
@@ -31,7 +616,8 @@ namespace Ash
 					{
 						Always,
 						New,
-						Never
+						Never,
+						Unique
 					};
 
 					enum Inherit
@@ -70,29 +656,30 @@ namespace Ash
 
 					inline bool isOpen() const { return m_Handle != nullptr; }
 
-					template
-					<
-						typename ENCODING,
-						typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
-					>
-					inline bool open(Ash::String::View<ENCODING> fileName, Create create, Access access, Inherit inherit = Inherit::Deny)
+					inline bool open(const Path &fileName, Create create, Access access, Inherit inherit = Inherit::Deny)
 					{
-						return open(Path(fileName), create, access, inherit);
-					}
+						close();
 
-					inline bool open(const Ash::Encoding::Ascii::Code *fileName, Create create, Access access, Inherit inherit = Inherit::Deny)
-					{
-						return open(Path(Ash::Ascii::View(fileName)), create, access, inherit);
-					}
+						int file = ::open((const char *)(const Path::Encoding::Code *)fileName, getFlags(create, access, inherit), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+						if (file < 0)
+						{
+							return false;
+						}
 
-					inline bool open(const Ash::Encoding::Utf8::Code *fileName, Create create, Access access, Inherit inherit = Inherit::Deny)
-					{
-						return open(Path(Ash::Utf8::View(fileName)), create, access, inherit);
-					}
+						if ((access != SharedRead) && (::flock(file, LOCK_EX | LOCK_NB) != 0))
+						{
+							::close(file);
+							return false;
+						}
 
-					inline bool open(const Ash::Encoding::Wide::Code *fileName, Create create, Access access, Inherit inherit = Inherit::Deny)
-					{
-						return open(Path(Ash::Wide::View(fileName)), create, access, inherit);
+						m_Handle = ::fdopen(file, ((access == SharedRead) || (access == ExclusiveRead)) ? "rb" : "rb+");
+						if (m_Handle == nullptr)
+						{
+							::close(file);
+							return false;
+						}
+
+						return true;
 					}
 
 					inline void close()
@@ -215,21 +802,6 @@ namespace Ash
 					}
 
 				protected:
-					class Path : public Ash::System::Linux::String<256, 0, 1>
-					{
-					public:
-						using String = Ash::System::Linux::String<256, 0, 1>;
-
-						constexpr Path() : String() {}
-
-						template
-						<
-							typename ENCODING,
-							typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
-						>
-						constexpr Path(Ash::String::View<ENCODING> value) : String(value, '_') {}
-					};
-
 					static constexpr int getFlags(Create create, Access access, Inherit inherit)
 					{
 						int flags = 0;
@@ -241,6 +813,10 @@ namespace Ash
 						else if (create == New)
 						{
 							flags = flags + O_CREAT;
+						}
+						else if (create == Unique)
+						{
+							flags = flags + O_CREAT + O_EXCL;
 						}
 
 						if ((access == SharedRead) || (access == ExclusiveRead))
@@ -262,32 +838,6 @@ namespace Ash
 						}
 
 						return flags;
-					}
-
-					inline bool open(const Path &path, Create create, Access access, Inherit inherit)
-					{
-						close();
-
-						int file = ::open(path, getFlags(create, access, inherit), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-						if (file < 0)
-						{
-							return false;
-						}
-
-						if ((access != SharedRead) && (::flock(file, LOCK_EX | LOCK_NB) != 0))
-						{
-							::close(file);
-							return false;
-						}
-
-						m_Handle = ::fdopen(file, ((access == SharedRead) || (access == ExclusiveRead)) ? "rb" : "rb+");
-						if (m_Handle == nullptr)
-						{
-							::close(file);
-							return false;
-						}
-
-						return true;
 					}
 
 				private:
