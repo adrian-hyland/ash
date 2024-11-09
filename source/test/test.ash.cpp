@@ -11,6 +11,7 @@
 #include "ash.test.unicode.h"
 #include "ash.test.memory.h"
 #include "ash.test.encoding.h"
+#include "ash.test.filesystem.h"
 
 
 int main()
@@ -18,6 +19,7 @@ int main()
 	TEST_UNIT
 	(
 		testSuite,
+
 		Ash::Test::testTest,
 		Ash::Test::testType,
 		Ash::Test::testSize,
@@ -29,7 +31,8 @@ int main()
 		Ash::Test::testCalendar,
 		Ash::Test::testUnicode,
 		Ash::Test::testMemory,
-		Ash::Test::testEncoding
+		Ash::Test::testEncoding,
+		Ash::Test::testFileSystem
 	);
 
 	Ash::Test::Result result = Ash::Test::Unit::run({ testSuite });
