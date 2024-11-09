@@ -3,10 +3,10 @@
 #include <limits>
 #include <windows.h>
 #include <process.h>
+#include "ash.system.windows.filesystem.h"
 #include "ash.ascii.h"
 #include "ash.utf8.h"
 #include "ash.wide.h"
-#include "ash.system.windows.string.h"
 #include "ash.callable.h"
 #include "ash.timer.h"
 
@@ -288,7 +288,9 @@ namespace Ash
 					class CommandLine
 					{
 					public:
-						using Content = Ash::Wide::StringBuffer<128>;
+						using Encoding = Ash::Encoding::Wide;
+
+						using Content = Ash::String::ArrayBuffer<Encoding, 128>;
 
 						constexpr CommandLine() : m_Content(), m_ArgumentOffset(0)
 						{
@@ -297,39 +299,20 @@ namespace Ash
 
 						template
 						<
-							typename ENCODING,
-							typename ...ARGUMENTS,
-							typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
+							typename ...ARGUMENTS
 						>
-						constexpr CommandLine(Ash::String::View<ENCODING> command, ARGUMENTS ...arguments) : m_Content(), m_ArgumentOffset(0)
+						constexpr CommandLine(const Ash::System::Windows::FileSystem::Path &command, ARGUMENTS ...arguments) : m_Content(), m_ArgumentOffset(0)
 						{
-							Ash::Encoding::convert<ENCODING, Content::Encoding>(command, m_Content, m_ArgumentOffset);
+							m_Content = command.getValue();
+							m_ArgumentOffset = m_Content.getLength();
 							m_Content.set(m_ArgumentOffset++, '\0');
 							m_Content.set(m_ArgumentOffset, '\0');
-							append(command, arguments...);
+							append(command.getValue(), arguments...);
 						}
 
-						template
-						<
-							typename ...ARGUMENTS
-						>
-						constexpr CommandLine(const Ash::Encoding::Ascii::Code *command, ARGUMENTS ...arguments) : CommandLine(Ash::Ascii::View(command), arguments...) {}
+						constexpr const Encoding::Code *getCommand() const { return m_Content.at(0); }
 
-						template
-						<
-							typename ...ARGUMENTS
-						>
-						constexpr CommandLine(const Ash::Encoding::Utf8::Code *command, ARGUMENTS ...arguments) : CommandLine(Ash::Utf8::View(command), arguments...) {}
-
-						template
-						<
-							typename ...ARGUMENTS
-						>
-						constexpr CommandLine(const Ash::Encoding::Wide::Code *command, ARGUMENTS ...arguments) : CommandLine(Ash::Wide::View(command), arguments...) {}
-
-						constexpr const Content::Encoding::Code *getCommand() const { return m_Content.at(0); }
-
-						constexpr const Content::Encoding::Code *getArguments() const { return m_Content.at(m_ArgumentOffset); }
+						constexpr const Encoding::Code *getArguments() const { return m_Content.at(m_ArgumentOffset); }
 
 					protected:
 						template
@@ -357,10 +340,10 @@ namespace Ash
 								typename ENCODING::Character valueCharacter;
 								size_t valueLength = value.getNextCharacter(valueOffset, valueCharacter);
 
-								Content::Encoding::Character character(valueCharacter);
+								Encoding::Character character(valueCharacter);
 								if (character.getLength() == 0)
 								{
-									character = Content::Encoding::Character::replacement;
+									character = Encoding::Character::replacement;
 								}
 
 								if (Ash::Unicode::Character(character) == '\"')
@@ -455,7 +438,9 @@ namespace Ash
 						class Setting
 						{
 						public:
-							using Content = Ash::Wide::StringBuffer<128>;
+							using Encoding = Ash::Encoding::Wide;
+
+							using Content = Ash::String::ArrayBuffer<Encoding, 128>;
 
 							class View : public Ash::Wide::View
 							{
@@ -509,7 +494,7 @@ namespace Ash
 								>
 								constexpr bool matchName(Ash::String::View<ENCODING> name) const
 								{
-									Content::Encoding::Character character;
+									Encoding::Character character;
 									typename ENCODING::Character nameCharacter;
 									size_t offset = 0;
 									size_t nameOffset = 0;
@@ -528,7 +513,7 @@ namespace Ash
 										nameOffset = nameOffset + nameCharacter.getLength();
 									}
 
-									return (nameOffset == name.getLength()) && Content::getNextCharacter(offset, character) && (Ash::Unicode::Character(character) == '=');
+									return (nameOffset == name.getLength()) && (Content::getNextCharacter(offset, character) != 0) && (Ash::Unicode::Character(character) == '=');
 								}
 
 							protected:
@@ -559,9 +544,9 @@ namespace Ash
 								if (isNameValid(name))
 								{
 									size_t offset = 0;
-									Ash::Encoding::convert<NAME_ENCODING, Content::Encoding>(name, m_Content, offset);
+									Ash::Encoding::convert<NAME_ENCODING, Encoding>(name, m_Content, offset);
 									m_Content.set(offset++, '=');
-									Ash::Encoding::convert<VALUE_ENCODING, Content::Encoding>(value, m_Content, offset);
+									Ash::Encoding::convert<VALUE_ENCODING, Encoding>(value, m_Content, offset);
 								}
 							}
 
@@ -693,9 +678,11 @@ namespace Ash
 						class Block
 						{
 						public:
-							using Content = Ash::Wide::StringBuffer<128>;
+							using Encoding = Setting::Encoding;
 
-							using View = Ash::String::View<Content::Encoding>;
+							using Content = Ash::String::ArrayBuffer<Encoding, 128>;
+
+							using View = Ash::String::View<Encoding>;
 
 							constexpr Block() : m_Content()
 							{
@@ -711,9 +698,9 @@ namespace Ash
 								}
 							}
 
-							constexpr operator const typename Content::Encoding::Code *() const { return m_Content.at(0); }
+							constexpr operator const typename Encoding::Code *() const { return m_Content.at(0); }
 
-							constexpr operator typename Content::Encoding::Code *() { return m_Content.at(0); }
+							constexpr operator typename Encoding::Code *() { return m_Content.at(0); }
 
 							constexpr Block &set(const Setting &setting)
 							{
@@ -793,7 +780,7 @@ namespace Ash
 							}
 
 						protected:
-							constexpr Block(const Content::Encoding::Code *value) : m_Content()
+							constexpr Block(const Encoding::Code *value) : m_Content()
 							{
 								if (value != nullptr)
 								{
@@ -857,15 +844,9 @@ namespace Ash
 						static inline Setting get(Ash::String::View<ENCODING> name)
 						{
 							Name settingName(name);
-							size_t length = ::GetEnvironmentVariableW(settingName, nullptr, 0);
-							if (length == 0)
-							{
-								return Setting();
-							}
-
 							Value settingValue;
-							settingValue.setLength(length);
-							::GetEnvironmentVariableW(settingName, settingValue.at(0), length);
+							settingValue.setLength(::GetEnvironmentVariableW(settingName, nullptr, 0));
+							::GetEnvironmentVariableW(settingName, settingValue.at(0), settingValue.getLength());
 
 							return Setting(settingName.getView(0, settingName.getLength() - 1), settingValue.getView(0, settingValue.getLength() - 1));
 						}
@@ -886,8 +867,8 @@ namespace Ash
 						}
 
 					protected:
-						using Name = Ash::System::Windows::String<32, 50, 32>;
-						using Value = Ash::System::Windows::String<128, 50, 32>;
+						using Name = Ash::System::Windows::String<32, 0, 1>;
+						using Value = Ash::System::Windows::String<128, 0, 1>;
 					};
 
 					using Identifier = DWORD;
@@ -923,6 +904,11 @@ namespace Ash
 					inline Identifier getIdentifier() const { return m_Information.dwProcessId; }
 
 					static inline Identifier getCurrentIdentifier() { return GetCurrentProcessId(); }
+
+					static inline Ash::System::Windows::FileSystem::Path getCurrentName()
+					{
+						return Name::getInstance().getView();
+					}
 
 					inline bool run(const CommandLine &commandLine)
 					{
@@ -969,6 +955,35 @@ namespace Ash
 
 				protected:
 					static inline PROCESS_INFORMATION invalidProcessInformation = { INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE, invalid, invalid };
+
+					class Name : public Ash::Wide::StringBuffer<128, 0, 1>
+					{
+					public:
+						using Content = Ash::Wide::StringBuffer<128, 0, 1>;
+
+						static inline const Name &getInstance()
+						{
+							static Name name;
+
+							return name;
+						}
+
+					protected:
+						inline Name() : Content()
+						{
+							setLength(getCapacity());
+
+							for (;;)
+							{
+								size_t size = ::GetModuleFileNameW(nullptr, at(0), getLength());
+								if (size < getLength())
+								{
+									break;
+								}
+								setLength(size * 2);
+							}
+						}
+					};
 
 				private:
 					PROCESS_INFORMATION m_Information;

@@ -5,11 +5,12 @@
 #include <semaphore.h>
 #include <spawn.h>
 #include <wait.h>
+#include <errno.h>
 #include <utility>
+#include "ash.system.linux.filesystem.h"
 #include "ash.ascii.h"
 #include "ash.utf8.h"
 #include "ash.wide.h"
-#include "ash.system.linux.string.h"
 #include "ash.callable.h"
 #include "ash.timer.h"
 
@@ -272,40 +273,22 @@ namespace Ash
 					class CommandLine
 					{
 					public:
-						using Content = Ash::Utf8::StringBuffer<256>;
+						using Encoding = Ash::Encoding::Utf8;
 
-						using Array = Ash::Memory::ArrayBuffer<const Content::Encoding::Code *>;
+						using Content = Ash::String::ArrayBuffer<Encoding, 256>;
+
+						using Array = Ash::Memory::ArrayBuffer<const Encoding::Code *>;
 
 						constexpr CommandLine() : m_Content() {}
 
 						template
 						<
-							typename ENCODING,
-							typename ...ARGUMENTS,
-							typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
+							typename ...ARGUMENTS
 						>
-						constexpr CommandLine(Ash::String::View<ENCODING> command, ARGUMENTS ...arguments) : m_Content()
+						constexpr CommandLine(const Ash::System::Linux::FileSystem::Path &command, ARGUMENTS ...arguments) : m_Content()
 						{
-							append(command, arguments...);
+							append(command.getValue(), arguments...);
 						}
-
-						template
-						<
-							typename ...ARGUMENTS
-						>
-						constexpr CommandLine(const Ash::Encoding::Ascii::Code *command, ARGUMENTS ...arguments) : CommandLine(Ash::Ascii::View(command), arguments...) {}
-
-						template
-						<
-							typename ...ARGUMENTS
-						>
-						constexpr CommandLine(const Ash::Encoding::Utf8::Code *command, ARGUMENTS ...arguments) : CommandLine(Ash::Utf8::View(command), arguments...) {}
-
-						template
-						<
-							typename ...ARGUMENTS
-						>
-						constexpr CommandLine(const Ash::Encoding::Wide::Code *command, ARGUMENTS ...arguments) : CommandLine(Ash::Wide::View(command), arguments...) {}
 
 						constexpr Array getArray() const
 						{
@@ -327,7 +310,7 @@ namespace Ash
 						constexpr void append(Ash::String::View<ENCODING> value)
 						{
 							size_t offset = m_Content.getLength();
-							Ash::Encoding::convert<ENCODING, Content::Encoding>(value, m_Content, offset);
+							Ash::Encoding::convert<ENCODING, Encoding>(value, m_Content, offset);
 							m_Content.set(offset, '\0');
 						}
 
@@ -398,7 +381,9 @@ namespace Ash
 						class Setting
 						{
 						public:
-							using Content = Ash::Utf8::StringBuffer<128>;
+							using Encoding = Ash::Encoding::Utf8;
+
+							using Content = Ash::String::ArrayBuffer<Encoding, 128>;
 
 							class View : public Ash::Utf8::View
 							{
@@ -452,7 +437,7 @@ namespace Ash
 								>
 								constexpr bool matchName(Ash::String::View<ENCODING> name) const
 								{
-									Content::Encoding::Character character;
+									Encoding::Character character;
 									typename ENCODING::Character nameCharacter;
 									size_t offset = 0;
 									size_t nameOffset = 0;
@@ -471,7 +456,7 @@ namespace Ash
 										nameOffset = nameOffset + nameCharacter.getLength();
 									}
 
-									return (nameOffset == name.getLength()) && Content::getNextCharacter(offset, character) && (Ash::Unicode::Character(character) == '=');
+									return (nameOffset == name.getLength()) && (Content::getNextCharacter(offset, character) != 0) && (Ash::Unicode::Character(character) == '=');
 								}
 
 							protected:
@@ -502,9 +487,9 @@ namespace Ash
 								if (isNameValid(name))
 								{
 									size_t offset = 0;
-									Ash::Encoding::convert<NAME_ENCODING, Content::Encoding>(name, m_Content, offset);
+									Ash::Encoding::convert<NAME_ENCODING, Encoding>(name, m_Content, offset);
 									m_Content.set(offset++, '=');
-									Ash::Encoding::convert<VALUE_ENCODING, Content::Encoding>(value, m_Content, offset);
+									Ash::Encoding::convert<VALUE_ENCODING, Encoding>(value, m_Content, offset);
 								}
 							}
 
@@ -636,11 +621,13 @@ namespace Ash
 						class Block
 						{
 						public:
-							using Content = Ash::Utf8::StringBuffer<256>;
+							using Encoding = Ash::Encoding::Utf8;
 
-							using Array = Ash::Memory::ArrayBuffer<const Content::Encoding::Code *>;
+							using Content = Ash::String::ArrayBuffer<Encoding, 256>;
 
-							using View = Ash::Utf8::View;
+							using Array = Ash::Memory::ArrayBuffer<const Encoding::Code *>;
+
+							using View = Ash::String::View<Encoding>;
 
 							constexpr Block() : m_Content() {}
 
@@ -741,7 +728,7 @@ namespace Ash
 							}
 
 						protected:
-							constexpr Block(const Content::Encoding::Code **value) : m_Content()
+							constexpr Block(const Encoding::Code **value) : m_Content()
 							{
 								if (value != nullptr)
 								{
@@ -777,7 +764,7 @@ namespace Ash
 
 						static inline Block getBlock()
 						{
-							return Block((const Setting::Content::Encoding::Code **)environ);
+							return Block((const Block::Encoding::Code **)environ);
 						}
 
 						static inline bool set(const Setting &setting)
@@ -813,8 +800,8 @@ namespace Ash
 						}
 
 					protected:
-						using Name = Ash::System::Linux::String<32, 50, 32>;
-						using Value = Ash::System::Linux::String<128, 50, 32>;
+						using Name = Ash::System::Linux::String<32, 0, 1>;
+						using Value = Ash::System::Linux::String<128, 0, 1>;
 					};
 
 					using Identifier = pid_t;
@@ -850,6 +837,11 @@ namespace Ash
 					inline Identifier getIdentifier() const { return m_Identifier; }
 
 					static inline Identifier getCurrentIdentifier() { return getpid(); }
+
+					static inline Ash::System::Linux::FileSystem::Path getCurrentName()
+					{
+						return Ash::Ascii::View(program_invocation_name);
+					}
 
 					inline bool run(const CommandLine &commandLine)
 					{
