@@ -19,9 +19,9 @@ namespace Ash
 		>
 		constexpr size_t copyForward(TYPE *to, const TYPE *from, size_t length)
 		{
-			if (!std::is_constant_evaluated())
+			if constexpr (Ash::Type::isPrimitive<TYPE>)
 			{
-				if constexpr (Ash::Type::isPrimitive<TYPE>)
+				if (!std::is_constant_evaluated() && (length > sizeof(uint64_t) / sizeof(TYPE)))
 				{
 					::memmove(to, from, length * sizeof(TYPE));
 					return length;
@@ -41,9 +41,9 @@ namespace Ash
 		>
 		constexpr size_t copyBackward(TYPE *to, const TYPE *from, size_t length)
 		{
-			if (!std::is_constant_evaluated())
+			if constexpr (Ash::Type::isPrimitive<TYPE>)
 			{
-				if constexpr (Ash::Type::isPrimitive<TYPE>)
+				if (!std::is_constant_evaluated() && (length > sizeof(uint64_t) / sizeof(TYPE)))
 				{
 					::memmove(to, from, length * sizeof(TYPE));
 					return length;
@@ -72,9 +72,9 @@ namespace Ash
 		>
 		constexpr size_t moveForward(TYPE *to, TYPE *from, size_t length)
 		{
-			if (!std::is_constant_evaluated())
+			if constexpr (Ash::Type::isPrimitive<TYPE>)
 			{
-				if constexpr (Ash::Type::isPrimitive<TYPE>)
+				if (!std::is_constant_evaluated() && (length > sizeof(uint64_t) / sizeof(TYPE)))
 				{
 					::memmove(to, from, length * sizeof(TYPE));
 					return length;
@@ -94,9 +94,9 @@ namespace Ash
 		>
 		constexpr size_t moveBackward(TYPE *to, TYPE *from, size_t length)
 		{
-			if (!std::is_constant_evaluated())
+			if constexpr (Ash::Type::isPrimitive<TYPE>)
 			{
-				if constexpr (Ash::Type::isPrimitive<TYPE>)
+				if (!std::is_constant_evaluated() && (length > sizeof(uint64_t) / sizeof(TYPE)))
 				{
 					::memmove(to, from, length * sizeof(TYPE));
 					return length;
@@ -125,9 +125,9 @@ namespace Ash
 		>
 		constexpr size_t clear(TYPE *content, size_t length)
 		{
-			if (!std::is_constant_evaluated())
+			if constexpr (Ash::Type::isPrimitive<TYPE>)
 			{
-				if constexpr (Ash::Type::isPrimitive<TYPE>)
+				if (!std::is_constant_evaluated() && (length > sizeof(uint64_t) / sizeof(TYPE)))
 				{
 					::memset(content, TYPE(), length * sizeof(TYPE));
 					return length;
@@ -1280,7 +1280,6 @@ namespace Ash
 
 				return Allocation::getLength();
 			}
-
 
 			constexpr size_t reverseFind(size_t offset, View<Type> value) const
 			{
