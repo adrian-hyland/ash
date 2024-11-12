@@ -51,7 +51,6 @@ namespace Ash
 				else
 				{
 					Count count = m_Count;
-					Real total = m_Total;
 					Real mean = getMean();
 					m_Count = m_Count + 1;
 					if (value < m_Minimum)
@@ -64,7 +63,7 @@ namespace Ash
 					}
 					m_Total = m_Total + value;
 					Real meanDifference = getMean() - mean;
-					m_Variance = m_Variance + Real(value - getMean()).square() + meanDifference * (count * (meanDifference - 2 * mean) + 2 * total);
+					m_Variance = m_Variance + Real(value - getMean()).square() + count * meanDifference.square();
 				}
 
 				return *this;
