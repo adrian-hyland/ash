@@ -88,6 +88,43 @@ namespace Ash
 
 					return {};
 				}
+
+				template
+				<
+					typename REAL,
+					typename = Ash::Type::IsClass<REAL, Ash::Generic::Real>
+				>
+				static Ash::Test::Assertion addSummary()
+				{
+					using Real = REAL;
+
+					Ash::Statistic::Summary<Real> summary1(5, 4, 6, 3, 7, 2, 8, 1);
+
+					Ash::Statistic::Summary<Real> summary2;
+					summary2.add(Ash::Statistic::Summary<Real>(5, 4, 6, 3));
+					summary2.add(Ash::Statistic::Summary<Real>(7, 2, 8, 1));
+					TEST_IS_TRUE(summary1.isEqual(summary2));
+
+					Ash::Statistic::Summary<Real> summary3;
+					summary3.add(Ash::Statistic::Summary<Real>(5, 4));
+					summary3.add(Ash::Statistic::Summary<Real>(6, 3));
+					summary3.add(Ash::Statistic::Summary<Real>(7, 2));
+					summary3.add(Ash::Statistic::Summary<Real>(8, 1));
+					TEST_IS_TRUE(summary1.isEqual(summary3));
+
+					summary3.add(Ash::Statistic::Summary<Real>());
+					TEST_IS_TRUE(summary1.isEqual(summary3));
+
+					summary3.add(summary3);
+					TEST_IS_EQ(summary3.getCount(), 2 * summary1.getCount());
+					TEST_IS_TRUE(summary3.getTotal().isEqual(2 * summary1.getTotal()));
+					TEST_IS_TRUE(summary3.getMean().isEqual(summary1.getMean()));
+					TEST_IS_TRUE(summary3.getVariance().isEqual(summary1.getVariance()));
+					TEST_IS_TRUE(summary3.getMinimum().isEqual(summary1.getMinimum()));
+					TEST_IS_TRUE(summary3.getMaximum().isEqual(summary1.getMaximum()));
+
+					return {};
+				}
 			}
 		}
 
@@ -100,6 +137,9 @@ namespace Ash
 			TEST_CASE_GENERIC(Ash::Test::Statistic::Summary::isEqual, Ash::Float),
 			TEST_CASE_GENERIC(Ash::Test::Statistic::Summary::isEqual, Ash::Double),
 			TEST_CASE_GENERIC(Ash::Test::Statistic::Summary::isEqual, Ash::LongDouble),
+			TEST_CASE_GENERIC(Ash::Test::Statistic::Summary::addSummary, Ash::Float),
+			TEST_CASE_GENERIC(Ash::Test::Statistic::Summary::addSummary, Ash::Double),
+			TEST_CASE_GENERIC(Ash::Test::Statistic::Summary::addSummary, Ash::LongDouble),
 		);
 	}
 }
