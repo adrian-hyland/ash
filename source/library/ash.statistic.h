@@ -57,7 +57,7 @@ namespace Ash
 					{
 						m_Minimum = value;
 					}
-					if (value > m_Maximum)
+					else if (value > m_Maximum)
 					{
 						m_Maximum = value;
 					}
@@ -75,14 +75,49 @@ namespace Ash
 				typename ...NEXT_VALUE,
 				typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsClass<VALUE, Ash::Generic::Real>, Ash::Type::Requirement::IsFloatingPoint<VALUE>, Ash::Type::Requirement::IsInteger<VALUE>>::IsValid
 			>
-			constexpr Summary &add(VALUE value, NEXT_VALUE ...nextValue)
+			constexpr void add(VALUE value, NEXT_VALUE ...nextValue)
 			{
 				add(value);
 				if constexpr (sizeof...(nextValue) != 0)
 				{
 					add(nextValue...);
 				}
-				return *this;
+			}
+
+			constexpr void add(const Summary &summary)
+			{
+				if (this == &summary)
+				{
+					m_Count = 2 * m_Count;
+					m_Total = 2 * m_Total;
+					m_Variance = 2 * m_Variance;
+				}
+				else if (m_Count == 0)
+				{
+					m_Count = summary.m_Count;
+					m_Minimum = summary.m_Minimum;
+					m_Maximum = summary.m_Maximum;
+					m_Total = summary.m_Total;
+					m_Variance = summary.m_Variance;
+				}
+				else if (summary.m_Count != 0)
+				{
+					Count count = m_Count;
+					Real mean = getMean();
+					m_Count = m_Count + summary.m_Count;
+					if (summary.m_Minimum < m_Minimum)
+					{
+						m_Minimum = summary.m_Minimum;
+					}
+					if (summary.m_Maximum > m_Maximum)
+					{
+						m_Maximum = summary.m_Maximum;
+					}
+					m_Total = m_Total + summary.m_Total;
+					Real meanDifference1 = getMean() - mean;
+					Real meanDifference2 = getMean() - summary.getMean();
+					m_Variance = m_Variance + count * meanDifference1.square() + summary.m_Variance + summary.m_Count * meanDifference2.square();
+				}
 			}
 
 			constexpr bool isEqual(const Summary &summary, Real::Match match = Real::Match::Absolute, Real tolerance = 1.0) const
