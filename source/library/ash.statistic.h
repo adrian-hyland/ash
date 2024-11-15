@@ -20,7 +20,7 @@ namespace Ash
 			
 			using Count = uintmax_t;
 
-			constexpr Summary() : m_Minimum(0), m_Maximum(0), m_Total(0), m_Variance(0), m_Count(0) {}
+			constexpr Summary() : m_Minimum(0), m_Maximum(0), m_Total(0), m_TotalSquares(0), m_Count(0) {}
 
 			template
 			<
@@ -46,12 +46,10 @@ namespace Ash
 					m_Minimum = value;
 					m_Maximum = value;
 					m_Total = value;
-					m_Variance = 0;
+					m_TotalSquares = Real(value).square();
 				}
 				else
 				{
-					Count count = m_Count;
-					Real mean = getMean();
 					m_Count = m_Count + 1;
 					if (value < m_Minimum)
 					{
@@ -62,8 +60,7 @@ namespace Ash
 						m_Maximum = value;
 					}
 					m_Total = m_Total + value;
-					Real meanDifference = getMean() - mean;
-					m_Variance = m_Variance + Real(value - getMean()).square() + count * meanDifference.square();
+					m_TotalSquares = m_TotalSquares + Real(value).square();
 				}
 
 				return *this;
@@ -90,7 +87,7 @@ namespace Ash
 				{
 					m_Count = 2 * m_Count;
 					m_Total = 2 * m_Total;
-					m_Variance = 2 * m_Variance;
+					m_TotalSquares = 2 * m_TotalSquares;
 				}
 				else if (m_Count == 0)
 				{
@@ -98,12 +95,10 @@ namespace Ash
 					m_Minimum = summary.m_Minimum;
 					m_Maximum = summary.m_Maximum;
 					m_Total = summary.m_Total;
-					m_Variance = summary.m_Variance;
+					m_TotalSquares = summary.m_TotalSquares;
 				}
 				else if (summary.m_Count != 0)
 				{
-					Count count = m_Count;
-					Real mean = getMean();
 					m_Count = m_Count + summary.m_Count;
 					if (summary.m_Minimum < m_Minimum)
 					{
@@ -114,9 +109,7 @@ namespace Ash
 						m_Maximum = summary.m_Maximum;
 					}
 					m_Total = m_Total + summary.m_Total;
-					Real meanDifference1 = getMean() - mean;
-					Real meanDifference2 = getMean() - summary.getMean();
-					m_Variance = m_Variance + count * meanDifference1.square() + summary.m_Variance + summary.m_Count * meanDifference2.square();
+					m_TotalSquares = m_TotalSquares + summary.m_TotalSquares;
 				}
 			}
 
@@ -125,7 +118,7 @@ namespace Ash
 				return (m_Count == summary.m_Count) &&
 				       m_Minimum.isEqual(summary.m_Minimum, match, tolerance) &&
 				       m_Maximum.isEqual(summary.m_Maximum, match, tolerance) &&
-						 m_Variance.isEqual(summary.m_Variance, match, tolerance) &&
+						 m_TotalSquares.isEqual(summary.m_TotalSquares, match, tolerance) &&
 						 m_Total.isEqual(summary.m_Total, match, tolerance);
 			}
 
@@ -135,7 +128,11 @@ namespace Ash
 
 			constexpr Real getMean() const { return m_Total / m_Count; }
 
-			constexpr Real getVariance() const { return m_Variance / m_Count; }
+			constexpr Real getVariance() const
+			{
+				Real mean = getMean();
+				return ((m_Count * mean - 2 * m_Total) * mean + m_TotalSquares) / m_Count;
+			}
 
 			constexpr Real getStandardDeviation() const { return getVariance().squareRoot(); }
 
@@ -149,7 +146,7 @@ namespace Ash
 			Real  m_Minimum;
 			Real  m_Maximum;
 			Real  m_Total;
-			Real  m_Variance;
+			Real  m_TotalSquares;
 			Count m_Count;
 		};
 	}
