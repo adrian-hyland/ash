@@ -41,6 +41,49 @@ namespace Ash
 						TEST_IS_EQ(Ash::Test::Memory::Trace::getAllocatedCount(), 0);
 					}
 
+					{
+						char arrayChar[2][3] = { { 11, 12, 13 }, { 21, 22, 23 } };
+						TEST_IS_EQ(Ash::Memory::clear(arrayChar), sizeof(arrayChar) / sizeof(arrayChar[0]));
+						for (size_t n1 = 0; n1 < 2; n1++)
+						{
+							for (size_t n2 = 0; n2 < 3; n2++)
+							{
+								TEST_IS_ZERO(arrayChar[n1][n2]);
+							}
+						}
+					}
+
+					{
+						int arrayInt[2][3][4] = { { { 111, 112, 113, 114 }, { 121, 122, 123, 124 }, { 131, 132, 133, 134 } }, { { 211, 212, 213, 214 }, { 221, 222, 223, 224 }, { 23, 23, 23, 23 } } };
+						TEST_IS_EQ(Ash::Memory::clear(arrayInt), sizeof(arrayInt) / sizeof(arrayInt[0]));
+						for (size_t n1 = 0; n1 < 2; n1++)
+						{
+							for (size_t n2 = 0; n2 < 3; n2++)
+							{
+								for (size_t n3 = 0; n3 < 4; n3++)
+								{
+									TEST_IS_ZERO(arrayInt[n1][n2][n3]);
+								}
+							}
+						}
+					}
+
+					{
+						Ash::Test::Memory::TraceValue<int> arrayTrace[2][3][4] = { { { 111, 112, 113, 114 }, { 121, 122, 123, 124 }, { 131, 132, 133, 134 } }, { { 211, 212, 213, 214 }, { 221, 222, 223, 224 }, { 23, 23, 23, 23 } } };
+						TEST_IS_EQ(Ash::Memory::clear(arrayTrace), sizeof(arrayTrace) / sizeof(arrayTrace[0]));
+						for (size_t n1 = 0; n1 < 2; n1++)
+						{
+							for (size_t n2 = 0; n2 < 3; n2++)
+							{
+								for (size_t n3 = 0; n3 < 4; n3++)
+								{
+									TEST_IS_TRUE(arrayTrace[n1][n2][n3].isNull());
+								}
+							}
+						}
+						TEST_IS_EQ(Ash::Test::Memory::Trace::getAllocatedCount(), 0);
+					}
+
 					return {};
 				}
 
@@ -112,6 +155,111 @@ namespace Ash
 						for (size_t n : Ash::Iterate<size_t>::from(0, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])))
 						{
 							TEST_IS_EQ(*arrayTrace1[n], *arrayTrace4[n]);
+						}
+					}
+
+					{
+						char arrayChar1[3][2] = { { 11, 12 }, { 21, 22 }, { 31, 32 } };
+						char arrayChar2[3][2] = { { 41, 42 }, { 51, 52 }, { 61, 62 } };
+						TEST_IS_EQ(Ash::Memory::copy(arrayChar1, arrayChar2), sizeof(arrayChar1) / sizeof(arrayChar1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayChar1[n1][n2], arrayChar2[n1][n2]);
+							}
+						}
+						char arrayChar3[2][2] = { { 71, 72 }, { 81, 82 } };
+						TEST_IS_EQ(Ash::Memory::copy(arrayChar1, arrayChar3), sizeof(arrayChar3) / sizeof(arrayChar3[0]));
+						for (size_t n1 = 0; n1 < 2; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayChar1[n1][n2], arrayChar3[n1][n2]);
+							}
+						}
+						for (size_t n = 0; n < 2; n++)
+						{
+							TEST_IS_EQ(arrayChar1[2][n], arrayChar2[2][n]);
+						}
+						char arrayChar4[4][2] = { { 91, 92 }, { 101, 102 }, { 111, 112 }, { 121, 122 } };
+						TEST_IS_EQ(Ash::Memory::copy(arrayChar1, arrayChar4), sizeof(arrayChar1) / sizeof(arrayChar1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayChar1[n1][n2], arrayChar4[n1][n2]);
+							}
+						}
+					}
+
+					{
+						int arrayInt1[3][2] = { { 131, 132 }, { 141, 142 }, { 151, 152 } };
+						int arrayInt2[3][2] = { { 161, 162 }, { 171, 172 }, { 181, 182 } };
+						TEST_IS_EQ(Ash::Memory::copy(arrayInt1, arrayInt2), sizeof(arrayInt1) / sizeof(arrayInt1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayInt1[n1][n2], arrayInt2[n1][n2]);
+							}
+						}
+						int arrayInt3[2][2] = { { 191, 192 }, { 201, 202 } };
+						TEST_IS_EQ(Ash::Memory::copy(arrayInt1, arrayInt3), sizeof(arrayInt3) / sizeof(arrayInt3[0]));
+						for (size_t n1 = 0; n1 < 2; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayInt1[n1][n2], arrayInt3[n1][n2]);
+							}
+						}
+						for (size_t n = 0; n < 2; n++)
+						{
+							TEST_IS_EQ(arrayInt1[2][n], arrayInt2[2][n]);
+						}
+						int arrayInt4[4][2] = { { 211, 212 }, { 221, 222 }, { 231, 232 }, { 241, 242 } };
+						TEST_IS_EQ(Ash::Memory::copy(arrayInt1, arrayInt4), sizeof(arrayInt1) / sizeof(arrayInt1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayInt1[n1][n2], arrayInt4[n1][n2]);
+							}
+						}
+					}
+
+					{
+						Ash::Test::Memory::TraceValue<int> arrayTrace1[3][2] = { { 251, 252 }, { 261, 262 }, { 271, 272 } };
+						Ash::Test::Memory::TraceValue<int> arrayTrace2[3][2] = { { 281, 282 }, { 291, 292 }, { 301, 302 } };
+						TEST_IS_EQ(Ash::Memory::copy(arrayTrace1, arrayTrace2), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(*arrayTrace1[n1][n2], *arrayTrace2[n1][n2]);
+							}
+						}
+						Ash::Test::Memory::TraceValue<int> arrayTrace3[2][2] = { { 311, 312 }, { 321, 322 } };
+						TEST_IS_EQ(Ash::Memory::copy(arrayTrace1, arrayTrace3), sizeof(arrayTrace3) / sizeof(arrayTrace3[0]));
+						for (size_t n1 = 0; n1 < 2; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(*arrayTrace1[n1][n2], *arrayTrace3[n1][n2]);
+							}
+						}
+						for (size_t n = 0; n < 2; n++)
+						{
+							TEST_IS_EQ(*arrayTrace1[2][n], *arrayTrace2[2][n]);
+						}
+						Ash::Test::Memory::TraceValue<int> arrayTrace4[4][2] = { { 331, 332 }, { 341, 342 }, { 351, 352 }, { 361, 362 } };
+						TEST_IS_EQ(Ash::Memory::copy(arrayTrace1, arrayTrace4), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(*arrayTrace1[n1][n2], *arrayTrace4[n1][n2]);
+							}
 						}
 					}
 
@@ -193,6 +341,114 @@ namespace Ash
 						TEST_IS_EQ(*arrayTrace4[sizeof(arrayTrace4) / sizeof(arrayTrace4[0]) - 1], 32);
 					}
 
+					{
+						char arrayChar1[3][2] = { { 11, 12 }, { 21, 22 }, { 31, 32 } };
+						char arrayChar2[3][2] = { { 41, 42 }, { 51, 52 }, { 61, 62 } };
+						TEST_IS_EQ(Ash::Memory::move(arrayChar1, arrayChar2), sizeof(arrayChar1) / sizeof(arrayChar1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayChar1[n1][n2], arrayChar2[n1][n2]);
+							}
+						}
+						char arrayChar3[2][2] = { { 71, 72 }, { 81, 82 } };
+						TEST_IS_EQ(Ash::Memory::move(arrayChar1, arrayChar3), sizeof(arrayChar3) / sizeof(arrayChar3[0]));
+						for (size_t n1 = 0; n1 < 2; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayChar1[n1][n2], arrayChar3[n1][n2]);
+							}
+						}
+						for (size_t n = 0; n < 2; n++)
+						{
+							TEST_IS_EQ(arrayChar1[2][n], arrayChar2[2][n]);
+						}
+						char arrayChar4[4][2] = { { 91, 92 }, { 101, 102 }, { 111, 112 }, { 121, 122 } };
+						TEST_IS_EQ(Ash::Memory::move(arrayChar1, arrayChar4), sizeof(arrayChar1) / sizeof(arrayChar1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayChar1[n1][n2], arrayChar4[n1][n2]);
+							}
+						}
+					}
+
+					{
+						int arrayInt1[3][2] = { { 131, 132 }, { 141, 142 }, { 151, 152 } };
+						int arrayInt2[3][2] = { { 161, 162 }, { 171, 172 }, { 181, 182 } };
+						TEST_IS_EQ(Ash::Memory::move(arrayInt1, arrayInt2), sizeof(arrayInt1) / sizeof(arrayInt1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayInt1[n1][n2], arrayInt2[n1][n2]);
+							}
+						}
+						int arrayInt3[2][2] = { { 191, 192 }, { 201, 202 } };
+						TEST_IS_EQ(Ash::Memory::move(arrayInt1, arrayInt3), sizeof(arrayInt3) / sizeof(arrayInt3[0]));
+						for (size_t n1 = 0; n1 < 2; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayInt1[n1][n2], arrayInt3[n1][n2]);
+							}
+						}
+						for (size_t n = 0; n < 2; n++)
+						{
+							TEST_IS_EQ(arrayInt1[2][n], arrayInt2[2][n]);
+						}
+						int arrayInt4[4][2] = { { 211, 212 }, { 221, 222 }, { 231, 232 }, { 241, 242 } };
+						TEST_IS_EQ(Ash::Memory::move(arrayInt1, arrayInt4), sizeof(arrayInt1) / sizeof(arrayInt1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayInt1[n1][n2], arrayInt4[n1][n2]);
+							}
+						}
+					}
+
+					{
+						Ash::Test::Memory::TraceValue<int> arrayTrace1[3][2] = { { 251, 252 }, { 261, 262 }, { 271, 272 } };
+						Ash::Test::Memory::TraceValue<int> arrayTrace2[3][2] = { { 281, 282 }, { 291, 292 }, { 301, 302 } };
+						TEST_IS_EQ(Ash::Memory::move(arrayTrace1, arrayTrace2), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(*arrayTrace1[n1][n2], int(281 + n1 * 10 + n2));
+								TEST_IS_TRUE(arrayTrace2[n1][n2].isNull());
+							}
+						}
+						Ash::Test::Memory::TraceValue<int> arrayTrace3[2][2] = { { 311, 312 }, { 321, 322 } };
+						TEST_IS_EQ(Ash::Memory::move(arrayTrace1, arrayTrace3), sizeof(arrayTrace3) / sizeof(arrayTrace3[0]));
+						for (size_t n1 = 0; n1 < 2; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(*arrayTrace1[n1][n2], int(311 + n1 * 10 + n2));
+								TEST_IS_TRUE(arrayTrace3[n1][n2].isNull());
+							}
+						}
+						for (size_t n = 0; n < 2; n++)
+						{
+							TEST_IS_EQ(*arrayTrace1[2][n], int(301 + n));
+						}
+						Ash::Test::Memory::TraceValue<int> arrayTrace4[4][2] = { { 331, 332 }, { 341, 342 }, { 351, 352 }, { 361, 362 } };
+						TEST_IS_EQ(Ash::Memory::move(arrayTrace1, arrayTrace4), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(*arrayTrace1[n1][n2], int(331 + n1 * 10 + n2));
+								TEST_IS_TRUE(arrayTrace4[n1][n2].isNull());
+							}
+						}
+					}
+
 					return {};
 				}
 
@@ -222,6 +478,49 @@ namespace Ash
 						for (TraceValue n : arrayTrace)
 						{
 							TEST_IS_TRUE(n.isNull());
+						}
+						TEST_IS_EQ(Ash::Test::Memory::Trace::getAllocatedCount(), 0);
+					}
+
+					{
+						char arrayChar[2][3] = { { 11, 12, 13 }, { 21, 22, 23 } };
+						TEST_IS_EQ(Ash::Memory::clear(arrayChar, sizeof(arrayChar) / sizeof(arrayChar[0])), sizeof(arrayChar) / sizeof(arrayChar[0]));
+						for (size_t n1 = 0; n1 < 2; n1++)
+						{
+							for (size_t n2 = 0; n2 < 3; n2++)
+							{
+								TEST_IS_ZERO(arrayChar[n1][n2]);
+							}
+						}
+					}
+
+					{
+						int arrayInt[2][3][4] = { { { 111, 112, 113, 114 }, { 121, 122, 123, 124 }, { 131, 132, 133, 134 } }, { { 211, 212, 213, 214 }, { 221, 222, 223, 224 }, { 23, 23, 23, 23 } } };
+						TEST_IS_EQ(Ash::Memory::clear(arrayInt, sizeof(arrayInt) / sizeof(arrayInt[0])), sizeof(arrayInt) / sizeof(arrayInt[0]));
+						for (size_t n1 = 0; n1 < 2; n1++)
+						{
+							for (size_t n2 = 0; n2 < 3; n2++)
+							{
+								for (size_t n3 = 0; n3 < 4; n3++)
+								{
+									TEST_IS_ZERO(arrayInt[n1][n2][n3]);
+								}
+							}
+						}
+					}
+
+					{
+						Ash::Test::Memory::TraceValue<int> arrayTrace[2][3][4] = { { { 111, 112, 113, 114 }, { 121, 122, 123, 124 }, { 131, 132, 133, 134 } }, { { 211, 212, 213, 214 }, { 221, 222, 223, 224 }, { 23, 23, 23, 23 } } };
+						TEST_IS_EQ(Ash::Memory::clear(arrayTrace, sizeof(arrayTrace) / sizeof(arrayTrace[0])), sizeof(arrayTrace) / sizeof(arrayTrace[0]));
+						for (size_t n1 = 0; n1 < 2; n1++)
+						{
+							for (size_t n2 = 0; n2 < 3; n2++)
+							{
+								for (size_t n3 = 0; n3 < 4; n3++)
+								{
+									TEST_IS_TRUE(arrayTrace[n1][n2][n3].isNull());
+								}
+							}
 						}
 						TEST_IS_EQ(Ash::Test::Memory::Trace::getAllocatedCount(), 0);
 					}
@@ -318,6 +617,111 @@ namespace Ash
 						TEST_IS_EQ(*arrayTrace1[sizeof(arrayTrace1) / sizeof(arrayTrace1[0]) - 1], *arrayTrace4[sizeof(arrayTrace1) / sizeof(arrayTrace1[0]) - 1]);
 					}
 
+					{
+						char arrayChar1[3][2] = { { 11, 12 }, { 21, 22 }, { 31, 32 } };
+						char arrayChar2[3][2] = { { 41, 42 }, { 51, 52 }, { 61, 62 } };
+						TEST_IS_EQ(Ash::Memory::copyForward(arrayChar1, arrayChar2, sizeof(arrayChar1) / sizeof(arrayChar1[0])), sizeof(arrayChar1) / sizeof(arrayChar1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayChar1[n1][n2], arrayChar2[n1][n2]);
+							}
+						}
+						char arrayChar3[2][2] = { { 71, 72 }, { 81, 82 } };
+						TEST_IS_EQ(Ash::Memory::copyForward(arrayChar1, arrayChar3, sizeof(arrayChar3) / sizeof(arrayChar3[0])), sizeof(arrayChar3) / sizeof(arrayChar3[0]));
+						for (size_t n1 = 0; n1 < 2; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayChar1[n1][n2], arrayChar3[n1][n2]);
+							}
+						}
+						for (size_t n = 0; n < 2; n++)
+						{
+							TEST_IS_EQ(arrayChar1[2][n], arrayChar2[2][n]);
+						}
+						char arrayChar4[4][2] = { { 91, 92 }, { 101, 102 }, { 111, 112 }, { 121, 122 } };
+						TEST_IS_EQ(Ash::Memory::copyForward(arrayChar1, arrayChar4, sizeof(arrayChar1) / sizeof(arrayChar1[0])), sizeof(arrayChar1) / sizeof(arrayChar1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayChar1[n1][n2], arrayChar4[n1][n2]);
+							}
+						}
+					}
+
+					{
+						int arrayInt1[3][2] = { { 131, 132 }, { 141, 142 }, { 151, 152 } };
+						int arrayInt2[3][2] = { { 161, 162 }, { 171, 172 }, { 181, 182 } };
+						TEST_IS_EQ(Ash::Memory::copyForward(arrayInt1, arrayInt2, sizeof(arrayInt1) / sizeof(arrayInt1[0])), sizeof(arrayInt1) / sizeof(arrayInt1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayInt1[n1][n2], arrayInt2[n1][n2]);
+							}
+						}
+						int arrayInt3[2][2] = { { 191, 192 }, { 201, 202 } };
+						TEST_IS_EQ(Ash::Memory::copyForward(arrayInt1, arrayInt3, sizeof(arrayInt3) / sizeof(arrayInt3[0])), sizeof(arrayInt3) / sizeof(arrayInt3[0]));
+						for (size_t n1 = 0; n1 < 2; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayInt1[n1][n2], arrayInt3[n1][n2]);
+							}
+						}
+						for (size_t n = 0; n < 2; n++)
+						{
+							TEST_IS_EQ(arrayInt1[2][n], arrayInt2[2][n]);
+						}
+						int arrayInt4[4][2] = { { 211, 212 }, { 221, 222 }, { 231, 232 }, { 241, 242 } };
+						TEST_IS_EQ(Ash::Memory::copyForward(arrayInt1, arrayInt4, sizeof(arrayInt1) / sizeof(arrayInt1[0])), sizeof(arrayInt1) / sizeof(arrayInt1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayInt1[n1][n2], arrayInt4[n1][n2]);
+							}
+						}
+					}
+
+					{
+						Ash::Test::Memory::TraceValue<int> arrayTrace1[3][2] = { { 251, 252 }, { 261, 262 }, { 271, 272 } };
+						Ash::Test::Memory::TraceValue<int> arrayTrace2[3][2] = { { 281, 282 }, { 291, 292 }, { 301, 302 } };
+						TEST_IS_EQ(Ash::Memory::copyForward(arrayTrace1, arrayTrace2, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(*arrayTrace1[n1][n2], *arrayTrace2[n1][n2]);
+							}
+						}
+						Ash::Test::Memory::TraceValue<int> arrayTrace3[2][2] = { { 311, 312 }, { 321, 322 } };
+						TEST_IS_EQ(Ash::Memory::copyForward(arrayTrace1, arrayTrace3, sizeof(arrayTrace3) / sizeof(arrayTrace3[0])), sizeof(arrayTrace3) / sizeof(arrayTrace3[0]));
+						for (size_t n1 = 0; n1 < 2; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(*arrayTrace1[n1][n2], *arrayTrace3[n1][n2]);
+							}
+						}
+						for (size_t n = 0; n < 2; n++)
+						{
+							TEST_IS_EQ(*arrayTrace1[2][n], *arrayTrace2[2][n]);
+						}
+						Ash::Test::Memory::TraceValue<int> arrayTrace4[4][2] = { { 331, 332 }, { 341, 342 }, { 351, 352 }, { 361, 362 } };
+						TEST_IS_EQ(Ash::Memory::copyForward(arrayTrace1, arrayTrace4, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(*arrayTrace1[n1][n2], *arrayTrace4[n1][n2]);
+							}
+						}
+					}
+
 					return {};
 				}
 
@@ -407,6 +811,111 @@ namespace Ash
 						for (size_t n : Ash::Iterate<size_t>::from(1, sizeof(arrayTrace1) / sizeof(arrayTrace1[0]) - 1))
 						{
 							TEST_IS_EQ(*arrayTrace1[n], *arrayTrace4[n - 1]);
+						}
+					}
+
+					{
+						char arrayChar1[3][2] = { { 11, 12 }, { 21, 22 }, { 31, 32 } };
+						char arrayChar2[3][2] = { { 41, 42 }, { 51, 52 }, { 61, 62 } };
+						TEST_IS_EQ(Ash::Memory::copyBackward(arrayChar1, arrayChar2, sizeof(arrayChar1) / sizeof(arrayChar1[0])), sizeof(arrayChar1) / sizeof(arrayChar1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayChar1[n1][n2], arrayChar2[n1][n2]);
+							}
+						}
+						char arrayChar3[2][2] = { { 71, 72 }, { 81, 82 } };
+						TEST_IS_EQ(Ash::Memory::copyBackward(arrayChar1, arrayChar3, sizeof(arrayChar3) / sizeof(arrayChar3[0])), sizeof(arrayChar3) / sizeof(arrayChar3[0]));
+						for (size_t n1 = 0; n1 < 2; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayChar1[n1][n2], arrayChar3[n1][n2]);
+							}
+						}
+						for (size_t n = 0; n < 2; n++)
+						{
+							TEST_IS_EQ(arrayChar1[2][n], arrayChar2[2][n]);
+						}
+						char arrayChar4[4][2] = { { 91, 92 }, { 101, 102 }, { 111, 112 }, { 121, 122 } };
+						TEST_IS_EQ(Ash::Memory::copyBackward(arrayChar1, arrayChar4, sizeof(arrayChar1) / sizeof(arrayChar1[0])), sizeof(arrayChar1) / sizeof(arrayChar1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayChar1[n1][n2], arrayChar4[n1][n2]);
+							}
+						}
+					}
+
+					{
+						int arrayInt1[3][2] = { { 131, 132 }, { 141, 142 }, { 151, 152 } };
+						int arrayInt2[3][2] = { { 161, 162 }, { 171, 172 }, { 181, 182 } };
+						TEST_IS_EQ(Ash::Memory::copyBackward(arrayInt1, arrayInt2, sizeof(arrayInt1) / sizeof(arrayInt1[0])), sizeof(arrayInt1) / sizeof(arrayInt1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayInt1[n1][n2], arrayInt2[n1][n2]);
+							}
+						}
+						int arrayInt3[2][2] = { { 191, 192 }, { 201, 202 } };
+						TEST_IS_EQ(Ash::Memory::copyBackward(arrayInt1, arrayInt3, sizeof(arrayInt3) / sizeof(arrayInt3[0])), sizeof(arrayInt3) / sizeof(arrayInt3[0]));
+						for (size_t n1 = 0; n1 < 2; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayInt1[n1][n2], arrayInt3[n1][n2]);
+							}
+						}
+						for (size_t n = 0; n < 2; n++)
+						{
+							TEST_IS_EQ(arrayInt1[2][n], arrayInt2[2][n]);
+						}
+						int arrayInt4[4][2] = { { 211, 212 }, { 221, 222 }, { 231, 232 }, { 241, 242 } };
+						TEST_IS_EQ(Ash::Memory::copyBackward(arrayInt1, arrayInt4, sizeof(arrayInt1) / sizeof(arrayInt1[0])), sizeof(arrayInt1) / sizeof(arrayInt1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayInt1[n1][n2], arrayInt4[n1][n2]);
+							}
+						}
+					}
+
+					{
+						Ash::Test::Memory::TraceValue<int> arrayTrace1[3][2] = { { 251, 252 }, { 261, 262 }, { 271, 272 } };
+						Ash::Test::Memory::TraceValue<int> arrayTrace2[3][2] = { { 281, 282 }, { 291, 292 }, { 301, 302 } };
+						TEST_IS_EQ(Ash::Memory::copyBackward(arrayTrace1, arrayTrace2, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(*arrayTrace1[n1][n2], *arrayTrace2[n1][n2]);
+							}
+						}
+						Ash::Test::Memory::TraceValue<int> arrayTrace3[2][2] = { { 311, 312 }, { 321, 322 } };
+						TEST_IS_EQ(Ash::Memory::copyBackward(arrayTrace1, arrayTrace3, sizeof(arrayTrace3) / sizeof(arrayTrace3[0])), sizeof(arrayTrace3) / sizeof(arrayTrace3[0]));
+						for (size_t n1 = 0; n1 < 2; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(*arrayTrace1[n1][n2], *arrayTrace3[n1][n2]);
+							}
+						}
+						for (size_t n = 0; n < 2; n++)
+						{
+							TEST_IS_EQ(*arrayTrace1[2][n], *arrayTrace2[2][n]);
+						}
+						Ash::Test::Memory::TraceValue<int> arrayTrace4[4][2] = { { 331, 332 }, { 341, 342 }, { 351, 352 }, { 361, 362 } };
+						TEST_IS_EQ(Ash::Memory::copyBackward(arrayTrace1, arrayTrace4, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(*arrayTrace1[n1][n2], *arrayTrace4[n1][n2]);
+							}
 						}
 					}
 
@@ -520,6 +1029,183 @@ namespace Ash
 						}
 					}
 
+					{
+						char arrayChar1[3][2] = { { 11, 12 }, { 21, 22 }, { 31, 32 } };
+						char arrayChar2[3][2] = { { 41, 42 }, { 51, 52 }, { 61, 62 } };
+						TEST_IS_EQ(Ash::Memory::copy(arrayChar1, arrayChar2, sizeof(arrayChar1) / sizeof(arrayChar1[0])), sizeof(arrayChar1) / sizeof(arrayChar1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayChar1[n1][n2], arrayChar2[n1][n2]);
+							}
+						}
+						char arrayChar3[2][2] = { { 71, 72 }, { 81, 82 } };
+						TEST_IS_EQ(Ash::Memory::copy(arrayChar1, arrayChar3, sizeof(arrayChar3) / sizeof(arrayChar3[0])), sizeof(arrayChar3) / sizeof(arrayChar3[0]));
+						for (size_t n1 = 0; n1 < 2; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayChar1[n1][n2], arrayChar3[n1][n2]);
+							}
+						}
+						for (size_t n = 0; n < 2; n++)
+						{
+							TEST_IS_EQ(arrayChar1[2][n], arrayChar2[2][n]);
+						}
+						char arrayChar4[4][2] = { { 91, 92 }, { 101, 102 }, { 111, 112 }, { 121, 122 } };
+						TEST_IS_EQ(Ash::Memory::copy(arrayChar1, arrayChar4, sizeof(arrayChar1) / sizeof(arrayChar1[0])), sizeof(arrayChar1) / sizeof(arrayChar1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayChar1[n1][n2], arrayChar4[n1][n2]);
+							}
+						}
+						TEST_IS_EQ(Ash::Memory::copy(arrayChar1, &arrayChar1[1], sizeof(arrayChar1) / sizeof(arrayChar1[0]) - 1), sizeof(arrayChar1) / sizeof(arrayChar1[0]) - 1);
+						for (size_t n1 = 0; n1 < 2; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayChar1[n1][n2], arrayChar4[n1 + 1][n2]);
+							}
+						}
+						for (size_t n = 0; n < 2; n++)
+						{
+							TEST_IS_EQ(arrayChar1[2][n], arrayChar4[2][n]);
+						}
+						TEST_IS_EQ(Ash::Memory::copy(&arrayChar1[1], arrayChar1, sizeof(arrayChar1) / sizeof(arrayChar1[0]) - 1), sizeof(arrayChar1) / sizeof(arrayChar1[0]) - 1);
+						for (size_t n = 0; n < 2; n++)
+						{
+							TEST_IS_EQ(arrayChar1[0][n], arrayChar4[1][n]);
+						}
+						for (size_t n1 = 1; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayChar1[n1][n2], arrayChar4[n1][n2]);
+							}
+						}
+					}
+
+					{
+						int arrayInt1[3][2] = { { 131, 132 }, { 141, 142 }, { 151, 152 } };
+						int arrayInt2[3][2] = { { 161, 162 }, { 171, 172 }, { 181, 182 } };
+						TEST_IS_EQ(Ash::Memory::copy(arrayInt1, arrayInt2, sizeof(arrayInt1) / sizeof(arrayInt1[0])), sizeof(arrayInt1) / sizeof(arrayInt1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayInt1[n1][n2], arrayInt2[n1][n2]);
+							}
+						}
+						int arrayInt3[2][2] = { { 191, 192 }, { 201, 202 } };
+						TEST_IS_EQ(Ash::Memory::copy(arrayInt1, arrayInt3, sizeof(arrayInt3) / sizeof(arrayInt3[0])), sizeof(arrayInt3) / sizeof(arrayInt3[0]));
+						for (size_t n1 = 0; n1 < 2; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayInt1[n1][n2], arrayInt3[n1][n2]);
+							}
+						}
+						for (size_t n = 0; n < 2; n++)
+						{
+							TEST_IS_EQ(arrayInt1[2][n], arrayInt2[2][n]);
+						}
+						int arrayInt4[4][2] = { { 211, 212 }, { 221, 222 }, { 231, 232 }, { 241, 242 } };
+						TEST_IS_EQ(Ash::Memory::copy(arrayInt1, arrayInt4, sizeof(arrayInt1) / sizeof(arrayInt1[0])), sizeof(arrayInt1) / sizeof(arrayInt1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayInt1[n1][n2], arrayInt4[n1][n2]);
+							}
+						}
+						TEST_IS_EQ(Ash::Memory::copy(arrayInt1, &arrayInt1[1], sizeof(arrayInt1) / sizeof(arrayInt1[0]) - 1), sizeof(arrayInt1) / sizeof(arrayInt1[0]) - 1);
+						for (size_t n1 = 0; n1 < 2; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayInt1[n1][n2], arrayInt4[n1 + 1][n2]);
+							}
+						}
+						for (size_t n = 0; n < 2; n++)
+						{
+							TEST_IS_EQ(arrayInt1[2][n], arrayInt4[2][n]);
+						}
+						TEST_IS_EQ(Ash::Memory::copy(&arrayInt1[1], arrayInt1, sizeof(arrayInt1) / sizeof(arrayInt1[0]) - 1), sizeof(arrayInt1) / sizeof(arrayInt1[0]) - 1);
+						for (size_t n = 0; n < 2; n++)
+						{
+							TEST_IS_EQ(arrayInt1[0][n], arrayInt4[1][n]);
+						}
+						for (size_t n1 = 1; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayInt1[n1][n2], arrayInt4[n1][n2]);
+							}
+						}
+					}
+
+					{
+						Ash::Test::Memory::TraceValue<int> arrayTrace1[3][2] = { { 251, 252 }, { 261, 262 }, { 271, 272 } };
+						Ash::Test::Memory::TraceValue<int> arrayTrace2[3][2] = { { 281, 282 }, { 291, 292 }, { 301, 302 } };
+						TEST_IS_EQ(Ash::Memory::copy(arrayTrace1, arrayTrace2, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(*arrayTrace1[n1][n2], *arrayTrace2[n1][n2]);
+							}
+						}
+						Ash::Test::Memory::TraceValue<int> arrayTrace3[2][2] = { { 311, 312 }, { 321, 322 } };
+						TEST_IS_EQ(Ash::Memory::copy(arrayTrace1, arrayTrace3, sizeof(arrayTrace3) / sizeof(arrayTrace3[0])), sizeof(arrayTrace3) / sizeof(arrayTrace3[0]));
+						for (size_t n1 = 0; n1 < 2; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(*arrayTrace1[n1][n2], *arrayTrace3[n1][n2]);
+							}
+						}
+						for (size_t n = 0; n < 2; n++)
+						{
+							TEST_IS_EQ(*arrayTrace1[2][n], *arrayTrace2[2][n]);
+						}
+						Ash::Test::Memory::TraceValue<int> arrayTrace4[4][2] = { { 331, 332 }, { 341, 342 }, { 351, 352 }, { 361, 362 } };
+						TEST_IS_EQ(Ash::Memory::copy(arrayTrace1, arrayTrace4, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(*arrayTrace1[n1][n2], *arrayTrace4[n1][n2]);
+							}
+						}
+						TEST_IS_EQ(Ash::Memory::copy(arrayTrace1, &arrayTrace1[1], sizeof(arrayTrace1) / sizeof(arrayTrace1[0]) - 1), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]) - 1);
+						for (size_t n1 = 0; n1 < 2; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(*arrayTrace1[n1][n2], *arrayTrace4[n1 + 1][n2]);
+							}
+						}
+						for (size_t n = 0; n < 2; n++)
+						{
+							TEST_IS_EQ(*arrayTrace1[2][n], *arrayTrace4[2][n]);
+						}
+						TEST_IS_EQ(Ash::Memory::copy(&arrayTrace1[1], arrayTrace1, sizeof(arrayTrace1) / sizeof(arrayTrace1[0]) - 1), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]) - 1);
+						for (size_t n = 0; n < 2; n++)
+						{
+							TEST_IS_EQ(*arrayTrace1[0][n], *arrayTrace4[1][n]);
+						}
+						for (size_t n1 = 1; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(*arrayTrace1[n1][n2], *arrayTrace4[n1][n2]);
+							}
+						}
+					}
+
 					return {};
 				}
 
@@ -616,6 +1302,114 @@ namespace Ash
 						TEST_IS_TRUE(arrayTrace1[sizeof(arrayTrace1) / sizeof(arrayTrace1[0]) - 1].isNull());
 					}
 
+					{
+						char arrayChar1[3][2] = { { 11, 12 }, { 21, 22 }, { 31, 32 } };
+						char arrayChar2[3][2] = { { 41, 42 }, { 51, 52 }, { 61, 62 } };
+						TEST_IS_EQ(Ash::Memory::moveForward(arrayChar1, arrayChar2, sizeof(arrayChar1) / sizeof(arrayChar1[0])), sizeof(arrayChar1) / sizeof(arrayChar1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayChar1[n1][n2], arrayChar2[n1][n2]);
+							}
+						}
+						char arrayChar3[2][2] = { { 71, 72 }, { 81, 82 } };
+						TEST_IS_EQ(Ash::Memory::moveForward(arrayChar1, arrayChar3, sizeof(arrayChar3) / sizeof(arrayChar3[0])), sizeof(arrayChar3) / sizeof(arrayChar3[0]));
+						for (size_t n1 = 0; n1 < 2; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayChar1[n1][n2], arrayChar3[n1][n2]);
+							}
+						}
+						for (size_t n = 0; n < 2; n++)
+						{
+							TEST_IS_EQ(arrayChar1[2][n], arrayChar2[2][n]);
+						}
+						char arrayChar4[4][2] = { { 91, 92 }, { 101, 102 }, { 111, 112 }, { 121, 122 } };
+						TEST_IS_EQ(Ash::Memory::moveForward(arrayChar1, arrayChar4, sizeof(arrayChar1) / sizeof(arrayChar1[0])), sizeof(arrayChar1) / sizeof(arrayChar1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayChar1[n1][n2], arrayChar4[n1][n2]);
+							}
+						}
+					}
+
+					{
+						int arrayInt1[3][2] = { { 131, 132 }, { 141, 142 }, { 151, 152 } };
+						int arrayInt2[3][2] = { { 161, 162 }, { 171, 172 }, { 181, 182 } };
+						TEST_IS_EQ(Ash::Memory::moveForward(arrayInt1, arrayInt2, sizeof(arrayInt1) / sizeof(arrayInt1[0])), sizeof(arrayInt1) / sizeof(arrayInt1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayInt1[n1][n2], arrayInt2[n1][n2]);
+							}
+						}
+						int arrayInt3[2][2] = { { 191, 192 }, { 201, 202 } };
+						TEST_IS_EQ(Ash::Memory::moveForward(arrayInt1, arrayInt3, sizeof(arrayInt3) / sizeof(arrayInt3[0])), sizeof(arrayInt3) / sizeof(arrayInt3[0]));
+						for (size_t n1 = 0; n1 < 2; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayInt1[n1][n2], arrayInt3[n1][n2]);
+							}
+						}
+						for (size_t n = 0; n < 2; n++)
+						{
+							TEST_IS_EQ(arrayInt1[2][n], arrayInt2[2][n]);
+						}
+						int arrayInt4[4][2] = { { 211, 212 }, { 221, 222 }, { 231, 232 }, { 241, 242 } };
+						TEST_IS_EQ(Ash::Memory::moveForward(arrayInt1, arrayInt4, sizeof(arrayInt1) / sizeof(arrayInt1[0])), sizeof(arrayInt1) / sizeof(arrayInt1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayInt1[n1][n2], arrayInt4[n1][n2]);
+							}
+						}
+					}
+
+					{
+						Ash::Test::Memory::TraceValue<int> arrayTrace1[3][2] = { { 251, 252 }, { 261, 262 }, { 271, 272 } };
+						Ash::Test::Memory::TraceValue<int> arrayTrace2[3][2] = { { 281, 282 }, { 291, 292 }, { 301, 302 } };
+						TEST_IS_EQ(Ash::Memory::moveForward(arrayTrace1, arrayTrace2, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(*arrayTrace1[n1][n2], int(281 + n1 * 10 + n2));
+								TEST_IS_TRUE(arrayTrace2[n1][n2].isNull());
+							}
+						}
+						Ash::Test::Memory::TraceValue<int> arrayTrace3[2][2] = { { 311, 312 }, { 321, 322 } };
+						TEST_IS_EQ(Ash::Memory::moveForward(arrayTrace1, arrayTrace3, sizeof(arrayTrace3) / sizeof(arrayTrace3[0])), sizeof(arrayTrace3) / sizeof(arrayTrace3[0]));
+						for (size_t n1 = 0; n1 < 2; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(*arrayTrace1[n1][n2], int(311 + n1 * 10 + n2));
+								TEST_IS_TRUE(arrayTrace3[n1][n2].isNull());
+							}
+						}
+						for (size_t n = 0; n < 2; n++)
+						{
+							TEST_IS_EQ(*arrayTrace1[2][n], int(301 + n));
+						}
+						Ash::Test::Memory::TraceValue<int> arrayTrace4[4][2] = { { 331, 332 }, { 341, 342 }, { 351, 352 }, { 361, 362 } };
+						TEST_IS_EQ(Ash::Memory::moveForward(arrayTrace1, arrayTrace4, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(*arrayTrace1[n1][n2], int(331 + n1 * 10 + n2));
+								TEST_IS_TRUE(arrayTrace4[n1][n2].isNull());
+							}
+						}
+					}
+
 					return {};
 				}
 
@@ -709,6 +1503,114 @@ namespace Ash
 						for (size_t n : Ash::Iterate<size_t>::from(1, sizeof(arrayTrace1) / sizeof(arrayTrace1[0]) - 1))
 						{
 							TEST_IS_EQ(*arrayTrace1[n], int(27 + n));
+						}
+					}
+
+					{
+						char arrayChar1[3][2] = { { 11, 12 }, { 21, 22 }, { 31, 32 } };
+						char arrayChar2[3][2] = { { 41, 42 }, { 51, 52 }, { 61, 62 } };
+						TEST_IS_EQ(Ash::Memory::moveBackward(arrayChar1, arrayChar2, sizeof(arrayChar1) / sizeof(arrayChar1[0])), sizeof(arrayChar1) / sizeof(arrayChar1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayChar1[n1][n2], arrayChar2[n1][n2]);
+							}
+						}
+						char arrayChar3[2][2] = { { 71, 72 }, { 81, 82 } };
+						TEST_IS_EQ(Ash::Memory::moveBackward(arrayChar1, arrayChar3, sizeof(arrayChar3) / sizeof(arrayChar3[0])), sizeof(arrayChar3) / sizeof(arrayChar3[0]));
+						for (size_t n1 = 0; n1 < 2; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayChar1[n1][n2], arrayChar3[n1][n2]);
+							}
+						}
+						for (size_t n = 0; n < 2; n++)
+						{
+							TEST_IS_EQ(arrayChar1[2][n], arrayChar2[2][n]);
+						}
+						char arrayChar4[4][2] = { { 91, 92 }, { 101, 102 }, { 111, 112 }, { 121, 122 } };
+						TEST_IS_EQ(Ash::Memory::moveBackward(arrayChar1, arrayChar4, sizeof(arrayChar1) / sizeof(arrayChar1[0])), sizeof(arrayChar1) / sizeof(arrayChar1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayChar1[n1][n2], arrayChar4[n1][n2]);
+							}
+						}
+					}
+
+					{
+						int arrayInt1[3][2] = { { 131, 132 }, { 141, 142 }, { 151, 152 } };
+						int arrayInt2[3][2] = { { 161, 162 }, { 171, 172 }, { 181, 182 } };
+						TEST_IS_EQ(Ash::Memory::moveBackward(arrayInt1, arrayInt2, sizeof(arrayInt1) / sizeof(arrayInt1[0])), sizeof(arrayInt1) / sizeof(arrayInt1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayInt1[n1][n2], arrayInt2[n1][n2]);
+							}
+						}
+						int arrayInt3[2][2] = { { 191, 192 }, { 201, 202 } };
+						TEST_IS_EQ(Ash::Memory::moveBackward(arrayInt1, arrayInt3, sizeof(arrayInt3) / sizeof(arrayInt3[0])), sizeof(arrayInt3) / sizeof(arrayInt3[0]));
+						for (size_t n1 = 0; n1 < 2; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayInt1[n1][n2], arrayInt3[n1][n2]);
+							}
+						}
+						for (size_t n = 0; n < 2; n++)
+						{
+							TEST_IS_EQ(arrayInt1[2][n], arrayInt2[2][n]);
+						}
+						int arrayInt4[4][2] = { { 211, 212 }, { 221, 222 }, { 231, 232 }, { 241, 242 } };
+						TEST_IS_EQ(Ash::Memory::moveBackward(arrayInt1, arrayInt4, sizeof(arrayInt1) / sizeof(arrayInt1[0])), sizeof(arrayInt1) / sizeof(arrayInt1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayInt1[n1][n2], arrayInt4[n1][n2]);
+							}
+						}
+					}
+
+					{
+						Ash::Test::Memory::TraceValue<int> arrayTrace1[3][2] = { { 251, 252 }, { 261, 262 }, { 271, 272 } };
+						Ash::Test::Memory::TraceValue<int> arrayTrace2[3][2] = { { 281, 282 }, { 291, 292 }, { 301, 302 } };
+						TEST_IS_EQ(Ash::Memory::moveBackward(arrayTrace1, arrayTrace2, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(*arrayTrace1[n1][n2], int(281 + n1 * 10 + n2));
+								TEST_IS_TRUE(arrayTrace2[n1][n2].isNull());
+							}
+						}
+						Ash::Test::Memory::TraceValue<int> arrayTrace3[2][2] = { { 311, 312 }, { 321, 322 } };
+						TEST_IS_EQ(Ash::Memory::moveBackward(arrayTrace1, arrayTrace3, sizeof(arrayTrace3) / sizeof(arrayTrace3[0])), sizeof(arrayTrace3) / sizeof(arrayTrace3[0]));
+						for (size_t n1 = 0; n1 < 2; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(*arrayTrace1[n1][n2], int(311 + n1 * 10 + n2));
+								TEST_IS_TRUE(arrayTrace3[n1][n2].isNull());
+							}
+						}
+						for (size_t n = 0; n < 2; n++)
+						{
+							TEST_IS_EQ(*arrayTrace1[2][n], int(301 + n));
+						}
+						Ash::Test::Memory::TraceValue<int> arrayTrace4[4][2] = { { 331, 332 }, { 341, 342 }, { 351, 352 }, { 361, 362 } };
+						TEST_IS_EQ(Ash::Memory::moveBackward(arrayTrace1, arrayTrace4, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(*arrayTrace1[n1][n2], int(331 + n1 * 10 + n2));
+								TEST_IS_TRUE(arrayTrace4[n1][n2].isNull());
+							}
 						}
 					}
 
@@ -823,6 +1725,190 @@ namespace Ash
 						for (size_t n : Ash::Iterate<size_t>::from(1, sizeof(arrayTrace1) / sizeof(arrayTrace1[0]) - 1))
 						{
 							TEST_IS_EQ(*arrayTrace1[n], int(28 + n));
+						}
+					}
+
+					{
+						char arrayChar1[3][2] = { { 11, 12 }, { 21, 22 }, { 31, 32 } };
+						char arrayChar2[3][2] = { { 41, 42 }, { 51, 52 }, { 61, 62 } };
+						TEST_IS_EQ(Ash::Memory::move(arrayChar1, arrayChar2, sizeof(arrayChar1) / sizeof(arrayChar1[0])), sizeof(arrayChar1) / sizeof(arrayChar1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayChar1[n1][n2], arrayChar2[n1][n2]);
+							}
+						}
+						char arrayChar3[2][2] = { { 71, 72 }, { 81, 82 } };
+						TEST_IS_EQ(Ash::Memory::move(arrayChar1, arrayChar3, sizeof(arrayChar3) / sizeof(arrayChar3[0])), sizeof(arrayChar3) / sizeof(arrayChar3[0]));
+						for (size_t n1 = 0; n1 < 2; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayChar1[n1][n2], arrayChar3[n1][n2]);
+							}
+						}
+						for (size_t n = 0; n < 2; n++)
+						{
+							TEST_IS_EQ(arrayChar1[2][n], arrayChar2[2][n]);
+						}
+						char arrayChar4[4][2] = { { 91, 92 }, { 101, 102 }, { 111, 112 }, { 121, 122 } };
+						TEST_IS_EQ(Ash::Memory::move(arrayChar1, arrayChar4, sizeof(arrayChar1) / sizeof(arrayChar1[0])), sizeof(arrayChar1) / sizeof(arrayChar1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayChar1[n1][n2], arrayChar4[n1][n2]);
+							}
+						}
+						TEST_IS_EQ(Ash::Memory::move(arrayChar1, &arrayChar1[1], sizeof(arrayChar1) / sizeof(arrayChar1[0]) - 1), sizeof(arrayChar1) / sizeof(arrayChar1[0]) - 1);
+						for (size_t n1 = 0; n1 < 2; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayChar1[n1][n2], arrayChar4[n1 + 1][n2]);
+							}
+						}
+						for (size_t n = 0; n < 2; n++)
+						{
+							TEST_IS_EQ(arrayChar1[2][n], arrayChar4[2][n]);
+						}
+						TEST_IS_EQ(Ash::Memory::move(&arrayChar1[1], arrayChar1, sizeof(arrayChar1) / sizeof(arrayChar1[0]) - 1), sizeof(arrayChar1) / sizeof(arrayChar1[0]) - 1);
+						for (size_t n = 0; n < 2; n++)
+						{
+							TEST_IS_EQ(arrayChar1[0][n], arrayChar4[1][n]);
+						}
+						for (size_t n1 = 1; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayChar1[n1][n2], arrayChar4[n1][n2]);
+							}
+						}
+					}
+
+					{
+						int arrayInt1[3][2] = { { 131, 132 }, { 141, 142 }, { 151, 152 } };
+						int arrayInt2[3][2] = { { 161, 162 }, { 171, 172 }, { 181, 182 } };
+						TEST_IS_EQ(Ash::Memory::move(arrayInt1, arrayInt2, sizeof(arrayInt1) / sizeof(arrayInt1[0])), sizeof(arrayInt1) / sizeof(arrayInt1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayInt1[n1][n2], arrayInt2[n1][n2]);
+							}
+						}
+						int arrayInt3[2][2] = { { 191, 192 }, { 201, 202 } };
+						TEST_IS_EQ(Ash::Memory::move(arrayInt1, arrayInt3, sizeof(arrayInt3) / sizeof(arrayInt3[0])), sizeof(arrayInt3) / sizeof(arrayInt3[0]));
+						for (size_t n1 = 0; n1 < 2; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayInt1[n1][n2], arrayInt3[n1][n2]);
+							}
+						}
+						for (size_t n = 0; n < 2; n++)
+						{
+							TEST_IS_EQ(arrayInt1[2][n], arrayInt2[2][n]);
+						}
+						int arrayInt4[4][2] = { { 211, 212 }, { 221, 222 }, { 231, 232 }, { 241, 242 } };
+						TEST_IS_EQ(Ash::Memory::move(arrayInt1, arrayInt4, sizeof(arrayInt1) / sizeof(arrayInt1[0])), sizeof(arrayInt1) / sizeof(arrayInt1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayInt1[n1][n2], arrayInt4[n1][n2]);
+							}
+						}
+						TEST_IS_EQ(Ash::Memory::move(arrayInt1, &arrayInt1[1], sizeof(arrayInt1) / sizeof(arrayInt1[0]) - 1), sizeof(arrayInt1) / sizeof(arrayInt1[0]) - 1);
+						for (size_t n1 = 0; n1 < 2; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayInt1[n1][n2], arrayInt4[n1 + 1][n2]);
+							}
+						}
+						for (size_t n = 0; n < 2; n++)
+						{
+							TEST_IS_EQ(arrayInt1[2][n], arrayInt4[2][n]);
+						}
+						TEST_IS_EQ(Ash::Memory::move(&arrayInt1[1], arrayInt1, sizeof(arrayInt1) / sizeof(arrayInt1[0]) - 1), sizeof(arrayInt1) / sizeof(arrayInt1[0]) - 1);
+						for (size_t n = 0; n < 2; n++)
+						{
+							TEST_IS_EQ(arrayInt1[0][n], arrayInt4[1][n]);
+						}
+						for (size_t n1 = 1; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(arrayInt1[n1][n2], arrayInt4[n1][n2]);
+							}
+						}
+					}
+
+					{
+						Ash::Test::Memory::TraceValue<int> arrayTrace1[3][2] = { { 251, 252 }, { 261, 262 }, { 271, 272 } };
+						Ash::Test::Memory::TraceValue<int> arrayTrace2[3][2] = { { 281, 282 }, { 291, 292 }, { 301, 302 } };
+						TEST_IS_EQ(Ash::Memory::move(arrayTrace1, arrayTrace2, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(*arrayTrace1[n1][n2], int(281 + n1 * 10 + n2));
+								TEST_IS_TRUE(arrayTrace2[n1][n2].isNull());
+							}
+						}
+						Ash::Test::Memory::TraceValue<int> arrayTrace3[2][2] = { { 311, 312 }, { 321, 322 } };
+						TEST_IS_EQ(Ash::Memory::move(arrayTrace1, arrayTrace3, sizeof(arrayTrace3) / sizeof(arrayTrace3[0])), sizeof(arrayTrace3) / sizeof(arrayTrace3[0]));
+						for (size_t n1 = 0; n1 < 2; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(*arrayTrace1[n1][n2], int(311 + n1 * 10 + n2));
+								TEST_IS_TRUE(arrayTrace3[n1][n2].isNull());
+							}
+						}
+						for (size_t n = 0; n < 2; n++)
+						{
+							TEST_IS_EQ(*arrayTrace1[2][n], int(301 + n));
+						}
+						Ash::Test::Memory::TraceValue<int> arrayTrace4[4][2] = { { 331, 332 }, { 341, 342 }, { 351, 352 }, { 361, 362 } };
+						TEST_IS_EQ(Ash::Memory::move(arrayTrace1, arrayTrace4, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
+						for (size_t n1 = 0; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(*arrayTrace1[n1][n2], int(331 + n1 * 10 + n2));
+								TEST_IS_TRUE(arrayTrace4[n1][n2].isNull());
+							}
+						}
+						for (size_t n = 0; n < 2; n++)
+						{
+							TEST_IS_EQ(*arrayTrace4[3][n], int(361 + n));
+						}
+						TEST_IS_EQ(Ash::Memory::move(arrayTrace1, &arrayTrace1[1], sizeof(arrayTrace1) / sizeof(arrayTrace1[0]) - 1), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]) - 1);
+						for (size_t n1 = 0; n1 < 2; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(*arrayTrace1[n1][n2], int(341 + n1 * 10 + n2));
+							}
+						}
+						for (size_t n = 0; n < 2; n++)
+						{
+							TEST_IS_TRUE(arrayTrace1[2][n].isNull());
+						}
+						TEST_IS_EQ(Ash::Memory::move(&arrayTrace1[1], arrayTrace1, sizeof(arrayTrace1) / sizeof(arrayTrace1[0]) - 1), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]) - 1);
+						for (size_t n = 0; n < 2; n++)
+						{
+							TEST_IS_TRUE(arrayTrace1[0][n].isNull());
+						}
+						for (size_t n1 = 1; n1 < 3; n1++)
+						{
+							for (size_t n2 = 0; n2 < 2; n2++)
+							{
+								TEST_IS_EQ(*arrayTrace1[n1][n2], int(331 + n1 * 10 + n2));
+							}
 						}
 					}
 

@@ -19,18 +19,28 @@ namespace Ash
 		>
 		constexpr size_t copyForward(TYPE *to, const TYPE *from, size_t length)
 		{
-			if constexpr (Ash::Type::isPrimitive<TYPE>)
+			if constexpr (Ash::Type::isArray<TYPE>)
 			{
-				if (!std::is_constant_evaluated() && (length > sizeof(uint64_t) / sizeof(TYPE)))
+				for (size_t n : Ash::Iterate<size_t>::from(0, length))
 				{
-					::memmove(to, from, length * sizeof(TYPE));
-					return length;
+					copyForward(to[n], from[n], Ash::Type::Array<TYPE>::size);
 				}
 			}
-
-			for (size_t n : Ash::Iterate<size_t>::from(0, length))
+			else
 			{
-				to[n] = from[n];
+				if constexpr (Ash::Type::isPrimitive<TYPE>)
+				{
+					if (!std::is_constant_evaluated() && (length > sizeof(uint64_t) / sizeof(TYPE)))
+					{
+						::memmove(to, from, length * sizeof(TYPE));
+						return length;
+					}
+				}
+
+				for (size_t n : Ash::Iterate<size_t>::from(0, length))
+				{
+					to[n] = from[n];
+				}
 			}
 			return length;
 		}
@@ -41,18 +51,28 @@ namespace Ash
 		>
 		constexpr size_t copyBackward(TYPE *to, const TYPE *from, size_t length)
 		{
-			if constexpr (Ash::Type::isPrimitive<TYPE>)
+			if constexpr (Ash::Type::isArray<TYPE>)
 			{
-				if (!std::is_constant_evaluated() && (length > sizeof(uint64_t) / sizeof(TYPE)))
+				for (size_t n : Ash::Iterate<size_t>::from(0, length).reverse())
 				{
-					::memmove(to, from, length * sizeof(TYPE));
-					return length;
+					copyForward(to[n], from[n], Ash::Type::Array<TYPE>::size);
 				}
 			}
-
-			for (size_t n : Ash::Iterate<size_t>::from(0, length).reverse())
+			else
 			{
-				to[n] = from[n];
+				if constexpr (Ash::Type::isPrimitive<TYPE>)
+				{
+					if (!std::is_constant_evaluated() && (length > sizeof(uint64_t) / sizeof(TYPE)))
+					{
+						::memmove(to, from, length * sizeof(TYPE));
+						return length;
+					}
+				}
+
+				for (size_t n : Ash::Iterate<size_t>::from(0, length).reverse())
+				{
+					to[n] = from[n];
+				}
 			}
 			return length;
 		}
@@ -72,18 +92,28 @@ namespace Ash
 		>
 		constexpr size_t moveForward(TYPE *to, TYPE *from, size_t length)
 		{
-			if constexpr (Ash::Type::isPrimitive<TYPE>)
+			if constexpr (Ash::Type::isArray<TYPE>)
 			{
-				if (!std::is_constant_evaluated() && (length > sizeof(uint64_t) / sizeof(TYPE)))
+				for (size_t n : Ash::Iterate<size_t>::from(0, length))
 				{
-					::memmove(to, from, length * sizeof(TYPE));
-					return length;
+					moveForward(to[n], from[n], Ash::Type::Array<TYPE>::size);
 				}
 			}
-
-			for (size_t n : Ash::Iterate<size_t>::from(0, length))
+			else
 			{
-				to[n] = std::move(from[n]);
+				if constexpr (Ash::Type::isPrimitive<TYPE>)
+				{
+					if (!std::is_constant_evaluated() && (length > sizeof(uint64_t) / sizeof(TYPE)))
+					{
+						::memmove(to, from, length * sizeof(TYPE));
+						return length;
+					}
+				}
+
+				for (size_t n : Ash::Iterate<size_t>::from(0, length))
+				{
+					to[n] = std::move(from[n]);
+				}
 			}
 			return length;
 		}
@@ -94,18 +124,28 @@ namespace Ash
 		>
 		constexpr size_t moveBackward(TYPE *to, TYPE *from, size_t length)
 		{
-			if constexpr (Ash::Type::isPrimitive<TYPE>)
+			if constexpr (Ash::Type::isArray<TYPE>)
 			{
-				if (!std::is_constant_evaluated() && (length > sizeof(uint64_t) / sizeof(TYPE)))
+				for (size_t n : Ash::Iterate<size_t>::from(0, length).reverse())
 				{
-					::memmove(to, from, length * sizeof(TYPE));
-					return length;
+					moveForward(to[n], from[n], Ash::Type::Array<TYPE>::size);
 				}
 			}
-
-			for (size_t n : Ash::Iterate<size_t>::from(0, length).reverse())
+			else
 			{
-				to[n] = std::move(from[n]);
+				if constexpr (Ash::Type::isPrimitive<TYPE>)
+				{
+					if (!std::is_constant_evaluated() && (length > sizeof(uint64_t) / sizeof(TYPE)))
+					{
+						::memmove(to, from, length * sizeof(TYPE));
+						return length;
+					}
+				}
+
+				for (size_t n : Ash::Iterate<size_t>::from(0, length).reverse())
+				{
+					to[n] = std::move(from[n]);
+				}
 			}
 			return length;
 		}
@@ -125,18 +165,28 @@ namespace Ash
 		>
 		constexpr size_t clear(TYPE *content, size_t length)
 		{
-			if constexpr (Ash::Type::isPrimitive<TYPE>)
+			if constexpr (Ash::Type::isArray<TYPE>)
 			{
-				if (!std::is_constant_evaluated() && (length > sizeof(uint64_t) / sizeof(TYPE)))
+				for (size_t n : Ash::Iterate<size_t>::from(0, length))
 				{
-					::memset(content, TYPE(), length * sizeof(TYPE));
-					return length;
+					clear(content[n], Ash::Type::Array<TYPE>::size);
 				}
 			}
-
-			for (size_t n : Ash::Iterate<size_t>::from(0, length))
+			else
 			{
-				content[n] = TYPE();
+				if constexpr (Ash::Type::isPrimitive<TYPE>)
+				{
+					if (!std::is_constant_evaluated() && (length > sizeof(uint64_t) / sizeof(TYPE)))
+					{
+						::memset(content, TYPE(), length * sizeof(TYPE));
+						return length;
+					}
+				}
+
+				for (size_t n : Ash::Iterate<size_t>::from(0, length))
+				{
+					content[n] = TYPE();
+				}
 			}
 			return length;
 		}
