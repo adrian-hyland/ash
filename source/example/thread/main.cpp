@@ -6,21 +6,23 @@
 class BackgroundThread : public Ash::Concurrency::Thread
 {
 public:
+	using Function = Ash::Memory::Unique::Pointer<Ash::Callable::Generic::Function<void>>;
+
 	BackgroundThread() : Ash::Concurrency::Thread(), m_Queue() { run(this); }
 
 	~BackgroundThread()
 	{
-		send(Ash::Memory::Unique::Pointer<Ash::Callable::Generic::Function>());
+		send(Function());
 		join();
 	}
 
-	void send(Ash::Memory::Unique::Pointer<Ash::Callable::Generic::Function> fn) { m_Queue.add(std::move(fn)); }
+	void send(Function fn) { m_Queue.add(std::move(fn)); }
 
 	void operator ()()
 	{
 		for (;;)
 		{
-			Ash::Memory::Unique::Pointer<Ash::Callable::Generic::Function> function = m_Queue.remove();
+			Function function = m_Queue.remove();
 			if (function.isNull())
 			{
 				break;
@@ -31,21 +33,22 @@ public:
 	}
 
 private:
-	Ash::Concurrency::Queue1x1<Ash::Memory::Unique::Pointer<Ash::Callable::Generic::Function>> m_Queue;
+	Ash::Concurrency::Queue1x1<Function> m_Queue;
 };
 
 
-void helloWorld()
+static void helloWorld()
 {
 	std::cout << "hello world\n";
 }
+
+static Ash::Callable::Function helloWorldFunction = helloWorld;
 
 
 int main(int argumentCount, const char *argumentArray[])
 {
 	BackgroundThread backgroundThread;
 
-	Ash::Callable::Function helloWorldFunction = helloWorld;
 	backgroundThread.send(Ash::Memory::Unique::at(helloWorldFunction));
 
 	backgroundThread.send

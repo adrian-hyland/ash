@@ -10,6 +10,27 @@ namespace Ash
 	{
 		template
 		<
+			typename CALL,
+			typename ...ARGUMENT
+		>
+		struct Return
+		{
+			using Type = decltype(std::declval<CALL>()(std::declval<ARGUMENT>()...));
+		};
+
+		template
+		<
+			typename CLASS,
+			typename ...ARGUMENT
+		>
+		struct Return<CLASS *, ARGUMENT...>
+		{
+			using Type = decltype(std::declval<CLASS>()(std::declval<ARGUMENT>()...));
+		};
+
+
+		template
+		<
 			typename TYPE,
 			typename ...NEXT_TYPE
 		>
@@ -71,15 +92,15 @@ namespace Ash
 				typename FUNCTION,
 				typename ...ARGUMENT
 			>
-			constexpr void operator ()(FUNCTION function, ARGUMENT &&...argument)
+			constexpr Return<FUNCTION, ARGUMENT..., TYPE, NEXT_TYPE...>::Type operator ()(FUNCTION function, ARGUMENT &&...argument)
 			{
 				if constexpr (std::is_lvalue_reference_v<TYPE>)
 				{
-					Next::operator ()(function, std::forward<ARGUMENT>(argument)..., m_Value);
+					return Next::operator ()(function, std::forward<ARGUMENT>(argument)..., m_Value);
 				}
 				else
 				{
-					Next::operator ()(function, std::forward<ARGUMENT>(argument)..., std::move(m_Value));
+					return Next::operator ()(function, std::forward<ARGUMENT>(argument)..., std::move(m_Value));
 				}
 			}
 
@@ -135,15 +156,15 @@ namespace Ash
 				typename FUNCTION,
 				typename ...ARGUMENT
 			>
-			constexpr void operator ()(FUNCTION function, ARGUMENT &&...argument)
+			constexpr Return<FUNCTION, ARGUMENT..., TYPE>::Type operator ()(FUNCTION function, ARGUMENT &&...argument)
 			{
 				if constexpr (std::is_lvalue_reference_v<TYPE>)
 				{
-					(*function)(std::forward<ARGUMENT>(argument)..., m_Value);
+					return (*function)(std::forward<ARGUMENT>(argument)..., m_Value);
 				}
 				else
 				{
-					(*function)(std::forward<ARGUMENT>(argument)..., std::move(m_Value));
+					return (*function)(std::forward<ARGUMENT>(argument)..., std::move(m_Value));
 				}
 			}
 
@@ -160,10 +181,16 @@ namespace Ash
 
 		namespace Generic
 		{
+			template
+			<
+				typename RETURN = void
+			>
 			class Function
 			{
 			public:
-				virtual constexpr void operator ()() = 0;
+				using Return = RETURN;
+
+				virtual constexpr Return operator ()() = 0;
 			};
 		}
 
@@ -172,10 +199,12 @@ namespace Ash
 			typename CALL,
 			typename ...ARGUMENT
 		>
-		class Function : public Generic::Function
+		class Function : public Generic::Function<typename Ash::Callable::Return<CALL, ARGUMENT...>::Type>
 		{
 		public:
 			using Call = CALL;
+
+			using Return = Ash::Callable::Return<CALL, ARGUMENT...>::Type;
 
 			using Arguments = Argument<ARGUMENT...>;
 
@@ -191,7 +220,7 @@ namespace Ash
 			>
 			const typename Arguments::template GetType<INDEX> &getArgument() const { return m_Arguments.template get<INDEX>(); }
 
-			constexpr void operator ()() override { m_Arguments(m_Call); }
+			constexpr Return operator ()() override { return m_Arguments(m_Call); }
 
 		private:
 			Call      m_Call;
@@ -202,14 +231,16 @@ namespace Ash
 		<
 			typename CALL
 		>
-		class Function<CALL> : public Generic::Function
+		class Function<CALL> : public Generic::Function<typename Ash::Callable::Return<CALL>::Type>
 		{
 		public:
 			using Call = CALL;
 
+			using Return = Ash::Callable::Return<CALL>::Type;
+
 			constexpr Function(Call call) : m_Call(call) {}
 
-			constexpr void operator ()() override { (*m_Call)(); }
+			constexpr Return operator ()() override { return (*m_Call)(); }
 
 		private:
 			Call m_Call;
