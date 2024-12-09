@@ -909,6 +909,30 @@ namespace Ash
 				return {};
 			}
 
+			static Ash::Test::Assertion array()
+			{
+				bool isSame;
+
+				using Array3 = int [2][3][4];
+				TEST_IS_EQ(Ash::Type::Array<Array3>::size, 2);
+
+				using Array2 = Ash::Type::Array<Array3>::Type;
+				isSame = Ash::Type::isSame<Array2, int [3][4]>;
+				TEST_IS_TRUE(isSame);
+				TEST_IS_EQ(Ash::Type::Array<Array2>::size, 3);
+
+				using Array1 = Ash::Type::Array<Array2>::Type;
+				isSame = Ash::Type::isSame<Array1, int [4]>;
+				TEST_IS_TRUE(isSame);
+				TEST_IS_EQ(Ash::Type::Array<Array1>::size, 4);
+
+				using Type = Ash::Type::Array<Array1>::Type;
+				isSame = Ash::Type::isSame<Type, int>;
+				TEST_IS_TRUE(isSame);
+
+				return {};
+			}
+
 			static Ash::Test::Assertion option()
 			{
 				bool isSame;
@@ -987,6 +1011,7 @@ namespace Ash
 			TEST_CASE(Ash::Test::Type::isNotSame),
 			TEST_CASE(Ash::Test::Type::isSameSize),
 			TEST_CASE(Ash::Test::Type::isByteSizeInteger),
+			TEST_CASE(Ash::Test::Type::array),
 			TEST_CASE(Ash::Test::Type::option),
 			TEST_CASE(Ash::Test::Type::index),
 			TEST_CASE(Ash::Test::Type::checkIfAny),

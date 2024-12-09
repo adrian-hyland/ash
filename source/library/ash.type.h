@@ -442,6 +442,26 @@ namespace Ash
 
 		template
 		<
+			typename TYPE
+		>
+		struct Array
+		{
+		};
+
+		template
+		<
+			typename TYPE,
+			size_t SIZE
+		>
+		struct Array<TYPE [SIZE]>
+		{
+			using Type = TYPE;
+
+			static constexpr size_t size = SIZE;
+		};
+
+		template
+		<
 			typename TYPE_OPTION_TRUE,
 			typename TYPE_OPTION_FALSE,
 			bool     OPTION
