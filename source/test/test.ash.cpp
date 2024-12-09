@@ -1,6 +1,7 @@
 #include <iostream>
 #include "ash.test.test.h"
 #include "ash.test.type.h"
+#include "ash.test.callable.h"
 #include "ash.test.size.h"
 #include "ash.test.iterate.h"
 #include "ash.test.integer.h"
@@ -22,6 +23,7 @@ int main()
 
 		Ash::Test::testTest,
 		Ash::Test::testType,
+		Ash::Test::testCallable,
 		Ash::Test::testSize,
 		Ash::Test::testIterate,
 		Ash::Test::testInteger,
