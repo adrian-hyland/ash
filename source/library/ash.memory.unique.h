@@ -21,8 +21,6 @@ namespace Ash
 
 				constexpr Pointer() : m_Reference(nullptr), m_Allocation(nullptr) {}
 
-				constexpr Pointer(const Pointer &pointer) = delete;
-
 				constexpr Pointer(Pointer &&pointer) : m_Reference(pointer.m_Reference), m_Allocation(pointer.m_Allocation) { pointer.m_Reference = nullptr; pointer.m_Allocation = nullptr; }
 
 				template
@@ -36,8 +34,6 @@ namespace Ash
 				}
 
 				inline ~Pointer() { release(); }
-
-				constexpr Pointer &operator = (const Pointer &pointer) = delete;
 
 				constexpr Pointer &operator = (Pointer &&pointer)
 				{
@@ -86,11 +82,17 @@ namespace Ash
 
 				constexpr bool isAllocated() const { return m_Allocation != nullptr; }
 
-				constexpr operator Type *() const { return m_Reference; }
+				constexpr operator const Type *() const { return m_Reference; }
 
-				constexpr Type &operator * () const { return *m_Reference; }
+				constexpr const Type &operator * () const { return *m_Reference; }
 
-				constexpr Type *operator -> () const { return m_Reference; }
+				constexpr const Type *operator -> () const { return m_Reference; }
+
+				constexpr operator Type *() { return m_Reference; }
+
+				constexpr Type &operator * () { return *m_Reference; }
+
+				constexpr Type *operator -> () { return m_Reference; }
 
 				constexpr void release()
 				{
@@ -164,6 +166,9 @@ namespace Ash
 					typename VALUE_TYPE
 				>
 				friend class Pointer;
+
+				Pointer(const Pointer &pointer) = delete;
+				Pointer &operator = (const Pointer &pointer) = delete;
 			};
 
 
