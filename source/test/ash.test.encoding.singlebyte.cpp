@@ -49,7 +49,7 @@ namespace Ash
 					}
 
 					{
-						static Ash::Encoding::CodeUnit16 values[] =
+						static constexpr Ash::Encoding::CodeUnit16 values[] =
 						{
 							'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
 						};
@@ -251,7 +251,7 @@ namespace Ash
 
 				static Ash::Test::Assertion character()
 				{
-					static Ash::Encoding::CodeUnit16 decimalValues[] =
+					static constexpr Ash::Encoding::CodeUnit16 decimalValues[] =
 					{
 						'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
 					};
@@ -292,7 +292,7 @@ namespace Ash
 
 				static Ash::Test::Assertion decodeNext()
 				{
-					static Ash::Encoding::CodeUnit16 decimalValues[] =
+					static constexpr Ash::Encoding::CodeUnit16 decimalValues[] =
 					{
 						'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
 					};
@@ -345,7 +345,7 @@ namespace Ash
 
 				static Ash::Test::Assertion decodePrevious()
 				{
-					static Ash::Encoding::CodeUnit16 decimalValues[] =
+					static constexpr Ash::Encoding::CodeUnit16 decimalValues[] =
 					{
 						'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
 					};
