@@ -82,6 +82,8 @@ ifeq ($(INTERMEDIATE),1)
 CXX_FLAGS += -save-temps=obj -fverbose-asm
 endif
 
+CXX_VERSION := $(shell $(CXX) -dumpversion)
+
 SRC_DIR = ./source
 INC_DIR := $(call list_add,$(SRC_DIR)/library)
 INC_DIR += $(call list_add,$(SRC_DIR)/$(APPLICATION))
@@ -103,6 +105,9 @@ CXX_DEFINE += $(call list_add,STD=$(STD))
 CXX_FLAGS += -c -Wall -Werror $(call list_get,-I",$(INC_DIR),") $(call list_get,-D",$(CXX_DEFINE),")
 
 ifeq ($(CXX),g++)
+ifeq (,$(filter-out 11 11.% 12 12.% 13 13.%,$(CXX_VERSION)))
+CXX_FLAGS += -fno-tree-vrp
+endif
 LNK_FLAGS += -pthread
 endif
 
