@@ -29,24 +29,15 @@ namespace Ash
 
 				static constexpr size_t size = SIZE;
 
-				static constexpr bool isCodeValid(Code code) { return getInstance().m_ToUnicode.isValid(code); }
+				static constexpr bool isCodeValid(Code code) { return toUnicode.isValid(code); }
 
-				static constexpr bool isCharacterValid(Ash::Unicode::Character character) { return getInstance().m_FromUnicode.isValid(character); }
+				static constexpr bool isCharacterValid(Ash::Unicode::Character character) { return fromUnicode.isValid(character); }
 
-				static constexpr Ash::Unicode::Character getCharacter(Code code) { return getInstance().m_ToUnicode.convert(code); }
+				static constexpr Ash::Unicode::Character getCharacter(Code code) { return toUnicode.convert(code); }
 
-				static constexpr Code getCode(Ash::Unicode::Character character, Code replacement = '?') { return getInstance().m_FromUnicode.convert(character, replacement); }
+				static constexpr Code getCode(Ash::Unicode::Character character, Code replacement = '?') { return fromUnicode.convert(character, replacement); }
 
 			protected:
-				constexpr Lookup() : m_ToUnicode(VALUES), m_FromUnicode(VALUES) {}
-
-				static Lookup &getInstance()
-				{
-					static Lookup lookup;
-
-					return lookup;
-				}
-
 				class ToUnicode : public Ash::Memory::Sequence<Ash::Encoding::CodeUnit16, size>
 				{
 				public:
@@ -191,12 +182,12 @@ namespace Ash
 					Ash::Memory::Buffer<Map, size> m_Mappings;
 				};
 
-			private:
-				ToUnicode   m_ToUnicode;
-				FromUnicode m_FromUnicode;
+				static constexpr ToUnicode toUnicode = ToUnicode(VALUES);
 
-				Lookup(const Lookup &lookup) = delete;
-				Lookup &operator = (const Lookup &lookup) = delete;
+				static constexpr FromUnicode fromUnicode = FromUnicode(VALUES);
+
+			private:
+				Lookup() = delete;
 			};
 
 			template
