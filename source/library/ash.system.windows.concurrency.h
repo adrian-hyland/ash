@@ -905,10 +905,7 @@ namespace Ash
 
 					static inline Identifier getCurrentIdentifier() { return GetCurrentProcessId(); }
 
-					static inline Ash::System::Windows::FileSystem::Path getCurrentName()
-					{
-						return Name::getInstance().getView();
-					}
+					static inline Ash::System::Windows::FileSystem::Path getCurrentName() { return Name().getView(); }
 
 					inline bool run(const CommandLine &commandLine)
 					{
@@ -961,21 +958,13 @@ namespace Ash
 					public:
 						using Content = Ash::Wide::StringBuffer<128, 0, 1>;
 
-						static inline const Name &getInstance()
-						{
-							static Name name;
-
-							return name;
-						}
-
-					protected:
-						inline Name() : Content()
+						inline Name(HMODULE handle = nullptr) : Content()
 						{
 							setLength(getCapacity());
 
 							for (;;)
 							{
-								size_t size = ::GetModuleFileNameW(nullptr, at(0), getLength());
+								size_t size = ::GetModuleFileNameW(handle, at(0), getLength());
 								if (size < getLength())
 								{
 									break;
