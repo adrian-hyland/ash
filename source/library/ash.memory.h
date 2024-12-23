@@ -178,7 +178,7 @@ namespace Ash
 				{
 					if (!std::is_constant_evaluated() && (length > sizeof(uint64_t) / sizeof(TYPE)))
 					{
-						::memset(content, TYPE(), length * sizeof(TYPE));
+						::memset(content, 0, length * sizeof(TYPE));
 						return length;
 					}
 				}
