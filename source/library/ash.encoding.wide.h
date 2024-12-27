@@ -86,9 +86,24 @@ namespace Ash
 
 				constexpr size_t set(Code code1)
 				{
-					setLength(1);
-					(*this)[0] = code1;
-					return 1;
+					if constexpr (maxSize == 1)
+					{
+						if (((code1 >= 0) && (code1 < 0xD800)) || ((code1 >= 0xE000) && (code1 < 0x110000)))
+						{
+							setLength(1);
+							(*this)[0] = code1;
+							return 1;
+						}
+
+						clear();
+						return 0;
+					}
+					else
+					{
+						setLength(1);
+						(*this)[0] = code1;
+						return 1;
+					}
 				}
 
 				constexpr size_t set(Code code1, Code code2)
@@ -109,7 +124,7 @@ namespace Ash
 
 				if constexpr (maxSize == 1)
 				{
-					if (value.get(offset++, code1) && (code1 >= 0) && (code1 < 0x110000))
+					if (value.get(offset++, code1))
 					{
 						return character.set(code1);
 					}
@@ -146,7 +161,7 @@ namespace Ash
 
 				if constexpr (maxSize == 1)
 				{
-					if ((offset > 0) && value.get(--offset, code1) && (code1 >= 0) && (code1 < 0x110000))
+					if ((offset > 0) && value.get(--offset, code1))
 					{
 						return character.set(code1);
 					}

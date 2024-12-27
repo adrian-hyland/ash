@@ -67,7 +67,7 @@ namespace Ash
 
 				constexpr size_t set(Code code1, Code code2, Code code3, Code code4)
 				{
-					if ((uint8_t(code1) == 0x00) && (uint8_t(code2) < 0x11))
+					if ((uint8_t(code1) == 0x00) && (uint8_t(code2) < 0x11) && ((uint8_t(code2) != 0) || (uint8_t(code3) < 0xD8) || (uint8_t(code3) >= 0xE0)))
 					{
 						setLength(4);
 						(*this)[0] = code1;

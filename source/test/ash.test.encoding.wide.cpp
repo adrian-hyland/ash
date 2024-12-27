@@ -125,6 +125,17 @@ namespace Ash
 					}
 					else
 					{
+						for (Ash::Unicode::Character::Value value : Ash::Iterate<Ash::Unicode::Character::Value>::between(Ash::Unicode::Character::surrogateStart, Ash::Unicode::Character::surrogateEnd))
+						{
+							Ash::Memory::Sequence<Ash::Encoding::Wide::Code, 1> invalidContent;
+
+							TEST_IS_TRUE(invalidContent.set(0, value));
+
+							TEST_IS_ZERO(Ash::Encoding::Wide::decodeNext(invalidContent, 0, character));
+
+							TEST_IS_ZERO(character.getLength());
+						}
+
 						for (Ash::Unicode::Character::Value value : Ash::Iterate<Ash::Unicode::Character::Value>::between(0x110000, std::numeric_limits<Ash::Unicode::Character::Value>::max()))
 						{
 							Ash::Memory::Sequence<Ash::Encoding::Wide::Code, 1> invalidContent;
@@ -199,6 +210,17 @@ namespace Ash
 					}
 					else
 					{
+						for (Ash::Unicode::Character::Value value : Ash::Iterate<Ash::Unicode::Character::Value>::between(Ash::Unicode::Character::surrogateStart, Ash::Unicode::Character::surrogateEnd))
+						{
+							Ash::Memory::Sequence<Ash::Encoding::Wide::Code, 1> invalidContent;
+
+							TEST_IS_TRUE(invalidContent.set(0, value));
+
+							TEST_IS_ZERO(Ash::Encoding::Wide::decodePrevious(invalidContent, invalidContent.getLength(), character));
+
+							TEST_IS_ZERO(character.getLength());
+						}
+
 						for (Ash::Unicode::Character::Value value : Ash::Iterate<Ash::Unicode::Character::Value>::between(0x110000, std::numeric_limits<Ash::Unicode::Character::Value>::max()))
 						{
 							Ash::Memory::Sequence<Ash::Encoding::Wide::Code, 1> invalidContent;
