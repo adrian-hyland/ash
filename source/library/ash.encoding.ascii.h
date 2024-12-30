@@ -66,12 +66,7 @@ namespace Ash
 				friend Ascii;
 			};
 
-			template
-			<
-				typename ALLOCATION,
-				typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>
-			>
-			static constexpr size_t decodeNext(const Ash::Memory::Value<ALLOCATION, Code> &value, size_t offset, Character &character)
+			static constexpr size_t decodeNext(Ash::Memory::View<Code> value, size_t offset, Character &character)
 			{
 				Code code = 0;
 
@@ -86,12 +81,7 @@ namespace Ash
 				}
 			}
 
-			template
-			<
-				typename ALLOCATION,
-				typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>
-			>
-			static constexpr size_t decodePrevious(const Ash::Memory::Value<ALLOCATION, Code> &value, size_t offset, Character &character)
+			static constexpr size_t decodePrevious(Ash::Memory::View<Code> value, size_t offset, Character &character)
 			{
 				Code code = 0;
 
