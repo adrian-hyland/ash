@@ -232,9 +232,42 @@ namespace Ash
 						typename FUNCTION,
 						typename ...ARGUMENTS
 					>
-					struct Function
+					class Callable
 					{
-						Ash::Callable::Function<FUNCTION, ARGUMENTS...> function;
+					public:
+						using Function = Ash::Callable::Function<FUNCTION, ARGUMENTS...>;
+
+						static inline Handle run(FUNCTION function, ARGUMENTS &&...arguments)
+						{
+							Callable *callable = new Callable(function, std::forward<ARGUMENTS>(arguments)...);
+
+							uintptr_t handle = ::_beginthreadex(nullptr, 0, run, callable, 0, nullptr);
+							if (handle == 0)
+							{
+								delete callable;
+								return INVALID_HANDLE_VALUE;
+							}
+
+							return Handle(handle);
+						}
+
+					protected:
+						constexpr Callable(FUNCTION function, ARGUMENTS &&...arguments) : m_Function(function, std::forward<ARGUMENTS>(arguments)...) {}
+
+						static inline unsigned int __stdcall run(void *param)
+						{
+							Callable *callable = static_cast<Callable *>(param);
+							
+							callable->m_Function();
+
+							delete callable;
+
+							::_endthreadex(0);
+							return 0;
+						}
+
+					private:
+						Function m_Function;
 					};
 
 					template
@@ -244,35 +277,7 @@ namespace Ash
 					>
 					static inline Handle runFunction(FUNCTION function, ARGUMENTS &&...arguments)
 					{
-						using Callable = Function<FUNCTION, ARGUMENTS...>;
-
-						Callable *callable = new Callable(Ash::Callable::Function<FUNCTION, ARGUMENTS...>(function, std::forward<ARGUMENTS>(arguments)...));
-
-						uintptr_t handle = ::_beginthreadex(nullptr, 0, runCallable<Callable>, callable, 0, nullptr);
-
-						if (handle == 0)
-						{
-							delete callable;
-							return INVALID_HANDLE_VALUE;
-						}
-
-						return Handle(handle);
-					}
-
-					template
-					<
-						typename CALLABLE
-					>
-					static inline unsigned int __stdcall runCallable(void *param)
-					{
-						CALLABLE *callable = static_cast<CALLABLE *>(param);
-						
-						callable->function();
-
-						delete callable;
-
-						::_endthreadex(0);
-						return 0;
+						return Callable<FUNCTION, ARGUMENTS...>::run(function, std::forward<ARGUMENTS>(arguments)...);
 					}
 
 				private:

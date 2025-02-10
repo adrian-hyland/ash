@@ -219,9 +219,40 @@ namespace Ash
 						typename FUNCTION,
 						typename ...ARGUMENTS
 					>
-					struct Function
+					class Callable
 					{
-						Ash::Callable::Function<FUNCTION, ARGUMENTS...> function;
+					public:
+						using Function = Ash::Callable::Function<FUNCTION, ARGUMENTS...>;
+
+						static inline bool run(Handle &handle, FUNCTION function, ARGUMENTS &&...arguments)
+						{
+							Callable *callable = new Callable(function, std::forward<ARGUMENTS>(arguments)...);
+
+							if (::pthread_create(&handle, nullptr, run, callable) != 0)
+							{
+								delete callable;
+								return false;
+							}
+
+							return true;
+						}
+
+					protected:
+						constexpr Callable(FUNCTION function, ARGUMENTS &&...arguments) : m_Function(function, std::forward<ARGUMENTS>(arguments)...) {}
+
+						static inline void *run(void *param)
+						{
+							Callable *callable = static_cast<Callable *>(param);
+							
+							callable->m_Function();
+
+							delete callable;
+
+							return nullptr;
+						}
+
+					private:
+						Function m_Function;
 					};
 
 					template
@@ -231,32 +262,7 @@ namespace Ash
 					>
 					static inline bool runFunction(Handle &handle, FUNCTION function, ARGUMENTS &&...arguments)
 					{
-						using Callable = Function<FUNCTION, ARGUMENTS...>;
-
-						Callable *callable = new Callable(Ash::Callable::Function<FUNCTION, ARGUMENTS...>(function, std::forward<ARGUMENTS>(arguments)...));
-
-						if (::pthread_create(&handle, nullptr, runCallable<Callable>, callable) != 0)
-						{
-							delete callable;
-							return false;
-						}
-
-						return true;
-					}
-
-					template
-					<
-						typename CALLABLE
-					>
-					static inline void *runCallable(void *param)
-					{
-						CALLABLE *callable = static_cast<CALLABLE *>(param);
-						
-						callable->function();
-
-						delete callable;
-
-						return nullptr;
+						return Callable<FUNCTION, ARGUMENTS...>::run(handle, function, std::forward<ARGUMENTS>(arguments)...);
 					}
 
 				private:
