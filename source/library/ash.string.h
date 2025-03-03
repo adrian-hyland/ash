@@ -78,6 +78,31 @@ namespace Ash
 
 			constexpr Value(Ash::Memory::View<Code> value) : Memory(value.at(0), getCodeLength(value.at(0), value.getLength())) {}
 
+			template
+			<
+				typename VALUE_ALLOCATION,
+				typename VALUE_ENCODING,
+				typename STRING_ALLOCATION = ALLOCATION,
+				typename STRING_ENCODING = ENCODING,
+				typename = Ash::Type::IsClass<VALUE_ALLOCATION, Ash::Memory::Generic::Allocation>,
+				typename = Ash::Type::IsClass<VALUE_ENCODING, Ash::Generic::Encoding>,
+				typename = Ash::Type::IsNotSame<VALUE_ENCODING, STRING_ENCODING>,
+				typename = Ash::Type::IsNotConstant<typename STRING_ALLOCATION::Type>
+			>
+			constexpr Value(const Value<VALUE_ALLOCATION, VALUE_ENCODING> &value, Ash::Unicode::Character replacementCharacter = Character::replacement) : Memory()
+			{
+				Ash::Encoding::convert<VALUE_ENCODING, ENCODING>(value, *this, replacementCharacter);
+			}
+
+			template
+			<
+				typename VALUE_ALLOCATION,
+				typename STRING_ALLOCATION = ALLOCATION,
+				typename = Ash::Type::IsClass<VALUE_ALLOCATION, Ash::Memory::Generic::Allocation>,
+				typename = Ash::Type::IsNotSame<VALUE_ALLOCATION, STRING_ALLOCATION>
+			>
+			constexpr Value(const Value<VALUE_ALLOCATION, Encoding> &value) : Memory(value.at(0), getCodeLength(value.at(0), value.getLength())) {}
+
 			constexpr Value(const Value &value) : Memory(value) {}
 
 			constexpr Value(Value &&value) noexcept : Memory(std::move(value)) {}
@@ -95,8 +120,6 @@ namespace Ash
 
 				return *this;
 			}
-
-			constexpr operator View<Encoding> () const { return { &(*this)[0], Allocation::getLength() }; }
 
 			constexpr View<Encoding> getView(size_t offset, size_t length) const
 			{

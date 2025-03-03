@@ -921,6 +921,13 @@ namespace Ash
 
 			constexpr Value(const Type *content, size_t length) : Allocation() { Allocation::copy(content, length); }
 
+			template
+			<
+				typename VALUE_ALLOCATION,
+				typename = Ash::Type::IsClass<VALUE_ALLOCATION, Ash::Memory::Generic::Allocation>
+			>
+			constexpr Value(const Value<VALUE_ALLOCATION, Type> &value) : Allocation() { Allocation::copy(value.at(0), value.getLength()); }
+
 			constexpr Value(const Value &value) : Allocation() { Allocation::copy(value); }
 
 			constexpr Value(Value &&value) noexcept : Allocation() { Allocation::move(value); }
@@ -942,10 +949,6 @@ namespace Ash
 				}
 				return *this;
 			}
-
-			constexpr operator Area<Type> () { return { &(*this)[0], Allocation::getLength() }; }
-
-			constexpr operator View<Type> () const { return { &(*this)[0], Allocation::getLength() }; }
 
 			constexpr Area<Type> getArea(size_t offset, size_t length)
 			{
