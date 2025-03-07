@@ -909,6 +909,40 @@ namespace Ash
 				return {};
 			}
 
+			static Ash::Test::Assertion isStringLiteral()
+			{
+				TEST_IS_TRUE(Ash::Type::isStringLiteral<const char *>);
+				TEST_IS_TRUE(Ash::Type::isStringLiteral<const char8_t *>);
+				TEST_IS_TRUE(Ash::Type::isStringLiteral<const wchar_t *>);
+				TEST_IS_FALSE(Ash::Type::isStringLiteral<const void *>);
+				TEST_IS_FALSE(Ash::Type::isStringLiteral<const unsigned char *>);
+				TEST_IS_FALSE(Ash::Type::isStringLiteral<const unsigned int *>);
+				TEST_IS_FALSE(Ash::Type::isStringLiteral<const unsigned short *>);
+				TEST_IS_FALSE(Ash::Type::isStringLiteral<const unsigned long *>);
+				TEST_IS_FALSE(Ash::Type::isStringLiteral<const unsigned long long *>);
+				TEST_IS_FALSE(Ash::Type::isStringLiteral<const signed char *>);
+				TEST_IS_FALSE(Ash::Type::isStringLiteral<const signed int *>);
+				TEST_IS_FALSE(Ash::Type::isStringLiteral<const signed short *>);
+				TEST_IS_FALSE(Ash::Type::isStringLiteral<const signed long *>);
+				TEST_IS_FALSE(Ash::Type::isStringLiteral<const signed long long *>);
+				TEST_IS_FALSE(Ash::Type::isStringLiteral<char *>);
+				TEST_IS_FALSE(Ash::Type::isStringLiteral<char8_t *>);
+				TEST_IS_FALSE(Ash::Type::isStringLiteral<wchar_t *>);
+				TEST_IS_FALSE(Ash::Type::isStringLiteral<void *>);
+				TEST_IS_FALSE(Ash::Type::isStringLiteral<unsigned char *>);
+				TEST_IS_FALSE(Ash::Type::isStringLiteral<unsigned int *>);
+				TEST_IS_FALSE(Ash::Type::isStringLiteral<unsigned short *>);
+				TEST_IS_FALSE(Ash::Type::isStringLiteral<unsigned long *>);
+				TEST_IS_FALSE(Ash::Type::isStringLiteral<unsigned long long *>);
+				TEST_IS_FALSE(Ash::Type::isStringLiteral<signed char *>);
+				TEST_IS_FALSE(Ash::Type::isStringLiteral<signed int *>);
+				TEST_IS_FALSE(Ash::Type::isStringLiteral<signed short *>);
+				TEST_IS_FALSE(Ash::Type::isStringLiteral<signed long *>);
+				TEST_IS_FALSE(Ash::Type::isStringLiteral<signed long long *>);
+
+				return {};
+			}
+
 			static Ash::Test::Assertion array()
 			{
 				bool isSame;
@@ -1011,6 +1045,7 @@ namespace Ash
 			TEST_CASE(Ash::Test::Type::isNotSame),
 			TEST_CASE(Ash::Test::Type::isSameSize),
 			TEST_CASE(Ash::Test::Type::isByteSizeInteger),
+			TEST_CASE(Ash::Test::Type::isStringLiteral),
 			TEST_CASE(Ash::Test::Type::array),
 			TEST_CASE(Ash::Test::Type::option),
 			TEST_CASE(Ash::Test::Type::index),
