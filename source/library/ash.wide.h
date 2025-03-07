@@ -9,6 +9,9 @@ namespace Ash
 {
 	namespace Wide
 	{
+		using Literal = Ash::String::Literal<const Ash::Encoding::Wide::Code *>;
+
+
 		template
 		<
 			typename ALLOCATION,

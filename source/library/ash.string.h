@@ -4,12 +4,196 @@
 #include <algorithm>
 #include "ash.type.h"
 #include "ash.encoding.h"
+#include "ash.encoding.ascii.h"
+#include "ash.encoding.utf8.h"
+#include "ash.encoding.wide.h"
 
 
 namespace Ash
 {
 	namespace String
 	{
+		template
+		<
+			typename LITERAL,
+			typename = Ash::Type::IsStringLiteral<LITERAL>
+		>
+		struct Literal {};
+
+		template
+		<
+		>
+		struct Literal<const Ash::Encoding::Ascii::Code *>
+		{
+			using Encoding = Ash::Encoding::Ascii;
+
+			using Code = Encoding::Code;
+
+			using Value = const Code *;
+
+			static constexpr size_t getLength(Value value)
+			{
+				size_t length = 0;
+
+				if (value != nullptr)
+				{
+					if (!std::is_constant_evaluated())
+					{
+						length = ::strlen(value);
+					}
+					else
+					{
+						for (length = 0; value[length] != '\0'; length++) 
+							;
+					}
+				}
+
+				return length;
+			}
+
+			static constexpr size_t getLength(Value value, size_t length, size_t maxLength)
+			{
+				return length < maxLength ? length : maxLength;
+			}
+
+			static constexpr size_t getLength(Value value, size_t maxLength)
+			{
+				return getLength(value, getLength(value), maxLength);
+			}
+
+			static constexpr Ash::Memory::View<Code> getView(Value value, size_t maxLength) { return { value, getLength(value, maxLength) }; }
+
+			static constexpr Ash::Memory::View<Code> getView(Value value, size_t length, size_t maxLength) { return { value, getLength(value, length, maxLength) }; }
+		};
+
+		template
+		<
+		>
+		struct Literal<const Ash::Encoding::Utf8::Code *>
+		{
+			using Encoding = Ash::Encoding::Utf8;
+
+			using Code = Encoding::Code;
+
+			using Value = const Code *;
+
+			static constexpr size_t getLength(Value value)
+			{
+				size_t length = 0;
+
+				if (value != nullptr)
+				{
+					if (!std::is_constant_evaluated())
+					{
+						return ::strlen((const char *)value);
+					}
+					else
+					{
+						for (length = 0; value[length] != '\0'; length++) 
+							;
+					}
+				}
+
+				return length;
+			}
+
+			static constexpr size_t getLength(Value value, size_t length, size_t maxLength)
+			{
+				if (length < maxLength)
+				{
+					return length;
+				}
+				else
+				{
+					for (size_t offset = maxLength; offset != 0; offset = offset - Encoding::minSize)
+					{
+						Encoding::Character character;
+						if (Encoding::decodePrevious(Ash::Memory::View<Code>(value, length), offset, character) != 0)
+						{
+							return offset;
+						}
+					}
+
+					return 0;
+				}
+			}
+
+			static constexpr size_t getLength(Value value, size_t maxLength)
+			{
+				return getLength(value, getLength(value), maxLength);
+			}
+
+			static constexpr Ash::Memory::View<Code> getView(Value value, size_t maxLength) { return { value, getLength(value, maxLength) }; }
+
+			static constexpr Ash::Memory::View<Code> getView(Value value, size_t length, size_t maxLength) { return { value, getLength(value, length, maxLength) }; }
+		};
+
+		template
+		<
+		>
+		struct Literal<const Ash::Encoding::Wide::Code *>
+		{
+			using Encoding = Ash::Encoding::Wide;
+
+			using Code = Encoding::Code;
+
+			using Value = const Code *;
+
+			static constexpr size_t getLength(Value value)
+			{
+				size_t length = 0;
+
+				if (value != nullptr)
+				{
+					if (!std::is_constant_evaluated())
+					{
+						return ::wcslen(value);
+					}
+					else
+					{
+						for (length = 0; value[length] != '\0'; length++) 
+							;
+					}
+				}
+
+				return length;
+			}
+
+			static constexpr size_t getLength(Value value, size_t length, size_t maxLength)
+			{
+				if (length < maxLength)
+				{
+					return length;
+				}
+				else if constexpr (Encoding::minSize == Encoding::maxSize)
+				{
+					return maxLength;
+				}
+				else
+				{
+					for (size_t offset = maxLength; offset != 0; offset = offset - Encoding::minSize)
+					{
+						Encoding::Character character;
+						if (Encoding::decodePrevious(Ash::Memory::View<Code>(value, length), offset, character) != 0)
+						{
+							return offset;
+						}
+					}
+
+					return 0;
+				}
+			}
+
+			static constexpr size_t getLength(Value value, size_t maxLength)
+			{
+				return getLength(value, getLength(value), maxLength);
+			}
+
+			static constexpr Ash::Memory::View<Code> getView(Value value, size_t maxLength) { return { value, getLength(value, maxLength) }; }
+
+			static constexpr Ash::Memory::View<Code> getView(Value value, size_t length, size_t maxLength) { return { value, getLength(value, length, maxLength) }; }
+		};
+
 		template
 		<
 			typename ALLOCATION,
@@ -72,11 +256,51 @@ namespace Ash
 
 			constexpr Value() : Memory() {}
 
-			constexpr Value(const Code *value) : Memory(value, getCodeLength(value)) {}
+			template
+			<
+				typename VALUE,
+				typename STRING_ENCODING = ENCODING,
+				typename = Ash::Type::IsStringLiteral<VALUE>,
+				typename = Ash::Type::IsSame<typename Ash::String::Literal<VALUE>::Encoding, STRING_ENCODING>
+			>
+			constexpr Value(VALUE value) : Memory(value, Ash::String::Literal<VALUE>::getLength(value, Memory::maxCapacity)) {}
 
-			constexpr Value(const Code *value, size_t length) : Memory(value, getCodeLength(value, length)) {}
+			template
+			<
+				typename VALUE,
+				typename STRING_ENCODING = ENCODING,
+				typename = Ash::Type::IsStringLiteral<VALUE>,
+				typename = Ash::Type::IsSame<typename Ash::String::Literal<VALUE>::Encoding, STRING_ENCODING>
+			>
+			constexpr Value(VALUE value, size_t length) : Memory(value, Ash::String::Literal<VALUE>::getLength(value, length, Memory::maxCapacity)) {}
 
-			constexpr Value(Ash::Memory::View<Code> value) : Memory(value.at(0), getCodeLength(value.at(0), value.getLength())) {}
+			template
+			<
+				typename VALUE,
+				typename STRING_ALLOCATION = ALLOCATION,
+				typename STRING_ENCODING = ENCODING,
+				typename = Ash::Type::IsStringLiteral<VALUE>,
+				typename = Ash::Type::IsNotSame<typename Ash::String::Literal<VALUE>::Encoding, STRING_ENCODING>,
+				typename = Ash::Type::IsNotConstant<typename STRING_ALLOCATION::Type>
+			>
+			constexpr Value(VALUE value, Ash::Unicode::Character replacementCharacter = Character::replacement) : Memory()
+			{
+				Ash::Encoding::convert<typename Ash::String::Literal<VALUE>::Encoding, ENCODING>(Literal<VALUE>::getView(value, Memory::maxCapacity), *this, replacementCharacter);
+			}
+
+			template
+			<
+				typename VALUE,
+				typename STRING_ALLOCATION = ALLOCATION,
+				typename STRING_ENCODING = ENCODING,
+				typename = Ash::Type::IsStringLiteral<VALUE>,
+				typename = Ash::Type::IsNotSame<typename Ash::String::Literal<VALUE>::Encoding, STRING_ENCODING>,
+				typename = Ash::Type::IsNotConstant<typename STRING_ALLOCATION::Type>
+			>
+			constexpr Value(VALUE value, size_t length, Ash::Unicode::Character replacementCharacter = Character::replacement) : Memory()
+			{
+				Ash::Encoding::convert<typename Ash::String::Literal<VALUE>::Encoding, ENCODING>(Literal<VALUE>::getView(value, length, Memory::maxCapacity), *this, replacementCharacter);
+			}
 
 			template
 			<
@@ -102,6 +326,8 @@ namespace Ash
 				typename = Ash::Type::IsNotSame<VALUE_ALLOCATION, STRING_ALLOCATION>
 			>
 			constexpr Value(const Value<VALUE_ALLOCATION, Encoding> &value) : Memory(value.at(0), getCodeLength(value.at(0), value.getLength())) {}
+
+			constexpr Value(Ash::Memory::View<Code> value) : Memory(value.at(0), getCodeLength(value.at(0), value.getLength())) {}
 
 			constexpr Value(const Value &value) : Memory(value) {}
 
@@ -189,31 +415,6 @@ namespace Ash
 			}
 
 		protected:
-			static constexpr bool isNull(const Code *value)
-			{
-				if constexpr (Encoding::minSize == 1)
-				{
-					return value[0] == 0;
-				}
-				else if constexpr (Encoding::minSize == 2)
-				{
-					return (value[0] == 0) && (value[1] == 0);
-				}
-				else if constexpr (Encoding::minSize == 4)
-				{
-					return (value[0] == 0) && (value[1] == 0) && (value[2] == 0) && (value[3] == 0);
-				}
-				else
-				{
-					bool isNull = (value[0] == 0);
-					for (size_t n = 1; isNull && (n < Encoding::minSize); n++)
-					{
-						isNull = isNull && (value[n] == 0);
-					}
-					return isNull;
-				}
-			}
-
 			static constexpr size_t getCodeLength(const Code *value, size_t length)
 			{
 				if constexpr (Memory::isFixedCapacity && !Memory::isReference)
@@ -234,19 +435,6 @@ namespace Ash
 				}
 
 				return length;
-			}
-
-			static constexpr size_t getCodeLength(const Code *value)
-			{
-				size_t length = 0;
-
-				if (value != nullptr)
-				{
-					for (length = 0; !isNull(&value[length]); length = length + Encoding::minSize)
-						;
-				}
-
-				return getCodeLength(value, length);
 			}
 		};
 	}

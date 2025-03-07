@@ -9,6 +9,9 @@ namespace Ash
 {
 	namespace Ascii
 	{
+		using Literal = Ash::String::Literal<const Ash::Encoding::Ascii::Code *>;
+
+
 		template
 		<
 			typename ALLOCATION,

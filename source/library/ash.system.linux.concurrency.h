@@ -322,61 +322,25 @@ namespace Ash
 
 						template
 						<
-							typename ENCODING,
-							typename ...NEXT,
-							typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
+							typename VALUE,
+							typename = Ash::Type::IsStringLiteral<VALUE>
 						>
-						constexpr void append(Ash::String::View<ENCODING> value, NEXT ...nextValue)
+						constexpr void append(VALUE value)
+						{
+							append(Ash::String::View<typename Ash::String::Literal<VALUE>::Encoding>(value));
+						}
+
+						template
+						<
+							typename VALUE,
+							typename ...NEXT
+						>
+						constexpr void append(VALUE value, NEXT ...nextValue)
 						{
 							append(value);
 							append(nextValue...);
 						}
 
-						constexpr void append(const Ash::Encoding::Ascii::Code *value)
-						{
-							append(Ash::Ascii::View(value));
-						}
-
-						template
-						<
-							typename ...NEXT
-						>
-						constexpr void append(const Ash::Encoding::Ascii::Code *value, NEXT ...nextValue)
-						{
-							append(Ash::Ascii::View(value));
-							append(nextValue...);
-						}
-
-						constexpr void append(const Ash::Encoding::Utf8::Code *value)
-						{
-							append(Ash::Utf8::View(value));
-						}
-
-						template
-						<
-							typename ...NEXT
-						>
-						constexpr void append(const Ash::Encoding::Utf8::Code *value, NEXT ...nextValue)
-						{
-							append(Ash::Utf8::View(value));
-							append(nextValue...);
-						}
-
-						constexpr void append(const Ash::Encoding::Wide::Code *value)
-						{
-							append(Ash::Wide::View(value));
-						}
-
-						template
-						<
-							typename ...NEXT
-						>
-						constexpr void append(const Ash::Encoding::Wide::Code *value, NEXT ...nextValue)
-						{
-							append(Ash::Wide::View(value));
-							append(nextValue...);
-						}
-					
 					private:
 						Content m_Content;
 					};
@@ -501,63 +465,30 @@ namespace Ash
 
 							template
 							<
-								typename ENCODING,
-								typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
+								typename NAME_ENCODING,
+								typename VALUE,
+								typename = Ash::Type::IsClass<NAME_ENCODING, Ash::Generic::Encoding>,
+								typename = Ash::Type::IsStringLiteral<VALUE>
 							>
-							constexpr Setting(Ash::String::View<ENCODING> name, const Ash::Encoding::Ascii::Code *value) : Setting(name, Ash::Ascii::View(value)) {}
+							constexpr Setting(Ash::String::View<NAME_ENCODING> name, VALUE value) : Setting(name, Ash::String::View<typename Ash::String::Literal<VALUE>::Encoding>(value)) {}
 
 							template
 							<
-								typename ENCODING,
-								typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
+								typename NAME,
+								typename VALUE_ENCODING,
+								typename = Ash::Type::IsStringLiteral<NAME>,
+								typename = Ash::Type::IsClass<VALUE_ENCODING, Ash::Generic::Encoding>
 							>
-							constexpr Setting(Ash::String::View<ENCODING> name, const Ash::Encoding::Utf8::Code *value) : Setting(name, Ash::Utf8::View(value)) {}
+							constexpr Setting(NAME name, Ash::String::View<VALUE_ENCODING> value) : Setting(Ash::String::View<typename Ash::String::Literal<NAME>::Encoding>(name), value) {}
 
 							template
 							<
-								typename ENCODING,
-								typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
+								typename NAME,
+								typename VALUE,
+								typename = Ash::Type::IsStringLiteral<NAME>,
+								typename = Ash::Type::IsStringLiteral<VALUE>
 							>
-							constexpr Setting(Ash::String::View<ENCODING> name, const Ash::Encoding::Wide::Code *value) : Setting(name, Ash::Wide::View(value)) {}
-
-							template
-							<
-								typename ENCODING,
-								typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
-							>
-							constexpr Setting(const Ash::Encoding::Ascii::Code *name, Ash::String::View<ENCODING> value) : Setting(Ash::Ascii::View(name), value) {}
-
-							constexpr Setting(const Ash::Encoding::Ascii::Code *name, const Ash::Encoding::Ascii::Code *value) : Setting(Ash::Ascii::View(name), Ash::Ascii::View(value)) {}
-
-							constexpr Setting(const Ash::Encoding::Ascii::Code *name, const Ash::Encoding::Utf8::Code *value) : Setting(Ash::Ascii::View(name), Ash::Utf8::View(value)) {}
-
-							constexpr Setting(const Ash::Encoding::Ascii::Code *name, const Ash::Encoding::Wide::Code *value) : Setting(Ash::Ascii::View(name), Ash::Wide::View(value)) {}
-
-							template
-							<
-								typename ENCODING,
-								typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
-							>
-							constexpr Setting(const Ash::Encoding::Utf8::Code *name, Ash::String::View<ENCODING> value) : Setting(Ash::Utf8::View(name), value) {}
-
-							constexpr Setting(const Ash::Encoding::Utf8::Code *name, const Ash::Encoding::Ascii::Code *value) : Setting(Ash::Utf8::View(name), Ash::Ascii::View(value)) {}
-
-							constexpr Setting(const Ash::Encoding::Utf8::Code *name, const Ash::Encoding::Utf8::Code *value) : Setting(Ash::Utf8::View(name), Ash::Utf8::View(value)) {}
-
-							constexpr Setting(const Ash::Encoding::Utf8::Code *name, const Ash::Encoding::Wide::Code *value) : Setting(Ash::Utf8::View(name), Ash::Wide::View(value)) {}
-
-							template
-							<
-								typename ENCODING,
-								typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
-							>
-							constexpr Setting(const Ash::Encoding::Wide::Code *name, Ash::String::View<ENCODING> value) : Setting(Ash::Wide::View(name), value) {}
-
-							constexpr Setting(const Ash::Encoding::Wide::Code *name, const Ash::Encoding::Ascii::Code *value) : Setting(Ash::Wide::View(name), Ash::Ascii::View(value)) {}
-
-							constexpr Setting(const Ash::Encoding::Wide::Code *name, const Ash::Encoding::Utf8::Code *value) : Setting(Ash::Wide::View(name), Ash::Utf8::View(value)) {}
-
-							constexpr Setting(const Ash::Encoding::Wide::Code *name, const Ash::Encoding::Wide::Code *value) : Setting(Ash::Wide::View(name), Ash::Wide::View(value)) {}
+							constexpr Setting(NAME name, VALUE value) : Setting(Ash::String::View<typename Ash::String::Literal<NAME>::Encoding>(name), Ash::String::View<typename Ash::String::Literal<VALUE>::Encoding>(value)) {}
 
 							constexpr operator Setting::View () const { return m_Content.getView(); }
 
@@ -605,19 +536,14 @@ namespace Ash
 								return (name.getLength() > 0) && !name.contains('=');
 							}
 
-							static constexpr bool isNameValid(const Ash::Encoding::Ascii::Code *name)
+							template
+							<
+								typename NAME,
+								typename Ash::Type::IsStringLiteral<NAME>
+							>
+							static constexpr bool isNameValid(NAME name)
 							{
-								return isNameValid(Ash::Ascii::View(name));
-							}
-
-							static constexpr bool isNameValid(const Ash::Encoding::Utf8::Code *name)
-							{
-								return isNameValid(Ash::Utf8::View(name));
-							}
-
-							static constexpr bool isNameValid(const Ash::Encoding::Wide::Code *name)
-							{
-								return isNameValid(Ash::Wide::View(name));
+								return isNameValid(Ash::String::View<typename Ash::String::Literal<NAME>::Encoding>(name));
 							}
 
 						private:
@@ -672,19 +598,14 @@ namespace Ash
 								return Setting();
 							}
 
-							constexpr Setting::View get(const Ash::Encoding::Ascii::Code *name) const
+							template
+							<
+								typename NAME,
+								typename Ash::Type::IsStringLiteral<NAME>
+							>
+							constexpr Setting::View get(NAME name) const
 							{
-								return get(Ash::Ascii::View(name));
-							}
-
-							constexpr Setting::View get(const Ash::Encoding::Utf8::Code *name) const
-							{
-								return get(Ash::Utf8::View(name));
-							}
-
-							constexpr Setting::View get(const Ash::Encoding::Wide::Code *name) const
-							{
-								return get(Ash::Wide::View(name));
+								return get(Ash::String::View<typename Ash::String::Literal<NAME>::Encoding>(name));
 							}
 
 							template
@@ -707,19 +628,14 @@ namespace Ash
 								return *this;
 							}
 
-							constexpr Block &remove(const Ash::Encoding::Ascii::Code *name)
+							template
+							<
+								typename NAME,
+								typename Ash::Type::IsStringLiteral<NAME>
+							>
+							constexpr Block &remove(NAME name)
 							{
-								return remove(Ash::Ascii::View(name));
-							}
-
-							constexpr Block &remove(const Ash::Encoding::Utf8::Code *name)
-							{
-								return remove(Ash::Utf8::View(name));
-							}
-
-							constexpr Block &remove(const Ash::Encoding::Wide::Code *name)
-							{
-								return remove(Ash::Wide::View(name));
+								return remove(Ash::String::View<typename Ash::String::Literal<NAME>::Encoding>(name));
 							}
 
 							constexpr Array getArray() const
@@ -786,23 +702,18 @@ namespace Ash
 						static inline Setting get(Ash::String::View<ENCODING> name)
 						{
 							Name settingName(name);
-							Value settingValue(reinterpret_cast<Ash::Encoding::Utf8::Code *>(::getenv(settingName)));
+							Value settingValue((const Ash::Encoding::Utf8::Code *)::getenv(settingName));
 							return Setting(settingName.getView(0, settingName.getLength() - 1), settingValue.getView(0, settingValue.getLength() - 1));
 						}
 
-						static inline Setting get(const Ash::Encoding::Ascii::Code *name)
+						template
+						<
+							typename NAME,
+							typename = Ash::Type::IsStringLiteral<NAME>
+						>
+						static inline Setting get(NAME name)
 						{
-							return get(Ash::Ascii::View(name));
-						}
-
-						static inline Setting get(const Ash::Encoding::Utf8::Code *name)
-						{
-							return get(Ash::Utf8::View(name));
-						}
-
-						static inline Setting get(const Ash::Encoding::Wide::Code *name)
-						{
-							return get(Ash::Wide::View(name));
+							return get(Ash::String::View<typename Ash::String::Literal<NAME>::Encoding>(name));
 						}
 
 					protected:
@@ -846,14 +757,14 @@ namespace Ash
 
 					static inline Ash::System::Linux::FileSystem::Path getCurrentName()
 					{
-						return Ash::Ascii::View(program_invocation_name);
+						return (const char *)::program_invocation_name;
 					}
 
 					inline bool run(const CommandLine &commandLine)
 					{
 						CommandLine::Array commandLineArray = commandLine.getArray();
 
-						if (posix_spawn(&m_Identifier, (const char *)*commandLineArray.at(0), nullptr, nullptr, (char *const *)commandLineArray.at(0), nullptr) != 0)
+						if (::posix_spawn(&m_Identifier, (const char *)*commandLineArray.at(0), nullptr, nullptr, (char *const *)commandLineArray.at(0), nullptr) != 0)
 						{
 							m_Identifier = invalid;
 						}
@@ -865,7 +776,7 @@ namespace Ash
 					{
 						CommandLine::Array commandLineArray = commandLine.getArray();
 
-						if (posix_spawn(&m_Identifier, (const char *)*commandLineArray.at(0), nullptr, nullptr, (char *const *)commandLineArray.at(0), (char *const *)environmentBlock.getArray().at(0)) != 0)
+						if (::posix_spawn(&m_Identifier, (const char *)*commandLineArray.at(0), nullptr, nullptr, (char *const *)commandLineArray.at(0), (char *const *)environmentBlock.getArray().at(0)) != 0)
 						{
 							m_Identifier = invalid;
 						}
@@ -881,7 +792,7 @@ namespace Ash
 
 							do
 							{
-								if (waitpid(m_Identifier, &status, 0) == -1)
+								if (::waitpid(m_Identifier, &status, 0) == -1)
 								{
 									return false;
 								}

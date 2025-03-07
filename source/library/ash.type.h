@@ -92,6 +92,17 @@ namespace Ash
 			<
 				typename TYPE
 			>
+			struct IsStringLiteral
+			{
+				using Type = TYPE;
+
+				static constexpr bool isSatisfied = std::is_same_v<TYPE, const char *> || std::is_same_v<TYPE, const char8_t *> || std::is_same_v<TYPE, const wchar_t *>;
+			};
+
+			template
+			<
+				typename TYPE
+			>
 			struct IsPointer
 			{
 				using Type = TYPE;
@@ -294,6 +305,12 @@ namespace Ash
 		<
 			typename TYPE
 		>
+		constexpr bool isStringLiteral = Ash::Type::CheckIf<TYPE, Ash::Type::Requirement::IsStringLiteral>::isValid;
+
+		template
+		<
+			typename TYPE
+		>
 		constexpr bool isPointer = Ash::Type::CheckIf<TYPE, Ash::Type::Requirement::IsPointer>::isValid;
 
 		template
@@ -402,6 +419,12 @@ namespace Ash
 			typename TYPE
 		>
 		using IsNumeric = typename Ash::Type::CheckIf<TYPE, Ash::Type::Requirement::IsNumeric>::IsValid;
+
+		template
+		<
+			typename TYPE
+		>
+		using IsStringLiteral = typename Ash::Type::CheckIf<TYPE, Ash::Type::Requirement::IsStringLiteral>::IsValid;
 
 		template
 		<

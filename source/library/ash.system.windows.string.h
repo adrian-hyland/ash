@@ -30,19 +30,14 @@ namespace Ash
 					Content::append('\0');
 				}
 
-				constexpr String(const Ash::Encoding::Ascii::Code *value, Ash::Unicode::Character replacementCharacter = Character::replacement) : Content()
+				template
+				<
+					typename VALUE,
+					typename = Ash::Type::IsStringLiteral<VALUE>
+				>
+				constexpr String(VALUE value, Ash::Unicode::Character replacementCharacter = Character::replacement) : Content()
 				{
-					convert(Ash::Ascii::View(value), replacementCharacter);
-				}
-
-				constexpr String(const Ash::Encoding::Utf8::Code *value, Ash::Unicode::Character replacementCharacter = Character::replacement) : Content()
-				{
-					convert(Ash::Utf8::View(value), replacementCharacter);
-				}
-
-				constexpr String(const Ash::Encoding::Wide::Code *value, Ash::Unicode::Character replacementCharacter = Character::replacement) : Content()
-				{
-					convert(Ash::Wide::View(value), replacementCharacter);
+					convert(Ash::String::View<typename Ash::String::Literal<VALUE>::Encoding>(value), replacementCharacter);
 				}
 
 				template

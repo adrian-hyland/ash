@@ -86,11 +86,12 @@ namespace Ash
 						}
 					}
 
-					constexpr Path(const Ash::Encoding::Ascii::Code *value) : Path(Ash::Ascii::View(value)) {}
-
-					constexpr Path(const Ash::Encoding::Utf8::Code *value) : Path(Ash::Utf8::View(value)) {}
-
-					constexpr Path(const Ash::Encoding::Wide::Code *value) : Path(Ash::Wide::View(value)) {}
+					template
+					<
+						typename VALUE,
+						typename = Ash::Type::IsStringLiteral<VALUE>
+					>
+					constexpr Path(VALUE value) : Path(Ash::String::View<typename Ash::String::Literal<VALUE>::Encoding>(value)) {}
 
 					constexpr operator const Encoding::Code *() const { return m_Content.at(0); }
 
@@ -236,106 +237,37 @@ namespace Ash
 					template
 					<
 						typename NAME_ENCODING,
-						typename = Ash::Type::IsClass<NAME_ENCODING, Ash::Generic::Encoding>
+						typename SHARE,
+						typename = Ash::Type::IsClass<NAME_ENCODING, Ash::Generic::Encoding>,
+						typename = Ash::Type::IsStringLiteral<SHARE>
 					>
-					static constexpr Path fromNetworkShare(Ash::String::View<NAME_ENCODING> name, const Ash::Encoding::Ascii::Code *share, const Path &relativePath)
+					static constexpr Path fromNetworkShare(Ash::String::View<NAME_ENCODING> name, SHARE share, const Path &relativePath)
 					{
-						return fromNetworkShare(name, Ash::Ascii::View(share), relativePath);
+						return fromNetworkShare(name, Ash::String::View<typename Ash::String::Literal<SHARE>::Encoding>(share), relativePath);
 					}
 
 					template
 					<
-						typename NAME_ENCODING,
-						typename = Ash::Type::IsClass<NAME_ENCODING, Ash::Generic::Encoding>
-					>
-					static constexpr Path fromNetworkShare(Ash::String::View<NAME_ENCODING> name, const Ash::Encoding::Utf8::Code *share, const Path &relativePath)
-					{
-						return fromNetworkShare(name, Ash::Utf8::View(share), relativePath);
-					}
-
-					template
-					<
-						typename NAME_ENCODING,
-						typename = Ash::Type::IsClass<NAME_ENCODING, Ash::Generic::Encoding>
-					>
-					static constexpr Path fromNetworkShare(Ash::String::View<NAME_ENCODING> name, const Ash::Encoding::Wide::Code *share, const Path &relativePath)
-					{
-						return fromNetworkShare(name, Ash::Wide::View(share), relativePath);
-					}
-
-					template
-					<
+						typename NAME,
 						typename SHARE_ENCODING,
+						typename = Ash::Type::IsStringLiteral<NAME>,
 						typename = Ash::Type::IsClass<SHARE_ENCODING, Ash::Generic::Encoding>
 					>
-					static constexpr Path fromNetworkShare(const Ash::Encoding::Ascii::Code *name, Ash::String::View<SHARE_ENCODING> share, const Path &relativePath)
+					static constexpr Path fromNetworkShare(NAME name, Ash::String::View<SHARE_ENCODING> share, const Path &relativePath)
 					{
-						return fromNetworkShare(Ash::Ascii::View(name), share, relativePath);
+						return fromNetworkShare(Ash::String::View<typename Ash::String::Literal<NAME>::Encoding>(name), share, relativePath);
 					}
 
 					template
 					<
-						typename SHARE_ENCODING,
-						typename = Ash::Type::IsClass<SHARE_ENCODING, Ash::Generic::Encoding>
+						typename NAME,
+						typename SHARE,
+						typename = Ash::Type::IsStringLiteral<NAME>,
+						typename = Ash::Type::IsStringLiteral<SHARE>
 					>
-					static constexpr Path fromNetworkShare(const Ash::Encoding::Utf8::Code *name, Ash::String::View<SHARE_ENCODING> share, const Path &relativePath)
+					static constexpr Path fromNetworkShare(NAME name, SHARE share, const Path &relativePath)
 					{
-						return fromNetworkShare(Ash::Utf8::View(name), share, relativePath);
-					}
-
-					template
-					<
-						typename SHARE_ENCODING,
-						typename = Ash::Type::IsClass<SHARE_ENCODING, Ash::Generic::Encoding>
-					>
-					static constexpr Path fromNetworkShare(const Ash::Encoding::Wide::Code *name, Ash::String::View<SHARE_ENCODING> share, const Path &relativePath)
-					{
-						return fromNetworkShare(Ash::Wide::View(name), share, relativePath);
-					}
-
-					static constexpr Path fromNetworkShare(const Ash::Encoding::Ascii::Code *name, const Ash::Encoding::Ascii::Code *share, const Path &relativePath)
-					{
-						return fromNetworkShare(Ash::Ascii::View(name), Ash::Ascii::View(share), relativePath);
-					}
-
-					static constexpr Path fromNetworkShare(const Ash::Encoding::Ascii::Code *name, const Ash::Encoding::Utf8::Code *share, const Path &relativePath)
-					{
-						return fromNetworkShare(Ash::Ascii::View(name), Ash::Utf8::View(share), relativePath);
-					}
-
-					static constexpr Path fromNetworkShare(const Ash::Encoding::Ascii::Code *name, const Ash::Encoding::Wide::Code *share, const Path &relativePath)
-					{
-						return fromNetworkShare(Ash::Ascii::View(name), Ash::Wide::View(share), relativePath);
-					}
-
-					static constexpr Path fromNetworkShare(const Ash::Encoding::Utf8::Code *name, const Ash::Encoding::Ascii::Code *share, const Path &relativePath)
-					{
-						return fromNetworkShare(Ash::Utf8::View(name), Ash::Ascii::View(share), relativePath);
-					}
-
-					static constexpr Path fromNetworkShare(const Ash::Encoding::Utf8::Code *name, const Ash::Encoding::Utf8::Code *share, const Path &relativePath)
-					{
-						return fromNetworkShare(Ash::Utf8::View(name), Ash::Utf8::View(share), relativePath);
-					}
-
-					static constexpr Path fromNetworkShare(const Ash::Encoding::Utf8::Code *name, const Ash::Encoding::Wide::Code *share, const Path &relativePath)
-					{
-						return fromNetworkShare(Ash::Utf8::View(name), Ash::Wide::View(share), relativePath);
-					}
-
-					static constexpr Path fromNetworkShare(const Ash::Encoding::Wide::Code *name, const Ash::Encoding::Ascii::Code *share, const Path &relativePath)
-					{
-						return fromNetworkShare(Ash::Wide::View(name), Ash::Ascii::View(share), relativePath);
-					}
-
-					static constexpr Path fromNetworkShare(const Ash::Encoding::Wide::Code *name, const Ash::Encoding::Utf8::Code *share, const Path &relativePath)
-					{
-						return fromNetworkShare(Ash::Wide::View(name), Ash::Utf8::View(share), relativePath);
-					}
-
-					static constexpr Path fromNetworkShare(const Ash::Encoding::Wide::Code *name, const Ash::Encoding::Wide::Code *share, const Path &relativePath)
-					{
-						return fromNetworkShare(Ash::Wide::View(name), Ash::Wide::View(share), relativePath);
+						return fromNetworkShare(Ash::String::View<typename Ash::String::Literal<NAME>::Encoding>(name), Ash::String::View<typename Ash::String::Literal<SHARE>::Encoding>(share), relativePath);
 					}
 
 				protected:
@@ -600,53 +532,21 @@ namespace Ash
 					template
 					<
 						typename COMPONENT,
+						typename = Ash::Type::IsStringLiteral<COMPONENT>
+					>
+					constexpr bool appendComponent(COMPONENT component)
+					{
+						return appendComponent(Ash::String::View<typename Ash::String::Literal<COMPONENT>::Encoding>(component));
+					}
+
+					template
+					<
+						typename COMPONENT,
 						typename ...NEXT_COMPONENT
 					>
 					constexpr bool appendComponent(COMPONENT component, NEXT_COMPONENT ...nextComponent)
 					{
 						return appendComponent(component) && appendComponent(nextComponent...);
-					}
-
-					constexpr bool appendComponent(const Ash::Encoding::Ascii::Code *component)
-					{
-						return appendComponent(Ash::Ascii::View(component));
-					}
-
-					template
-					<
-						typename ...NEXT
-					>
-					constexpr bool appendComponent(const Ash::Encoding::Ascii::Code *component, NEXT ...nextComponent)
-					{
-						return appendComponent(Ash::Ascii::View(component)) && appendComponent(nextComponent...);
-					}
-
-					constexpr bool appendComponent(const Ash::Encoding::Utf8::Code *component)
-					{
-						return appendComponent(Ash::Utf8::View(component));
-					}
-
-					template
-					<
-						typename ...NEXT
-					>
-					constexpr bool appendComponent(Content &content, const Ash::Encoding::Utf8::Code *component, NEXT ...nextComponent)
-					{
-						return appendComponent(Ash::Utf8::View(component)) && appendComponent(nextComponent...);
-					}
-
-					constexpr bool appendComponent(const Ash::Encoding::Wide::Code *component)
-					{
-						return appendComponent(Ash::Wide::View(component));
-					}
-
-					template
-					<
-						typename ...NEXT
-					>
-					constexpr bool appendComponent(const Ash::Encoding::Wide::Code *component, NEXT ...nextComponent)
-					{
-						return appendComponent(Ash::Wide::View(component)) && appendComponent(nextComponent...);
 					}
 
 				private:
