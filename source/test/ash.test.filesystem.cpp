@@ -286,6 +286,86 @@ namespace Ash
 
 					return {};
 				}
+
+				Ash::Test::Assertion getLastComponent()
+				{
+					static struct
+					{
+						const char *path;
+						const char *lastComponent;
+					} testCases[] =
+					{
+						{ ".",                        "."                 },
+						{ "..",                       ".."                },
+						{ "../",                      ".."                },
+						{ "../.",                     ".."                },
+						{ "test",                     "test"              },
+						{ "test/",                    "test"              },
+						{ "test/.",                   "test"              },
+						{ "./test",                   "test"              },
+						{ "./test/",                  "test"              },
+						{ "./test/.",                 "test"              },
+						{ "../test",                  "test"              },
+						{ "../test/",                 "test"              },
+						{ "../test/.",                "test"              },
+						{ "./test/..",                ".."                },
+						{ "./test/../",               ".."                },
+						{ "./test/../.",              ".."                },
+
+						{ "c:",                       "c:"                },
+						{ "c:/",                      "c:"                },
+						{ "c:/.",                     "c:"                },
+						{ "c:/..",                    ".."                },
+						{ "c:/../",                   ".."                },
+						{ "c:/../.",                  ".."                },
+						{ "c:/test",                  "test"              },
+						{ "c:/test/",                 "test"              },
+						{ "c:/test/.",                "test"              },
+						{ "c:/test/..",               ".."                },
+						{ "c:/test/../",              ".."                },
+						{ "c:/test/../.",             ".."                },
+
+						{ "//server/share",           "\\\\server\\share" },
+						{ "//server/share/",          "\\\\server\\share" },
+						{ "//server/share/.",         "\\\\server\\share" },
+						{ "//server/share/..",        ".."                },
+						{ "//server/share/../",       ".."                },
+						{ "//server/share/../.",      ".."                },
+						{ "//server/share/test",      "test"              },
+						{ "//server/share/test/",     "test"              },
+						{ "//server/share/test/.",    "test"              },
+						{ "//server/share/test/..",   ".."                },
+						{ "//server/share/test/../",  ".."                },
+						{ "//server/share/test/../.", ".."                }
+					};
+					Ash::Utf8::String<> component;
+
+					TEST_IS_FALSE(Ash::FileSystem::Path().getLastComponent(component));
+
+					for (size_t n = 0; n < sizeof(testCases) / sizeof(testCases[0]); n++)
+					{
+						TEST_IS_TRUE(Ash::FileSystem::Path(testCases[n].path).getLastComponent(component));
+						TEST_IS_EQ(component.getLength(), strlen(testCases[n].lastComponent));
+						TEST_IS_ZERO(memcmp(component.at(0), testCases[n].lastComponent, component.getLength()));
+					}
+
+					Ash::Wide::String<> wideComponent;
+					TEST_IS_TRUE(Ash::FileSystem::Path("./test").getLastComponent(wideComponent));
+					TEST_IS_EQ(wideComponent.getLength(), wcslen(L"test"));
+					TEST_IS_ZERO(memcmp(wideComponent.at(0), L"test", wideComponent.getLength()));
+
+					Ash::Utf8::String<> utf8Component;
+					TEST_IS_TRUE(Ash::FileSystem::Path("./test").getLastComponent(utf8Component));
+					TEST_IS_EQ(utf8Component.getLength(), strlen("test"));
+					TEST_IS_ZERO(memcmp(utf8Component.at(0), "test", utf8Component.getLength()));
+
+					Ash::Ascii::String<> asciiComponent;
+					TEST_IS_TRUE(Ash::FileSystem::Path("./test").getLastComponent(asciiComponent));
+					TEST_IS_EQ(asciiComponent.getLength(), strlen("test"));
+					TEST_IS_ZERO(memcmp(asciiComponent.at(0), "test", asciiComponent.getLength()));
+
+					return {};
+				}
 #elif defined __linux__
 				static inline bool isEqual(const Ash::FileSystem::Path &left, const Ash::FileSystem::Path::Encoding::Code *right)
 				{
@@ -492,6 +572,72 @@ namespace Ash
 
 					return {};
 				}
+
+				Ash::Test::Assertion getLastComponent()
+				{
+					static struct
+					{
+						const char *path;
+						const char *lastComponent;
+					} testCases[] =
+					{
+						{ ".",           "."    },
+						{ "..",          ".."   },
+						{ "../",         ".."   },
+						{ "../.",        ".."   },
+						{ "test",        "test" },
+						{ "test/",       "test" },
+						{ "test/.",      "test" },
+						{ "./test",      "test" },
+						{ "./test/",     "test" },
+						{ "./test/.",    "test" },
+						{ "../test",     "test" },
+						{ "../test/",    "test" },
+						{ "../test/.",   "test" },
+						{ "./test/..",   ".."   },
+						{ "./test/../",  ".."   },
+						{ "./test/../.", ".."   },
+
+						{ "/",           "/"    },
+						{ "/.",          "/"    },
+						{ "/..",         ".."   },
+						{ "/../",        ".."   },
+						{ "/../.",       ".."   },
+						{ "/test",       "test" },
+						{ "/test/",      "test" },
+						{ "/test/.",     "test" },
+						{ "/test/..",    ".."   },
+						{ "/test/../",   ".."   },
+						{ "/test/../.",  ".."   }
+					};
+					Ash::Utf8::String<> component;
+
+					TEST_IS_FALSE(Ash::FileSystem::Path().getLastComponent(component));
+
+					for (size_t n = 0; n < sizeof(testCases) / sizeof(testCases[0]); n++)
+					{
+						TEST_IS_TRUE(Ash::FileSystem::Path(testCases[n].path).getLastComponent(component));
+						TEST_IS_EQ(component.getLength(), strlen(testCases[n].lastComponent));
+						TEST_IS_ZERO(memcmp(component.at(0), testCases[n].lastComponent, component.getLength()));
+					}
+
+					Ash::Wide::String<> wideComponent;
+					TEST_IS_TRUE(Ash::FileSystem::Path("./test").getLastComponent(wideComponent));
+					TEST_IS_EQ(wideComponent.getLength(), wcslen(L"test"));
+					TEST_IS_ZERO(memcmp(wideComponent.at(0), L"test", wideComponent.getLength()));
+
+					Ash::Utf8::String<> utf8Component;
+					TEST_IS_TRUE(Ash::FileSystem::Path("./test").getLastComponent(utf8Component));
+					TEST_IS_EQ(utf8Component.getLength(), strlen("test"));
+					TEST_IS_ZERO(memcmp(utf8Component.at(0), "test", utf8Component.getLength()));
+
+					Ash::Ascii::String<> asciiComponent;
+					TEST_IS_TRUE(Ash::FileSystem::Path("./test").getLastComponent(asciiComponent));
+					TEST_IS_EQ(asciiComponent.getLength(), strlen("test"));
+					TEST_IS_ZERO(memcmp(asciiComponent.at(0), "test", asciiComponent.getLength()));
+
+					return {};
+				}
 #endif
 			}
 		}
@@ -511,7 +657,8 @@ namespace Ash
 			TEST_CASE(Ash::Test::FileSystem::Path::isRelative),
 			TEST_CASE(Ash::Test::FileSystem::Path::isAbsolute),
 			TEST_CASE(Ash::Test::FileSystem::Path::getType),
-			TEST_CASE(Ash::Test::FileSystem::Path::reduce)
+			TEST_CASE(Ash::Test::FileSystem::Path::reduce),
+			TEST_CASE(Ash::Test::FileSystem::Path::getLastComponent)
 		);
 	}
 }
