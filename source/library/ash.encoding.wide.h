@@ -41,18 +41,15 @@ namespace Ash
 
 				constexpr operator Ash::Unicode::Character () const
 				{
-					if (getLength() == 1)
+					if constexpr (maxSize == 2)
 					{
-						return getCode(0);
+						if (getLength() == 2)
+						{
+							return 0x10000 + ((getCode(0) & 0x3FF) << 10) + (getCode(1) & 0x3FF);
+						}
 					}
-					else if (getLength() == 2)
-					{
-						return 0x10000 + ((getCode(0) & 0x3FF) << 10) + (getCode(1) & 0x3FF);
-					}
-					else
-					{
-						return Ash::Unicode::Character::replacement;
-					}
+
+					return (getLength() == 1) ? getCode(0) : Ash::Unicode::Character::replacement;
 				}
 
 			protected:
