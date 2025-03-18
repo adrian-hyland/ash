@@ -270,6 +270,39 @@ namespace Ash
 						return fromNetworkShare(Ash::String::View<typename Ash::String::Literal<NAME>::Encoding>(name), Ash::String::View<typename Ash::String::Literal<SHARE>::Encoding>(share), relativePath);
 					}
 
+					template
+					<
+						typename VALUE_ALLOCATION,
+						typename VALUE_ENCODING,
+						typename = Ash::Type::IsClass<VALUE_ALLOCATION, Ash::Memory::Generic::Allocation>,
+						typename = Ash::Type::IsClass<VALUE_ENCODING, Ash::Generic::Encoding>
+					>
+					constexpr bool getLastComponent(Ash::String::Value<VALUE_ALLOCATION, VALUE_ENCODING> &value) const
+					{
+						size_t length = m_Content.getLength();
+						if (length > 1)
+						{
+							length--;
+							size_t baseLength = skipBaseComponents();
+							size_t offset = m_Content.reverseFind(length, separator);
+							if ((offset == m_Content.getLength()) || (offset < baseLength))
+							{
+								offset = 0;
+							}
+							else if (offset + 1 < length)
+							{
+								offset++;
+							}
+							length = length - offset;
+							return m_Content.getView(offset, length).convertTo(value) == length;
+						}
+						else
+						{
+							value.clear();
+							return false;
+						}
+					}
+
 				protected:
 					static constexpr Ash::Unicode::Character alternateSeparator = '/';
 
