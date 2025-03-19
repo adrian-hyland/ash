@@ -47,6 +47,14 @@ list_get = $(subst ¬,$(1),$(subst ¬¬,$(3),$(subst ¬¬¬,$(3)$(1),$(2))))
 # @note This would normally be quite difficult using the normal text functions as these use the space to separate out each text item.
 list_get_csv = $(filter-out $(COMMA)¬,$(call escape,$(call list_get,",$(1)," $(COMMA)))¬)
 
+ifndef TARGET_PLATFORM
+ifeq ($(OS), Windows_NT)
+TARGET_PLATFORM := windows
+else
+TARGET_PLATFORM := linux
+endif
+endif
+
 ifndef APPLICATION
 APPLICATION := test
 endif
@@ -57,7 +65,7 @@ endif
 
 APP_NAME := $(notdir $(APPLICATION))
 
-BIN_DIR := ./bin
+BIN_DIR := ./bin/$(TARGET_PLATFORM)
 
 ifeq ($(COVERAGE),1)
 APP_NAME := $(APP_NAME)-coverage
@@ -84,11 +92,13 @@ endif
 
 CXX_VERSION := $(shell $(CXX) -dumpversion)
 
-SRC_DIR = ./source
+SRC_DIR := ./source
+APP_DIR := $(SRC_DIR)/$(APPLICATION)
 INC_DIR := $(call list_add,$(SRC_DIR)/library)
-INC_DIR += $(call list_add,$(SRC_DIR)/$(APPLICATION))
+INC_DIR += $(call list_add,$(APP_DIR))
 OBJ_DIR := $(BIN_DIR)/obj
 
+MK_FILES := $(APP_DIR)/$(TARGET_PLATFORM).mk
 CXX_FILES := $(wildcard $(addsuffix /*.cpp,$(call list_get,,$(INC_DIR),)))
 C_FILES := $(wildcard $(addsuffix /*.c,$(call list_get,,$(INC_DIR),)))
 O_FILES := $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%,$(CXX_FILES:.cpp=.o) $(C_FILES:.c=.o))
@@ -119,6 +129,7 @@ CFG_NAME := $(APP_NAME) - $(BUILD_NAME) $(BUILD_STD)
 
 APP := $(BIN_DIR)/$(APPLICATION)
 
+
 all: $(APP)
 
 clean:
@@ -142,12 +153,14 @@ coverage: $(APP)
 	gcov -n -o $(OBJ_DIR)/test $(wildcard $(addsuffix /*.cpp,$(SRC_DIR)/test))
 
 
+-include $(D_FILES)
+-include $(MK_FILES)
+
+
 $(APP) : $(O_FILES)
 	@echo -- BUILDING $@
 	mkdir -p $(@D)
 	$(CXX) $(O_FILES) $(LNK_FLAGS) -o $@
-
--include $(D_FILES)
 
 $(OBJ_DIR)/%.o : $(SRC_DIR)/%.cpp
 	@echo -- COMPILING $<
