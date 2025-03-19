@@ -36,6 +36,13 @@ namespace Ash
 						m_Handle = ::CreateWindowW(Registry::name, titleString, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, nullptr, nullptr, GetModuleHandle(nullptr), this);
 					}
 
+					template
+					<
+						typename TITLE,
+						typename = Ash::Type::IsStringLiteral<TITLE>
+					>
+					inline Window(TITLE title) : Window(Ash::String::View<typename Ash::String::Literal<TITLE>::Encoding>(title)) {}
+
 					inline Window(Window &&window) : m_Handle(window.m_Handle)
 					{
 						window.m_Handle = nullptr;

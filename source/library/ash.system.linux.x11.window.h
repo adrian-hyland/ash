@@ -109,6 +109,13 @@ namespace Ash
 						}
 					}
 
+					template
+					<
+						typename TITLE,
+						typename = Ash::Type::IsStringLiteral<TITLE>
+					>
+					inline Window(TITLE title) : Window(Ash::String::View<typename Ash::String::Literal<TITLE>::Encoding>(title)) {}
+
 					inline Window(Window &&window) : m_Handle(window.m_Handle), m_AspectRatio(window.m_AspectRatio), m_PercentSize(window.m_PercentSize), m_IsShown(window.m_IsShown)
 					{
 						window = Window();
