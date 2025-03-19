@@ -14,6 +14,13 @@ public:
 	>
 	TestWindow(Ash::String::View<ENCODING> title) : Ash::UI::Window(title) {}
 
+	template
+	<
+		typename TITLE,
+		typename = Ash::Type::IsStringLiteral<TITLE>
+	>
+	TestWindow(TITLE title) : TestWindow(Ash::String::View<typename Ash::String::Literal<TITLE>::Encoding>(title)) {}
+
 	virtual bool onMouse(Ash::UI::Position position, Ash::UI::Mouse::Button buttonState, Ash::UI::Mouse::Button buttonPressed) override
 	{
 		std::cout << "onMouse: (" << position.x << "," << position.y << "), button state: " << (int)Ash::UI::Mouse::Button::Value(buttonState) << " pressed: " << (int)Ash::UI::Mouse::Button::Value(buttonPressed) << "\n";
@@ -274,7 +281,7 @@ public:
 
 int main()
 {
-	TestWindow window(Ash::Utf8::View(u8"héllo wórld"));
+	TestWindow window(u8"héllo wórld");
 
 	window.show(Ash::UI::AspectRatio(1, 1), 100);
 
