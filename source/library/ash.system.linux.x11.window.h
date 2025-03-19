@@ -9,6 +9,7 @@
 #include "ash.system.linux.x11.configuration.h"
 #include "ash.system.linux.x11.property.icccm.h"
 #include "ash.system.linux.x11.property.ewmh.h"
+#include "ash.system.linux.x11.event.icccm.h"
 #include "ash.system.linux.x11.keyboard.h"
 
 
@@ -25,7 +26,7 @@ namespace Ash
 				public:
 					using Handle = xcb_window_t;
 
-					Window() : m_Handle(XCB_NONE), m_AspectRatio(), m_PercentSize(), m_IsShown(false) {}
+					inline Window() : m_Handle(XCB_NONE), m_AspectRatio(), m_PercentSize(), m_IsShown(false) {}
 
 					template
 					<
@@ -128,7 +129,7 @@ namespace Ash
 							m_AspectRatio = window.m_AspectRatio;
 							m_PercentSize = window.m_PercentSize;
 							m_IsShown = window.m_IsShown;
-							window = Window();
+							window.m_Handle = XCB_NONE;
 							m_Registry.replace(&window, this);
 						}
 
@@ -139,7 +140,7 @@ namespace Ash
 
 					constexpr bool isCreated() const { return m_Handle != XCB_NONE; }
 
-					inline bool show(const Ash::System::Linux::X11::Screen::Display &display, Ash::UI::AspectRatio aspectRatio, Ash::UI::Size::Dimension percentSize = 100)
+					inline bool show(Ash::UI::AspectRatio aspectRatio, Ash::UI::Size::Dimension percentSize = 100)
 					{
 						if (percentSize > 100)
 						{
@@ -151,6 +152,16 @@ namespace Ash
 						m_IsShown = false;
 
 						return isCreated() && Ash::System::Linux::X11::UnmapWindow(*this).checkRequest() && Ash::System::Linux::X11::MapWindow(*this).checkRequest();
+					}
+
+					inline void close()
+					{
+						if (isCreated())
+						{
+							Ash::System::Linux::X11::Event::ClientMessage deleteMessage = Ash::System::Linux::X11::Event::ICCCM::deleteWindow(*this);
+
+							Ash::System::Linux::X11::SendEvent(false, *this, 0, deleteMessage).checkRequest();
+						}
 					}
 
 					static inline bool processEvent()
@@ -221,6 +232,12 @@ namespace Ash
 
 						m_Registry.signalExit(!ok);
 						return true;
+					}
+
+					static inline void eventLoop()
+					{
+						while (processEvent())
+							;
 					}
 
 					inline Ash::UI::Size getSize() const
@@ -350,7 +367,11 @@ namespace Ash
 						Ash::UI::Boundary desktopBoundary = getCurrentDesktopBoundary();
 						Ash::UI::Boundary boundary;
 
-						boundary.size = aspectRatio.isValid() ? aspectRatio.withMaxSize(desktopBoundary.size, percentSize) : desktopBoundary.size.getPercent(percentSize);
+						boundary.size = desktopBoundary.size.getPercent(percentSize);
+						if (aspectRatio.isValid())
+						{
+							boundary.size = aspectRatio.withMaxSize(boundary.size);
+						}
 						boundary.position = getCenterPosition(desktopBoundary, boundary.size);
 
 						return boundary;
