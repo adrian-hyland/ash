@@ -2,8 +2,9 @@
 
 #include "ash.ascii.h"
 #include "ash.ui.core.h"
-#include "ash.system.linux.x11.connection.h"
 #include "ash.system.linux.x11.generic.h"
+#include "ash.system.linux.x11.connection.h"
+#include "ash.system.linux.x11.memory.h"
 #include "ash.system.linux.x11.atom.h"
 
 
