@@ -26,7 +26,7 @@ public:
 		std::cout << "onMouse: (" << position.x << "," << position.y << "), button state: (";
 		printMouseButton(buttonState);
 		std::cout << ") pressed: (";
-		printMouseButton(buttonState);
+		printMouseButton(buttonPressed);
 		std::cout << ")\n";
 		if (buttonPressed.isPressed(Ash::UI::Mouse::Button::left))
 		{
