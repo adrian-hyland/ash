@@ -179,6 +179,26 @@ namespace Ash
 						}
 					}
 
+					for (size_t from = 0; from < Ash::Integer::getBitSize<INTEGER>; from++)
+					{
+						INTEGER value = Ash::Integer::getBitMask<INTEGER>(from);
+
+						for (size_t n = 0; n < from; n++)
+						{
+							TEST_IS_FALSE(Ash::Integer::hasBitSet(value, n));
+						}
+						for (size_t n = from; n < Ash::Integer::getBitSize<INTEGER>; n++)
+						{
+							TEST_IS_TRUE(Ash::Integer::hasBitSet(value, n));
+						}
+					}
+
+					INTEGER value = Ash::Integer::getBitMask<INTEGER>(Ash::Integer::getBitSize<INTEGER>, Ash::Integer::getBitSize<INTEGER> + 1);
+					TEST_IS_ZERO(value);
+
+					value = Ash::Integer::getBitMask<INTEGER>(0, Ash::Integer::getBitSize<INTEGER>);
+					TEST_IS_EQ(value, INTEGER(-1));
+
 					return {};
 				}
 
@@ -187,9 +207,10 @@ namespace Ash
 					typename INTEGER,
 					typename = Ash::Type::IsUnsignedInteger<INTEGER>
 				>
-				static Ash::Test::Assertion getBitSize()
+				static Ash::Test::Assertion getBitLength()
 				{
 					TEST_IS_EQ(Ash::Integer::getBitLength(INTEGER(0)), 1);
+					TEST_IS_EQ(Ash::Integer::getBitLength(INTEGER(-1)), Ash::Integer::getBitSize<INTEGER>);
 
 					for (size_t n = 0; n < Ash::Integer::getBitSize<INTEGER>; n++)
 					{
@@ -289,10 +310,10 @@ namespace Ash
 			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getBitMask, uint32_t),
 			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getBitMask, uint64_t),
 
-			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getBitSize, uint8_t),
-			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getBitSize, uint16_t),
-			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getBitSize, uint32_t),
-			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getBitSize, uint64_t),
+			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getBitLength, uint8_t),
+			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getBitLength, uint16_t),
+			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getBitLength, uint32_t),
+			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getBitLength, uint64_t),
 
 			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getBitCount, uint8_t),
 			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getBitCount, uint16_t),
