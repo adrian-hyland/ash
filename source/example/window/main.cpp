@@ -23,7 +23,11 @@ public:
 
 	virtual bool onMouse(Ash::UI::Position position, Ash::UI::Mouse::Button buttonState, Ash::UI::Mouse::Button buttonPressed) override
 	{
-		std::cout << "onMouse: (" << position.x << "," << position.y << "), button state: " << (int)Ash::UI::Mouse::Button::Value(buttonState) << " pressed: " << (int)Ash::UI::Mouse::Button::Value(buttonPressed) << "\n";
+		std::cout << "onMouse: (" << position.x << "," << position.y << "), button state: (";
+		printMouseButton(buttonState);
+		std::cout << ") pressed: (";
+		printMouseButton(buttonState);
+		std::cout << ")\n";
 		if (buttonPressed.isPressed(Ash::UI::Mouse::Button::left))
 		{
 			show(Ash::UI::AspectRatio(2, 1), 50);
@@ -36,10 +40,68 @@ public:
 		return true;
 	}
 
+	void printMouseButton(Ash::UI::Mouse::Button button)
+	{
+		if (button.isPressed(Ash::UI::Mouse::Button::none))
+		{
+			std::cout << "none";
+		}
+		else
+		{
+			static struct
+			{
+				Ash::UI::Mouse::Button button;
+				Ash::Ascii::Literal::Value name;
+			} buttonNames[] =
+			{
+				{ Ash::UI::Mouse::Button::left,   "Left"   },
+				{ Ash::UI::Mouse::Button::middle, "Middle" },
+				{ Ash::UI::Mouse::Button::right,  "Right"  },
+				{ Ash::UI::Mouse::Button::x1,     "X1"     },
+				{ Ash::UI::Mouse::Button::x2,     "X2"     }
+			};
+			for (size_t n = 0; !button.isPressed(Ash::UI::Mouse::Button::none) && (n < sizeof(buttonNames) / sizeof(buttonNames[0])); n++)
+			{
+				if (button.isPressed(buttonNames[n].button))
+				{
+					std::cout << buttonNames[n].name;
+					button = button - buttonNames[n].button;
+					if (button != Ash::UI::Mouse::Button::none)
+					{
+						std::cout << ",";
+					}
+				}
+			}
+		}
+	}
+
 	virtual bool onMouseWheel(Ash::UI::Position position, Ash::UI::Mouse::Wheel wheel) override
 	{
-		std::cout << "onMouseWheel: (" << position.x << "," << position.y << ") wheel: " << Ash::UI::Mouse::Wheel::Value(wheel) << "\n";
+		std::cout << "onMouseWheel: (" << position.x << "," << position.y << ") wheel: (";
+		printMouseWheel(wheel);
+		std::cout << ")\n";
 		return true;
+	}
+
+	void printMouseWheel(Ash::UI::Mouse::Wheel wheel)
+	{
+		if (wheel.isHorizontal())
+		{
+			std::cout << "Horizontal";
+		}
+		else
+		{
+			std::cout << "Vertical";
+		}
+		if (wheel.isForward())
+		{
+			std::cout << ",Forward";
+		}
+		else
+		{
+			std::cout << ",Reverse";
+		}
+		std::cout << "," << wheel.getDelta();
 	}
 
 	virtual bool onKey(Ash::UI::Keyboard::State keyState, Ash::UI::Keyboard::Key key) override
