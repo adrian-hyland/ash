@@ -1,8 +1,8 @@
 #pragma once
 
-#if defined __WIN32__
+#if defined PLATFORM_WINDOWS
 #include "ash.system.windows.concurrency.h"
-#elif defined __linux__
+#elif defined PLATFORM_LINUX
 #include "ash.system.linux.concurrency.h"
 #endif
 
@@ -11,12 +11,12 @@ namespace Ash
 {
 	namespace Concurrency
 	{
-#if defined __WIN32__
+#if defined PLATFORM_WINDOWS
 		using Condition = Ash::System::Windows::Concurrency::Condition;
 		using Mutex = Ash::System::Windows::Concurrency::Mutex;
 		using Thread = Ash::System::Windows::Concurrency::Thread;
 		using Process = Ash::System::Windows::Concurrency::Process;
-#elif defined __linux__
+#elif defined PLATFORM_LINUX
 		using Condition = Ash::System::Linux::Concurrency::Condition;
 		using Mutex = Ash::System::Linux::Concurrency::Mutex;
 		using Thread = Ash::System::Linux::Concurrency::Thread;

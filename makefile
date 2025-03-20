@@ -86,6 +86,14 @@ CXX_DEFINE += $(call list_add,RELEASE)
 CXX_FLAGS += -O3
 endif
 
+ifeq ($(TARGET_PLATFORM),windows)
+CXX_DEFINE += $(call list_add,PLATFORM_WINDOWS)
+endif
+
+ifeq ($(TARGET_PLATFORM),linux)
+CXX_DEFINE += $(call list_add,PLATFORM_LINUX)
+endif
+
 ifeq ($(INTERMEDIATE),1)
 CXX_FLAGS += -save-temps=obj -fverbose-asm
 endif

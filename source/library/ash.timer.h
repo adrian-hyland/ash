@@ -2,18 +2,18 @@
 
 #include "ash.type.h"
 #include "ash.real.h"
-#if defined __WIN32__
+#if defined PLATFORM_WINDOWS
 #include "ash.system.windows.clock.h"
-#elif defined __linux__
+#elif defined PLATFORM_LINUX
 #include "ash.system.linux.clock.h"
 #endif
 
 
 namespace Ash
 {
-#if defined __WIN32__
+#if defined PLATFORM_WINDOWS
 	using Clock = System::Windows::Clock;
-#elif defined __linux__
+#elif defined PLATFORM_LINUX
 	using Clock = System::Linux::Clock;
 #endif
 

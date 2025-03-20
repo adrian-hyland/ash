@@ -48,7 +48,7 @@ namespace Ash
 			{
 				struct tm gmtTime;
 
-				#ifdef __WIN32__
+				#if defined PLATFORM_WINDOWS
 				gmtime_s(&gmtTime, &systemTime);
 				#else
 				gmtime_r(&systemTime, &gmtTime);
@@ -61,7 +61,7 @@ namespace Ash
 			{
 				struct tm localTime;
 
-				#ifdef __WIN32__
+				#ifdef PLATFORM_WINDOWS
 				localtime_s(&localTime, &systemTime);
 				#else
 				localtime_r(&systemTime, &localTime);

@@ -10,7 +10,7 @@ namespace Ash
 		{
 			namespace Path
 			{
-#if defined __WIN32__
+#if defined PLATFORM_WINDOWS
 				static inline bool isEqual(const Ash::FileSystem::Path &left, const wchar_t *right)
 				{
 					Ash::FileSystem::Path::View leftValue = left.getValue();
@@ -366,7 +366,7 @@ namespace Ash
 
 					return {};
 				}
-#elif defined __linux__
+#elif defined PLATFORM_LINUX
 				static inline bool isEqual(const Ash::FileSystem::Path &left, const Ash::FileSystem::Path::Encoding::Code *right)
 				{
 					Ash::FileSystem::Path::View leftValue = left.getValue();
