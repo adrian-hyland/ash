@@ -26,7 +26,7 @@ namespace Ash
 
 				constexpr operator Value () const { return m_Value; }
 
-				constexpr bool isPressed(Value value) const { return m_Value & value; }
+				constexpr bool isPressed(Value value) const { return value == ((value != none) ? m_Value & value : m_Value); }
 
 			private:
 				Value m_Value;
