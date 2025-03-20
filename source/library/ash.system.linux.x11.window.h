@@ -419,11 +419,11 @@ namespace Ash
 							}
 							else if (buttonPress->detail == 6)
 							{
-								return window->onMouseWheel(getMousePosition(buttonPress), Ash::UI::Mouse::Wheel::horizontal | Ash::UI::Mouse::Wheel::forward | 0x01);
+								return window->onMouseWheel(getMousePosition(buttonPress), Ash::UI::Mouse::Wheel::horizontal | Ash::UI::Mouse::Wheel::reverse | 0x01);
 							}
 							else if (buttonPress->detail == 7)
 							{
-								return window->onMouseWheel(getMousePosition(buttonPress), Ash::UI::Mouse::Wheel::horizontal | Ash::UI::Mouse::Wheel::reverse | 0x01);
+								return window->onMouseWheel(getMousePosition(buttonPress), Ash::UI::Mouse::Wheel::horizontal | Ash::UI::Mouse::Wheel::forward | 0x01);
 							}
 						}
 
@@ -435,8 +435,11 @@ namespace Ash
 						Window *window = m_Registry.find(buttonRelease->event);
 						if (window != nullptr)
 						{
-							Ash::UI::Mouse::Button button = getMouseButton(buttonRelease);
-							return window->onMouse(getMousePosition(buttonRelease), getMouseState(Ash::UI::Mouse::Button::none, button), Ash::UI::Mouse::Button::none);
+							if (buttonRelease->detail < 4)
+							{
+								Ash::UI::Mouse::Button button = getMouseButton(buttonRelease);
+								return window->onMouse(getMousePosition(buttonRelease), getMouseState(Ash::UI::Mouse::Button::none, button), Ash::UI::Mouse::Button::none);
+							}
 						}
 
 						return true;
