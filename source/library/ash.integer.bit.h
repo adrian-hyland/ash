@@ -20,7 +20,7 @@ namespace Ash
 			typename INTEGER,
 			typename = Ash::Type::IsUnsignedInteger<INTEGER>
 		>
-		constexpr INTEGER getBitMask(size_t from, size_t to = getBitSize<INTEGER>)
+		constexpr INTEGER getBitMask(size_t from, size_t to = getBitSize<INTEGER> - 1)
 		{
 			if (from > to)
 			{
