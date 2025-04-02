@@ -238,7 +238,7 @@ namespace Ash
 						}
 
 						m_Registry.signalExit(!ok);
-						return true;
+						return m_Registry.getCount() != 0;
 					}
 
 					static inline void eventLoop()
