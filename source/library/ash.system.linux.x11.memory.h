@@ -90,7 +90,7 @@ namespace Ash
 					>
 					inline void free(TYPE *value)
 					{
-						delete(value);
+						::free(value);
 					}
 
 					template
@@ -128,7 +128,12 @@ namespace Ash
 						>
 						static constexpr Pointer newValue(ARGUMENT &&...argument)
 						{
-							return new Type(std::forward<ARGUMENT>(argument)...);
+							void *value = ::malloc(sizeof(Type));
+							if (value == nullptr)
+							{
+								throw std::bad_alloc();
+							}
+							return new (value) Type(std::forward<ARGUMENT>(argument)...);
 						}
 
 						constexpr Type *operator -> () { return Reference::getValue(); }
