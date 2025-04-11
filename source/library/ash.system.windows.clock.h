@@ -102,11 +102,9 @@ namespace Ash
 			protected:
 				static inline Tick getSystemTick()
 				{
-					SYSTEMTIME systemTime;
 					FILETIME fileTime;
 
-					::GetSystemTime(&systemTime);
-					::SystemTimeToFileTime(&systemTime, &fileTime);
+					::GetSystemTimeAsFileTime(&fileTime);
 
 					return getTick(fileTime) / 10000ULL;
 				}
