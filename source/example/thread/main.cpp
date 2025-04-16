@@ -1,6 +1,7 @@
 #include <iostream>
 #include "ash.memory.unique.h"
 #include "ash.concurrency.h"
+#include "ash.ascii.h"
 
 
 class BackgroundThread : public Ash::Concurrency::Thread
@@ -16,7 +17,7 @@ public:
 		join();
 	}
 
-	void send(Function fn) { m_Queue.add(std::move(fn)); }
+	void send(Function &&function) { m_Queue.add(std::move(function)); }
 
 	void operator ()()
 	{
@@ -57,14 +58,14 @@ int main(int argumentCount, const char *argumentArray[])
 		(
 			Ash::Callable::Function
 			(
-				[](Ash::Memory::View<const char *> arguments)
+				[](Ash::Memory::View<Ash::Ascii::Literal::Value> arguments)
 				{
-					for (const char *s : arguments)
+					for (Ash::Ascii::Literal::Value value : arguments)
 					{
-						std::cout << "argument: " << s << "\n";
+						std::cout << "argument: " << value << "\n";
 					}
 				},
-				Ash::Memory::View<const char *>(argumentArray, argumentCount)
+				Ash::Memory::View<Ash::Ascii::Literal::Value>(argumentArray, argumentCount)
 			)
 		)
 	);
