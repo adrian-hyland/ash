@@ -170,6 +170,31 @@ namespace Ash
 
 				static constexpr bool isSatisfied = (sizeof(TYPE_1) == sizeof(TYPE_2));
 			};
+
+			template
+			<
+				typename TYPE,
+				typename FIRST_TYPE,
+				typename ...NEXT_TYPE
+			>
+			struct IsAnyOf
+			{
+				using Type = TYPE;
+
+				static constexpr bool isSatisfied = IsSame<TYPE, FIRST_TYPE>::isSatisfied || IsAnyOf<TYPE, NEXT_TYPE...>::isSatisfied;
+			};
+
+			template
+			<
+				typename TYPE,
+				typename ANY_TYPE
+			>
+			struct IsAnyOf<TYPE, ANY_TYPE>
+			{
+				using Type = TYPE;
+
+				static constexpr bool isSatisfied = IsSame<TYPE, ANY_TYPE>::isSatisfied;
+			};
 		}
 
 		template
@@ -264,6 +289,20 @@ namespace Ash
 			typename ...NEXT_TYPE
 		>
 		constexpr bool isNotSame = Ash::Type::CheckIf<TYPE, Ash::Type::Requirement::IsSame, NEXT_TYPE...>::isNotValid;
+
+		template
+		<
+			typename TYPE,
+			typename ...ANY_TYPE
+		>
+		constexpr bool isAnyOf = Ash::Type::CheckIf<TYPE, Ash::Type::Requirement::IsAnyOf, ANY_TYPE...>::isValid;
+
+		template
+		<
+			typename TYPE,
+			typename ...ANY_TYPE
+		>
+		constexpr bool isNoneOf = Ash::Type::CheckIf<TYPE, Ash::Type::Requirement::IsAnyOf, ANY_TYPE...>::isNotValid;
 
 		template
 		<
@@ -383,6 +422,20 @@ namespace Ash
 			typename ...NEXT_TYPE
 		>
 		using IsNotSame = typename Ash::Type::CheckIf<TYPE, Ash::Type::Requirement::IsSame, NEXT_TYPE...>::IsNotValid;
+
+		template
+		<
+			typename TYPE,
+			typename ...ANY_TYPE
+		>
+		using IsAnyOf = typename Ash::Type::CheckIf<TYPE, Ash::Type::Requirement::IsAnyOf, ANY_TYPE...>::IsValid;
+
+		template
+		<
+			typename TYPE,
+			typename ...ANY_TYPE
+		>
+		using IsNoneOf = typename Ash::Type::CheckIf<TYPE, Ash::Type::Requirement::IsAnyOf, ANY_TYPE...>::IsNotValid;
 
 		template
 		<
