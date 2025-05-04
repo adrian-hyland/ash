@@ -854,6 +854,268 @@ namespace Ash
 				return {};
 			}
 
+			static Ash::Test::Assertion isAnyOf()
+			{
+				bool isAnyOf;
+
+				isAnyOf = Ash::Type::isAnyOf<bool, bool>;
+				TEST_IS_TRUE(isAnyOf);
+				#if STD >= 20
+				isAnyOf = Ash::Type::isAnyOf<char8_t, char8_t>;
+				TEST_IS_TRUE(isAnyOf);
+				#endif
+				isAnyOf = Ash::Type::isAnyOf<char16_t, char16_t>;
+				TEST_IS_TRUE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<char32_t, char32_t>;
+				TEST_IS_TRUE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<wchar_t, wchar_t>;
+				TEST_IS_TRUE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<unsigned char, unsigned char>;
+				TEST_IS_TRUE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<unsigned int, unsigned int>;
+				TEST_IS_TRUE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<unsigned short, unsigned short>;
+				TEST_IS_TRUE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<unsigned long, unsigned long>;
+				TEST_IS_TRUE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<unsigned long long, unsigned long long>;
+				TEST_IS_TRUE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<signed char, signed char>;
+				TEST_IS_TRUE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<signed int, signed int>;
+				TEST_IS_TRUE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<signed short, signed short>;
+				TEST_IS_TRUE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<signed long, signed long>;
+				TEST_IS_TRUE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<signed long long, signed long long>;
+				TEST_IS_TRUE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<float, float>;
+				TEST_IS_TRUE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<double, double>;
+				TEST_IS_TRUE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<long double, long double>;
+				TEST_IS_TRUE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<void *, void *>;
+				TEST_IS_TRUE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<void, void>;
+				TEST_IS_TRUE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<TestBaseClass, TestBaseClass>;
+				TEST_IS_TRUE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<TestDerivedClass, TestDerivedClass>;
+				TEST_IS_TRUE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<TestBaseStruct, TestBaseStruct>;
+				TEST_IS_TRUE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<TestDerivedStruct, TestDerivedStruct>;
+				TEST_IS_TRUE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<int [], int []>;
+				TEST_IS_TRUE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<int [][2], int [][2]>;
+				TEST_IS_TRUE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<TestBaseClass [], TestBaseClass []>;
+				TEST_IS_TRUE(isAnyOf);
+
+				isAnyOf = Ash::Type::isAnyOf<int, int, char, void *>;
+				TEST_IS_TRUE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<char, int, char, void *>;
+				TEST_IS_TRUE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<void *, int, char, void *>;
+				TEST_IS_TRUE(isAnyOf);
+
+				isAnyOf = Ash::Type::isAnyOf<bool, int>;
+				TEST_IS_FALSE(isAnyOf);
+				#if STD >= 20
+				isAnyOf = Ash::Type::isAnyOf<char8_t, int>;
+				TEST_IS_FALSE(isAnyOf);
+				#endif
+				isAnyOf = Ash::Type::isAnyOf<char16_t, int>;
+				TEST_IS_FALSE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<char32_t, int>;
+				TEST_IS_FALSE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<wchar_t, int>;
+				TEST_IS_FALSE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<unsigned char, signed char>;
+				TEST_IS_FALSE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<unsigned int, signed int>;
+				TEST_IS_FALSE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<unsigned short, signed short>;
+				TEST_IS_FALSE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<unsigned long, signed long>;
+				TEST_IS_FALSE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<unsigned long long, signed long long>;
+				TEST_IS_FALSE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<signed char, unsigned char>;
+				TEST_IS_FALSE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<signed int, unsigned int>;
+				TEST_IS_FALSE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<signed short, unsigned short>;
+				TEST_IS_FALSE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<signed long, unsigned long>;
+				TEST_IS_FALSE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<signed long long, unsigned long long>;
+				TEST_IS_FALSE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<float, int>;
+				TEST_IS_FALSE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<double, int>;
+				TEST_IS_FALSE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<long double, int>;
+				TEST_IS_FALSE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<void *, int>;
+				TEST_IS_FALSE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<void, int>;
+				TEST_IS_FALSE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<TestBaseClass, TestBaseStruct>;
+				TEST_IS_FALSE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<TestBaseStruct, TestDerivedStruct>;
+				TEST_IS_FALSE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<TestDerivedStruct, TestDerivedClass>;
+				TEST_IS_FALSE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<TestDerivedClass, TestBaseClass>;
+				TEST_IS_FALSE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<int [], int>;
+				TEST_IS_FALSE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<int [][2], int []>;
+				TEST_IS_FALSE(isAnyOf);
+				isAnyOf = Ash::Type::isAnyOf<TestBaseClass [], TestBaseClass>;
+				TEST_IS_FALSE(isAnyOf);
+
+				isAnyOf = Ash::Type::isAnyOf<long, int, char, void *>;
+				TEST_IS_FALSE(isAnyOf);
+
+				return {};
+			}
+
+			static Ash::Test::Assertion isNoneOf()
+			{
+				bool isNoneOf;
+
+				isNoneOf = Ash::Type::isNoneOf<bool, int>;
+				TEST_IS_TRUE(isNoneOf);
+				#if STD >= 20
+				isNoneOf = Ash::Type::isNoneOf<char8_t, int>;
+				TEST_IS_TRUE(isNoneOf);
+				#endif
+				isNoneOf = Ash::Type::isNoneOf<char16_t, int>;
+				TEST_IS_TRUE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<char32_t, int>;
+				TEST_IS_TRUE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<wchar_t, int>;
+				TEST_IS_TRUE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<unsigned char, signed char>;
+				TEST_IS_TRUE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<unsigned int, signed int>;
+				TEST_IS_TRUE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<unsigned short, signed short>;
+				TEST_IS_TRUE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<unsigned long, signed long>;
+				TEST_IS_TRUE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<unsigned long long, signed long long>;
+				TEST_IS_TRUE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<signed char, unsigned char>;
+				TEST_IS_TRUE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<signed int, unsigned int>;
+				TEST_IS_TRUE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<signed short, unsigned short>;
+				TEST_IS_TRUE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<signed long, unsigned long>;
+				TEST_IS_TRUE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<signed long long, unsigned long long>;
+				TEST_IS_TRUE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<float, int>;
+				TEST_IS_TRUE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<double, int>;
+				TEST_IS_TRUE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<long double, int>;
+				TEST_IS_TRUE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<void *, int>;
+				TEST_IS_TRUE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<void, int>;
+				TEST_IS_TRUE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<TestBaseClass, TestBaseStruct>;
+				TEST_IS_TRUE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<TestBaseStruct, TestDerivedStruct>;
+				TEST_IS_TRUE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<TestDerivedStruct, TestDerivedClass>;
+				TEST_IS_TRUE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<TestDerivedClass, TestBaseClass>;
+				TEST_IS_TRUE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<int [], int>;
+				TEST_IS_TRUE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<int [][2], int []>;
+				TEST_IS_TRUE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<TestBaseClass [], TestBaseClass>;
+				TEST_IS_TRUE(isNoneOf);
+
+				isNoneOf = Ash::Type::isNoneOf<long, int, char, void *>;
+				TEST_IS_TRUE(isNoneOf);
+
+				isNoneOf = Ash::Type::isNoneOf<bool, bool>;
+				TEST_IS_FALSE(isNoneOf);
+				#if STD >= 20
+				isNoneOf = Ash::Type::isNoneOf<char8_t, char8_t>;
+				TEST_IS_FALSE(isNoneOf);
+				#endif
+				isNoneOf = Ash::Type::isNoneOf<char16_t, char16_t>;
+				TEST_IS_FALSE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<char32_t, char32_t>;
+				TEST_IS_FALSE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<wchar_t, wchar_t>;
+				TEST_IS_FALSE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<unsigned char, unsigned char>;
+				TEST_IS_FALSE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<unsigned int, unsigned int>;
+				TEST_IS_FALSE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<unsigned short, unsigned short>;
+				TEST_IS_FALSE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<unsigned long, unsigned long>;
+				TEST_IS_FALSE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<unsigned long long, unsigned long long>;
+				TEST_IS_FALSE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<signed char, signed char>;
+				TEST_IS_FALSE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<signed int, signed int>;
+				TEST_IS_FALSE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<signed short, signed short>;
+				TEST_IS_FALSE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<signed long, signed long>;
+				TEST_IS_FALSE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<signed long long, signed long long>;
+				TEST_IS_FALSE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<float, float>;
+				TEST_IS_FALSE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<double, double>;
+				TEST_IS_FALSE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<long double, long double>;
+				TEST_IS_FALSE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<void *, void *>;
+				TEST_IS_FALSE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<void, void>;
+				TEST_IS_FALSE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<TestBaseClass, TestBaseClass>;
+				TEST_IS_FALSE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<TestDerivedClass, TestDerivedClass>;
+				TEST_IS_FALSE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<TestBaseStruct, TestBaseStruct>;
+				TEST_IS_FALSE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<TestDerivedStruct, TestDerivedStruct>;
+				TEST_IS_FALSE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<int [], int []>;
+				TEST_IS_FALSE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<int [][2], int [][2]>;
+				TEST_IS_FALSE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<TestBaseClass [], TestBaseClass []>;
+				TEST_IS_FALSE(isNoneOf);
+
+				isNoneOf = Ash::Type::isNoneOf<int, int, char, void *>;
+				TEST_IS_FALSE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<char, int, char, void *>;
+				TEST_IS_FALSE(isNoneOf);
+				isNoneOf = Ash::Type::isNoneOf<void *, int, char, void *>;
+				TEST_IS_FALSE(isNoneOf);
+
+				return {};
+			}
+
 			static Ash::Test::Assertion isSameSize()
 			{
 				bool isSameSize;
@@ -1043,6 +1305,8 @@ namespace Ash
 			TEST_CASE(Ash::Test::Type::isNotConstant),
 			TEST_CASE(Ash::Test::Type::isSame),
 			TEST_CASE(Ash::Test::Type::isNotSame),
+			TEST_CASE(Ash::Test::Type::isAnyOf),
+			TEST_CASE(Ash::Test::Type::isNoneOf),
 			TEST_CASE(Ash::Test::Type::isSameSize),
 			TEST_CASE(Ash::Test::Type::isByteSizeInteger),
 			TEST_CASE(Ash::Test::Type::isStringLiteral),
