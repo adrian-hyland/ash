@@ -304,7 +304,7 @@ namespace Ash
 
 					inline ConfigureWindow() : Message() {}
 
-					inline ConfigureWindow(xcb_window_t window, const SET &configuration) : Message(xcb_configure_window_checked, window, configuration.bitmap, configuration) {}
+					inline ConfigureWindow(xcb_window_t window, const Set &configuration) : Message(xcb_configure_window_checked, window, configuration.bitmap, configuration) {}
 				};
 
 				template
@@ -321,7 +321,7 @@ namespace Ash
 
 					inline ChangeWindowAttributes() : Message() {}
 
-					inline ChangeWindowAttributes(xcb_window_t window, const SET &attributes) : Message(xcb_change_window_attributes_checked, window, attributes.bitmap, attributes) {}
+					inline ChangeWindowAttributes(xcb_window_t window, const Set &attributes) : Message(xcb_change_window_attributes_checked, window, attributes.bitmap, attributes) {}
 				};
 
 				template
