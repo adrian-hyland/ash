@@ -283,13 +283,6 @@ namespace Ash
 
 						static constexpr size_t count = sizeof(names) / sizeof(names[0]);
 
-						static inline Ash::Memory::View<xcb_atom_t> getValues()
-						{
-							static Ash::Memory::Sequence<xcb_atom_t, count> values(Ash::System::Linux::X11::InternAtom::toAtoms(Ash::System::Linux::X11::InternAtom::fromNames(names, true)));
-
-							return values;
-						}
-
 						static constexpr size_t getIndex(Ash::Ascii::View name)
 						{
 							for (size_t index = 0; index < count; index++)
@@ -309,7 +302,10 @@ namespace Ash
 							return count;
 						}
 
-						static inline xcb_atom_t getValue(size_t index) { return getValues().getOr(index, XCB_ATOM_NONE); }
+						static inline xcb_atom_t getValue(size_t index) { return m_Values.getOr(index, XCB_ATOM_NONE); }
+
+					private:
+						static inline Ash::Memory::Sequence<xcb_atom_t, count> m_Values = Ash::System::Linux::X11::InternAtom::toAtoms(Ash::System::Linux::X11::InternAtom::fromNames(names, true));
 					};
 
 					template
