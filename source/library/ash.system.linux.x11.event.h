@@ -41,7 +41,7 @@ namespace Ash
 
 						constexpr Value() : Pointer() {}
 
-						constexpr Value(const TYPE &value) : Pointer(Pointer::newValue(value)) {}
+						constexpr Value(const TYPE &value) : Pointer(Pointer::value(value)) {}
 
 						constexpr Value(TYPE *&&value) : Pointer(std::move(value)) {}
 
@@ -69,7 +69,7 @@ namespace Ash
 							return *this;
 						}
 
-						static constexpr Value newValue() { return Value(Type(identifier)); }
+						static constexpr Value value() { return Value(Type(identifier)); }
 
 						template
 						<
@@ -139,7 +139,7 @@ namespace Ash
 
 					inline Ash::System::Linux::X11::Event::ClientMessage newClientMessage(xcb_window_t window, xcb_atom_t type, std::initializer_list<uint32_t> data)
 					{
-						ClientMessage event = ClientMessage::newValue();
+						ClientMessage event = ClientMessage::value();
 						event->format = Ash::Integer::getBitSize<uint32_t>;
 						event->window = window;
 						event->type = type;

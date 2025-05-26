@@ -448,7 +448,7 @@ namespace Ash
 					public:
 						using Reference = Ash::System::Linux::X11::Memory::Reference<xkb_context, xkb_context_unref>;
 
-						static inline Context newValue()
+						static inline Context value()
 						{
 							return xkb_context_new(XKB_CONTEXT_NO_FLAGS);
 						}
@@ -513,7 +513,7 @@ namespace Ash
 						{
 							if (xkb_x11_setup_xkb_extension(Ash::System::Linux::X11::Connection::getHandle(), XKB_X11_MIN_MAJOR_XKB_VERSION, XKB_X11_MIN_MINOR_XKB_VERSION, XKB_X11_SETUP_XKB_EXTENSION_NO_FLAGS, NULL, NULL, &m_EventType, NULL))
 							{
-								m_Context = Context::newValue();
+								m_Context = Context::value();
 								if (!hasContext() || !newDevice() || !setFlags() || !selectEvents())
 								{
 									cleanUp();

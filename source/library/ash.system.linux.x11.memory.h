@@ -126,7 +126,7 @@ namespace Ash
 						<
 							typename ...ARGUMENT
 						>
-						static constexpr Pointer newValue(ARGUMENT &&...argument)
+						static constexpr Pointer value(ARGUMENT &&...argument)
 						{
 							void *value = ::malloc(sizeof(Type));
 							if (value == nullptr)
