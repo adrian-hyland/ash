@@ -12,6 +12,7 @@
 #include "ash.test.calendar.h"
 #include "ash.test.unicode.h"
 #include "ash.test.memory.h"
+#include "ash.test.pointer.h"
 #include "ash.test.encoding.h"
 #include "ash.test.string.h"
 #include "ash.test.filesystem.h"
@@ -36,6 +37,7 @@ int main()
 		Ash::Test::testCalendar,
 		Ash::Test::testUnicode,
 		Ash::Test::testMemory,
+		Ash::Test::testPointer,
 		Ash::Test::testEncoding,
 		Ash::Test::testString,
 		Ash::Test::testFileSystem
