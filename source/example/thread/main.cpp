@@ -1,5 +1,5 @@
 #include <iostream>
-#include "ash.memory.unique.h"
+#include "ash.pointer.h"
 #include "ash.concurrency.h"
 #include "ash.ascii.h"
 
@@ -7,7 +7,7 @@
 class BackgroundThread : public Ash::Concurrency::Thread
 {
 public:
-	using Function = Ash::Memory::Unique::Pointer<Ash::Callable::Generic::Function<void>>;
+	using Function = Ash::Unique::Pointer<Ash::Callable::Generic::Function<void>>;
 
 	BackgroundThread() : Ash::Concurrency::Thread(), m_Queue() { run(this); }
 
@@ -17,14 +17,14 @@ public:
 		join();
 	}
 
-	void send(Function &&function) { m_Queue.add(std::move(function)); }
+	void send(Function function) { m_Queue.add(std::move(function)); }
 
 	void operator ()()
 	{
 		for (;;)
 		{
 			Function function = m_Queue.remove();
-			if (function.isNull())
+			if (function == nullptr)
 			{
 				break;
 			}
@@ -43,18 +43,16 @@ static void helloWorld()
 	std::cout << "hello world\n";
 }
 
-static Ash::Callable::Function helloWorldFunction = helloWorld;
-
 
 int main(int argumentCount, const char *argumentArray[])
 {
 	BackgroundThread backgroundThread;
 
-	backgroundThread.send(Ash::Memory::Unique::at(helloWorldFunction));
+	backgroundThread.send(Ash::Unique::value(Ash::Callable::Function(helloWorld)));
 
 	backgroundThread.send
 	(
-		Ash::Memory::Unique::newValue
+		Ash::Unique::value
 		(
 			Ash::Callable::Function
 			(
