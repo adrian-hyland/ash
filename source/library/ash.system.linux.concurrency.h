@@ -8,6 +8,7 @@
 #include <errno.h>
 #include <utility>
 #include "ash.system.linux.filesystem.h"
+#include "ash.nullable.h"
 #include "ash.ascii.h"
 #include "ash.utf8.h"
 #include "ash.wide.h"
@@ -143,14 +144,11 @@ namespace Ash
 				class Thread
 				{
 				public:
-					using Handle = pthread_t;
+					using Handle = Ash::Nullable<pthread_t>;
 
-					inline Thread() : m_Handle(), m_IsSetUp(false) {}
+					inline Thread() : m_Handle() {}
 
-					inline Thread(Thread &&thread) noexcept : m_Handle(thread.m_Handle), m_IsSetUp(thread.m_IsSetUp)
-					{
-						thread.m_IsSetUp = false;
-					}
+					inline Thread(Thread &&thread) noexcept : m_Handle(std::move(thread.m_Handle)) {}
 
 					inline ~Thread()
 					{
@@ -162,11 +160,7 @@ namespace Ash
 						if (this != &thread)
 						{
 							join();
-
-							m_Handle = thread.m_Handle;
-							m_IsSetUp = thread.m_IsSetUp;
-
-							thread.m_IsSetUp = false;
+							m_Handle = std::move(thread.m_Handle);
 						}
 
 						return *this;
@@ -179,21 +173,21 @@ namespace Ash
 					>
 					inline bool run(FUNCTION function, ARGUMENTS &&...arguments)
 					{
-						if (m_IsSetUp)
-						{
-							return false;
-						}
-
-						m_IsSetUp = runFunction(m_Handle, function, std::forward<ARGUMENTS>(arguments)...);
-
-						return m_IsSetUp;
+						return runFunction(m_Handle, function, std::forward<ARGUMENTS>(arguments)...);
 					}
 
 					inline bool join()
 					{
-						m_IsSetUp = m_IsSetUp && (::pthread_join(m_Handle, nullptr) != 0);
+						if (!m_Handle.isNull())
+						{
+							if (::pthread_join(*m_Handle.getAt(), nullptr) != 0)
+							{
+								return false;
+							}
+							m_Handle.clear();
+						}
 
-						return !m_IsSetUp;
+						return true;
 					}
 
 					template
@@ -204,10 +198,9 @@ namespace Ash
 					static inline bool runDetached(FUNCTION function, ARGUMENTS &&...arguments)
 					{
 						Handle handle;
-
 						if (runFunction(handle, function, std::forward<ARGUMENTS>(arguments)...))
 						{
-							::pthread_detach(handle);
+							::pthread_detach(*handle.getAt());
 							return true;
 						}
 						return false;
@@ -226,15 +219,18 @@ namespace Ash
 
 						static inline bool run(Handle &handle, FUNCTION function, ARGUMENTS &&...arguments)
 						{
-							Callable *callable = new Callable(function, std::forward<ARGUMENTS>(arguments)...);
-
-							if (::pthread_create(&handle, nullptr, run, callable) != 0)
+							if (handle.isNull())
 							{
+								Callable *callable = new Callable(function, std::forward<ARGUMENTS>(arguments)...);
+								if (::pthread_create(handle.setAt(), nullptr, run, callable) == 0)
+								{
+									return true;
+								}
+								handle.clear();
 								delete callable;
-								return false;
 							}
 
-							return true;
+							return false;
 						}
 
 					protected:
@@ -243,7 +239,7 @@ namespace Ash
 						static inline void *run(void *param)
 						{
 							Callable *callable = static_cast<Callable *>(param);
-							
+
 							callable->m_Function();
 
 							delete callable;
@@ -267,7 +263,6 @@ namespace Ash
 
 				private:
 					Handle m_Handle;
-					bool   m_IsSetUp;
 
 					Thread(const Thread &thread) = delete;
 					Thread &operator = (const Thread &thread) = delete;
