@@ -45,6 +45,7 @@ namespace Ash
 		{
 			if (this != &nullable)
 			{
+				clear();
 				m_IsNull = !nullable.remove(m_Value);
 			}
 			return *this;
