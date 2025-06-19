@@ -173,7 +173,14 @@ namespace Ash
 					>
 					inline bool run(FUNCTION function, ARGUMENTS &&...arguments)
 					{
-						return runFunction(m_Handle, function, std::forward<ARGUMENTS>(arguments)...);
+						if (!m_Handle.isNull())
+						{
+							return false;
+						}
+
+						m_Handle = runFunction(function, std::forward<ARGUMENTS>(arguments)...);
+
+						return !m_Handle.isNull();
 					}
 
 					inline bool join()
@@ -197,8 +204,8 @@ namespace Ash
 					>
 					static inline bool runDetached(FUNCTION function, ARGUMENTS &&...arguments)
 					{
-						Handle handle;
-						if (runFunction(handle, function, std::forward<ARGUMENTS>(arguments)...))
+						Handle handle = runFunction(function, std::forward<ARGUMENTS>(arguments)...);
+						if (!handle.isNull())
 						{
 							::pthread_detach(*handle.getAt());
 							return true;
@@ -217,20 +224,18 @@ namespace Ash
 					public:
 						using Function = Ash::Callable::Function<FUNCTION, ARGUMENTS...>;
 
-						static inline bool run(Handle &handle, FUNCTION function, ARGUMENTS &&...arguments)
+						static inline Handle run(FUNCTION function, ARGUMENTS &&...arguments)
 						{
-							if (handle.isNull())
+							Callable *callable = new Callable(function, std::forward<ARGUMENTS>(arguments)...);
+
+							Handle handle;
+							if (::pthread_create(handle.setAt(), nullptr, run, callable) != 0)
 							{
-								Callable *callable = new Callable(function, std::forward<ARGUMENTS>(arguments)...);
-								if (::pthread_create(handle.setAt(), nullptr, run, callable) == 0)
-								{
-									return true;
-								}
 								handle.clear();
 								delete callable;
 							}
 
-							return false;
+							return handle;
 						}
 
 					protected:
@@ -256,9 +261,9 @@ namespace Ash
 						typename FUNCTION,
 						typename ...ARGUMENTS
 					>
-					static inline bool runFunction(Handle &handle, FUNCTION function, ARGUMENTS &&...arguments)
+					static inline Handle runFunction(FUNCTION function, ARGUMENTS &&...arguments)
 					{
-						return Callable<FUNCTION, ARGUMENTS...>::run(handle, function, std::forward<ARGUMENTS>(arguments)...);
+						return Callable<FUNCTION, ARGUMENTS...>::run(function, std::forward<ARGUMENTS>(arguments)...);
 					}
 
 				private:
