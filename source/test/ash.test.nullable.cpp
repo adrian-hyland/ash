@@ -179,6 +179,12 @@ namespace Ash
 				TEST_IS_FALSE(array4.isNull());
 				TEST_IS_ZERO(memcmp(array4.getOr({ 1, 2, 3, 4, 5 }), arrayValue, 5));
 
+				const int zeroValue[5] = { 0, 0, 0, 0, 0 };
+				array3 = std::move(array1);
+				TEST_IS_TRUE(array3.isNull());
+				TEST_IS_ZERO(memcmp(*array3.setAt(), zeroValue, 5));
+				TEST_IS_ZERO(memcmp(*array3.setAt(), zeroValue, 5));
+
 				*array4.setAt()[0] = 100;
 				TEST_IS_EQ(*array4.getAt()[0], 100);
 
@@ -235,6 +241,11 @@ namespace Ash
 				TEST_IS_EQ(point4.getAt()->x, 1);
 				TEST_IS_EQ(point4.getAt()->y, 2);
 
+				point3 = std::move(point1);
+				TEST_IS_TRUE(point3.isNull());
+				TEST_IS_EQ(point3.setAt()->x, 0);
+				TEST_IS_EQ(point3.setAt()->y, 0);
+
 				point4.setAt()->x = 100;
 				TEST_IS_EQ(point4.getAt()->x, 100);
 
@@ -268,6 +279,12 @@ namespace Ash
 
 				trace3 = trace4;
 				TEST_IS_EQ(Ash::Test::Memory::Trace::getAllocatedCount(), 3);
+
+				trace2 = std::move(trace1);
+				TEST_IS_EQ(Ash::Test::Memory::Trace::getAllocatedCount(), 2);
+
+				trace3 = trace1;
+				TEST_IS_EQ(Ash::Test::Memory::Trace::getAllocatedCount(), 1);
 
 				return {};
 			}
