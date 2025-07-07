@@ -145,9 +145,12 @@ namespace Ash
 
 		constexpr void release()
 		{
-			if ((m_Allocation != nullptr) && (m_Allocation->decrementCount() == 0))
+			if (m_Allocation != nullptr)
 			{
-				delete m_Allocation;
+				if (m_Allocation->decrementCount() == 0)
+				{
+					delete m_Allocation;
+				}
 				m_Reference = nullptr;
 				m_Allocation = nullptr;
 			}
