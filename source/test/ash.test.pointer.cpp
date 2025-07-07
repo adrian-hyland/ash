@@ -327,6 +327,18 @@ namespace Ash
 					TEST_IS_EQ(*n5, 987);
 					TEST_IS_EQ(*n6, 789);
 
+					Ash::Shared::Pointer<int> n7(n6);
+					TEST_IS_NOT_NULL(n6);
+					TEST_IS_EQ(n6.getReferenceCount(), 2);
+					TEST_IS_NOT_NULL(n7);
+					TEST_IS_EQ(n7.getReferenceCount(), 2);
+					TEST_IS_EQ(n6, n7);
+					n6.release();
+					TEST_IS_NULL(n6);
+					TEST_IS_EQ(n6.getReferenceCount(), 0);
+					TEST_IS_NOT_NULL(n7);
+					TEST_IS_EQ(n7.getReferenceCount(), 1);
+
 					return {};
 				}
 
@@ -412,6 +424,18 @@ namespace Ash
 					TEST_IS_EQ((*a6)[2], 8);
 					TEST_IS_EQ((*a6)[3], 9);
 
+					Ash::Shared::Pointer<int[4]> a7(a6);
+					TEST_IS_NOT_NULL(a6);
+					TEST_IS_EQ(a6.getReferenceCount(), 2);
+					TEST_IS_NOT_NULL(a7);
+					TEST_IS_EQ(a7.getReferenceCount(), 2);
+					TEST_IS_EQ(a6, a7);
+					a6.release();
+					TEST_IS_NULL(a6);
+					TEST_IS_EQ(a6.getReferenceCount(), 0);
+					TEST_IS_NOT_NULL(a7);
+					TEST_IS_EQ(a7.getReferenceCount(), 1);
+
 					return {};
 				}
 
@@ -485,6 +509,18 @@ namespace Ash
 					TEST_IS_TRUE(p5->distance(Point(0, 0)).isEqual(20));
 					TEST_IS_TRUE(p6->distance(Point(0, 0)).isEqual(15));
 
+					Ash::Shared::Pointer<Point> p7(p6);
+					TEST_IS_NOT_NULL(p6);
+					TEST_IS_EQ(p6.getReferenceCount(), 2);
+					TEST_IS_NOT_NULL(p7);
+					TEST_IS_EQ(p7.getReferenceCount(), 2);
+					TEST_IS_EQ(p6, p7);
+					p6.release();
+					TEST_IS_NULL(p6);
+					TEST_IS_EQ(p6.getReferenceCount(), 0);
+					TEST_IS_NOT_NULL(p7);
+					TEST_IS_EQ(p7.getReferenceCount(), 1);
+
 					return {};
 				}
 
@@ -557,6 +593,18 @@ namespace Ash
 					TEST_IS_NOT_EQ(s5, s6);
 					TEST_IS_TRUE(getCompactnessRatio(*s5).isEqual(1));
 					TEST_IS_TRUE(getCompactnessRatio(*s6).isEqual(Ash::Double::pi / 4));
+
+					Ash::Shared::Pointer<Shape> s7(s6);
+					TEST_IS_NOT_NULL(s6);
+					TEST_IS_EQ(s6.getReferenceCount(), 2);
+					TEST_IS_NOT_NULL(s7);
+					TEST_IS_EQ(s7.getReferenceCount(), 2);
+					TEST_IS_EQ(s6, s7);
+					s6.release();
+					TEST_IS_NULL(s6);
+					TEST_IS_EQ(s6.getReferenceCount(), 0);
+					TEST_IS_NOT_NULL(s7);
+					TEST_IS_EQ(s7.getReferenceCount(), 1);
 
 					return {};
 				}
