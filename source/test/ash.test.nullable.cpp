@@ -139,6 +139,22 @@ namespace Ash
 				return {};
 			}
 
+			static Ash::Test::Assertion remove()
+			{
+				Ash::Nullable<int> intValue;
+				int value = 0;
+
+				TEST_IS_FALSE(intValue.remove(value));
+
+				intValue = 123;
+				TEST_IS_FALSE(intValue.isNull())
+				TEST_IS_TRUE(intValue.remove(value));
+				TEST_IS_TRUE(intValue.isNull());
+				TEST_IS_EQ(value, 123);
+
+				return {};
+			}
+
 			Ash::Test::Assertion array()
 			{
 				Ash::Nullable<int [5]> array1;
@@ -184,6 +200,10 @@ namespace Ash
 				TEST_IS_TRUE(array3.isNull());
 				TEST_IS_ZERO(memcmp(*array3.setAt(), zeroValue, 5));
 				TEST_IS_ZERO(memcmp(*array3.setAt(), zeroValue, 5));
+
+				int value[5] = {};
+				TEST_IS_TRUE(array4.remove(value));
+				TEST_IS_ZERO(memcmp(value, arrayValue, 5));
 
 				*array4.setAt()[0] = 100;
 				TEST_IS_EQ(*array4.getAt()[0], 100);
@@ -246,6 +266,11 @@ namespace Ash
 				TEST_IS_EQ(point3.setAt()->x, 0);
 				TEST_IS_EQ(point3.setAt()->y, 0);
 
+				Point value = {};
+				TEST_IS_TRUE(point4.remove(value));
+				TEST_IS_EQ(value.x, 1);
+				TEST_IS_EQ(value.y, 2);
+
 				point4.setAt()->x = 100;
 				TEST_IS_EQ(point4.getAt()->x, 100);
 
@@ -299,6 +324,7 @@ namespace Ash
 			TEST_CASE(Ash::Test::Nullable::getAt),
 			TEST_CASE(Ash::Test::Nullable::getOr),
 			TEST_CASE(Ash::Test::Nullable::setAt),
+			TEST_CASE(Ash::Test::Nullable::remove),
 			TEST_CASE(Ash::Test::Nullable::clear),
 			TEST_CASE(Ash::Test::Nullable::array),
 			TEST_CASE(Ash::Test::Nullable::object),
