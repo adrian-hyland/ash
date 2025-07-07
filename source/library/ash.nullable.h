@@ -21,7 +21,7 @@ namespace Ash
 		{
 			if (!nullable.m_IsNull)
 			{
-				copyValue(m_Value, nullable.m_Value);
+				copy(m_Value, nullable.m_Value);
 				m_IsNull = nullable.m_IsNull;
 			}
 		}
@@ -35,7 +35,7 @@ namespace Ash
 		{
 			if (this != &nullable)
 			{
-				copyValue(m_Value, nullable.m_Value);
+				copy(m_Value, nullable.m_Value);
 				m_IsNull = nullable.m_IsNull;
 			}
 			return *this;
@@ -53,14 +53,14 @@ namespace Ash
 
 		constexpr Nullable &operator = (const Type &value)
 		{
-			copyValue(m_Value, value);
+			copy(m_Value, value);
 			m_IsNull = false;
 			return *this;
 		}
 
 		constexpr Nullable &operator = (Type &&value)
 		{
-			moveValue(m_Value, std::move(value));
+			move(m_Value, std::move(value));
 			m_IsNull = false;
 			return *this;
 		}
@@ -79,17 +79,29 @@ namespace Ash
 			return &m_Value;
 		}
 
+		constexpr bool remove(Type &value)
+		{
+			if (m_IsNull)
+			{
+				return false;
+			}
+			move(value, std::move(m_Value));
+			clear(m_Value);
+			m_IsNull = true;
+			return true;
+		}
+
 		constexpr void clear()
 		{
 			if (!m_IsNull)
 			{
-				clearValue(m_Value);
+				clear(m_Value);
 				m_IsNull = true;
 			}
 		}
 
 	protected:
-		static constexpr void copyValue(Type &to, const Type &from)
+		static constexpr void copy(Type &to, const Type &from)
 		{
 			if constexpr (Ash::Type::isArray<TYPE>)
 			{
@@ -101,7 +113,7 @@ namespace Ash
 			}
 		}
 
-		static constexpr void moveValue(Type &to, Type &&from)
+		static constexpr void move(Type &to, Type &&from)
 		{
 			if constexpr (Ash::Type::isArray<TYPE>)
 			{
@@ -113,7 +125,7 @@ namespace Ash
 			}
 		}
 
-		static constexpr void clearValue(Type &value)
+		static constexpr void clear(Type &value)
 		{
 			if constexpr (Ash::Type::isArray<TYPE>)
 			{
@@ -123,18 +135,6 @@ namespace Ash
 			{
 				value = Type();
 			}
-		}
-
-		constexpr bool remove(Type &value)
-		{
-			if (m_IsNull)
-			{
-				return false;
-			}
-			moveValue(value, std::move(m_Value));
-			clearValue(m_Value);
-			m_IsNull = true;
-			return true;
 		}
 
 	private:
