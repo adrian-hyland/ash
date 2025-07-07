@@ -35,6 +35,10 @@ namespace Ash
 			{
 				return INTEGER(-1) << from;
 			}
+			else if (from == to)
+			{
+				return INTEGER(1) << from;
+			}
 			else if (from == 0)
 			{
 				return ~(INTEGER(-2) << to);
