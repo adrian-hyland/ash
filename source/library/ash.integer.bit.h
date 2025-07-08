@@ -31,22 +31,9 @@ namespace Ash
 			{
 				return 0;
 			}
-			else if (to >= getBitSize<INTEGER> - 1)
-			{
-				return INTEGER(-1) << from;
-			}
-			else if (from == to)
-			{
-				return INTEGER(1) << from;
-			}
-			else if (from == 0)
-			{
-				return ~(INTEGER(-2) << to);
-			}
-			else
-			{
-				return (INTEGER(-1) << from) & ~(INTEGER(-2) << to);
-			}
+
+			size_t size = to - from;
+			return ((size < getBitSize<INTEGER> - 1) ? (INTEGER(1) << (size + 1)) - 1 : ~INTEGER(0)) << from;
 		}
 
 		template
