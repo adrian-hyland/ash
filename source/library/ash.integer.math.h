@@ -72,7 +72,7 @@ namespace Ash::Integer
 			a1 = (a > 0) ? a : INTEGER_RETURN(-a);
 		}
 
-		INTEGER_RETURN b1;			
+		INTEGER_RETURN b1;
 		if constexpr (Ash::Type::isUnsignedInteger<INTEGER_B>)
 		{
 			b1 = b;
@@ -121,5 +121,26 @@ namespace Ash::Integer
 			}
 		}
 		return a1 << d;
+	}
+
+	/**
+	 * @brief  Calculates the greatest common divisor between multiple (more than 2) integer values
+	 * @tparam INTEGER_A    The integer type of the first value
+	 * @tparam INTEGER_B    The integer type of the second value
+	 * @tparam ...INTEGER_N The integer types of the rest of the values
+	 * @param  a            The first integer value
+	 * @param  b            The second integer value
+	 * @param ...n          The rest of the integer values
+	 * @return The greatest common divisor.
+	 */
+	template
+	<
+		typename INTEGER_A,
+		typename INTEGER_B,
+		typename ...INTEGER_N
+	>
+	constexpr auto greatestCommonDivisor(INTEGER_A a, INTEGER_B b, INTEGER_N ...n)
+	{
+		return greatestCommonDivisor(greatestCommonDivisor(a, b), n...);
 	}
 }
