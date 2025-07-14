@@ -55,11 +55,33 @@ namespace Ash
 
 				static Ash::Test::Assertion greatestCommonDivisor()
 				{
+					constexpr uint8_t u8 = uint8_t(1) << 7;
+					constexpr uint16_t u16 = uint16_t(1) << 15;
+					constexpr uint32_t u32 = uint32_t(1) << 31;
+					constexpr uint64_t u64 = uint64_t(1) << 63;
 					TEST_IS_EQ(Ash::Integer::greatestCommonDivisor(0, 0), 0);
 					TEST_IS_EQ(Ash::Integer::greatestCommonDivisor(0, 2), 2);
 					TEST_IS_EQ(Ash::Integer::greatestCommonDivisor(2, 0), 2);
+					TEST_IS_EQ(Ash::Integer::greatestCommonDivisor(2, 2), 2);
+					TEST_IS_EQ(Ash::Integer::greatestCommonDivisor(2, -2), 2);
+					TEST_IS_EQ(Ash::Integer::greatestCommonDivisor(-2, 2), 2);
+					TEST_IS_EQ(Ash::Integer::greatestCommonDivisor(-2, -2), 2);
+					TEST_IS_EQ(Ash::Integer::greatestCommonDivisor(u8,  u16), u8);
+					TEST_IS_EQ(Ash::Integer::greatestCommonDivisor(u8,  u32), u8);
+					TEST_IS_EQ(Ash::Integer::greatestCommonDivisor(u8,  u64), u8);
+					TEST_IS_EQ(Ash::Integer::greatestCommonDivisor(u16, u8),  u8);
+					TEST_IS_EQ(Ash::Integer::greatestCommonDivisor(u16, u32), u16);
+					TEST_IS_EQ(Ash::Integer::greatestCommonDivisor(u16, u64), u16);
+					TEST_IS_EQ(Ash::Integer::greatestCommonDivisor(u32, u8),  u8);
+					TEST_IS_EQ(Ash::Integer::greatestCommonDivisor(u32, u16), u16);
+					TEST_IS_EQ(Ash::Integer::greatestCommonDivisor(u32, u64), u32);
+					TEST_IS_EQ(Ash::Integer::greatestCommonDivisor(u64, u8),  u8);
+					TEST_IS_EQ(Ash::Integer::greatestCommonDivisor(u64, u16), u16);
+					TEST_IS_EQ(Ash::Integer::greatestCommonDivisor(u64, u32), u32);
+					TEST_IS_EQ(Ash::Integer::greatestCommonDivisor(u8, u16, u32, u64), u8);
 					TEST_IS_EQ(Ash::Integer::greatestCommonDivisor(3 * 5 * 7, 11 * 13 * 17), 1);
 					TEST_IS_EQ(Ash::Integer::greatestCommonDivisor(3 * 5 * 11 * 17, 2 * 7 * 13 * 17), 17);
+					TEST_IS_EQ(Ash::Integer::greatestCommonDivisor(3 * 11 * 19 * 23, 5 * 13 * 19 * 29, 7 * 17 * 19 * 31), 19);
 
 					return {};
 				}
