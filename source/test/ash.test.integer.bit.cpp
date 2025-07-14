@@ -20,14 +20,14 @@ namespace Ash
 				{
 					INTEGER value = 0;
 
-					for (size_t n = 0; n < Ash::Integer::getBitSize<INTEGER>; n++)
+					for (size_t n = 0; n < Ash::Integer::bitSize<INTEGER>; n++)
 					{
 						TEST_IS_FALSE(Ash::Integer::hasBitSet(value, n));
 					}
 
 					value = ~value;
 
-					for (size_t n = 0; n < Ash::Integer::getBitSize<INTEGER>; n++)
+					for (size_t n = 0; n < Ash::Integer::bitSize<INTEGER>; n++)
 					{
 						TEST_IS_TRUE(Ash::Integer::hasBitSet(value, n));
 					}
@@ -37,12 +37,12 @@ namespace Ash
 						value = value ^ mask;
 					}
 
-					for (size_t n = 0; n < Ash::Integer::getBitSize<INTEGER>; n = n + 2)
+					for (size_t n = 0; n < Ash::Integer::bitSize<INTEGER>; n = n + 2)
 					{
 						TEST_IS_FALSE(Ash::Integer::hasBitSet(value, n));
 					}
 
-					for (size_t n = 1; n < Ash::Integer::getBitSize<INTEGER>; n = n + 2)
+					for (size_t n = 1; n < Ash::Integer::bitSize<INTEGER>; n = n + 2)
 					{
 						TEST_IS_TRUE(Ash::Integer::hasBitSet(value, n));
 					}
@@ -59,14 +59,14 @@ namespace Ash
 				{
 					INTEGER value = 0;
 
-					for (size_t n = 0; n < Ash::Integer::getBitSize<INTEGER>; n++)
+					for (size_t n = 0; n < Ash::Integer::bitSize<INTEGER>; n++)
 					{
 						value = Ash::Integer::setBit(value, n);
 						for (size_t m = 0; m <= n; m++)
 						{
 							TEST_IS_TRUE(Ash::Integer::hasBitSet(value, m));
 						}
-						for (size_t m = n + 1; m < Ash::Integer::getBitSize<INTEGER>; m++)
+						for (size_t m = n + 1; m < Ash::Integer::bitSize<INTEGER>; m++)
 						{
 							TEST_IS_FALSE(Ash::Integer::hasBitSet(value, m));
 						}
@@ -74,14 +74,14 @@ namespace Ash
 
 					value = 0;
 
-					for (size_t n = Ash::Integer::getBitSize<INTEGER>; n > 0; n--)
+					for (size_t n = Ash::Integer::bitSize<INTEGER>; n > 0; n--)
 					{
 						value = Ash::Integer::setBit(value, n - 1);
 						for (size_t m = 0; m < n - 1; m++)
 						{
 							TEST_IS_FALSE(Ash::Integer::hasBitSet(value, m));
 						}
-						for (size_t m = n; m < Ash::Integer::getBitSize<INTEGER>; m++)
+						for (size_t m = n; m < Ash::Integer::bitSize<INTEGER>; m++)
 						{
 							TEST_IS_TRUE(Ash::Integer::hasBitSet(value, m));
 						}
@@ -99,14 +99,14 @@ namespace Ash
 				{
 					INTEGER value = ~0;
 
-					for (size_t n = 0; n < Ash::Integer::getBitSize<INTEGER>; n++)
+					for (size_t n = 0; n < Ash::Integer::bitSize<INTEGER>; n++)
 					{
 						value = Ash::Integer::clearBit(value, n);
 						for (size_t m = 0; m <= n; m++)
 						{
 							TEST_IS_FALSE(Ash::Integer::hasBitSet(value, m));
 						}
-						for (size_t m = n + 1; m < Ash::Integer::getBitSize<INTEGER>; m++)
+						for (size_t m = n + 1; m < Ash::Integer::bitSize<INTEGER>; m++)
 						{
 							TEST_IS_TRUE(Ash::Integer::hasBitSet(value, m));
 						}
@@ -114,14 +114,14 @@ namespace Ash
 
 					value = ~0;
 
-					for (size_t n = Ash::Integer::getBitSize<INTEGER>; n > 0; n--)
+					for (size_t n = Ash::Integer::bitSize<INTEGER>; n > 0; n--)
 					{
 						value = Ash::Integer::clearBit(value, n - 1);
 						for (size_t m = 0; m < n - 1; m++)
 						{
 							TEST_IS_TRUE(Ash::Integer::hasBitSet(value, m));
 						}
-						for (size_t m = n; m < Ash::Integer::getBitSize<INTEGER>; m++)
+						for (size_t m = n; m < Ash::Integer::bitSize<INTEGER>; m++)
 						{
 							TEST_IS_FALSE(Ash::Integer::hasBitSet(value, m));
 						}
@@ -137,9 +137,9 @@ namespace Ash
 				>
 				static Ash::Test::Assertion getBitMask()
 				{
-					for (size_t from = 0; from < Ash::Integer::getBitSize<INTEGER>; from++)
+					for (size_t from = 0; from < Ash::Integer::bitSize<INTEGER>; from++)
 					{
-						for (size_t to = from; to < Ash::Integer::getBitSize<INTEGER>; to++)
+						for (size_t to = from; to < Ash::Integer::bitSize<INTEGER>; to++)
 						{
 							INTEGER value = Ash::Integer::getBitMask<INTEGER>(from, to);
 
@@ -151,16 +151,16 @@ namespace Ash
 							{
 								TEST_IS_TRUE(Ash::Integer::hasBitSet(value, n));
 							}
-							for (size_t n = to + 1; n < Ash::Integer::getBitSize<INTEGER>; n++)
+							for (size_t n = to + 1; n < Ash::Integer::bitSize<INTEGER>; n++)
 							{
 								TEST_IS_FALSE(Ash::Integer::hasBitSet(value, n));
 							}
 						}
 					}
 
-					for (size_t from = 0; from < Ash::Integer::getBitSize<INTEGER>; from++)
+					for (size_t from = 0; from < Ash::Integer::bitSize<INTEGER>; from++)
 					{
-						for (size_t to = from; to < Ash::Integer::getBitSize<INTEGER>; to++)
+						for (size_t to = from; to < Ash::Integer::bitSize<INTEGER>; to++)
 						{
 							INTEGER value = Ash::Integer::getBitMask<INTEGER>(to, from);
 
@@ -172,14 +172,14 @@ namespace Ash
 							{
 								TEST_IS_TRUE(Ash::Integer::hasBitSet(value, n));
 							}
-							for (size_t n = to + 1; n < Ash::Integer::getBitSize<INTEGER>; n++)
+							for (size_t n = to + 1; n < Ash::Integer::bitSize<INTEGER>; n++)
 							{
 								TEST_IS_FALSE(Ash::Integer::hasBitSet(value, n));
 							}
 						}
 					}
 
-					for (size_t from = 0; from < Ash::Integer::getBitSize<INTEGER>; from++)
+					for (size_t from = 0; from < Ash::Integer::bitSize<INTEGER>; from++)
 					{
 						INTEGER value = Ash::Integer::getBitMask<INTEGER>(from);
 
@@ -187,16 +187,16 @@ namespace Ash
 						{
 							TEST_IS_FALSE(Ash::Integer::hasBitSet(value, n));
 						}
-						for (size_t n = from; n < Ash::Integer::getBitSize<INTEGER>; n++)
+						for (size_t n = from; n < Ash::Integer::bitSize<INTEGER>; n++)
 						{
 							TEST_IS_TRUE(Ash::Integer::hasBitSet(value, n));
 						}
 					}
 
-					INTEGER value = Ash::Integer::getBitMask<INTEGER>(Ash::Integer::getBitSize<INTEGER>, Ash::Integer::getBitSize<INTEGER> + 1);
+					INTEGER value = Ash::Integer::getBitMask<INTEGER>(Ash::Integer::bitSize<INTEGER>, Ash::Integer::bitSize<INTEGER> + 1);
 					TEST_IS_ZERO(value);
 
-					value = Ash::Integer::getBitMask<INTEGER>(0, Ash::Integer::getBitSize<INTEGER>);
+					value = Ash::Integer::getBitMask<INTEGER>(0, Ash::Integer::bitSize<INTEGER>);
 					TEST_IS_EQ(value, INTEGER(-1));
 
 					return {};
@@ -210,9 +210,9 @@ namespace Ash
 				static Ash::Test::Assertion getBitLength()
 				{
 					TEST_IS_EQ(Ash::Integer::getBitLength(INTEGER(0)), 1);
-					TEST_IS_EQ(Ash::Integer::getBitLength(INTEGER(-1)), Ash::Integer::getBitSize<INTEGER>);
+					TEST_IS_EQ(Ash::Integer::getBitLength(INTEGER(-1)), Ash::Integer::bitSize<INTEGER>);
 
-					for (size_t n = 0; n < Ash::Integer::getBitSize<INTEGER>; n++)
+					for (size_t n = 0; n < Ash::Integer::bitSize<INTEGER>; n++)
 					{
 						INTEGER value = Ash::Integer::setBit(INTEGER(0), n);
 						TEST_IS_EQ(Ash::Integer::getBitLength(value), n + 1);
@@ -239,7 +239,7 @@ namespace Ash
 				static Ash::Test::Assertion getBitCount()
 				{
 					TEST_IS_EQ(Ash::Integer::getBitCount(INTEGER(0)), 0);
-					TEST_IS_EQ(Ash::Integer::getBitCount(INTEGER(~0)), Ash::Integer::getBitSize<INTEGER>);
+					TEST_IS_EQ(Ash::Integer::getBitCount(INTEGER(~0)), Ash::Integer::bitSize<INTEGER>);
 
 					static struct
 					{
@@ -270,7 +270,7 @@ namespace Ash
 					{
 						INTEGER value = 0;
 						size_t count = 0;
-						for (size_t n = 0; (n < Ash::Integer::getBitSize<INTEGER>) && (offset < sizeof(valueCount) / sizeof(valueCount[0])); n = n + 8)
+						for (size_t n = 0; (n < Ash::Integer::bitSize<INTEGER>) && (offset < sizeof(valueCount) / sizeof(valueCount[0])); n = n + 8)
 						{
 							value = (value << 8) | valueCount[offset].value;
 							count = count + valueCount[offset].count;
