@@ -40,6 +40,7 @@ namespace Ash::Integer
 	 * @param  a         The first integer value
 	 * @param  b         The second integer value
 	 * @return The greatest common divisor.
+	 * @note   - A zero value is returned if both parameters, `a` and `b`, are zero
 	 */
 	template
 	<
@@ -69,7 +70,7 @@ namespace Ash::Integer
 		}
 		else
 		{
-			a1 = (a > 0) ? a : INTEGER_RETURN(-a);
+			a1 = (a > 0) ? a : -INTEGER_RETURN(a);
 		}
 
 		INTEGER_RETURN b1;
@@ -79,7 +80,7 @@ namespace Ash::Integer
 		}
 		else
 		{
-			b1 = (b > 0) ? b : INTEGER_RETURN(-b);
+			b1 = (b > 0) ? b : -INTEGER_RETURN(b);
 		}
 
 		while (Ash::Integer::isEven(a1) && Ash::Integer::isEven(b1))
@@ -132,6 +133,7 @@ namespace Ash::Integer
 	 * @param  b            The second integer value
 	 * @param ...n          The rest of the integer values
 	 * @return The greatest common divisor.
+	 * @note   - A zero value is returned if all of the parameters are zero
 	 */
 	template
 	<
