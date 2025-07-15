@@ -140,7 +140,7 @@ namespace Ash
 					inline Ash::System::Linux::X11::Event::ClientMessage newClientMessage(xcb_window_t window, xcb_atom_t type, std::initializer_list<uint32_t> data)
 					{
 						ClientMessage event = ClientMessage::value();
-						event->format = Ash::Integer::getBitSize<uint32_t>;
+						event->format = Ash::Integer::bitSize<uint32_t>;
 						event->window = window;
 						event->type = type;
 						Ash::Memory::copy(event->data.data32, data.begin(), std::min(sizeof(event->data.data32) / sizeof(event->data.data32[0]), data.size()));

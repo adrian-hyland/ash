@@ -484,7 +484,7 @@ namespace Ash
 
 						static inline bool isSupported = (nameAtom != XCB_ATOM_NONE) && (typeAtom != XCB_ATOM_NONE);
 
-						static constexpr size_t formatBitSize = Ash::Integer::getBitSize<typename Data::Format>;
+						static constexpr size_t formatBitSize = Ash::Integer::bitSize<typename Data::Format>;
 
 						template
 						<

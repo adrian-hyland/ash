@@ -57,7 +57,7 @@ namespace Ash
 			{
 				if constexpr (Ash::Type::isInteger<MULTIPLIER>)
 				{
-					using Result = Ash::Integer::Unsigned::WithBitSize<Ash::Integer::getBitSize<Dimension> * 2>::Type;
+					using Result = Ash::Integer::Unsigned::WithBitSize<Ash::Integer::bitSize<Dimension> * 2>::Type;
 
 					if (multiplier != divisor)
 					{
