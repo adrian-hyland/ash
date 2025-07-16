@@ -56,6 +56,24 @@ namespace Ash
 
 				typename TestCycle::Size count = 0;
 				TestCycle expected = TestCycle::minimum;
+				for (TestCycle n : TestCycle::iterateBetween(TestCycle::minimum, TestCycle::minimum))
+				{
+					TEST_IS_EQ(n, expected);
+					count++;
+				}
+				TEST_IS_EQ(count, 1);
+
+				count = 0;
+				expected = TestCycle::maximum;
+				for (TestCycle n : TestCycle::iterateBetween(TestCycle::maximum, TestCycle::maximum))
+				{
+					TEST_IS_EQ(n, expected);
+					count++;
+				}
+				TEST_IS_EQ(count, 1);
+
+				count = 0;
+				expected = TestCycle::minimum;
 				TestCycle previous = expected - 1;
 				for (TestCycle n : TestCycle::iterateBetween(TestCycle::minimum, TestCycle::minimum + 1))
 				{
@@ -93,6 +111,24 @@ namespace Ash
 				}
 				TEST_IS_EQ(count, 2);
 
+
+				count = 0;
+				expected = TestCycle::minimum;
+				for (TestCycle n : TestCycle::iterateBetween(TestCycle::minimum, TestCycle::minimum).reverse())
+				{
+					TEST_IS_EQ(n, expected);
+					count++;
+				}
+				TEST_IS_EQ(count, 1);
+
+				count = 0;
+				expected = TestCycle::maximum;
+				for (TestCycle n : TestCycle::iterateBetween(TestCycle::maximum, TestCycle::maximum).reverse())
+				{
+					TEST_IS_EQ(n, expected);
+					count++;
+				}
+				TEST_IS_EQ(count, 1);
 
 				count = 0;
 				expected = TestCycle::minimum + 1;
