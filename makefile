@@ -105,8 +105,11 @@ APP_DIR := $(SRC_DIR)/$(APPLICATION)
 INC_DIR := $(call list_add,$(SRC_DIR)/library)
 INC_DIR += $(call list_add,$(APP_DIR))
 OBJ_DIR := $(BIN_DIR)/obj
+OUT_DIR := $(BIN_DIR)/$(APPLICATION)
 
-MK_FILES := $(APP_DIR)/$(TARGET_PLATFORM).mk
+APP := $(OUT_DIR)/$(APP_NAME)
+
+MK_FILES := $(APP_DIR)/$(TARGET_PLATFORM).mk $(APP_DIR)/application.mk
 CXX_FILES := $(wildcard $(addsuffix /*.cpp,$(call list_get,,$(INC_DIR),)))
 C_FILES := $(wildcard $(addsuffix /*.c,$(call list_get,,$(INC_DIR),)))
 O_FILES := $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%,$(CXX_FILES:.cpp=.o) $(C_FILES:.c=.o))
@@ -114,13 +117,14 @@ S_FILES := $(O_FILES:.o=.s)
 II_FILES := $(O_FILES:.o=.ii)
 D_FILES := $(O_FILES:.o=.d)
 GCX_FILES := $(O_FILES:.o=.gcno) $(O_FILES:.o=.gcda)
+OUT_FILES := $(APP)
 
-BUILD_STD=C++$(STD)
-CXX_STD=c++$(STD)
+BUILD_STD := C++$(STD)
+CXX_STD := c++$(STD)
 
 CXX_DEFINE += $(call list_add,APP_NAME="$(APP_NAME) ($(BUILD_NAME) $(BUILD_STD))")
 CXX_DEFINE += $(call list_add,STD=$(STD))
-CXX_FLAGS += -c -Wall -Werror $(call list_get,-I",$(INC_DIR),") $(call list_get,-D",$(CXX_DEFINE),")
+CXX_FLAGS += -c -Wall -Werror -MMD -MP $(call list_get,-I",$(INC_DIR),") $(call list_get,-D",$(CXX_DEFINE),")
 
 ifeq ($(CXX),g++)
 ifeq (,$(filter-out 11 11.% 12 12.% 13 13.%,$(CXX_VERSION)))
@@ -135,19 +139,17 @@ BUILD_INCLUDE := $(call list_get_csv,$(INC_DIR) $(call list_add,$${workspaceFold
 
 CFG_NAME := $(APP_NAME) - $(BUILD_NAME) $(BUILD_STD)
 
-APP := $(BIN_DIR)/$(APPLICATION)
+-include $(MK_FILES)
 
-
-all: $(APP)
+all: $(OUT_FILES)
 
 clean:
-	rm -f $(APP)
-	rm -f $(O_FILES) $(D_FILES) $(S_FILES) $(II_FILES) $(GCX_FILES)
+	rm -f $(OUT_FILES) $(O_FILES) $(D_FILES) $(S_FILES) $(II_FILES) $(GCX_FILES)
 
 vscode:
 	mkdir -p ./.vscode
 	touch $(BUILD_CFG)
-	cat $(BUILD_CFG) | ./jsoncfg "/configurations[/name:\"$(CFG_NAME)\"]" \
+	cat $(BUILD_CFG) | jsoncfg "/configurations[/name:\"$(CFG_NAME)\"]" \
        "{ \
             \"name\":\"$(CFG_NAME)\", \
             \"includePath\":[ $(BUILD_INCLUDE) ], \
@@ -162,8 +164,6 @@ coverage: $(APP)
 
 
 -include $(D_FILES)
--include $(MK_FILES)
-
 
 $(APP) : $(O_FILES)
 	@echo -- BUILDING $@
@@ -173,9 +173,9 @@ $(APP) : $(O_FILES)
 $(OBJ_DIR)/%.o : $(SRC_DIR)/%.cpp
 	@echo -- COMPILING $<
 	mkdir -p $(@D)
-	$(CXX) $< $(CXX_FLAGS) -std=$(CXX_STD) -MMD -o $@
+	$(CXX) $< $(CXX_FLAGS) -std=$(CXX_STD) -o $@
 
 $(OBJ_DIR)/%.o : $(SRC_DIR)/%.c
 	@echo -- COMPILING $<
 	mkdir -p $(@D)
-	$(CC) $< $(CXX_FLAGS) -MMD -o $@
+	$(CC) $< $(CXX_FLAGS) -o $@
