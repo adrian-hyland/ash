@@ -320,22 +320,19 @@ namespace Ash
 				{
 					result.m_Value = m_Value;
 				}
+				else if (!__builtin_mul_overflow(m_Value, numerator, &result.m_Value))
+				{
+					result.m_Value = result.m_Value / denominator;
+				}
 				else
 				{
 					size_t max = SIZE_MAX / numerator;
-					if (m_Value > max)
-					{
-						size_t d = m_Value / max;
-						size_t r = m_Value % max;
-						size_t n1 = max * numerator;
-						size_t n2 = r * numerator;
-						size_t n3 = d * (n1 % denominator) + (n2 % denominator);
-						result.m_Value = d * (n1 / denominator) + (n2 / denominator) + (n3 / denominator);
-					}
-					else
-					{
-						result.m_Value = (m_Value * numerator) / denominator;
-					}
+					size_t d = m_Value / max;
+					size_t r = m_Value % max;
+					size_t n1 = max * numerator;
+					size_t n2 = r * numerator;
+					size_t n3 = d * (n1 % denominator) + (n2 % denominator);
+					result.m_Value = d * (n1 / denominator) + (n2 / denominator) + (n3 / denominator);
 				}
 			}
 			return result;
