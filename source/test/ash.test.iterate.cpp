@@ -14,307 +14,6 @@ namespace Ash
 				typename TYPE,
 				typename = Ash::Type::IsIntegerOrPointer<TYPE>
 			>
-			static Ash::Test::Assertion iterationNone()
-			{
-				using Type = TYPE;
-				using ForwardIteration = Ash::Iteration<Type>;
-				using ReverseIteration = typename ForwardIteration::Reverse;
-
-				ForwardIteration forwardIteration;
-				TEST_IS_TRUE(forwardIteration.isForward);
-				TEST_IS_FALSE(forwardIteration.isReverse);
-				TEST_IS_TRUE(forwardIteration.isComplete());
-
-				ReverseIteration reverseIteration;
-				TEST_IS_FALSE(reverseIteration.isForward);
-				TEST_IS_TRUE(reverseIteration.isReverse);
-				TEST_IS_TRUE(reverseIteration.isComplete());
-
-				return {};
-			}
-
-			template
-			<
-				typename TYPE,
-				typename = Ash::Type::IsInteger<TYPE>
-			>
-			static Ash::Test::Assertion iterationAdvanceInteger()
-			{
-				using Type = TYPE;
-				using ForwardIteration = Ash::Iteration<Type>;
-				using ReverseIteration = typename ForwardIteration::Reverse;
-
-				constexpr Type min = std::numeric_limits<Type>::min();
-				constexpr Type max = std::numeric_limits<Type>::max();
-				constexpr Type middle = min / 2 + max / 2 + 1;
-
-				ForwardIteration forwardIteration(min, min + 1);
-				TEST_IS_FALSE(forwardIteration.isComplete());
-				TEST_IS_EQ(Type(forwardIteration), min);
-				TEST_IS_TRUE(forwardIteration.advance());
-				TEST_IS_EQ(Type(forwardIteration), min + 1);
-				TEST_IS_FALSE(forwardIteration.advance());
-
-				forwardIteration = ForwardIteration(middle, middle + 1);
-				TEST_IS_FALSE(forwardIteration.isComplete());
-				TEST_IS_EQ(Type(forwardIteration), middle);
-				TEST_IS_TRUE(forwardIteration.advance());
-				TEST_IS_EQ(Type(forwardIteration), middle + 1);
-				TEST_IS_FALSE(forwardIteration.advance());
-
-				forwardIteration = ForwardIteration(max - 1, max);
-				TEST_IS_FALSE(forwardIteration.isComplete());
-				TEST_IS_EQ(Type(forwardIteration), max - 1);
-				TEST_IS_TRUE(forwardIteration.advance());
-				TEST_IS_EQ(Type(forwardIteration), max);
-				TEST_IS_FALSE(forwardIteration.advance());
-
-				ReverseIteration reverseIteration(min + 1, min);
-				TEST_IS_FALSE(reverseIteration.isComplete());
-				TEST_IS_EQ(Type(reverseIteration), min + 1);
-				TEST_IS_TRUE(reverseIteration.advance());
-				TEST_IS_EQ(Type(reverseIteration), min);
-				TEST_IS_FALSE(reverseIteration.advance());
-
-				reverseIteration = ReverseIteration(middle, middle - 1);
-				TEST_IS_FALSE(reverseIteration.isComplete());
-				TEST_IS_EQ(Type(reverseIteration), middle);
-				TEST_IS_TRUE(reverseIteration.advance());
-				TEST_IS_EQ(Type(reverseIteration), middle - 1);
-				TEST_IS_FALSE(reverseIteration.advance());
-
-				reverseIteration = ReverseIteration(max, max - 1);
-				TEST_IS_FALSE(reverseIteration.isComplete());
-				TEST_IS_EQ(Type(reverseIteration), max);
-				TEST_IS_TRUE(reverseIteration.advance());
-				TEST_IS_EQ(Type(reverseIteration), max - 1);
-				TEST_IS_FALSE(reverseIteration.advance());
-
-				return {};
-			}
-
-			template
-			<
-				typename TYPE,
-				typename = Ash::Type::IsInteger<TYPE>
-			>
-			static Ash::Test::Assertion iterationReverseInteger()
-			{
-				using Type = TYPE;
-				using ForwardIteration = Ash::Iteration<Type>;
-				using ReverseIteration = typename ForwardIteration::Reverse;
-
-				constexpr Type min = std::numeric_limits<Type>::min();
-				constexpr Type max = std::numeric_limits<Type>::max();
-
-				ForwardIteration forwardIteration(min, max);
-				TEST_IS_TRUE(forwardIteration.isForward);
-				TEST_IS_FALSE(forwardIteration.isReverse);
-				TEST_IS_EQ(Type(forwardIteration), min);
-
-				ReverseIteration reverseIteration = forwardIteration.reverse();
-				TEST_IS_FALSE(reverseIteration.isForward);
-				TEST_IS_TRUE(reverseIteration.isReverse);
-				TEST_IS_EQ(Type(reverseIteration), max);
-
-				forwardIteration = reverseIteration.reverse();
-				TEST_IS_TRUE(forwardIteration.isForward);
-				TEST_IS_FALSE(forwardIteration.isReverse);
-				TEST_IS_EQ(Type(forwardIteration), min);
-
-				reverseIteration = ReverseIteration(max, min);
-				TEST_IS_FALSE(reverseIteration.isForward);
-				TEST_IS_TRUE(reverseIteration.isReverse);
-				TEST_IS_EQ(Type(reverseIteration), max);
-
-				forwardIteration = reverseIteration.reverse();
-				TEST_IS_TRUE(forwardIteration.isForward);
-				TEST_IS_FALSE(forwardIteration.isReverse);
-				TEST_IS_EQ(Type(forwardIteration), min);
-
-				reverseIteration = forwardIteration.reverse();
-				TEST_IS_FALSE(reverseIteration.isForward);
-				TEST_IS_TRUE(reverseIteration.isReverse);
-				TEST_IS_EQ(Type(reverseIteration), max);
-
-				return {};
-			}
-
-			template
-			<
-				typename TYPE,
-				typename = Ash::Type::IsInteger<TYPE>
-			>
-			static Ash::Test::Assertion iterationFromInteger()
-			{
-				using Type = TYPE;
-				using ForwardIteration = Ash::Iteration<Type>;
-				using ReverseIteration = typename ForwardIteration::Reverse;
-
-				constexpr Type min = std::numeric_limits<Type>::min();
-				constexpr Type max = std::numeric_limits<Type>::max();
-
-				if constexpr (Ash::Type::isSame<std::make_unsigned_t<Type>, size_t>)
-				{
-					ForwardIteration forwardIteration = ForwardIteration::from(min, std::numeric_limits<size_t>::max());
-					TEST_IS_FALSE(forwardIteration.isComplete());
-					TEST_IS_EQ(Type(forwardIteration), min);
-					TEST_IS_EQ(Type(forwardIteration.reverse()), Type(min + std::numeric_limits<size_t>::max() - 1));
-
-					forwardIteration = ForwardIteration::from(max, std::numeric_limits<size_t>::max());
-					TEST_IS_FALSE(forwardIteration.isComplete());
-					TEST_IS_EQ(Type(forwardIteration), max);
-					TEST_IS_EQ(Type(forwardIteration.reverse()), max);
-
-					ReverseIteration reverseIteration = ReverseIteration::from(max, std::numeric_limits<size_t>::max());
-					TEST_IS_FALSE(reverseIteration.isComplete());
-					TEST_IS_EQ(Type(reverseIteration), max);
-					TEST_IS_EQ(Type(reverseIteration.reverse()), Type(max - std::numeric_limits<size_t>::max() + 1));
-
-					reverseIteration = ReverseIteration::from(min, std::numeric_limits<size_t>::max());
-					TEST_IS_FALSE(reverseIteration.isComplete());
-					TEST_IS_EQ(Type(reverseIteration), min);
-					TEST_IS_EQ(Type(reverseIteration.reverse()), min);
-				}
-				else
-				{
-					ForwardIteration forwardIteration = ForwardIteration::from(min, std::numeric_limits<size_t>::max());
-					TEST_IS_FALSE(forwardIteration.isComplete());
-					TEST_IS_EQ(Type(forwardIteration), min);
-					TEST_IS_EQ(Type(forwardIteration.reverse()), max);
-
-					forwardIteration = ForwardIteration::from(max, std::numeric_limits<size_t>::max());
-					TEST_IS_FALSE(forwardIteration.isComplete());
-					TEST_IS_EQ(Type(forwardIteration), max);
-					TEST_IS_EQ(Type(forwardIteration.reverse()), max);
-
-					ReverseIteration reverseIteration = ReverseIteration::from(max, std::numeric_limits<size_t>::max());
-					TEST_IS_FALSE(reverseIteration.isComplete());
-					TEST_IS_EQ(Type(reverseIteration), max);
-					TEST_IS_EQ(Type(reverseIteration.reverse()), min);
-
-					reverseIteration = ReverseIteration::from(min, std::numeric_limits<size_t>::max());
-					TEST_IS_FALSE(reverseIteration.isComplete());
-					TEST_IS_EQ(Type(reverseIteration), min);
-					TEST_IS_EQ(Type(reverseIteration.reverse()), min);
-				}
-
-				return {};
-			}
-
-			template
-			<
-				typename TYPE,
-				typename = Ash::Type::IsInteger<TYPE>
-			>
-			static Ash::Test::Assertion iterationInteger()
-			{
-				TEST_GENERIC(Ash::Test::Iterate::iterationNone, TYPE);
-
-				TEST_GENERIC(Ash::Test::Iterate::iterationReverseInteger, TYPE);
-
-				TEST_GENERIC(Ash::Test::Iterate::iterationAdvanceInteger, TYPE);
-
-				TEST_GENERIC(Ash::Test::Iterate::iterationFromInteger, TYPE);
-
-				return {};
-			}
-
-			static Ash::Test::Assertion iterationAdvancePointer()
-			{
-				using Type = int *;
-				using ForwardIteration = Ash::Iteration<Type>;
-				using ReverseIteration = typename ForwardIteration::Reverse;
-				using ReferenceType = typename ForwardIteration::ReferenceType;
-
-				int value[2] = { 1, 2 };
-
-				ForwardIteration forwardIteration(&value[0], &value[1]);
-				TEST_IS_FALSE(forwardIteration.isComplete());
-				TEST_IS_EQ(&ReferenceType(forwardIteration), &value[0]);
-				TEST_IS_TRUE(forwardIteration.advance());
-				TEST_IS_FALSE(forwardIteration.isComplete());
-				TEST_IS_EQ(&ReferenceType(forwardIteration), &value[1]);
-				TEST_IS_FALSE(forwardIteration.advance());
-
-				ReverseIteration reverseIteration(&value[1], &value[0]);
-				TEST_IS_FALSE(reverseIteration.isComplete());
-				TEST_IS_EQ(&ReferenceType(reverseIteration), &value[1]);
-				TEST_IS_TRUE(reverseIteration.advance());
-				TEST_IS_FALSE(reverseIteration.isComplete());
-				TEST_IS_EQ(&ReferenceType(reverseIteration), &value[0]);
-				TEST_IS_FALSE(reverseIteration.advance());
-
-				return {};
-			}
-
-			static Ash::Test::Assertion iterationReversePointer()
-			{
-				using Type = int *;
-				using ForwardIteration = Ash::Iteration<Type>;
-				using ReverseIteration = typename ForwardIteration::Reverse;
-				using ReferenceType = typename ForwardIteration::ReferenceType;
-
-				int value[2] = { 1, 2 };
-
-				ForwardIteration forwardIteration(&value[0], &value[1]);
-				TEST_IS_TRUE(forwardIteration.isForward);
-				TEST_IS_FALSE(forwardIteration.isReverse);
-				TEST_IS_EQ(&ReferenceType(forwardIteration), &value[0]);
-
-				ReverseIteration reverseIteration = forwardIteration.reverse();
-				TEST_IS_FALSE(reverseIteration.isForward);
-				TEST_IS_TRUE(reverseIteration.isReverse);
-				TEST_IS_EQ(&ReferenceType(reverseIteration), &value[1]);
-
-				forwardIteration = reverseIteration.reverse();
-				TEST_IS_TRUE(forwardIteration.isForward);
-				TEST_IS_FALSE(forwardIteration.isReverse);
-				TEST_IS_EQ(&ReferenceType(forwardIteration), &value[0]);
-
-				return {};
-			}
-
-			static Ash::Test::Assertion iterationFromPointer()
-			{
-				using Type = int *;
-				using ForwardIteration = Ash::Iteration<Type>;
-				using ReverseIteration = typename ForwardIteration::Reverse;
-				using ReferenceType = typename ForwardIteration::ReferenceType;
-
-				int value[2] = { 1, 2 };
-
-				ForwardIteration forwardIteration = ForwardIteration::from(&value[0], 2);
-				TEST_IS_FALSE(forwardIteration.isComplete());
-				TEST_IS_EQ(&ReferenceType(forwardIteration), &value[0]);
-				TEST_IS_EQ(&ReferenceType(forwardIteration.reverse()), &value[1]);
-
-				ReverseIteration reverseIteration = ReverseIteration::from(&value[1], 2);
-				TEST_IS_FALSE(reverseIteration.isComplete());
-				TEST_IS_EQ(&ReferenceType(reverseIteration), &value[1]);
-				TEST_IS_EQ(&ReferenceType(reverseIteration.reverse()), &value[0]);
-
-				return {};
-			}
-
-			static Ash::Test::Assertion iterationPointer()
-			{
-				TEST_GENERIC(Ash::Test::Iterate::iterationNone, int *);
-
-				TEST(Ash::Test::Iterate::iterationReversePointer);
-
-				TEST(Ash::Test::Iterate::iterationAdvancePointer);
-
-				TEST(Ash::Test::Iterate::iterationFromPointer);
-
-				return {};
-			}
-
-			template
-			<
-				typename TYPE,
-				typename = Ash::Type::IsIntegerOrPointer<TYPE>
-			>
 			static Ash::Test::Assertion iterateNone()
 			{
 				using Type = TYPE;
@@ -328,7 +27,8 @@ namespace Ash
 				TEST_IS_TRUE(forwardIterate.isForward);
 				TEST_IS_FALSE(forwardIterate.isReverse);
 				TEST_IS_FALSE(forwardIterate.hasNext);
-				TEST_IS_TRUE(forwardIterate.getIteration().isComplete());
+				TEST_IS_FALSE(forwardIterate != forwardIterate);
+				TEST_IS_TRUE(forwardIterate.isComplete());
 
 				size_t count = 0;
 				if constexpr (Ash::Type::isInteger<Type>)
@@ -347,6 +47,7 @@ namespace Ash
 						count++;
 					}
 				}
+				TEST_IS_TRUE(forwardIterate.isComplete());
 				TEST_IS_EQ(count, 0);
 
 				ReverseIterate reverseIterate;
@@ -355,7 +56,8 @@ namespace Ash
 				TEST_IS_TRUE(reverseIterate.isReverse);
 				TEST_IS_FALSE(reverseIterate.isForward);
 				TEST_IS_FALSE(reverseIterate.hasNext);
-				TEST_IS_TRUE(forwardIterate.getIteration().isComplete());
+				TEST_IS_FALSE(reverseIterate != reverseIterate);
+				TEST_IS_TRUE(reverseIterate.isComplete());
 
 				count = 0;
 				if constexpr (Ash::Type::isInteger<Type>)
@@ -374,6 +76,7 @@ namespace Ash
 						count++;
 					}
 				}
+				TEST_IS_TRUE(reverseIterate.isComplete());
 				TEST_IS_EQ(count, 0);
 
 				return {};
@@ -459,7 +162,7 @@ namespace Ash
 				constexpr Type min = std::numeric_limits<Type>::min();
 				constexpr Type max = std::numeric_limits<Type>::max();
 				constexpr Type middle = min / 2 + max / 2 + 1;
-				
+
 				size_t count = 0;
 				for (Type n : ForwardIterate::from(min, 2))
 				{
@@ -561,6 +264,55 @@ namespace Ash
 				typename TYPE,
 				typename = Ash::Type::IsInteger<TYPE>
 			>
+			static Ash::Test::Assertion iterateLimits()
+			{
+				using Type = TYPE;
+				using ForwardIterate = Ash::Iterate<Type>;
+				using ReverseIterate = typename ForwardIterate::Reverse;
+
+				constexpr Type min = std::numeric_limits<Type>::min();
+				constexpr Type max = std::numeric_limits<Type>::max();
+
+				size_t count = 0;
+				for (Type n : ForwardIterate::from(max, max))
+				{
+					TEST_IS_EQ(n, Type(max + count));
+					count++;
+				}
+				TEST_IS_EQ(count, 1);
+
+				count = 0;
+				for (Type n : ReverseIterate::from(min, max))
+				{
+					TEST_IS_EQ(n, Type(min - count));
+					count++;
+				}
+				TEST_IS_EQ(count, 1);
+
+				count = 0;
+				for (Type n : ForwardIterate::between(max, min))
+				{
+					TEST_IS_EQ(n, Type(max + count));
+					count++;
+				}
+				TEST_IS_EQ(count, 0);
+
+				count = 0;
+				for (Type n : ReverseIterate::between(min, max))
+				{
+					TEST_IS_EQ(n, Type(min - count));
+					count++;
+				}
+				TEST_IS_EQ(count, 0);
+
+				return {};
+			}
+
+			template
+			<
+				typename TYPE,
+				typename = Ash::Type::IsInteger<TYPE>
+			>
 			static Ash::Test::Assertion iterateInteger()
 			{
 				TEST_GENERIC(Ash::Test::Iterate::iterateNone, TYPE);
@@ -570,6 +322,8 @@ namespace Ash
 				TEST_GENERIC(Ash::Test::Iterate::iterateFromInteger, TYPE);
 
 				TEST_GENERIC(Ash::Test::Iterate::iterateCombineInteger, TYPE);
+
+				TEST_GENERIC(Ash::Test::Iterate::iterateLimits, TYPE);
 
 				return {};
 			}
@@ -685,23 +439,42 @@ namespace Ash
 
 				return {};
 			}
+
+			static Ash::Test::Assertion isComplete()
+			{
+				Ash::Iterate<int> forwardIterate;
+				TEST_IS_TRUE(forwardIterate.isComplete());
+
+				Ash::Iterate<int, false> reverseIterate;
+				TEST_IS_TRUE(reverseIterate.isComplete());
+
+				forwardIterate = Ash::Iterate<int>::from(0, 0);
+				TEST_IS_TRUE(forwardIterate.isComplete());
+
+				reverseIterate = Ash::Iterate<int>::from(0, 0).reverse();
+				TEST_IS_TRUE(reverseIterate.isComplete());
+
+				forwardIterate = Ash::Iterate<int>::between(0, 0);
+				TEST_IS_FALSE(forwardIterate.isComplete());
+				++forwardIterate;
+				TEST_IS_TRUE(forwardIterate.isComplete());
+				++forwardIterate;
+				TEST_IS_TRUE(forwardIterate.isComplete());
+
+				reverseIterate = Ash::Iterate<int>::between(0, 0).reverse();
+				TEST_IS_FALSE(reverseIterate.isComplete());
+				++reverseIterate;
+				TEST_IS_TRUE(reverseIterate.isComplete());
+				++reverseIterate;
+				TEST_IS_TRUE(reverseIterate.isComplete());
+
+				return {};
+			}
 		}
 
 		TEST_UNIT
 		(
 			testIterate,
-
-			TEST_CASE_GENERIC(Ash::Test::Iterate::iterationInteger, int8_t),
-			TEST_CASE_GENERIC(Ash::Test::Iterate::iterationInteger, int16_t),
-			TEST_CASE_GENERIC(Ash::Test::Iterate::iterationInteger, int32_t),
-			TEST_CASE_GENERIC(Ash::Test::Iterate::iterationInteger, int64_t),
-
-			TEST_CASE_GENERIC(Ash::Test::Iterate::iterationInteger, uint8_t),
-			TEST_CASE_GENERIC(Ash::Test::Iterate::iterationInteger, uint16_t),
-			TEST_CASE_GENERIC(Ash::Test::Iterate::iterationInteger, uint32_t),
-			TEST_CASE_GENERIC(Ash::Test::Iterate::iterationInteger, uint64_t),
-
-			TEST_CASE(Ash::Test::Iterate::iterationPointer),
 
 			TEST_CASE_GENERIC(Ash::Test::Iterate::iterateInteger, int8_t),
 			TEST_CASE_GENERIC(Ash::Test::Iterate::iterateInteger, int16_t),
@@ -713,7 +486,9 @@ namespace Ash
 			TEST_CASE_GENERIC(Ash::Test::Iterate::iterateInteger, uint32_t),
 			TEST_CASE_GENERIC(Ash::Test::Iterate::iterateInteger, uint64_t),
 
-			TEST_CASE(Ash::Test::Iterate::iteratePointer)
+			TEST_CASE(Ash::Test::Iterate::iteratePointer),
+
+			TEST_CASE(Ash::Test::Iterate::isComplete)
 		);
 	}
 }
