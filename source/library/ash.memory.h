@@ -176,7 +176,7 @@ namespace Ash
 			{
 				if constexpr (Ash::Type::isPrimitive<TYPE>)
 				{
-					if (!std::is_constant_evaluated() && (length > sizeof(uint64_t) / sizeof(TYPE)))
+					if (!std::is_constant_evaluated())
 					{
 						::memset(content, 0, length * sizeof(TYPE));
 						return length;
