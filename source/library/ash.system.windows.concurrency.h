@@ -4,6 +4,7 @@
 #include <windows.h>
 #include <process.h>
 #include "ash.system.windows.filesystem.h"
+#include "ash.concurrency.generic.h"
 #include "ash.ascii.h"
 #include "ash.utf8.h"
 #include "ash.wide.h"
@@ -19,7 +20,7 @@ namespace Ash
 		{
 			namespace Concurrency
 			{
-				class Condition
+				class Condition : public Ash::Concurrency::Generic::Lock
 				{
 				public:
 					inline Condition() : m_Condition(CONDITION_VARIABLE_INIT), m_Lock(SRWLOCK_INIT) {}
@@ -100,7 +101,7 @@ namespace Ash
 						m_IsLocked = true;
 
 						Condition::release();
-						
+
 						return !isLocked;
 					}
 
