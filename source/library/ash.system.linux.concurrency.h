@@ -8,6 +8,7 @@
 #include <errno.h>
 #include <utility>
 #include "ash.system.linux.filesystem.h"
+#include "ash.concurrency.generic.h"
 #include "ash.nullable.h"
 #include "ash.ascii.h"
 #include "ash.utf8.h"
@@ -26,7 +27,7 @@ namespace Ash
 			{
 				class Condition;
 
-				class Mutex
+				class Mutex : public Ash::Concurrency::Generic::Lock
 				{
 				public:
 					inline Mutex() : m_Handle(PTHREAD_MUTEX_INITIALIZER) {}
@@ -72,7 +73,7 @@ namespace Ash
 				};
 
 
-				class Condition
+				class Condition : public Ash::Concurrency::Generic::Lock
 				{
 				public:
 					inline Condition() : m_Handle(PTHREAD_COND_INITIALIZER), m_Mutex() {}
