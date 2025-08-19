@@ -23,7 +23,48 @@ namespace Ash
 		using Process = Ash::System::Linux::Concurrency::Process;
 #endif
 
-		class Event : public Condition
+		namespace Lock
+		{
+			template
+			<
+				typename LOCK,
+				typename = Ash::Type::IsClass<LOCK, Ash::Concurrency::Generic::Lock>
+			>
+			class Scope
+			{
+			public:
+				using Lock = LOCK;
+
+				constexpr Scope() : m_Lock(nullptr) {}
+
+				[[nodiscard]]
+				Scope(Lock &lock) : m_Lock(&lock) { m_Lock->acquire(); }
+
+				Scope(Scope &&scope) : m_Lock(scope.m_Lock) { scope.m_Lock = nullptr; }
+
+				~Scope()
+				{
+					if (m_Lock != nullptr)
+					{
+						m_Lock->release();
+					}
+				}
+
+				Scope &operator = (Scope &&scope)
+				{
+					m_Lock = scope.m_Lock;
+					scope.m_Lock = nullptr;
+				}
+
+			private:
+				Lock *m_Lock;
+
+				Scope(const Scope &scope) = delete;
+				Scope &operator = (const Scope &scope) = delete;
+			};
+		}
+
+		class Event
 		{
 		public:
 			enum Reset
@@ -32,78 +73,66 @@ namespace Ash
 				Automatic
 			};
 
-			inline Event(Reset reset = Manual, bool value = false) : Condition(), m_Reset(reset), m_Value(value) {}
+			inline Event(Reset reset = Manual, bool value = false) : m_Condition(), m_Reset(reset), m_Value(value) {}
 
 			inline void reset()
 			{
-				Condition::acquire();
+				Ash::Concurrency::Lock::Scope lock(m_Condition);
 
 				m_Value = false;
-
-				Condition::release();
 			}
 
 			inline void signal()
 			{
-				Condition::acquire();
+				Ash::Concurrency::Lock::Scope lock(m_Condition);
 
 				m_Value = true;
-
-				Condition::signal();
-				Condition::release();
+				m_Condition.signal();
 			}
 
 			inline bool tryWait()
 			{
-				Condition::acquire();
+				Ash::Concurrency::Lock::Scope lock(m_Condition);
 
 				bool acquired = m_Value;
 				if (m_Reset == Reset::Automatic)
 				{
 					m_Value = false;
 				}
-
-				Condition::release();
-				
 				return acquired;
 			}
 
 			inline bool tryWait(Ash::Timer::Value duration)
 			{
-				Condition::acquire();
+				Ash::Concurrency::Lock::Scope lock(m_Condition);
 
-				if (!Condition::tryWait([this]() { return m_Value; }, duration))
+				if (!m_Condition.tryWait([this]() { return m_Value; }, duration))
 				{
-					Condition::release();
 					return false;
 				}
-
-				if (m_Reset == Reset::Automatic)
+				else if (m_Reset == Reset::Automatic)
 				{
 					m_Value = false;
 				}
 
-				Condition::release();
 				return true;
 			}
 
 			inline void wait()
 			{
-				Condition::acquire();
+				Ash::Concurrency::Lock::Scope lock(m_Condition);
 
-				Condition::wait([this]() { return m_Value; });
-
+				m_Condition.wait([this]() { return m_Value; });
 				if (m_Reset == Reset::Automatic)
 				{
 					m_Value = false;
 				}
-
-				Condition::release();
 			}
 
 		private:
-			Reset m_Reset;
-			bool  m_Value;
+			Ash::Concurrency::Condition m_Condition;
+			Reset                       m_Reset;
+			bool                        m_Value;
 
 			Event(const Event &event) = delete;
 			Event(Event &&event) = delete;
@@ -112,70 +141,60 @@ namespace Ash
 		};
 
 
-		class Semaphore : public Condition
+		class Semaphore : public Ash::Concurrency::Generic::Lock
 		{
 		public:
 			using Count = uintmax_t;
 
-			inline Semaphore(Count count = 0) : Condition(), m_Count(count) {}
+			inline Semaphore(Count count = 0) : m_Condition(), m_Count(count) {}
 
 			inline bool tryAcquire()
 			{
-				Condition::acquire();
+				Ash::Concurrency::Lock::Scope lock(m_Condition);
 
 				bool acquired = (m_Count > 0);
 				if (acquired)
 				{
 					m_Count--;
 				}
-
-				Condition::release();
-				
 				return acquired;
 			}
 
 			inline bool tryAcquire(Ash::Timer::Value duration)
 			{
-				Condition::acquire();
+				Ash::Concurrency::Lock::Scope lock(m_Condition);
 
-				if (!Condition::tryWait([this]() { return m_Count > 0; }, duration))
+				if (!m_Condition.tryWait([this]() { return m_Count > 0; }, duration))
 				{
-					Condition::release();
 					return false;
 				}
 
 				m_Count--;
-
-				Condition::release();
 				return true;
 			}
 
 			inline void acquire()
 			{
-				Condition::acquire();
+				Ash::Concurrency::Lock::Scope lock(m_Condition);
 
-				Condition::wait([this]() { return m_Count > 0; });
-
+				m_Condition.wait([this]() { return m_Count > 0; });
 				m_Count--;
-
-				Condition::release();
 			}
 
 			inline void release(Count count = 1)
 			{
-				Condition::acquire();
+				Ash::Concurrency::Lock::Scope lock(m_Condition);
 
 				for (Count n = 0; n < count; n++)
 				{
 					m_Count++;
-					Condition::signal();
+					m_Condition.signal();
 				}
-
-				Condition::release();
 			}
 
 		private:
-			Count m_Count;
+			Ash::Concurrency::Condition m_Condition;
+			Count                       m_Count;
 
 			Semaphore(const Semaphore &semaphore) = delete;
 			Semaphore(Semaphore &&semaphore) = delete;
