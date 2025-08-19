@@ -1,5 +1,4 @@
 #include "ash.callable.h"
-#include "ash.pointer.h"
 #include "ash.ascii.h"
 #include "ash.test.memory.trace.h"
 #include "ash.test.callable.h"
@@ -313,12 +312,12 @@ namespace Ash
 				Ash::Callable::Function divideFunction(divide, 1, 2);
 				Ash::Callable::Function squareFunction(square, 2);
 
-				Ash::Unique::Pointer<Ash::Callable::Generic::Function<double>> function;
+				Ash::Callable::Generic::Function<double> *function;
 
-				function = Ash::Unique::value(divideFunction);
+				function = &divideFunction;
 				TEST_IS_EQ((*function)(), 0.5);
 
-				function = Ash::Unique::value(squareFunction);
+				function = &squareFunction;
 				TEST_IS_EQ((*function)(), 4);
 
 				return {};
