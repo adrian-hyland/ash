@@ -26,63 +26,71 @@ namespace Ash
 
 			static constexpr bool isSingleElement = (NODE_CAPACITY <= 1);
 
-			inline Queue() : m_First(), m_Last(m_First.getNode()), m_Count() {}
+			Queue() : m_First(), m_Last(m_First.getNode()), m_Count() {}
 
-			inline ~Queue()
+			~Queue()
 			{
 				m_First.clear();
 			}
 
-			inline void add(Type &&value)
+			bool add(Type &&value)
 			{
-				m_Last.add(std::move(value));
-									
+				if (!m_Last.add(std::move(value)))
+				{
+					return false;
+				}
+
 				m_Count.release();
+				return true;
 			}
 
-			inline void add(const Type &value)
+			bool add(const Type &value)
 			{
-				m_Last.add(value);
-									
+				if (!m_Last.add(value))
+				{
+					return false;
+				}
+
 				m_Count.release();
+				return true;
 			}
 
-			inline Type remove()
+			Type remove()
 			{
 				m_Count.acquire();
 
 				return m_First.remove();
 			}
 
-			inline bool tryRemove(Type &value)
+			bool tryRemove(Type &value)
 			{
 				if (!m_Count.tryAcquire())
 				{
 					return false;
 				}
 
-				value = m_First.remove();
+				value = std::move(m_First.remove());
 				return true;
 			}
 
-			inline bool tryRemove(Ash::Timer::Value duration, Type &value)
+			bool tryRemove(Ash::Timer::Value duration, Type &value)
 			{
 				if (!m_Count.tryAcquire(duration))
 				{
 					return false;
 				}
 
-				value = m_First.remove();
+				value = std::move(m_First.remove());
 				return true;
 			}
 
 		protected:
-			class NullMutex
+			class NullMutex : public Ash::Concurrency::Generic::Lock
 			{
 			public:
-				constexpr bool acquire() { return true; }
+				void acquire() {}
 
-				constexpr bool release() { return true; }
+				void release() {}
 			};
 
 			using FirstLock = Ash::Type::Option<Mutex, NullMutex, !hasSingleConsumer>;
@@ -96,19 +104,19 @@ namespace Ash
 				{
 					using Content = Type;
 
-					constexpr Node() : m_Content(), m_Next(nullptr) {}
+					Node() : m_Content(), m_Next(nullptr) {}
 
 					Content m_Content;
 					Node   *m_Next;
 				};
 
-				constexpr ElementValue() : m_Node(new Node()) {}
+				ElementValue() : m_Node(new (std::nothrow) Node()) {}
 
-				constexpr ElementValue(Node *node) : m_Node(node) {}
+				ElementValue(Node *node) : m_Node(node) {}
 
-				constexpr Node *getNode() { return m_Node; }
+				Node *getNode() { return m_Node; }
 
-				constexpr void clear()
+				void clear()
 				{
 					while (m_Node != nullptr)
 					{
@@ -116,19 +124,35 @@ namespace Ash
 					}
 				}
 
-				constexpr void add(Type &&value)
+				bool add(Type &&value)
 				{
-					m_Node->m_Content = std::move(value);
-					addNode();
+					if (m_Node != nullptr)
+					{
+						Node *node = m_Node;
+						if (addNode())
+						{
+							node->m_Content = std::move(value);
+							return true;
+						}
+					}
+					return false;
 				}
 
-				constexpr void add(const Type &value)
+				bool add(const Type &value)
 				{
-					m_Node->m_Content = value;
-					addNode();
+					if (m_Node != nullptr)
+					{
+						Node *node = m_Node;
+						if (addNode())
+						{
+							node->m_Content = value;
+							return true;
+						}
+					}
+					return false;
 				}
 
-				constexpr Type remove()
+				Type remove()
 				{
 					Type value = std::move(m_Node->m_Content);
 					removeNode();
@@ -136,13 +160,19 @@ namespace Ash
 				}
 
 			protected:
-				constexpr void addNode()
+				bool addNode()
 				{
-					m_Node->m_Next = new Node();
+					m_Node->m_Next = new (std::nothrow) Node();
+					if (m_Node->m_Next == nullptr)
+					{
+						return false;
+					}
+
 					m_Node = m_Node->m_Next;
+					return true;
 				}
 
-				constexpr void removeNode()
+				void removeNode()
 				{
 					Node *nextNode = m_Node->m_Next;
 					delete m_Node;
@@ -162,19 +192,19 @@ namespace Ash
 				{
 					using Content = Ash::Memory::Sequence<Type, NODE_CAPACITY>;
 
-					constexpr Node() : m_Content(), m_Next(nullptr) {}
+					Node() : m_Content(), m_Next(nullptr) {}
 
 					Content m_Content;
 					Node   *m_Next;
 				};
 
-				constexpr ElementSequence() : m_Node(new Node()), m_Offset(0) {}
+				ElementSequence() : m_Node(new (std::nothrow) Node()), m_Offset(0) {}
 
-				constexpr ElementSequence(Node *node) : m_Node(node), m_Offset(0) {}
+				ElementSequence(Node *node) : m_Node(node), m_Offset(0) {}
 
-				constexpr Node *getNode() { return m_Node; }
+				Node *getNode() { return m_Node; }
 
-				constexpr void clear()
+				void clear()
 				{
 					while (m_Node != nullptr)
 					{
@@ -182,25 +212,37 @@ namespace Ash
 					}
 				}
 
-				constexpr void add(Type &&value)
+				bool add(Type &&value)
 				{
-					*m_Node->m_Content.at(m_Offset) = std::move(value);
-					if (++m_Offset == 0)
+					if (m_Node != nullptr)
 					{
-						addNode();
+						Node *node = m_Node;
+						Offset offset = m_Offset;
+						if ((++m_Offset != 0) || addNode())
+						{
+							*node->m_Content.at(offset) = std::move(value);
+							return true;
+						}
 					}
+					return false;
 				}
 
-				constexpr void add(const Type &value)
+				bool add(const Type &value)
 				{
-					*m_Node->m_Content.at(m_Offset) = value;
-					if (++m_Offset == 0)
+					if (m_Node != nullptr)
 					{
-						addNode();
+						Node *node = m_Node;
+						Offset offset = m_Offset;
+						if ((++m_Offset != 0) || addNode())
+						{
+							*node->m_Content.at(offset) = value;
+							return true;
+						}
 					}
+					return false;
 				}
 
-				constexpr Type remove()
+				Type remove()
 				{
 					Type value = std::move(*m_Node->m_Content.at(m_Offset));
 					if (++m_Offset == 0)
@@ -211,10 +253,16 @@ namespace Ash
 				}
 
 			protected:
-				void addNode()
+				bool addNode()
 				{
-					m_Node->m_Next = new Node();
+					m_Node->m_Next = new (std::nothrow) Node();
+					if (m_Node->m_Next == nullptr)
+					{
+						return false;
+					}
+
 					m_Node = m_Node->m_Next;
+					return true;
 				}
 
 				void removeNode()
@@ -242,36 +290,34 @@ namespace Ash
 
 				using Node = typename Element::Node;
 
-				constexpr LockedElement() : Element(), m_Lock() {}
+				LockedElement() : Element(), m_Lock() {}
 
-				constexpr LockedElement(Node *node) : Element(node), m_Lock() {}
+				LockedElement(Node *node) : Element(node), m_Lock() {}
 
-				constexpr void clear()
+				void clear()
 				{
 					Element::clear();
 				}
 
-				inline void add(Type &&value)
+				bool add(Type &&value)
 				{
-					m_Lock.acquire();
-					Element::add(std::move(value));
-					m_Lock.release();
+					Ash::Concurrency::Lock::Scope lock(m_Lock);
+
+					return Element::add(std::move(value));
 				}
 
-				inline void add(const Type &value)
+				bool add(const Type &value)
 				{
-					m_Lock.acquire();
-					Element::add(value);
-					m_Lock.release();
+					Ash::Concurrency::Lock::Scope lock(m_Lock);
+
+					return Element::add(value);
 				}
 
-				inline Type remove()
+				Type remove()
 				{
-					m_Lock.acquire();
-					Type value = Element::remove();					
-					m_Lock.release();
+					Ash::Concurrency::Lock::Scope lock(m_Lock);
 
-					return value;
+					return Element::remove();
 				}
 
 			private:
