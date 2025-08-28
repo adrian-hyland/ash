@@ -1,46 +1,24 @@
 #pragma once
 
 #include <iostream>
+#include "ash.source.location.h"
 
 
 namespace Ash
 {
 	namespace Test
 	{
-		class Location
-		{
-		public:
-			using LineNumber = unsigned long;
-
-			constexpr Location() : m_FileName(nullptr), m_LineNumber(0) {}
-
-			constexpr Location(const char *fileName, LineNumber lineNumber) : m_FileName(fileName), m_LineNumber(lineNumber) {}
-
-			constexpr const char *getFileName() const { return m_FileName; }
-
-			constexpr LineNumber getLineNumber() const { return m_LineNumber; }
-
-			friend std::ostream &operator << (std::ostream &stream, const Location &location)
-			{
-				return (location.m_FileName != nullptr) ? stream << location.m_FileName << ':' << location.m_LineNumber : stream;
-			}
-
-		private:
-			const char *m_FileName;
-			LineNumber  m_LineNumber;
-		};
-
 		class Assertion
 		{
 		public:
 			constexpr Assertion() : m_IsValid(true), m_Condition(nullptr), m_Actual(nullptr), m_Expected(nullptr), m_Location() {}
 
-			constexpr Assertion(const char *actual, const char *condition, const char *expected, const Location &location) : m_IsValid(false), m_Condition(condition), m_Actual(actual), m_Expected(expected), m_Location(location) {}
+			constexpr Assertion(const char *actual, const char *condition, const char *expected, Ash::Source::Location location = Ash::Source::Location::inFile()) : m_IsValid(false), m_Condition(condition), m_Actual(actual), m_Expected(expected), m_Location(location) {}
 
 			#ifdef DEBUG
-			#define TEST_ASSERTION(predicate, actual, condition, expected) if (!(predicate)) { return __builtin_trap(), Ash::Test::Assertion(actual, condition, expected, Ash::Test::Location(__FILE__, __LINE__)); }
+			#define TEST_ASSERTION(predicate, actual, condition, expected) if (!(predicate)) { return __builtin_trap(), Ash::Test::Assertion(actual, condition, expected); }
 			#else
-			#define TEST_ASSERTION(predicate, actual, condition, expected) if (!(predicate)) { return Ash::Test::Assertion(actual, condition, expected, Ash::Test::Location(__FILE__, __LINE__)); }
+			#define TEST_ASSERTION(predicate, actual, condition, expected) if (!(predicate)) { return Ash::Test::Assertion(actual, condition, expected); }
 			#endif
 
 			#define TEST_IS_EQ(actual, expected) TEST_ASSERTION((actual) == (expected), #actual, "equal to", #expected)
@@ -81,7 +59,7 @@ namespace Ash
 
 			constexpr const char *getExpected() const { return m_Expected; }
 
-			constexpr Location getLocation() const { return m_Location; }
+			constexpr Ash::Source::Location getLocation() const { return m_Location; }
 
 			friend std::ostream &operator << (std::ostream &stream, const Assertion &assertion)
 			{
@@ -95,18 +73,21 @@ namespace Ash
 					stream << '\'' << assertion.m_Actual << '\'';
 					stream << " to be " << assertion.m_Condition << ' ';
 					stream << '\'' << assertion.m_Expected << '\'';
-					stream << " - see ";
-					stream << '\'' << assertion.m_Location << '\'';
+					if (assertion.m_Location.isAvailable())
+					{
+						stream << " - see ";
+						stream << '\'' << assertion.m_Location << '\'';
+					}
 				}
 				return stream;
 			}
 
 		private:
-			bool        m_IsValid;
-			const char *m_Condition;
-			const char *m_Actual;
-			const char *m_Expected;
-			Location    m_Location;
+			bool                  m_IsValid;
+			const char           *m_Condition;
+			const char           *m_Actual;
+			const char           *m_Expected;
+			Ash::Source::Location m_Location;
 		};
 
 		class Result
