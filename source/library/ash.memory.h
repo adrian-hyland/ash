@@ -1382,33 +1382,40 @@ namespace Ash
 
 			constexpr void rotateLeft(size_t count)
 			{
-				count = count % Allocation::getLength();
-				if (count > 0)
+				if (Allocation::getLength() > 1)
 				{
-					Type value;
-					Type *start = &(*this)[0];
-					Type *end = &(*this)[Allocation::getLength() - count];
-					Type *offset = start;
-					Type *nextOffset = start + count;
-
-					value = std::move(*offset);
-					for (size_t n = 1; n < Allocation::getLength(); n++)
+					count = count % Allocation::getLength();
+					if (count == 1)
 					{
-						if (nextOffset == start)
-						{
-							*offset = std::move(value);
-							nextOffset++;
-							start = nextOffset;
-							value = std::move(*offset);
-						}
-						else
-						{
-							*offset = std::move(*nextOffset);
-						}
-						offset = nextOffset;
-						nextOffset = offset + ((offset < end) ? count : count - Allocation::getLength());
+						rotateLeft();
 					}
-					*offset = std::move(value);
+					else if (count > 1)
+					{
+						Type value;
+						size_t start = 0;
+						size_t end = Allocation::getLength() - count;
+						size_t offset = start;
+						size_t nextOffset = start + count;
+
+						value = std::move((*this)[offset]);
+						for (size_t n = 1; n < Allocation::getLength(); n++)
+						{
+							if (nextOffset == start)
+							{
+								(*this)[offset] = std::move(value);
+								nextOffset++;
+								start = nextOffset;
+								value = std::move((*this)[nextOffset]);
+							}
+							else
+							{
+								(*this)[offset] = std::move((*this)[nextOffset]);
+							}
+							offset = nextOffset;
+							nextOffset = offset + ((offset < end) ? count : count - Allocation::getLength());
+						}
+						(*this)[offset] = std::move(value);
+					}
 				}
 			}
 
@@ -1419,6 +1426,35 @@ namespace Ash
 					Type value = std::move((*this)[Allocation::getLength() - 1]);
 					shiftRight(0, 1);
 					(*this)[0] = std::move(value);
+				}
+			}
+
+			constexpr void rotateRight(size_t count)
+			{
+				if (Allocation::getLength() > 1)
+				{
+					count = count % Allocation::getLength();
+					if (count == 1)
+					{
+						rotateRight();
+					}
+					else if (count > 1)
+					{
+						rotateLeft(Allocation::getLength() - count);
+					}
+				}
+			}
+
+			constexpr void reverse()
+			{
+				if (Allocation::getLength() > 1)
+				{
+					for (size_t leftOffset = 0, rightOffset = Allocation::getLength() - 1; leftOffset < rightOffset; leftOffset++, rightOffset--)
+					{
+						Type value = std::move((*this)[leftOffset]);
+						(*this)[leftOffset] = std::move((*this)[rightOffset]);
+						(*this)[rightOffset] = std::move(value);
+					}
 				}
 			}
 
