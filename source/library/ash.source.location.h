@@ -14,7 +14,7 @@ namespace Ash
 		class Location
 		{
 		public:
-			constexpr Location() : m_FileName(nullptr), m_LineNumber(0) {}
+			constexpr Location() : m_FunctionName(nullptr), m_FileName(nullptr), m_LineNumber(0) {}
 
 			static constexpr Location inFile(Ash::Source::Name fileName = __builtin_FILE(), Ash::Source::LineNumber lineNumber = __builtin_LINE())
 			{
