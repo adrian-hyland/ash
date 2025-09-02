@@ -236,10 +236,10 @@ namespace Ash
 					typename INTEGER,
 					typename = Ash::Type::IsUnsignedInteger<INTEGER>
 				>
-				static Ash::Test::Assertion getBitCount()
+				static Ash::Test::Assertion getBitCountSet()
 				{
-					TEST_IS_EQ(Ash::Integer::getBitCount(INTEGER(0)), 0);
-					TEST_IS_EQ(Ash::Integer::getBitCount(INTEGER(~0)), Ash::Integer::bitSize<INTEGER>);
+					TEST_IS_EQ(Ash::Integer::getBitCount(INTEGER(0), true), 0);
+					TEST_IS_EQ(Ash::Integer::getBitCount(INTEGER(~0), true), Ash::Integer::bitSize<INTEGER>);
 
 					static struct
 					{
@@ -274,13 +274,138 @@ namespace Ash
 						{
 							value = (value << 8) | valueCount[offset].value;
 							count = count + valueCount[offset].count;
-							
-							TEST_IS_EQ(Ash::Integer::getBitCount(value), count);
-							
+
+							TEST_IS_EQ(Ash::Integer::getBitCount(value, true), count);
+
 							offset++;
 						}
 					}
 
+					return {};
+				}
+
+				template
+				<
+					typename INTEGER,
+					typename = Ash::Type::IsUnsignedInteger<INTEGER>
+				>
+				static Ash::Test::Assertion getBitCountClear()
+				{
+					TEST_IS_EQ(Ash::Integer::getBitCount(INTEGER(~0), false), 0);
+					TEST_IS_EQ(Ash::Integer::getBitCount(INTEGER(0), false), Ash::Integer::bitSize<INTEGER>);
+
+					static struct
+					{
+						uint8_t value;
+						size_t  count;
+					} valueCount[] =
+					{
+						{ 0x01, 7 },
+						{ 0x12, 6 },
+						{ 0x23, 5 },
+						{ 0x34, 5 },
+						{ 0x45, 5 },
+						{ 0x56, 4 },
+						{ 0x67, 3 },
+						{ 0x78, 4 },
+						{ 0x89, 5 },
+						{ 0x9A, 4 },
+						{ 0xAB, 3 },
+						{ 0xBC, 3 },
+						{ 0xCD, 3 },
+						{ 0xDE, 2 },
+						{ 0xEF, 1 },
+						{ 0xF0, 4 }
+					};
+
+					size_t offset = 0;
+					while (offset < sizeof(valueCount) / sizeof(valueCount[0]))
+					{
+						INTEGER value = ~0;
+						size_t count = 0;
+						for (size_t n = 0; (n < Ash::Integer::bitSize<INTEGER>) && (offset < sizeof(valueCount) / sizeof(valueCount[0])); n = n + 8)
+						{
+							value = (value << 8) | valueCount[offset].value;
+							count = count + valueCount[offset].count;
+
+							TEST_IS_EQ(Ash::Integer::getBitCount(value, false), count);
+
+							offset++;
+						}
+					}
+
+					return {};
+				}
+
+				template
+				<
+					typename INTEGER,
+					typename = Ash::Type::IsUnsignedInteger<INTEGER>
+				>
+				static Ash::Test::Assertion getLeadingBitCountClear()
+				{
+					INTEGER value = ~0;
+					TEST_IS_EQ(Ash::Integer::getLeadingBitCount(value, false), 0);
+
+					for (size_t n = 0; n < Ash::Integer::bitSize<INTEGER>; n++)
+					{
+						value = Ash::Integer::clearBit<INTEGER>(value, Ash::Integer::bitSize<INTEGER> - n - 1);
+						TEST_IS_EQ(Ash::Integer::getLeadingBitCount(value, false), n + 1);
+					}
+					return {};
+				}
+
+				template
+				<
+					typename INTEGER,
+					typename = Ash::Type::IsUnsignedInteger<INTEGER>
+				>
+				static Ash::Test::Assertion getLeadingBitCountSet()
+				{
+					INTEGER value = 0;
+					TEST_IS_EQ(Ash::Integer::getLeadingBitCount(value, true), 0);
+
+					for (size_t n = 0; n < Ash::Integer::bitSize<INTEGER>; n++)
+					{
+						value = Ash::Integer::setBit(value, Ash::Integer::bitSize<INTEGER> - n - 1);
+						TEST_IS_EQ(Ash::Integer::getLeadingBitCount(value, true), n + 1);
+					}
+					return {};
+				}
+
+				template
+				<
+					typename INTEGER,
+					typename = Ash::Type::IsUnsignedInteger<INTEGER>
+				>
+				static Ash::Test::Assertion getTrailingBitCountClear()
+				{
+					INTEGER value = ~0;
+					TEST_IS_EQ(Ash::Integer::getTrailingBitCount(value, false), 0);
+
+					for (size_t n = 0; n < Ash::Integer::bitSize<INTEGER>; n++)
+					{
+						value = Ash::Integer::clearBit<INTEGER>(value, n);
+						TEST_IS_EQ(Ash::Integer::getTrailingBitCount(value, false), n + 1);
+					}
+					return {};
+				}
+
+				template
+				<
+					typename INTEGER,
+					typename = Ash::Type::IsUnsignedInteger<INTEGER>
+				>
+				static Ash::Test::Assertion getTrailingBitCountSet()
+				{
+					INTEGER value = 0;
+					TEST_IS_EQ(Ash::Integer::getTrailingBitCount(value, true), 0);
+
+					for (size_t n = 0; n < Ash::Integer::bitSize<INTEGER>; n++)
+					{
+						value = Ash::Integer::setBit(value, n);
+						TEST_IS_EQ(Ash::Integer::getTrailingBitCount(value, true), n + 1);
+					}
 					return {};
 				}
 			}
@@ -315,10 +440,35 @@ namespace Ash
 			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getBitLength, uint32_t),
 			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getBitLength, uint64_t),
 
-			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getBitCount, uint8_t),
-			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getBitCount, uint16_t),
-			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getBitCount, uint32_t),
-			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getBitCount, uint64_t),
+			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getBitCountSet, uint8_t),
+			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getBitCountSet, uint16_t),
+			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getBitCountSet, uint32_t),
+			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getBitCountSet, uint64_t),
+
+			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getBitCountClear, uint8_t),
+			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getBitCountClear, uint16_t),
+			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getBitCountClear, uint32_t),
+			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getBitCountClear, uint64_t),
+
+			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getLeadingBitCountClear, uint8_t),
+			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getLeadingBitCountClear, uint16_t),
+			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getLeadingBitCountClear, uint32_t),
+			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getLeadingBitCountClear, uint64_t),
+
+			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getLeadingBitCountSet, uint8_t),
+			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getLeadingBitCountSet, uint16_t),
+			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getLeadingBitCountSet, uint32_t),
+			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getLeadingBitCountSet, uint64_t),
+
+			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getTrailingBitCountClear, uint8_t),
+			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getTrailingBitCountClear, uint16_t),
+			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getTrailingBitCountClear, uint32_t),
+			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getTrailingBitCountClear, uint64_t),
+
+			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getTrailingBitCountSet, uint8_t),
+			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getTrailingBitCountSet, uint16_t),
+			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getTrailingBitCountSet, uint32_t),
+			TEST_CASE_GENERIC(Ash::Test::Integer::Bit::getTrailingBitCountSet, uint64_t),
 		);
 	}
 }
