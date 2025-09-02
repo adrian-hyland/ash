@@ -83,44 +83,26 @@ namespace Ash::Integer
 			b1 = (b > 0) ? b : -INTEGER_RETURN(b);
 		}
 
-		while (Ash::Integer::isEven(a1) && Ash::Integer::isEven(b1))
-		{
-			a1 = a1 / 2;
-			b1 = b1 / 2;
-			d++;
-		}
-
-		while (Ash::Integer::isEven(a1))
-		{
-			a1 = a1 / 2;
-		}
-
-		while (Ash::Integer::isEven(b1))
-		{
-			b1 = b1 / 2;
-		}
+		size_t na = Ash::Integer::getTrailingBitCount(a1);
+		size_t nb = Ash::Integer::getTrailingBitCount(b1);
+		a1 = a1 >> na;
+		b1 = b1 >> nb;
+		d = std::min(na, nb);
 
 		while (a1 != b1)
 		{
 			if (a1 > b1)
 			{
 				a1 = a1 - b1;
-				do
-				{
-					a1 = a1 / 2;
-				}
-				while (Ash::Integer::isEven(a1));
+				a1 = a1 >> Ash::Integer::getTrailingBitCount(a1);
 			}
 			else
 			{
 				b1 = b1 - a1;
-				do
-				{
-					b1 = b1 / 2;
-				}
-				while (Ash::Integer::isEven(b1));
+				b1 = b1 >> Ash::Integer::getTrailingBitCount(b1);
 			}
 		}
+
 		return a1 << d;
 	}
 
