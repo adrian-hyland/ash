@@ -596,9 +596,8 @@ namespace Ash
 		template
 		<
 			size_t   INDEX,
-			typename TYPE,
-			typename ...NEXT
+			typename ...TYPE
 		>
-		using Index = typename SelectIndex<INDEX, TYPE, NEXT...>::Type;
+		using Index = typename SelectIndex<INDEX, TYPE...>::Type;
 	}
 }
