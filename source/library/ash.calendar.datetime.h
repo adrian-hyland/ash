@@ -4,12 +4,27 @@
 #include "ash.calendar.date.h"
 #include "ash.calendar.time.h"
 
+#if defined PLATFORM_WINDOWS
+#include "ash.system.windows.time.h"
+#elif defined PLATFORM_LINUX
+#include "ash.system.linux.time.h"
+#endif
+
 
 namespace Ash
 {
+	namespace System
+	{
+#if defined PLATFORM_WINDOWS
+		using Time = Ash::System::Windows::Time;
+#elif defined PLATFORM_LINUX
+		using Time = Ash::System::Linux::Time;
+#endif
+	}
+
 	namespace Calendar
 	{
-		using DateTimeDuration = int64_t;
+		using DateTimeDuration = Ash::System::Time::Value;
 
 
 		class DateTime
@@ -31,56 +46,19 @@ namespace Ash
 
 			constexpr TimeDuration getUtcOffset() const { return m_UtcOffset; }
 
+			[[nodiscard]]
+			static Ash::Error::Value getNow(DateTime &now) { return Ash::System::Time::getNow(now.m_UtcTime, now.m_UtcOffset, now.m_DstOffset); }
+
 			static DateTime getNow()
 			{
-				time_t timeNow = time(nullptr);
+				DateTime now;
 
-				DateTime dateTime;
-				dateTime.m_UtcTime = getSystemEpoch() + timeNow;
-				dateTime.m_DstOffset = (getLocalTime(timeNow).tm_isdst == 0) ? 0 : daylightSaving;
-				dateTime.m_UtcOffset = -timezone;
+				getNow(now).throwOnError();
 
-				return dateTime;
+				return now;
 			}
 
 		protected:
-			static struct tm getGmtTime(time_t systemTime)
-			{
-				struct tm gmtTime;
-
-				#if defined PLATFORM_WINDOWS
-				gmtime_s(&gmtTime, &systemTime);
-				#else
-				gmtime_r(&systemTime, &gmtTime);
-				#endif
-
-				return gmtTime;
-			}
-
-			static struct tm getLocalTime(time_t systemTime)
-			{
-				struct tm localTime;
-
-				#ifdef PLATFORM_WINDOWS
-				localtime_s(&localTime, &systemTime);
-				#else
-				localtime_r(&systemTime, &localTime);
-				#endif
-
-				return localTime;
-			}
-
-			static DateTimeDuration getSystemEpoch()
-			{
-				struct tm gmtEpoch = getGmtTime(0);
-
-				Date date;
-				date.setYearMonthDay(gmtEpoch.tm_year + 1900, Month(gmtEpoch.tm_mon + 1), Day(gmtEpoch.tm_mday));
-				Time time(gmtEpoch.tm_hour, gmtEpoch.tm_min, gmtEpoch.tm_sec);
-
-				return DateTimeDuration(date) * Time::day + time;
-			}
-
 			static constexpr DateDuration getDate(DateTimeDuration duration)
 			{
 				duration = (duration < 0) ? duration - Time::day + 1 : duration;
