@@ -16,7 +16,7 @@ namespace Ash
 					{
 						Ash::Calendar::Date utcDate;
 
-						TEST_IS_TRUE(utcDate.setYearMonthDay(-Ash::Calendar::GregorianCycle::yearsPerCycle, Ash::Calendar::Month::January, 1));
+						TEST_IS_EQ(utcDate.setYearMonthDay(-Ash::Calendar::GregorianCycle::yearsPerCycle, Ash::Calendar::Month::january, 1), Ash::Error::none);
 
 						for (Ash::Calendar::Date date = utcDate; date < -utcDate; date++)
 						{
@@ -29,7 +29,7 @@ namespace Ash
 							TEST_IS_EQ(dateTime.getUtcTime(), Ash::Calendar::Time::midnight);
 						}
 
-						TEST_IS_TRUE(utcDate.setYearMonthDay(-Ash::Calendar::GregorianCycle::yearsPerCycle, Ash::Calendar::Month::December, 31));
+						TEST_IS_EQ(utcDate.setYearMonthDay(-Ash::Calendar::GregorianCycle::yearsPerCycle, Ash::Calendar::Month::december, 31), Ash::Error::none);
 
 						for (Ash::Calendar::Date date = utcDate; date < -utcDate; date++)
 						{
