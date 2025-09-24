@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include "ash.calendar.error.h"
 #include "ash.integer.h"
 
 
@@ -10,11 +11,11 @@ namespace Ash
 	{
 		using DateDuration = int32_t;
 
-		using Day = unsigned char;
+		using Day = uint8_t;
 
 		using Ordinal = uint16_t;
 
-		using Week = unsigned char;
+		using Week = uint8_t;
 
 		namespace Generic
 		{
@@ -161,18 +162,18 @@ namespace Ash
 		public:
 			using Cycle = Ash::Integer::Cycle<1, 12>;
 
-			static constexpr Type January   = 1;
-			static constexpr Type February  = 2;
-			static constexpr Type March     = 3;
-			static constexpr Type April     = 4;
-			static constexpr Type May       = 5;
-			static constexpr Type June      = 6;
-			static constexpr Type July      = 7;
-			static constexpr Type August    = 8;
-			static constexpr Type September = 9;
-			static constexpr Type October   = 10;
-			static constexpr Type November  = 11;
-			static constexpr Type December  = 12;
+			static constexpr Type january   = 1;
+			static constexpr Type february  = 2;
+			static constexpr Type march     = 3;
+			static constexpr Type april     = 4;
+			static constexpr Type may       = 5;
+			static constexpr Type june      = 6;
+			static constexpr Type july      = 7;
+			static constexpr Type august    = 8;
+			static constexpr Type september = 9;
+			static constexpr Type october   = 10;
+			static constexpr Type november  = 11;
+			static constexpr Type december  = 12;
 
 			static constexpr Type monthsPerYear = Cycle::size;
 
@@ -197,7 +198,7 @@ namespace Ash
 				//                           Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec
 				constexpr Day monthDays[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
-				return (yearCycle.isLeapYear() && (*this == February)) ? monthDays[*this - January] + 1 : monthDays[*this - January];
+				return (yearCycle.isLeapYear() && (*this == february)) ? monthDays[*this - january] + 1 : monthDays[*this - january];
 			}
 
 			template
@@ -211,7 +212,7 @@ namespace Ash
 				//                                     +31   +28   +31   +30   +31   +30   +31   +31   +30   +31   +30   +31
 				constexpr Ordinal monthDays[] = {     1,   32,   60,   91,  121,  152,  182,  213,  244,  274,  305,  335  };
 
-				return (yearCycle.isLeapYear() && (*this > February)) ? monthDays[*this - January] + 1 : monthDays[*this - January];
+				return (yearCycle.isLeapYear() && (*this > february)) ? monthDays[*this - january] + 1 : monthDays[*this - january];
 			}
 
 			template
@@ -225,7 +226,7 @@ namespace Ash
 				//                               +31   +28   +31   +30   +31   +30   +31   +31   +30   +31   +30   +31
 				constexpr Ordinal monthDays[] = {    31,   59,   90,  120,  151,  181,  212,  243,  273,  304,  334,  365  };
 
-				return (yearCycle.isLeapYear() && (*this >= February)) ? monthDays[*this - January] + 1 : monthDays[*this - January];
+				return (yearCycle.isLeapYear() && (*this >= february)) ? monthDays[*this - january] + 1 : monthDays[*this - january];
 			}
 
 			template
@@ -235,7 +236,7 @@ namespace Ash
 			>
 			static constexpr Month getMonthDay(YEAR_CYCLE yearCycle, Ordinal ordinal, Day &day)
 			{
-				Ordinal startOfMarch = Month(Month::March).getFirstDayOrdinal(yearCycle);
+				Ordinal startOfMarch = Month(Month::march).getFirstDayOrdinal(yearCycle);
 
 				if (ordinal < startOfMarch)
 				{
@@ -257,13 +258,13 @@ namespace Ash
 		public:
 			using Cycle = Ash::Integer::Cycle<1, 7>;
 
-			static constexpr Type Monday    = 1;
-			static constexpr Type Tuesday   = 2;
-			static constexpr Type Wednesday = 3;
-			static constexpr Type Thursday  = 4;
-			static constexpr Type Friday    = 5;
-			static constexpr Type Saturday  = 6;
-			static constexpr Type Sunday    = 7;
+			static constexpr Type monday    = 1;
+			static constexpr Type tuesday   = 2;
+			static constexpr Type wednesday = 3;
+			static constexpr Type thursday  = 4;
+			static constexpr Type friday    = 5;
+			static constexpr Type saturday  = 6;
+			static constexpr Type sunday    = 7;
 
 			static constexpr Type daysPerWeek = Cycle::size;
 
@@ -301,12 +302,16 @@ namespace Ash
 			class Year : public YearCycle
 			{
 			public:
+				static constexpr Type minimum = std::numeric_limits<Type>::min();
+
+				static constexpr Type maximum = std::numeric_limits<Type>::max();
+
 				constexpr Year(Type year = 0) : YearCycle(year) {}
 
 				constexpr Week getWeeks() const
 				{
 					Weekday weekday = Weekday(YearCycle::getDaysSinceEpoch());
-					return ((weekday == Weekday::Thursday) || (YearCycle::isLeapYear() && (weekday == Weekday::Wednesday))) ? 53 : 52;
+					return ((weekday == Weekday::thursday) || (YearCycle::isLeapYear() && (weekday == Weekday::wednesday))) ? 53 : 52;
 				}
 
 				constexpr DateDuration getFirstWeek() const
@@ -320,90 +325,369 @@ namespace Ash
 			class Date
 			{
 			public:
-				constexpr Date() : m_Year(1), m_Month(Month::January), m_Day(1) {}
+				constexpr Date() : m_Year(1), m_Month(Month::january), m_Day(1) {}
 
-				constexpr Date(DateDuration days) : Date()
+				template
+				<
+					typename DAYS,
+					typename = Ash::Type::IsInteger<DAYS>
+				>
+				constexpr Date(DAYS days) : Date()
 				{
-					set(days);
+					set(days).throwOnError();
 				}
 
-				constexpr bool set(DateDuration days)
+				template
+				<
+					typename YEAR,
+					typename ORDINAL,
+					typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsInteger<YEAR>, Ash::Type::Requirement::IsClass<YEAR, Year>>::IsValid,
+					typename = Ash::Type::IsInteger<ORDINAL>
+				>
+				static constexpr Date withYearOrdinal(YEAR year, ORDINAL ordinal)
 				{
+					Date date;
+
+					date.setYearOrdinal(year, ordinal).throwOnError();
+
+					return date;
+				}
+
+				template
+				<
+					typename YEAR,
+					typename MONTH,
+					typename DAY,
+					typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsInteger<YEAR>, Ash::Type::Requirement::IsClass<YEAR, Year>>::IsValid,
+					typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsInteger<MONTH>, Ash::Type::Requirement::IsClass<MONTH, Month>>::IsValid,
+					typename = Ash::Type::IsInteger<DAY>
+				>
+				static constexpr Date withYearMonthDay(YEAR year, MONTH month, DAY day)
+				{
+					Date date;
+
+					date.setYearMonthDay(year, month, day).throwOnError();
+
+					return date;
+				}
+
+				template
+				<
+					typename YEAR,
+					typename WEEK,
+					typename WEEKDAY,
+					typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsInteger<YEAR>, Ash::Type::Requirement::IsClass<YEAR, Year>>::IsValid,
+					typename = Ash::Type::IsInteger<WEEK>,
+					typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsInteger<WEEKDAY>, Ash::Type::Requirement::IsClass<WEEKDAY, Weekday>>::IsValid
+				>
+				static constexpr Date withYearWeekday(YEAR year, WEEK week, WEEKDAY weekday)
+				{
+					Date date;
+
+					date.setYearWeekday(year, week, weekday).throwOnError();
+
+					return date;
+				}
+
+				template
+				<
+					typename YEAR,
+					typename MONTH,
+					typename WEEKDAY,
+					typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsInteger<YEAR>, Ash::Type::Requirement::IsClass<YEAR, Year>>::IsValid,
+					typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsInteger<MONTH>, Ash::Type::Requirement::IsClass<MONTH, Month>>::IsValid,
+					typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsInteger<WEEKDAY>, Ash::Type::Requirement::IsClass<WEEKDAY, Weekday>>::IsValid
+				>
+				static constexpr Date withYearMonthFirstWeekday(YEAR year, MONTH month, WEEKDAY weekday)
+				{
+					Date date;
+
+					date.setYearMonthFirstWeekday(year, month, weekday).throwOnError();
+
+					return date;
+				}
+
+				template
+				<
+					typename YEAR,
+					typename MONTH,
+					typename WEEKDAY,
+					typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsInteger<YEAR>, Ash::Type::Requirement::IsClass<YEAR, Year>>::IsValid,
+					typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsInteger<MONTH>, Ash::Type::Requirement::IsClass<MONTH, Month>>::IsValid,
+					typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsInteger<WEEKDAY>, Ash::Type::Requirement::IsClass<WEEKDAY, Weekday>>::IsValid
+				>
+				static constexpr Date withYearMonthLastWeekday(YEAR year, MONTH month, WEEKDAY weekday)
+				{
+					Date date;
+
+					date.setYearMonthLastWeekday(year, month, weekday).throwOnError();
+
+					return date;
+				}
+
+				static constexpr DateDuration maximum = withYearMonthDay(Year::maximum, Month::december, 31);
+				static constexpr DateDuration minimum = withYearMonthDay(Year::minimum, Month::january, 1);
+
+				template
+				<
+					typename DAYS,
+					typename = Ash::Type::IsInteger<DAYS>
+				>
+				[[nodiscard]]
+				constexpr Ash::Error::Value set(DAYS days)
+				{
+					if (!isValid(days))
+					{
+						return Ash::Calendar::Error::invalidDuration;
+					}
+
 					Ordinal ordinal = 1;
 					Year year = Year::getYearOrdinal(days, ordinal);
 					return setYearOrdinal(year, ordinal);
 				}
 
-				static constexpr bool isYearOrdinalValid(Year year, Ordinal ordinal)
+				template
+				<
+					typename YEAR,
+					typename ORDINAL,
+					typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsInteger<YEAR>, Ash::Type::Requirement::IsClass<YEAR, Year>>::IsValid,
+					typename = Ash::Type::IsInteger<ORDINAL>
+				>
+				[[nodiscard]]
+				constexpr Ash::Error::Value setYearOrdinal(YEAR year, ORDINAL ordinal)
 				{
-					return (ordinal > 0) && (ordinal <= year.getDays());
-				}
+					if (!isYearValid(year))
+					{
+						return Ash::Calendar::Error::invalidYear;
+					}
 
-				constexpr bool setYearOrdinal(Year year, Ordinal ordinal)
-				{
 					if (!isYearOrdinalValid(year, ordinal))
 					{
-						return false;
+						return Ash::Calendar::Error::invalidYearOrdinal;
 					}
 
 					m_Year = year;
 					m_Month = Month::getMonthDay(m_Year, ordinal, m_Day);
-					return true;
+
+					return Ash::Error::none;
 				}
 
-				static constexpr bool isYearMonthDayValid(Year year, Month month, Day day)
+				template
+				<
+					typename YEAR,
+					typename MONTH,
+					typename DAY,
+					typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsInteger<YEAR>, Ash::Type::Requirement::IsClass<YEAR, Year>>::IsValid,
+					typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsInteger<MONTH>, Ash::Type::Requirement::IsClass<MONTH, Month>>::IsValid,
+					typename = Ash::Type::IsInteger<DAY>
+				>
+				[[nodiscard]]
+				constexpr Ash::Error::Value setYearMonthDay(YEAR year, MONTH month, DAY day)
 				{
-					return (day > 0) && (day <= month.getDays(year));
-				}
+					if (!isYearValid(year))
+					{
+						return Ash::Calendar::Error::invalidYear;
+					}
 
-				constexpr bool setYearMonthDay(Year year, Month month, Day day)
-				{
+					if (!isMonthValid(month))
+					{
+						return Ash::Calendar::Error::invalidMonth;
+					}
+
 					if (!isYearMonthDayValid(year, month, day))
 					{
-						return false;
+						return Ash::Calendar::Error::invalidYearMonthDay;
 					}
 
 					m_Year = year;
 					m_Month = month;
 					m_Day = day;
-					return true;
+
+					return Ash::Error::none;
 				}
 
-				static constexpr bool isYearWeekValid(Year year, Week week)
+				template
+				<
+					typename YEAR,
+					typename WEEK,
+					typename WEEKDAY,
+					typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsInteger<YEAR>, Ash::Type::Requirement::IsClass<YEAR, Year>>::IsValid,
+					typename = Ash::Type::IsInteger<WEEK>,
+					typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsInteger<WEEKDAY>, Ash::Type::Requirement::IsClass<WEEKDAY, Weekday>>::IsValid
+				>
+				[[nodiscard]]
+				constexpr Ash::Error::Value setYearWeekday(YEAR year, WEEK week, WEEKDAY weekday)
 				{
-					return (week > 0) && (week <= year.getWeeks());
-				}
+					if (!isYearValid(year))
+					{
+						return Ash::Calendar::Error::invalidYear;
+					}
 
-				constexpr bool setYearWeekDay(Year year, Week week, Weekday weekday)
-				{
 					if (!isYearWeekValid(year, week))
 					{
-						return false;
+						return Ash::Calendar::Error::invalidYearWeek;
 					}
 
-					return set(year.getFirstWeek() + (week - 1) * Weekday::daysPerWeek + weekday - 1);
+					if (!isWeekdayValid(weekday))
+					{
+						return Ash::Calendar::Error::invalidWeekday;
+					}
+
+					return set(Year(year).getFirstWeek() + (week - 1) * Weekday::daysPerWeek + weekday - 1);
 				}
 
-				constexpr bool setYearMonthFirstWeekday(Year year, Month month, Weekday weekday)
+				template
+				<
+					typename YEAR,
+					typename MONTH,
+					typename WEEKDAY,
+					typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsInteger<YEAR>, Ash::Type::Requirement::IsClass<YEAR, Year>>::IsValid,
+					typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsInteger<MONTH>, Ash::Type::Requirement::IsClass<MONTH, Month>>::IsValid,
+					typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsInteger<WEEKDAY>, Ash::Type::Requirement::IsClass<WEEKDAY, Weekday>>::IsValid
+				>
+				[[nodiscard]]
+				constexpr Ash::Error::Value setYearMonthFirstWeekday(YEAR year, MONTH month, WEEKDAY weekday)
 				{
-					if (!setYearMonthDay(year, month, 1))
+					if (!isYearValid(year))
 					{
-						return false;
+						return Ash::Calendar::Error::invalidYear;
 					}
 
+					if (!isMonthValid(month))
+					{
+						return Ash::Calendar::Error::invalidMonth;
+					}
+
+					if (!isWeekdayValid(weekday))
+					{
+						return Ash::Calendar::Error::invalidWeekday;
+					}
+
+					m_Year = year;
+					m_Month = month;
+					m_Day = 1;
 					m_Day = Weekday(1 + weekday - *this);
-					return true;
+
+					return Ash::Error::none;
 				}
 
-				constexpr bool setYearMonthLastWeekday(Year year, Month month, Weekday weekday)
+				template
+				<
+					typename YEAR,
+					typename MONTH,
+					typename WEEKDAY,
+					typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsInteger<YEAR>, Ash::Type::Requirement::IsClass<YEAR, Year>>::IsValid,
+					typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsInteger<MONTH>, Ash::Type::Requirement::IsClass<MONTH, Month>>::IsValid,
+					typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsInteger<WEEKDAY>, Ash::Type::Requirement::IsClass<WEEKDAY, Weekday>>::IsValid
+				>
+				[[nodiscard]]
+				constexpr Ash::Error::Value setYearMonthLastWeekday(YEAR year, MONTH month, WEEKDAY weekday)
 				{
-					if (!setYearMonthDay(year, month, month.getDays(year)))
+					if (!isYearValid(year))
 					{
-						return false;
+						return Ash::Calendar::Error::invalidYear;
 					}
 
+					if (!isMonthValid(month))
+					{
+						return Ash::Calendar::Error::invalidMonth;
+					}
+
+					if (!isWeekdayValid(weekday))
+					{
+						return Ash::Calendar::Error::invalidWeekday;
+					}
+
+					m_Year = year;
+					m_Month = month;
+					m_Day = m_Month.getDays(m_Year);
 					m_Day = 1 + m_Day - Weekday(1 + *this - weekday);
-					return true;
+
+					return Ash::Error::none;
+				}
+
+				template
+				<
+					typename DAYS,
+					typename = Ash::Type::IsInteger<DAYS>
+				>
+				static constexpr bool isValid(DAYS days)
+				{
+					if constexpr (Ash::Type::isUnsignedInteger<DAYS>)
+					{
+						return days <= maximum;
+					}
+					else
+					{
+						return (days >= minimum) && (days <= maximum);
+					}
+				}
+
+				template
+				<
+					typename YEAR,
+					typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsInteger<YEAR>, Ash::Type::Requirement::IsClass<YEAR, Year>>::IsValid
+				>
+				static constexpr bool isYearValid(YEAR year)
+				{
+					if constexpr (Ash::Type::isUnsignedInteger<YEAR>)
+					{
+						return year <= Year::maximum;
+					}
+					else
+					{
+						return (year >= Year::minimum) && (year <= Year::maximum);
+					}
+				}
+
+				template
+				<
+					typename MONTH,
+					typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsInteger<MONTH>, Ash::Type::Requirement::IsClass<MONTH, Month>>::IsValid
+				>
+				static constexpr bool isMonthValid(MONTH month)
+				{
+					return (month >= Month::minimum) && (month <= Month::maximum);
+				}
+
+				template
+				<
+					typename WEEKDAY,
+					typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsInteger<WEEKDAY>, Ash::Type::Requirement::IsClass<WEEKDAY, Weekday>>::IsValid
+				>
+				static constexpr bool isWeekdayValid(WEEKDAY weekday)
+				{
+					return (weekday >= Weekday::minimum) && (weekday <= Weekday::maximum);
+				}
+
+				template
+				<
+					typename ORDINAL,
+					typename = Ash::Type::IsInteger<ORDINAL>
+				>
+				static constexpr bool isYearOrdinalValid(Year year, ORDINAL ordinal)
+				{
+					return (ordinal > 0) && (ordinal <= year.getDays());
+				}
+
+				template
+				<
+					typename DAY,
+					typename = Ash::Type::IsInteger<DAY>
+				>
+				static constexpr bool isYearMonthDayValid(Year year, Month month, DAY day)
+				{
+					return (day > 0) && (day <= month.getDays(year));
+				}
+
+				template
+				<
+					typename WEEK,
+					typename = Ash::Type::IsInteger<WEEK>
+				>
+				static constexpr bool isYearWeekValid(Year year, WEEK week)
+				{
+					return (week > 0) && (week <= year.getWeeks());
 				}
 
 				constexpr operator DateDuration () const { return m_Year.getDaysSinceEpoch(getOrdinal()); }
