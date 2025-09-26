@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include "ash.calendar.error.h"
 #include "ash.integer.h"
 
 
@@ -8,9 +9,6 @@ namespace Ash
 {
 	namespace Calendar
 	{
-		using TimeDuration = int32_t;
-
-
 		class Hour : public Ash::Integer::Cycle<0, 23>
 		{
 		public:
@@ -71,31 +69,118 @@ namespace Ash
 		};
 
 
+		using TimeDuration = Ash::Integer::Cycle<0, Hour::perDay * Minute::perHour * Second::perMinute - 1>;
+
+
 		class Time
 		{
 		public:
-			static constexpr TimeDuration second = 1;
+			static constexpr TimeDuration::Type second = 1;
 
-			static constexpr TimeDuration minute = second * Second::perMinute;
+			static constexpr TimeDuration::Type minute = second * Second::perMinute;
 
-			static constexpr TimeDuration hour = minute * Minute::perHour;
+			static constexpr TimeDuration::Type hour = minute * Minute::perHour;
 
-			static constexpr TimeDuration day = hour * Hour::perDay;
+			static constexpr TimeDuration::Type day = hour * Hour::perDay;
 
-			static constexpr TimeDuration midnight = 0;
+			static constexpr TimeDuration::Type midnight = 0;
 
-			static constexpr TimeDuration midday = day / 2;
+			static constexpr TimeDuration::Type midday = day / 2;
 
 			constexpr Time() : m_Hour(), m_Minute(), m_Second() {}
 
-			constexpr Time(TimeDuration duration) : Time()
+			template
+			<
+				typename SECONDS,
+				typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsInteger<SECONDS>, Ash::Type::Requirement::IsClass<SECONDS, TimeDuration>>::IsValid
+			>
+			constexpr Time(SECONDS seconds) : Time()
 			{
-				set(duration);
+				set(seconds);
 			}
 
-			constexpr Time(Hour hour, Minute minute, Second second) : m_Hour(hour), m_Minute(minute), m_Second(second) {}
+			template
+			<
+				typename HOUR,
+				typename MINUTE,
+				typename SECOND,
+				typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsInteger<HOUR>, Ash::Type::Requirement::IsClass<HOUR, Hour>>::IsValid,
+				typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsInteger<MINUTE>, Ash::Type::Requirement::IsClass<MINUTE, Minute>>::IsValid,
+				typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsInteger<SECOND>, Ash::Type::Requirement::IsClass<SECOND, Second>>::IsValid
+			>
+			static constexpr Time withHourMinuteSecond(HOUR hour, MINUTE minute, SECOND second)
+			{
+				Time time;
 
-			constexpr operator TimeDuration () const { return TimeDuration(m_Hour) * hour + TimeDuration(m_Minute) * minute + TimeDuration(m_Second) * second; }
+				time.setHourMinuteSecond(hour, minute, second).throwOnError();
+
+				return time;
+			}
+
+			template
+			<
+				typename SECONDS,
+				typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsInteger<SECONDS>, Ash::Type::Requirement::IsClass<SECONDS, TimeDuration>>::IsValid
+			>
+			constexpr void set(SECONDS seconds)
+			{
+				TimeDuration duration = seconds;
+				m_Hour = duration / hour;
+				m_Minute = duration / minute;
+				m_Second = duration / second;
+			}
+
+			template
+			<
+				typename HOUR,
+				typename MINUTE,
+				typename SECOND,
+				typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsInteger<HOUR>, Ash::Type::Requirement::IsClass<HOUR, Hour>>::IsValid,
+				typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsInteger<MINUTE>, Ash::Type::Requirement::IsClass<MINUTE, Minute>>::IsValid,
+				typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsInteger<SECOND>, Ash::Type::Requirement::IsClass<SECOND, Second>>::IsValid
+			>
+			constexpr Ash::Error::Value setHourMinuteSecond(HOUR hour, MINUTE minute, SECOND second)
+			{
+				Ash::Error::Value error = validateHourMinuteSecond(hour, minute, second);
+				if (error == Ash::Error::none)
+				{
+					m_Hour = hour;
+					m_Minute = minute;
+					m_Second = second;
+				}
+				return error;
+			}
+
+			template
+			<
+				typename HOUR,
+				typename MINUTE,
+				typename SECOND,
+				typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsInteger<HOUR>, Ash::Type::Requirement::IsClass<HOUR, Hour>>::IsValid,
+				typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsInteger<MINUTE>, Ash::Type::Requirement::IsClass<MINUTE, Minute>>::IsValid,
+				typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsInteger<SECOND>, Ash::Type::Requirement::IsClass<SECOND, Second>>::IsValid
+			>
+			static constexpr Ash::Error::Value validateHourMinuteSecond(HOUR hour, MINUTE minute, SECOND second)
+			{
+				if (!isHourValid(hour))
+				{
+					return Ash::Calendar::Error::invalidHour;
+				}
+				else if (!isMinuteValid(minute))
+				{
+					return Ash::Calendar::Error::invalidMinute;
+				}
+				else if (!isSecondValid(second))
+				{
+					return Ash::Calendar::Error::invalidSecond;
+				}
+				else
+				{
+					return Ash::Error::none;
+				}
+			}
+
+			constexpr operator TimeDuration () const { return TimeDuration::Value(m_Hour) * hour + TimeDuration::Value(m_Minute) * minute + TimeDuration::Value(m_Second) * second; }
 
 			constexpr Hour getHour() const { return m_Hour; }
 
@@ -107,20 +192,43 @@ namespace Ash
 
 			constexpr bool isAfternoon() const { return !isMorning(); }
 
-			constexpr Time &operator ++ () { *this = *this + 1; return *this; }
+			constexpr Time &operator ++ () { *this = TimeDuration(*this) + 1; return *this; }
 
-			constexpr Time &operator -- () { *this = *this - 1; return *this; }
+			constexpr Time &operator -- () { *this = TimeDuration(*this) - 1; return *this; }
 
 			constexpr Time operator ++ (int) { Time result = *this; ++(*this); return result; }
 
 			constexpr Time operator -- (int) { Time result = *this; --(*this); return result; }
 
 		protected:
-			constexpr void set(Ash::Integer::Cycle<0, day - 1> value)
+			template
+			<
+				typename HOUR,
+				typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsInteger<HOUR>, Ash::Type::Requirement::IsClass<HOUR, Hour>>::IsValid
+			>
+			static constexpr bool isHourValid(HOUR hour)
 			{
-				m_Hour = value / hour;
-				m_Minute = value / minute;
-				m_Second = value / second;
+				return (hour >= Hour::minimum) && (hour <= Hour::maximum);
+			}
+
+			template
+			<
+				typename MINUTE,
+				typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsInteger<MINUTE>, Ash::Type::Requirement::IsClass<MINUTE, Minute>>::IsValid
+			>
+			static constexpr bool isMinuteValid(MINUTE minute)
+			{
+				return (minute >= Minute::minimum) && (minute <= Minute::maximum);
+			}
+
+			template
+			<
+				typename SECOND,
+				typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsInteger<SECOND>, Ash::Type::Requirement::IsClass<SECOND, Second>>::IsValid
+			>
+			static constexpr bool isSecondValid(SECOND second)
+			{
+				return (second >= Second::minimum) && (second <= Second::maximum);
 			}
 
 		private:
