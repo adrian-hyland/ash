@@ -155,11 +155,11 @@ namespace Ash
 				Ash::Calendar::DateDuration expected = Year::epoch;
 				Date date(expected);
 
-				for (Year year = 1; year < Year::maximum; year++)
+				for (Year year : Ash::Iterate<typename Year::Type>::between(1, Year::maximum))
 				{
 					for (Ash::Calendar::Month month : Ash::Calendar::Month::iterate())
 					{
-						for (Ash::Calendar::Day day = 1; day <= month.getDays(year); day++)
+						for (Ash::Calendar::Day day : Ash::Iterate<Ash::Calendar::Day>::between(1, month.getDays(year)))
 						{
 							expected++;
 							date++;
@@ -172,22 +172,22 @@ namespace Ash
 					}
 				}
 
-				expected = Year::epoch;
+				expected = Year::epoch + 1;
 				date = expected;
 
-				for (Year year = 0; year > Year::minimum; year--)
+				for (Year year : Ash::Iterate<typename Year::Type>::between(Year::minimum, 0).reverse())
 				{
 					for (Ash::Calendar::Month month : Ash::Calendar::Month::iterate().reverse())
 					{
-						for (Ash::Calendar::Day day = Ash::Calendar::Month(month).getDays(year); day >= 1; day--)
+						for (Ash::Calendar::Day day : Ash::Iterate<Ash::Calendar::Day>::between(1, month.getDays(year)).reverse())
 						{
+							expected--;
+							date--;
+
 							TEST_IS_EQ(date, expected);
 							TEST_IS_EQ(date.getDay(), day);
 							TEST_IS_EQ(date.getMonth(), month);
 							TEST_IS_EQ(date.getYear(), year);
-
-							expected--;
-							date--;
 						}
 					}
 				}
@@ -200,20 +200,20 @@ namespace Ash
 				typename CALENDAR,
 				typename = Ash::Type::IsClass<CALENDAR, Ash::Calendar::Generic::Proleptic>
 			>
-			static Ash::Test::Assertion isValid()
+			static Ash::Test::Assertion validate()
 			{
 				using Calendar = CALENDAR;
 				using Date = typename Calendar::Date;
 
 				Ash::Calendar::DateDuration days = Date::minimum;
-				TEST_IS_TRUE(Date::isValid(days));
+				TEST_IS_EQ(Date::validate(days), Ash::Error::none);
 				days--;
-				TEST_IS_FALSE(Date::isValid(days));
+				TEST_IS_EQ(Date::validate(days), Ash::Calendar::Error::invalidDuration);
 
 				days = Date::maximum;
-				TEST_IS_TRUE(Date::isValid(days));
+				TEST_IS_EQ(Date::validate(days), Ash::Error::none);
 				days++;
-				TEST_IS_FALSE(Date::isValid(days));
+				TEST_IS_EQ(Date::validate(days), Ash::Calendar::Error::invalidDuration);
 
 				return {};
 			}
@@ -223,95 +223,20 @@ namespace Ash
 				typename CALENDAR,
 				typename = Ash::Type::IsClass<CALENDAR, Ash::Calendar::Generic::Proleptic>
 			>
-			static Ash::Test::Assertion isYearValid()
+			static Ash::Test::Assertion validateYearOrdinal()
 			{
 				using Calendar = CALENDAR;
 				using Date = typename Calendar::Date;
 				using Year = typename Calendar::Year;
 
-				TEST_IS_TRUE(Date::isYearValid(Year::minimum));
-				TEST_IS_TRUE(Date::isYearValid(Year::maximum));
-
-				TEST_IS_FALSE(Date::isYearValid(int32_t(Year::minimum) - 1));
-				TEST_IS_FALSE(Date::isYearValid(int32_t(Year::maximum) + 1));
-
-				return {};
-			}
-
-			template
-			<
-				typename CALENDAR,
-				typename = Ash::Type::IsClass<CALENDAR, Ash::Calendar::Generic::Proleptic>
-			>
-			static Ash::Test::Assertion isMonthValid()
-			{
-				using Calendar = CALENDAR;
-				using Date = typename Calendar::Date;
-
-				TEST_IS_TRUE(Date::isMonthValid(Ash::Calendar::Month::january));
-				TEST_IS_TRUE(Date::isMonthValid(Ash::Calendar::Month::february));
-				TEST_IS_TRUE(Date::isMonthValid(Ash::Calendar::Month::march));
-				TEST_IS_TRUE(Date::isMonthValid(Ash::Calendar::Month::april));
-				TEST_IS_TRUE(Date::isMonthValid(Ash::Calendar::Month::may));
-				TEST_IS_TRUE(Date::isMonthValid(Ash::Calendar::Month::june));
-				TEST_IS_TRUE(Date::isMonthValid(Ash::Calendar::Month::july));
-				TEST_IS_TRUE(Date::isMonthValid(Ash::Calendar::Month::august));
-				TEST_IS_TRUE(Date::isMonthValid(Ash::Calendar::Month::september));
-				TEST_IS_TRUE(Date::isMonthValid(Ash::Calendar::Month::october));
-				TEST_IS_TRUE(Date::isMonthValid(Ash::Calendar::Month::november));
-				TEST_IS_TRUE(Date::isMonthValid(Ash::Calendar::Month::december));
-
-				TEST_IS_FALSE(Date::isMonthValid(0));
-				TEST_IS_FALSE(Date::isMonthValid(-1));
-				TEST_IS_FALSE(Date::isMonthValid(13));
-
-				return {};
-			}
-
-			template
-			<
-				typename CALENDAR,
-				typename = Ash::Type::IsClass<CALENDAR, Ash::Calendar::Generic::Proleptic>
-			>
-			static Ash::Test::Assertion isWeekdayValid()
-			{
-				using Calendar = CALENDAR;
-				using Date = typename Calendar::Date;
-
-				TEST_IS_TRUE(Date::isWeekdayValid(Ash::Calendar::Weekday::monday));
-				TEST_IS_TRUE(Date::isWeekdayValid(Ash::Calendar::Weekday::tuesday));
-				TEST_IS_TRUE(Date::isWeekdayValid(Ash::Calendar::Weekday::wednesday));
-				TEST_IS_TRUE(Date::isWeekdayValid(Ash::Calendar::Weekday::thursday));
-				TEST_IS_TRUE(Date::isWeekdayValid(Ash::Calendar::Weekday::friday));
-				TEST_IS_TRUE(Date::isWeekdayValid(Ash::Calendar::Weekday::saturday));
-				TEST_IS_TRUE(Date::isWeekdayValid(Ash::Calendar::Weekday::sunday));
-
-				TEST_IS_FALSE(Date::isWeekdayValid(0));
-				TEST_IS_FALSE(Date::isWeekdayValid(-1));
-				TEST_IS_FALSE(Date::isWeekdayValid(8));
-
-				return {};
-			}
-
-			template
-			<
-				typename CALENDAR,
-				typename = Ash::Type::IsClass<CALENDAR, Ash::Calendar::Generic::Proleptic>
-			>
-			static Ash::Test::Assertion isYearOrdinalValid()
-			{
-				using Calendar = CALENDAR;
-				using Date = typename Calendar::Date;
-				using Year = typename Calendar::Year;
-
-				for (Year year = -Year::yearsPerCycle + 1; year < Year::yearsPerCycle; year++)
+				for (Year year : Ash::Iterate<typename Year::Type>::between(-Year::yearsPerCycle + 1, Year::yearsPerCycle - 1))
 				{
-					TEST_IS_FALSE(Date::isYearOrdinalValid(year, 0));
-					for (Ash::Calendar::Ordinal ordinal = 1; ordinal <= year.getDays(); ordinal++)
+					TEST_IS_EQ(Date::validateYearOrdinal(year, 0), Ash::Calendar::Error::invalidOrdinal);
+					for (Ash::Calendar::Ordinal ordinal : Ash::Iterate<Ash::Calendar::Ordinal>::between(1, year.getDays()))
 					{
-						TEST_IS_TRUE(Date::isYearOrdinalValid(year, ordinal));
+						TEST_IS_EQ(Date::validateYearOrdinal(year, ordinal), Ash::Error::none);
 					}
-					TEST_IS_FALSE(Date::isYearOrdinalValid(year, year.getDays() + 1));
+					TEST_IS_EQ(Date::validateYearOrdinal(year, year.getDays() + 1), Ash::Calendar::Error::invalidOrdinal);
 				}
 
 				return {};
@@ -322,24 +247,28 @@ namespace Ash
 				typename CALENDAR,
 				typename = Ash::Type::IsClass<CALENDAR, Ash::Calendar::Generic::Proleptic>
 			>
-			static Ash::Test::Assertion isYearMonthDayValid()
+			static Ash::Test::Assertion validateYearMonthDay()
 			{
 				using Calendar = CALENDAR;
 				using Date = typename Calendar::Date;
 				using Year = typename Calendar::Year;
 
-				for (Year year = -Year::yearsPerCycle + 1; year < Year::yearsPerCycle; year++)
+				TEST_IS_EQ(Date::validateYearMonthDay(Year::minimum - 1, Ash::Calendar::Month::january, 1), Ash::Calendar::Error::invalidYear);
+				for (Year year : Ash::Iterate<typename Year::Type>::between(-Year::yearsPerCycle + 1, Year::yearsPerCycle - 1))
 				{
+					TEST_IS_EQ(Date::validateYearMonthDay(year, 0, 1), Ash::Calendar::Error::invalidMonth);
 					for (Ash::Calendar::Month month : Ash::Calendar::Month::iterate())
 					{
-						TEST_IS_FALSE(Date::isYearMonthDayValid(year, month, 0));
-						for (Ash::Calendar::Day day = 1; day <= month.getDays(year); day++)
+						TEST_IS_EQ(Date::validateYearMonthDay(year, month, 0), Ash::Calendar::Error::invalidDay);
+						for (Ash::Calendar::Day day : Ash::Iterate<Ash::Calendar::Day>::between(1, month.getDays(year)))
 						{
-							TEST_IS_TRUE(Date::isYearMonthDayValid(year, month, day));
+							TEST_IS_EQ(Date::validateYearMonthDay(year, month, day), Ash::Error::none);
 						}
-						TEST_IS_FALSE(Date::isYearMonthDayValid(year, month, month.getDays(year) + 1));
+						TEST_IS_EQ(Date::validateYearMonthDay(year, month, month.getDays(year) + 1), Ash::Calendar::Error::invalidDay);
 					}
+					TEST_IS_EQ(Date::validateYearMonthDay(year, 13, 1), Ash::Calendar::Error::invalidMonth);
 				}
+				TEST_IS_EQ(Date::validateYearMonthDay(Year::maximum + 1, Ash::Calendar::Month::january, 1), Ash::Calendar::Error::invalidYear);
 
 				return {};
 			}
@@ -349,21 +278,57 @@ namespace Ash
 				typename CALENDAR,
 				typename = Ash::Type::IsClass<CALENDAR, Ash::Calendar::Generic::Proleptic>
 			>
-			static Ash::Test::Assertion isYearWeekValid()
+			static Ash::Test::Assertion validateYearWeekday()
 			{
 				using Calendar = CALENDAR;
 				using Date = typename Calendar::Date;
 				using Year = typename Calendar::Year;
 
-				for (Year year = -Year::yearsPerCycle + 1; year < Year::yearsPerCycle; year++)
+				TEST_IS_EQ(Date::validateYearWeekday(Year::minimum - 1, 1, Ash::Calendar::Weekday::monday), Ash::Calendar::Error::invalidYear);
+				for (Year year : Ash::Iterate<typename Year::Type>::between(-Year::yearsPerCycle + 1, Year::yearsPerCycle - 1))
 				{
-					TEST_IS_FALSE(Date::isYearWeekValid(year, 0));
-					for (Ash::Calendar::Week week = 1; week <= year.getWeeks(); week++)
+					TEST_IS_EQ(Date::validateYearWeekday(year, 0, Ash::Calendar::Weekday::monday), Ash::Calendar::Error::invalidWeek);
+					for (Ash::Calendar::Week week : Ash::Iterate<Ash::Calendar::Week>::between(1, year.getWeeks()))
 					{
-						TEST_IS_TRUE(Date::isYearWeekValid(year, week));
+						for (Ash::Calendar::Weekday weekday : Ash::Calendar::Weekday::iterate())
+						{
+							TEST_IS_EQ(Date::validateYearWeekday(year, week, weekday), Ash::Error::none);
+						}
 					}
-					TEST_IS_FALSE(Date::isYearWeekValid(year, year.getWeeks() + 1));
+					TEST_IS_EQ(Date::validateYearWeekday(year, year.getWeeks() + 1, Ash::Calendar::Weekday::monday), Ash::Calendar::Error::invalidWeek);
 				}
+				TEST_IS_EQ(Date::validateYearWeekday(Year::maximum + 1, 1, Ash::Calendar::Weekday::monday), Ash::Calendar::Error::invalidYear);
+
+				return {};
+			}
+
+			template
+			<
+				typename CALENDAR,
+				typename = Ash::Type::IsClass<CALENDAR, Ash::Calendar::Generic::Proleptic>
+			>
+			static Ash::Test::Assertion validateYearMonthWeekday()
+			{
+				using Calendar = CALENDAR;
+				using Date = typename Calendar::Date;
+				using Year = typename Calendar::Year;
+
+				TEST_IS_EQ(Date::validateYearMonthWeekday(Year::minimum - 1, Ash::Calendar::Month::january, Ash::Calendar::Weekday::monday), Ash::Calendar::Error::invalidYear);
+				for (Year year : Ash::Iterate<typename Year::Type>::between(-Year::yearsPerCycle + 1, Year::yearsPerCycle - 1))
+				{
+					TEST_IS_EQ(Date::validateYearMonthWeekday(year, 0, Ash::Calendar::Weekday::monday), Ash::Calendar::Error::invalidMonth);
+					for (Ash::Calendar::Month month : Ash::Calendar::Month::iterate())
+					{
+						TEST_IS_EQ(Date::validateYearMonthWeekday(year, month, 0), Ash::Calendar::Error::invalidWeekday);
+						for (Ash::Calendar::Weekday weekday : Ash::Calendar::Weekday::iterate())
+						{
+							TEST_IS_EQ(Date::validateYearMonthWeekday(year, month, weekday), Ash::Error::none);
+						}
+						TEST_IS_EQ(Date::validateYearMonthWeekday(year, month, 8), Ash::Calendar::Error::invalidWeekday);
+					}
+					TEST_IS_EQ(Date::validateYearMonthWeekday(year, 13, Ash::Calendar::Weekday::monday), Ash::Calendar::Error::invalidMonth);
+				}
+				TEST_IS_EQ(Date::validateYearMonthWeekday(Year::maximum + 1, Ash::Calendar::Month::january, Ash::Calendar::Weekday::monday), Ash::Calendar::Error::invalidYear);
 
 				return {};
 			}
@@ -403,15 +368,15 @@ namespace Ash
 				Ash::Calendar::DateDuration expected = Year::epoch - Year::daysPerCycle + 1;
 
 				TEST_IS_EQ(date.setYearOrdinal(Year::minimum - 1, 1), Ash::Calendar::Error::invalidYear);
-				for (Year year = -Year::yearsPerCycle + 1; year < Year::yearsPerCycle; year++)
+				for (Year year : Ash::Iterate<typename Year::Type>::between(-Year::yearsPerCycle + 1, Year::yearsPerCycle - 1))
 				{
-					TEST_IS_EQ(date.setYearOrdinal(year, 0), Ash::Calendar::Error::invalidYearOrdinal);
-					for (Ash::Calendar::Ordinal ordinal = 1; ordinal <= year.getDays(); ordinal++)
+					TEST_IS_EQ(date.setYearOrdinal(year, 0), Ash::Calendar::Error::invalidOrdinal);
+					for (Ash::Calendar::Ordinal ordinal : Ash::Iterate<Ash::Calendar::Ordinal>::between(1, year.getDays()))
 					{
 						TEST_IS_EQ(date.setYearOrdinal(year, ordinal), Ash::Error::none);
 						TEST_IS_EQ(date, expected++);
 					}
-					TEST_IS_EQ(date.setYearOrdinal(year, year.getDays() + 1), Ash::Calendar::Error::invalidYearOrdinal);
+					TEST_IS_EQ(date.setYearOrdinal(year, year.getDays() + 1), Ash::Calendar::Error::invalidOrdinal);
 				}
 				TEST_IS_EQ(date.setYearOrdinal(Year::maximum + 1, 1), Ash::Calendar::Error::invalidYear);
 
@@ -433,18 +398,18 @@ namespace Ash
 				Ash::Calendar::DateDuration expected = Year::epoch - Year::daysPerCycle + 1;
 
 				TEST_IS_EQ(date.setYearMonthDay(Year::minimum - 1, Ash::Calendar::Month::january, 1), Ash::Calendar::Error::invalidYear);
-				for (Year year = -Year::yearsPerCycle + 1; year < Year::yearsPerCycle; year++)
+				for (Year year : Ash::Iterate<typename Year::Type>::between(-Year::yearsPerCycle + 1, Year::yearsPerCycle - 1))
 				{
 					TEST_IS_EQ(date.setYearMonthDay(year, 0, 1), Ash::Calendar::Error::invalidMonth);
 					for (Ash::Calendar::Month month : Ash::Calendar::Month::iterate())
 					{
-						TEST_IS_EQ(date.setYearMonthDay(year, month, 0), Ash::Calendar::Error::invalidYearMonthDay);
-						for (Ash::Calendar::Day day = 1; day <= month.getDays(year); day++)
+						TEST_IS_EQ(date.setYearMonthDay(year, month, 0), Ash::Calendar::Error::invalidDay);
+						for (Ash::Calendar::Day day : Ash::Iterate<Ash::Calendar::Day>::between(1, month.getDays(year)))
 						{
 							TEST_IS_EQ(date.setYearMonthDay(year, month, day), Ash::Error::none);
 							TEST_IS_EQ(date, expected++);
 						}
-						TEST_IS_EQ(date.setYearMonthDay(year, month, month.getDays(year) + 1), Ash::Calendar::Error::invalidYearMonthDay);
+						TEST_IS_EQ(date.setYearMonthDay(year, month, month.getDays(year) + 1), Ash::Calendar::Error::invalidDay);
 					}
 					TEST_IS_EQ(date.setYearMonthDay(year, 13, 1), Ash::Calendar::Error::invalidMonth);
 				}
@@ -468,10 +433,10 @@ namespace Ash
 				Ash::Calendar::DateDuration expected = Year::epoch - Year::daysPerCycle + 1;
 
 				TEST_IS_EQ(date.setYearWeekday(Year::minimum - 1, 1, Ash::Calendar::Weekday::monday), Ash::Calendar::Error::invalidYear);
-				for (Year year = -Year::yearsPerCycle + 1; year < Year::yearsPerCycle; year++)
+				for (Year year : Ash::Iterate<typename Year::Type>::between(-Year::yearsPerCycle + 1, Year::yearsPerCycle - 1))
 				{
-					TEST_IS_EQ(date.setYearWeekday(year, 0, Ash::Calendar::Weekday::monday), Ash::Calendar::Error::invalidYearWeek);
-					for (Ash::Calendar::Week week = 1; week <= year.getWeeks(); week++)
+					TEST_IS_EQ(date.setYearWeekday(year, 0, Ash::Calendar::Weekday::monday), Ash::Calendar::Error::invalidWeek);
+					for (Ash::Calendar::Week week : Ash::Iterate<Ash::Calendar::Week>::between(1, year.getWeeks()))
 					{
 						for (Ash::Calendar::Weekday weekday : Ash::Calendar::Weekday::iterate())
 						{
@@ -479,7 +444,7 @@ namespace Ash
 							TEST_IS_EQ(date, expected++);
 						}
 					}
-					TEST_IS_EQ(date.setYearWeekday(year, year.getWeeks() + 1, Ash::Calendar::Weekday::monday), Ash::Calendar::Error::invalidYearWeek);
+					TEST_IS_EQ(date.setYearWeekday(year, year.getWeeks() + 1, Ash::Calendar::Weekday::monday), Ash::Calendar::Error::invalidWeek);
 				}
 				TEST_IS_EQ(date.setYearWeekday(Year::maximum + 1, 1, Ash::Calendar::Weekday::monday), Ash::Calendar::Error::invalidYear);
 
@@ -500,7 +465,7 @@ namespace Ash
 				Date date;
 
 				TEST_IS_EQ(date.setYearMonthFirstWeekday(Year::minimum - 1, Ash::Calendar::Month::january, Ash::Calendar::Weekday::monday), Ash::Calendar::Error::invalidYear);
-				for (Year year = -Year::yearsPerCycle + 1; year < Year::yearsPerCycle; year++)
+				for (Year year : Ash::Iterate<typename Year::Type>::between(-Year::yearsPerCycle + 1, Year::yearsPerCycle - 1))
 				{
 					TEST_IS_EQ(date.setYearMonthFirstWeekday(year, 0, Ash::Calendar::Weekday::monday), Ash::Calendar::Error::invalidMonth);
 					for (Ash::Calendar::Month month : Ash::Calendar::Month::iterate())
@@ -539,7 +504,7 @@ namespace Ash
 				Date date;
 
 				TEST_IS_EQ(date.setYearMonthLastWeekday(Year::minimum - 1, Ash::Calendar::Month::january, Ash::Calendar::Weekday::monday), Ash::Calendar::Error::invalidYear);
-				for (Year year = -Year::yearsPerCycle + 1; year < Year::yearsPerCycle; year++)
+				for (Year year : Ash::Iterate<typename Year::Type>::between(-Year::yearsPerCycle + 1, Year::yearsPerCycle - 1))
 				{
 					TEST_IS_EQ(date.setYearMonthLastWeekday(year, 0, Ash::Calendar::Weekday::monday), Ash::Calendar::Error::invalidMonth);
 					for (Ash::Calendar::Month month : Ash::Calendar::Month::iterate())
@@ -586,7 +551,7 @@ namespace Ash
 				{
 					TEST_IS_EQ(Ash::Error::Value(*exception.getCategory(), exception.getCode()), Ash::Calendar::Error::invalidYear);
 				}
-				for (Year year = -Year::yearsPerCycle + 1; year < Year::yearsPerCycle; year++)
+				for (Year year : Ash::Iterate<typename Year::Type>::between(-Year::yearsPerCycle + 1, Year::yearsPerCycle - 1))
 				{
 					try
 					{
@@ -594,9 +559,9 @@ namespace Ash
 					}
 					catch (const Ash::Error::Exception &exception)
 					{
-						TEST_IS_EQ(Ash::Error::Value(*exception.getCategory(), exception.getCode()), Ash::Calendar::Error::invalidYearOrdinal);
+						TEST_IS_EQ(Ash::Error::Value(*exception.getCategory(), exception.getCode()), Ash::Calendar::Error::invalidOrdinal);
 					}
-					for (Ash::Calendar::Ordinal ordinal = 1; ordinal <= year.getDays(); ordinal++)
+					for (Ash::Calendar::Ordinal ordinal : Ash::Iterate<Ash::Calendar::Ordinal>::between(1, year.getDays()))
 					{
 						date = Date::withYearOrdinal(year, ordinal);
 						TEST_IS_EQ(date, expected++);
@@ -607,7 +572,7 @@ namespace Ash
 					}
 					catch (const Ash::Error::Exception &exception)
 					{
-						TEST_IS_EQ(Ash::Error::Value(*exception.getCategory(), exception.getCode()), Ash::Calendar::Error::invalidYearOrdinal);
+						TEST_IS_EQ(Ash::Error::Value(*exception.getCategory(), exception.getCode()), Ash::Calendar::Error::invalidOrdinal);
 					}
 				}
 				try
@@ -644,7 +609,7 @@ namespace Ash
 				{
 					TEST_IS_EQ(Ash::Error::Value(*exception.getCategory(), exception.getCode()), Ash::Calendar::Error::invalidYear);
 				}
-				for (Year year = -Year::yearsPerCycle + 1; year < Year::yearsPerCycle; year++)
+				for (Year year : Ash::Iterate<typename Year::Type>::between(-Year::yearsPerCycle + 1, Year::yearsPerCycle - 1))
 				{
 					try
 					{
@@ -662,9 +627,9 @@ namespace Ash
 						}
 						catch (const Ash::Error::Exception &exception)
 						{
-							TEST_IS_EQ(Ash::Error::Value(*exception.getCategory(), exception.getCode()), Ash::Calendar::Error::invalidYearMonthDay);
+							TEST_IS_EQ(Ash::Error::Value(*exception.getCategory(), exception.getCode()), Ash::Calendar::Error::invalidDay);
 						}
-						for (Ash::Calendar::Day day = 1; day <= month.getDays(year); day++)
+						for (Ash::Calendar::Day day : Ash::Iterate<Ash::Calendar::Day>::between(1, month.getDays(year)))
 						{
 							date = Date::withYearMonthDay(year, month, day);
 							TEST_IS_EQ(date, expected++);
@@ -675,7 +640,7 @@ namespace Ash
 						}
 						catch (const Ash::Error::Exception &exception)
 						{
-							TEST_IS_EQ(Ash::Error::Value(*exception.getCategory(), exception.getCode()), Ash::Calendar::Error::invalidYearMonthDay);
+							TEST_IS_EQ(Ash::Error::Value(*exception.getCategory(), exception.getCode()), Ash::Calendar::Error::invalidDay);
 						}
 					}
 					try
@@ -721,7 +686,7 @@ namespace Ash
 				{
 					TEST_IS_EQ(Ash::Error::Value(*exception.getCategory(), exception.getCode()), Ash::Calendar::Error::invalidYear);
 				}
-				for (Year year = -Year::yearsPerCycle + 1; year < Year::yearsPerCycle; year++)
+				for (Year year : Ash::Iterate<typename Year::Type>::between(-Year::yearsPerCycle + 1, Year::yearsPerCycle - 1))
 				{
 					try
 					{
@@ -729,9 +694,9 @@ namespace Ash
 					}
 					catch (const Ash::Error::Exception &exception)
 					{
-						TEST_IS_EQ(Ash::Error::Value(*exception.getCategory(), exception.getCode()), Ash::Calendar::Error::invalidYearWeek);
+						TEST_IS_EQ(Ash::Error::Value(*exception.getCategory(), exception.getCode()), Ash::Calendar::Error::invalidWeek);
 					}
-					for (Ash::Calendar::Week week = 1; week <= year.getWeeks(); week++)
+					for (Ash::Calendar::Week week : Ash::Iterate<Ash::Calendar::Week>::between(1, year.getWeeks()))
 					{
 						for (Ash::Calendar::Weekday weekday : Ash::Calendar::Weekday::iterate())
 						{
@@ -745,7 +710,7 @@ namespace Ash
 					}
 					catch (const Ash::Error::Exception &exception)
 					{
-						TEST_IS_EQ(Ash::Error::Value(*exception.getCategory(), exception.getCode()), Ash::Calendar::Error::invalidYearWeek);
+						TEST_IS_EQ(Ash::Error::Value(*exception.getCategory(), exception.getCode()), Ash::Calendar::Error::invalidWeek);
 					}
 				}
 				try
@@ -781,7 +746,7 @@ namespace Ash
 				{
 					TEST_IS_EQ(Ash::Error::Value(*exception.getCategory(), exception.getCode()), Ash::Calendar::Error::invalidYear);
 				}
-				for (Year year = -Year::yearsPerCycle + 1; year < Year::yearsPerCycle; year++)
+				for (Year year : Ash::Iterate<typename Year::Type>::between(-Year::yearsPerCycle + 1, Year::yearsPerCycle - 1))
 				{
 					try
 					{
@@ -861,7 +826,7 @@ namespace Ash
 				{
 					TEST_IS_EQ(Ash::Error::Value(*exception.getCategory(), exception.getCode()), Ash::Calendar::Error::invalidYear);
 				}
-				for (Year year = -Year::yearsPerCycle + 1; year < Year::yearsPerCycle; year++)
+				for (Year year : Ash::Iterate<typename Year::Type>::between(-Year::yearsPerCycle + 1, Year::yearsPerCycle - 1))
 				{
 					try
 					{
@@ -933,7 +898,7 @@ namespace Ash
 
 				Date date = Year::epoch - Year::daysPerCycle + 1;
 
-				for (Year year = -Year::yearsPerCycle + 1; year < Year::yearsPerCycle; year++)
+				for (Year year : Ash::Iterate<typename Year::Type>::between(-Year::yearsPerCycle + 1, Year::yearsPerCycle - 1))
 				{
 					TEST_IS_EQ(date.getYear(), year);
 					date = date + year.getDays();
@@ -955,7 +920,7 @@ namespace Ash
 
 				Date date = Year::epoch - Year::daysPerCycle + 1;
 
-				for (Year year = -Year::yearsPerCycle + 1; year < Year::yearsPerCycle; year++)
+				for (Year year : Ash::Iterate<typename Year::Type>::between(-Year::yearsPerCycle + 1, Year::yearsPerCycle - 1))
 				{
 					for (Ash::Calendar::Month month : Ash::Calendar::Month::iterate())
 					{
@@ -980,11 +945,11 @@ namespace Ash
 
 				Date date = Year::epoch - Year::daysPerCycle + 1;
 
-				for (Year year = -Year::yearsPerCycle + 1; year < Year::yearsPerCycle; year++)
+				for (Year year : Ash::Iterate<typename Year::Type>::between(-Year::yearsPerCycle + 1, Year::yearsPerCycle - 1))
 				{
 					for (Ash::Calendar::Month month : Ash::Calendar::Month::iterate())
 					{
-						for (Ash::Calendar::Day day = 1; day <= month.getDays(year); day++)
+						for (Ash::Calendar::Day day : Ash::Iterate<Ash::Calendar::Day>::between(1, month.getDays(year)))
 						{
 							TEST_IS_EQ(date++.getDay(), day);
 						}
@@ -1007,9 +972,9 @@ namespace Ash
 
 				Date date = Year::epoch - Year::daysPerCycle;
 
-				for (Year year = -Year::yearsPerCycle + 1; year < Year::yearsPerCycle; year++)
+				for (Year year : Ash::Iterate<typename Year::Type>::between(-Year::yearsPerCycle + 1, Year::yearsPerCycle - 1))
 				{
-					for (Ash::Calendar::Ordinal ordinal = 1; ordinal <= year.getDays(); ordinal++)
+					for (Ash::Calendar::Ordinal ordinal : Ash::Iterate<Ash::Calendar::Ordinal>::between(1, year.getDays()))
 					{
 						++date;
 						TEST_IS_EQ(date.getOrdinal(), ordinal);
@@ -1054,46 +1019,68 @@ namespace Ash
 				using Date = typename Calendar::Date;
 				using Year = typename Calendar::Year;
 
-				Date date = 1;
-				Year year = 1;
-				Ash::Calendar::Week week = 1;
+				Ash::Calendar::DateDuration date = 1;
+				Year expectedYear = 1;
+				Ash::Calendar::Week expectedWeek = 1;
 
-				while (year < std::numeric_limits<typename Year::Type>::max() - 1)
+				for (;;)
 				{
-					Year weekYear;
-					TEST_IS_EQ(date.getYearWeek(weekYear), week);
-					TEST_IS_EQ(weekYear, year);
+					Year year;
+					Ash::Calendar::Week week;
+					TEST_IS_EQ(Date(date).getYearWeek(year, week), Ash::Error::none);
+					TEST_IS_EQ(week, expectedWeek);
+					TEST_IS_EQ(year, expectedYear);
 					date = date + 6;
-					TEST_IS_EQ(date.getYearWeek(weekYear), week);
-					TEST_IS_EQ(weekYear, year);
-					date++;
-					week++;
-					if (week > year.getWeeks())
+					if (date > Date::maximum)
 					{
-						week = 1;
-						year++;
+						date = Date::maximum;
+					}
+					TEST_IS_EQ(Date(date).getYearWeek(year, week), Ash::Error::none);
+					TEST_IS_EQ(week, expectedWeek);
+					TEST_IS_EQ(year, expectedYear);
+					if (date == Date::maximum)
+					{
+						break;
+					}
+					date++;
+					expectedWeek++;
+					if (expectedWeek > expectedYear.getWeeks())
+					{
+						expectedWeek = 1;
+						expectedYear++;
 					}
 				}
 
 				date = 1;
-				week = 1;
-				year = 1;
+				expectedWeek = 1;
+				expectedYear = 1;
 
-				while (year > std::numeric_limits<typename Year::Type>::min() + 1)
+				for (;;)
 				{
-					Year weekYear;
-					date--;
-					week--;
-					if (week == 0)
+					Year year;
+					Ash::Calendar::Week week;
+					if (date == Date::minimum)
 					{
-						year--;
-						week = year.getWeeks();
+						break;
 					}
-					TEST_IS_EQ(date.getYearWeek(weekYear), week);
-					TEST_IS_EQ(weekYear, year);
+					date--;
+					expectedWeek--;
+					if (expectedWeek == 0)
+					{
+						expectedYear--;
+						expectedWeek = expectedYear.getWeeks();
+					}
+					TEST_IS_EQ(Date(date).getYearWeek(year, week), Ash::Error::none);
+					TEST_IS_EQ(week, expectedWeek);
+					TEST_IS_EQ(year, expectedYear);
 					date = date - 6;
-					TEST_IS_EQ(date.getYearWeek(weekYear), week)
-					TEST_IS_EQ(weekYear, year);
+					if (date < Date::minimum)
+					{
+						date = Date::minimum;
+					}
+					TEST_IS_EQ(Date(date).getYearWeek(year, week), Ash::Error::none);
+					TEST_IS_EQ(week, expectedWeek);
+					TEST_IS_EQ(year, expectedYear);
 				}
 
 				return {};
@@ -1108,13 +1095,11 @@ namespace Ash
 			TEST_CASE_GENERIC(Ash::Test::Calendar::year, Ash::Calendar::Gregorian),
 			TEST_CASE_GENERIC(Ash::Test::Calendar::month, Ash::Calendar::Gregorian),
 			TEST_CASE_GENERIC(Ash::Test::Calendar::date, Ash::Calendar::Gregorian),
-			TEST_CASE_GENERIC(Ash::Test::Calendar::isValid, Ash::Calendar::Gregorian),
-			TEST_CASE_GENERIC(Ash::Test::Calendar::isYearValid, Ash::Calendar::Gregorian),
-			TEST_CASE_GENERIC(Ash::Test::Calendar::isMonthValid, Ash::Calendar::Gregorian),
-			TEST_CASE_GENERIC(Ash::Test::Calendar::isWeekdayValid, Ash::Calendar::Gregorian),
-			TEST_CASE_GENERIC(Ash::Test::Calendar::isYearOrdinalValid, Ash::Calendar::Gregorian),
-			TEST_CASE_GENERIC(Ash::Test::Calendar::isYearMonthDayValid, Ash::Calendar::Gregorian),
-			TEST_CASE_GENERIC(Ash::Test::Calendar::isYearWeekValid, Ash::Calendar::Gregorian),
+			TEST_CASE_GENERIC(Ash::Test::Calendar::validate, Ash::Calendar::Gregorian),
+			TEST_CASE_GENERIC(Ash::Test::Calendar::validateYearOrdinal, Ash::Calendar::Gregorian),
+			TEST_CASE_GENERIC(Ash::Test::Calendar::validateYearMonthDay, Ash::Calendar::Gregorian),
+			TEST_CASE_GENERIC(Ash::Test::Calendar::validateYearWeekday, Ash::Calendar::Gregorian),
+			TEST_CASE_GENERIC(Ash::Test::Calendar::validateYearMonthWeekday, Ash::Calendar::Gregorian),
 			TEST_CASE_GENERIC(Ash::Test::Calendar::set, Ash::Calendar::Gregorian),
 			TEST_CASE_GENERIC(Ash::Test::Calendar::setYearOrdinal, Ash::Calendar::Gregorian),
 			TEST_CASE_GENERIC(Ash::Test::Calendar::setYearMonthDay, Ash::Calendar::Gregorian),
@@ -1135,13 +1120,11 @@ namespace Ash
 			TEST_CASE_GENERIC(Ash::Test::Calendar::year, Ash::Calendar::Julian),
 			TEST_CASE_GENERIC(Ash::Test::Calendar::month, Ash::Calendar::Julian),
 			TEST_CASE_GENERIC(Ash::Test::Calendar::date, Ash::Calendar::Julian),
-			TEST_CASE_GENERIC(Ash::Test::Calendar::isValid, Ash::Calendar::Julian),
-			TEST_CASE_GENERIC(Ash::Test::Calendar::isYearValid, Ash::Calendar::Julian),
-			TEST_CASE_GENERIC(Ash::Test::Calendar::isMonthValid, Ash::Calendar::Julian),
-			TEST_CASE_GENERIC(Ash::Test::Calendar::isWeekdayValid, Ash::Calendar::Julian),
-			TEST_CASE_GENERIC(Ash::Test::Calendar::isYearOrdinalValid, Ash::Calendar::Julian),
-			TEST_CASE_GENERIC(Ash::Test::Calendar::isYearMonthDayValid, Ash::Calendar::Julian),
-			TEST_CASE_GENERIC(Ash::Test::Calendar::isYearWeekValid, Ash::Calendar::Julian),
+			TEST_CASE_GENERIC(Ash::Test::Calendar::validate, Ash::Calendar::Julian),
+			TEST_CASE_GENERIC(Ash::Test::Calendar::validateYearOrdinal, Ash::Calendar::Julian),
+			TEST_CASE_GENERIC(Ash::Test::Calendar::validateYearMonthDay, Ash::Calendar::Julian),
+			TEST_CASE_GENERIC(Ash::Test::Calendar::validateYearWeekday, Ash::Calendar::Julian),
+			TEST_CASE_GENERIC(Ash::Test::Calendar::validateYearMonthWeekday, Ash::Calendar::Julian),
 			TEST_CASE_GENERIC(Ash::Test::Calendar::set, Ash::Calendar::Julian),
 			TEST_CASE_GENERIC(Ash::Test::Calendar::setYearOrdinal, Ash::Calendar::Julian),
 			TEST_CASE_GENERIC(Ash::Test::Calendar::setYearMonthDay, Ash::Calendar::Julian),
