@@ -23,7 +23,7 @@ namespace Ash
 							Ash::Calendar::DateTime dateTime(date, Ash::Calendar::Time::midnight, utcOffset, dstOffset);
 
 							TEST_IS_EQ(dateTime.getLocalDate(), date - ((utcOffset + dstOffset < 0) ? 1 : 0));
-							TEST_IS_EQ(dateTime.getLocalTime(), Ash::Calendar::Time(utcOffset + dstOffset));
+							TEST_IS_EQ(dateTime.getLocalTime(), Ash::Calendar::TimeDuration(utcOffset + dstOffset));
 
 							TEST_IS_EQ(dateTime.getUtcDate(), date);
 							TEST_IS_EQ(dateTime.getUtcTime(), Ash::Calendar::Time::midnight);
@@ -36,10 +36,10 @@ namespace Ash
 							Ash::Calendar::DateTime dateTime(date, Ash::Calendar::Time(Ash::Calendar::Time::midnight - 1), utcOffset, dstOffset);
 
 							TEST_IS_EQ(dateTime.getLocalDate(), date + ((utcOffset + dstOffset > 0) ? 1 : 0));
-							TEST_IS_EQ(dateTime.getLocalTime(), Ash::Calendar::Time(utcOffset + dstOffset - 1));
+							TEST_IS_EQ(dateTime.getLocalTime(), Ash::Calendar::TimeDuration(utcOffset + dstOffset - 1));
 
 							TEST_IS_EQ(dateTime.getUtcDate(), date);
-							TEST_IS_EQ(dateTime.getUtcTime(), Ash::Calendar::Time(Ash::Calendar::Time::midnight - 1));
+							TEST_IS_EQ(dateTime.getUtcTime(), Ash::Calendar::TimeDuration(Ash::Calendar::Time::midnight - 1));
 						}
 					}
 				}
