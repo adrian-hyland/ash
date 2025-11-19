@@ -12,6 +12,17 @@ namespace Ash
 		{
 			template
 			<
+				typename TYPE
+			>
+			struct HasDestructor
+			{
+				using Type = TYPE;
+
+				static constexpr bool isSatisfied = !std::is_void_v<TYPE> && !std::is_trivially_destructible_v<TYPE> && std::is_destructible_v<TYPE>;
+			};
+
+			template
+			<
 				typename TYPE,
 				typename PARENT = TYPE
 			>
@@ -252,6 +263,18 @@ namespace Ash
 
 		template
 		<
+			typename TYPE
+		>
+		constexpr bool hasDestructor = Ash::Type::CheckIf<TYPE, Ash::Type::Requirement::HasDestructor>::isValid;
+
+		template
+		<
+			typename TYPE
+		>
+		constexpr bool hasNoDestructor = Ash::Type::CheckIf<TYPE, Ash::Type::Requirement::HasDestructor>::isNotValid;
+
+		template
+		<
 			typename TYPE,
 			typename PARENT = TYPE
 		>
@@ -382,6 +405,18 @@ namespace Ash
 			typename TYPE
 		>
 		constexpr bool isByteSizeInteger = Ash::Type::CheckIfAll<Ash::Type::Requirement::IsInteger<TYPE>, Ash::Type::Requirement::IsSameSize<TYPE, unsigned char>>::isValid;
+
+		template
+		<
+			typename TYPE
+		>
+		using HasDestructor = Ash::Type::CheckIf<TYPE, Ash::Type::Requirement::HasDestructor>::IsValid;
+
+		template
+		<
+			typename TYPE
+		>
+		using HasNoDestructor = Ash::Type::CheckIf<TYPE, Ash::Type::Requirement::HasDestructor>::IsNotValid;
 
 		template
 		<
