@@ -20,6 +20,103 @@ namespace Ash
 
 			struct TestNonDerivedStruct {};
 
+			struct TestDestructor
+			{
+				~TestDestructor();
+			};
+
+			struct TestVirtualDestructor
+			{
+				virtual ~TestVirtualDestructor() = 0;
+			};
+
+			struct TestDerivedDestructor : TestVirtualDestructor {};
+
+			struct TestDeletedDestructor
+			{
+				~TestDeletedDestructor() = delete;
+			};
+
+			static Ash::Test::Assertion hasDestructor()
+			{
+				TEST_IS_TRUE(Ash::Type::hasDestructor<TestDestructor>);
+				TEST_IS_TRUE(Ash::Type::hasDestructor<TestDestructor [2]>);
+				TEST_IS_TRUE(Ash::Type::hasDestructor<TestVirtualDestructor>);
+				TEST_IS_TRUE(Ash::Type::hasDestructor<TestDerivedDestructor>);
+				TEST_IS_FALSE(Ash::Type::hasDestructor<TestDeletedDestructor>);
+				TEST_IS_FALSE(Ash::Type::hasDestructor<bool>);
+				#if STD >= 20
+				TEST_IS_FALSE(Ash::Type::hasDestructor<char8_t>);
+				#endif
+				TEST_IS_FALSE(Ash::Type::hasDestructor<char16_t>);
+				TEST_IS_FALSE(Ash::Type::hasDestructor<char32_t>);
+				TEST_IS_FALSE(Ash::Type::hasDestructor<wchar_t>);
+				TEST_IS_FALSE(Ash::Type::hasDestructor<unsigned char>);
+				TEST_IS_FALSE(Ash::Type::hasDestructor<unsigned int>);
+				TEST_IS_FALSE(Ash::Type::hasDestructor<unsigned short>);
+				TEST_IS_FALSE(Ash::Type::hasDestructor<unsigned long>);
+				TEST_IS_FALSE(Ash::Type::hasDestructor<unsigned long long>);
+				TEST_IS_FALSE(Ash::Type::hasDestructor<signed char>);
+				TEST_IS_FALSE(Ash::Type::hasDestructor<signed int>);
+				TEST_IS_FALSE(Ash::Type::hasDestructor<signed short>);
+				TEST_IS_FALSE(Ash::Type::hasDestructor<signed long>);
+				TEST_IS_FALSE(Ash::Type::hasDestructor<signed long long>);
+				TEST_IS_FALSE(Ash::Type::hasDestructor<float>);
+				TEST_IS_FALSE(Ash::Type::hasDestructor<double>);
+				TEST_IS_FALSE(Ash::Type::hasDestructor<long double>);
+				TEST_IS_FALSE(Ash::Type::hasDestructor<void *>);
+				TEST_IS_FALSE(Ash::Type::hasDestructor<void>);
+				TEST_IS_FALSE(Ash::Type::hasDestructor<TestBaseClass>);
+				TEST_IS_FALSE(Ash::Type::hasDestructor<TestDerivedClass>);
+				TEST_IS_FALSE(Ash::Type::hasDestructor<TestBaseStruct>);
+				TEST_IS_FALSE(Ash::Type::hasDestructor<TestDerivedStruct>);
+				TEST_IS_FALSE(Ash::Type::hasDestructor<int [2]>);
+				TEST_IS_FALSE(Ash::Type::hasDestructor<int [2][3]>);
+				TEST_IS_FALSE(Ash::Type::hasDestructor<TestBaseClass [2]>);
+
+				return {};
+			}
+
+			static Ash::Test::Assertion hasNoDestructor()
+			{
+				TEST_IS_TRUE(Ash::Type::hasNoDestructor<bool>);
+				#if STD >= 20
+				TEST_IS_TRUE(Ash::Type::hasNoDestructor<char8_t>);
+				#endif
+				TEST_IS_TRUE(Ash::Type::hasNoDestructor<char16_t>);
+				TEST_IS_TRUE(Ash::Type::hasNoDestructor<char32_t>);
+				TEST_IS_TRUE(Ash::Type::hasNoDestructor<wchar_t>);
+				TEST_IS_TRUE(Ash::Type::hasNoDestructor<unsigned char>);
+				TEST_IS_TRUE(Ash::Type::hasNoDestructor<unsigned int>);
+				TEST_IS_TRUE(Ash::Type::hasNoDestructor<unsigned short>);
+				TEST_IS_TRUE(Ash::Type::hasNoDestructor<unsigned long>);
+				TEST_IS_TRUE(Ash::Type::hasNoDestructor<unsigned long long>);
+				TEST_IS_TRUE(Ash::Type::hasNoDestructor<signed char>);
+				TEST_IS_TRUE(Ash::Type::hasNoDestructor<signed int>);
+				TEST_IS_TRUE(Ash::Type::hasNoDestructor<signed short>);
+				TEST_IS_TRUE(Ash::Type::hasNoDestructor<signed long>);
+				TEST_IS_TRUE(Ash::Type::hasNoDestructor<signed long long>);
+				TEST_IS_TRUE(Ash::Type::hasNoDestructor<float>);
+				TEST_IS_TRUE(Ash::Type::hasNoDestructor<double>);
+				TEST_IS_TRUE(Ash::Type::hasNoDestructor<long double>);
+				TEST_IS_TRUE(Ash::Type::hasNoDestructor<void *>);
+				TEST_IS_TRUE(Ash::Type::hasNoDestructor<void>);
+				TEST_IS_TRUE(Ash::Type::hasNoDestructor<TestBaseClass>);
+				TEST_IS_TRUE(Ash::Type::hasNoDestructor<TestDerivedClass>);
+				TEST_IS_TRUE(Ash::Type::hasNoDestructor<TestBaseStruct>);
+				TEST_IS_TRUE(Ash::Type::hasNoDestructor<TestDerivedStruct>);
+				TEST_IS_TRUE(Ash::Type::hasNoDestructor<int [2]>);
+				TEST_IS_TRUE(Ash::Type::hasNoDestructor<int [2][3]>);
+				TEST_IS_TRUE(Ash::Type::hasNoDestructor<TestBaseClass [2]>);
+				TEST_IS_TRUE(Ash::Type::hasNoDestructor<TestDeletedDestructor>);
+				TEST_IS_FALSE(Ash::Type::hasNoDestructor<TestDestructor>);
+				TEST_IS_FALSE(Ash::Type::hasNoDestructor<TestDestructor [2]>);
+				TEST_IS_FALSE(Ash::Type::hasNoDestructor<TestVirtualDestructor>);
+				TEST_IS_FALSE(Ash::Type::hasNoDestructor<TestDerivedDestructor>);
+
+				return {};
+			}
+
 			static Ash::Test::Assertion isClass()
 			{
 				bool isClass = false;
@@ -1258,7 +1355,7 @@ namespace Ash
 			static Ash::Test::Assertion checkIfAny()
 			{
 				bool isValid;
-				
+
 				isValid = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsSame<char, short>, Ash::Type::Requirement::IsSame<char, long>>::isValid;
 				TEST_IS_FALSE(isValid);
 				isValid = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsSame<short, short>, Ash::Type::Requirement::IsSame<short, long>>::isValid;
@@ -1272,7 +1369,7 @@ namespace Ash
 			static Ash::Test::Assertion checkIfAll()
 			{
 				bool isValid;
-				
+
 				isValid = Ash::Type::CheckIfAll<Ash::Type::Requirement::IsInteger<signed char>, Ash::Type::Requirement::IsUnsigned<signed char>>::isValid;
 				TEST_IS_FALSE(isValid);
 				isValid = Ash::Type::CheckIfAll<Ash::Type::Requirement::IsUnsigned<signed char>, Ash::Type::Requirement::IsInteger<signed char>>::isValid;
@@ -1289,6 +1386,8 @@ namespace Ash
 		TEST_UNIT
 		(
 			testType,
+			TEST_CASE(Ash::Test::Type::hasDestructor),
+			TEST_CASE(Ash::Test::Type::hasNoDestructor),
 			TEST_CASE(Ash::Test::Type::isClass),
 			TEST_CASE(Ash::Test::Type::isNotClass),
 			TEST_CASE(Ash::Test::Type::isArray),
