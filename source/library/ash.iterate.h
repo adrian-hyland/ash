@@ -143,17 +143,11 @@ namespace Ash
 				Type end;
 				if constexpr (isForward)
 				{
-					if (__builtin_add_overflow(start, count, &end))
-					{
-						end = std::numeric_limits<Type>::max();
-					}
+					end = (size_t(std::numeric_limits<Type>::max() - start) > count) ? start + count : std::numeric_limits<Type>::max();
 				}
 				else
 				{
-					if (__builtin_sub_overflow(start, count, &end))
-					{
-						end = std::numeric_limits<Type>::min();
-					}
+					end = (size_t(start - std::numeric_limits<Type>::min()) > count) ? start - count : std::numeric_limits<Type>::min();
 				}
 				return Initial(start, end);
 			}
