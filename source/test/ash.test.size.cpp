@@ -99,6 +99,64 @@ namespace Ash
 				TEST_IS_FALSE(size.isValid());
 				TEST_IS_FALSE(size.getValue(sizeValue));
 
+				{
+					// constexpr valid + constant -> valid
+					constexpr Ash::Size size = Ash::Size(1).add(2);
+					TEST_IS_TRUE(size.isValid());
+					TEST_IS_TRUE(size.getValue(sizeValue));
+					TEST_IS_EQ(sizeValue, 3);
+				}
+
+				{
+					// constexpr valid + constant -> invalid
+					constexpr Ash::Size size = Ash::Size(1).add(SIZE_MAX);
+					TEST_IS_FALSE(size.isValid());
+					TEST_IS_FALSE(size.getValue(sizeValue));
+				}
+
+				{
+					// constexpr invalid + constant -> invalid
+					constexpr Ash::Size size = InvalidSize.add(1);
+					TEST_IS_FALSE(size.isValid());
+					TEST_IS_FALSE(size.getValue(sizeValue));
+				}
+
+				{
+					// constexpr valid + valid -> valid
+					constexpr Ash::Size size = Ash::Size(3).add(Ash::Size(4));
+					TEST_IS_TRUE(size.isValid());
+					TEST_IS_TRUE(size.getValue(sizeValue));
+					TEST_IS_EQ(sizeValue, 7);
+				}
+
+				{
+					// constexpr valid + valid -> invalid
+					constexpr Ash::Size size = Ash::Size(1).add(MaximumSize);
+					TEST_IS_FALSE(size.isValid());
+					TEST_IS_FALSE(size.getValue(sizeValue));
+				}
+
+				{
+					// constexpr invalid + valid -> invalid
+					constexpr Ash::Size size = InvalidSize.add(Ash::Size(1));
+					TEST_IS_FALSE(size.isValid());
+					TEST_IS_FALSE(size.getValue(sizeValue));
+				}
+
+				{
+					// constexpr invalid + invalid -> invalid
+					constexpr Ash::Size size = InvalidSize.add(InvalidSize);
+					TEST_IS_FALSE(size.isValid());
+					TEST_IS_FALSE(size.getValue(sizeValue));
+				}
+
+				{
+					// constexpr valid + invalid -> invalid
+					constexpr Ash::Size size = Ash::Size(1).add(InvalidSize);
+					TEST_IS_FALSE(size.isValid());
+					TEST_IS_FALSE(size.getValue(sizeValue));
+				}
+
 				return {};
 			}
 
@@ -156,6 +214,64 @@ namespace Ash
 				size = MaximumSize.subtract(InvalidSize);
 				TEST_IS_FALSE(size.isValid());
 				TEST_IS_FALSE(size.getValue(sizeValue));
+
+				{
+					// constexpr valid - constant -> valid
+					constexpr Ash::Size size = Ash::Size(3).subtract(1);
+					TEST_IS_TRUE(size.isValid());
+					TEST_IS_TRUE(size.getValue(sizeValue));
+					TEST_IS_EQ(sizeValue, 2);
+				}
+
+				{
+					// constexpr valid - constant -> invalid
+					constexpr Ash::Size size = Ash::Size(0).subtract(1);
+					TEST_IS_FALSE(size.isValid());
+					TEST_IS_FALSE(size.getValue(sizeValue));
+				}
+
+				{
+					// constexpr invalid - constant -> invalid
+					constexpr Ash::Size size = InvalidSize.subtract(1);
+					TEST_IS_FALSE(size.isValid());
+					TEST_IS_FALSE(size.getValue(sizeValue));
+				}
+
+				{
+					// constexpr valid - valid -> valid
+					constexpr Ash::Size size = Ash::Size(7).subtract(Ash::Size(4));
+					TEST_IS_TRUE(size.isValid());
+					TEST_IS_TRUE(size.getValue(sizeValue));
+					TEST_IS_EQ(sizeValue, 3);
+				}
+
+				{
+					// constexpr valid - valid -> invalid
+					constexpr Ash::Size size = Ash::Size(0).subtract(MaximumSize);
+					TEST_IS_FALSE(size.isValid());
+					TEST_IS_FALSE(size.getValue(sizeValue));
+				}
+
+				{
+					// constexpr invalid - valid -> invalid
+					constexpr Ash::Size size = InvalidSize.subtract(Ash::Size(1));
+					TEST_IS_FALSE(size.isValid());
+					TEST_IS_FALSE(size.getValue(sizeValue));
+				}
+
+				{
+					// constexpr invalid - invalid -> invalid
+					constexpr Ash::Size size = InvalidSize.subtract(InvalidSize);
+					TEST_IS_FALSE(size.isValid());
+					TEST_IS_FALSE(size.getValue(sizeValue));
+				}
+
+				{
+					// constexpr valid - invalid -> invalid
+					constexpr Ash::Size size = MaximumSize.subtract(InvalidSize);
+					TEST_IS_FALSE(size.isValid());
+					TEST_IS_FALSE(size.getValue(sizeValue));
+				}
 
 				return {};
 			}
@@ -222,6 +338,64 @@ namespace Ash
 				size = MaximumSize.multiply(InvalidSize);
 				TEST_IS_FALSE(size.isValid());
 				TEST_IS_FALSE(size.getValue(sizeValue));
+
+				{
+					// constexpr valid * constant -> valid
+					constexpr Ash::Size size = Ash::Size(3).multiply(2);
+					TEST_IS_TRUE(size.isValid());
+					TEST_IS_TRUE(size.getValue(sizeValue));
+					TEST_IS_EQ(sizeValue, 6);
+				}
+
+				{
+					// constexpr valid * constant -> invalid
+					constexpr Ash::Size size = MaximumSize.multiply(SIZE_MAX);
+					TEST_IS_FALSE(size.isValid());
+					TEST_IS_FALSE(size.getValue(sizeValue));
+				}
+
+				{
+					// constexpr invalid * constant -> invalid
+					constexpr Ash::Size size = InvalidSize.multiply(1);
+					TEST_IS_FALSE(size.isValid());
+					TEST_IS_FALSE(size.getValue(sizeValue));
+				}
+
+				{
+					// constexpr valid * valid -> valid
+					constexpr Ash::Size size = Ash::Size(5).multiply(Ash::Size(4));
+					TEST_IS_TRUE(size.isValid());
+					TEST_IS_TRUE(size.getValue(sizeValue));
+					TEST_IS_EQ(sizeValue, 20);
+				}
+
+				{
+					// constexpr valid * valid -> invalid
+					constexpr Ash::Size size = MaximumSize.multiply(MaximumSize);
+					TEST_IS_FALSE(size.isValid());
+					TEST_IS_FALSE(size.getValue(sizeValue));
+				}
+
+				{
+					// constexpr invalid * valid -> invalid
+					constexpr Ash::Size size = InvalidSize.multiply(Ash::Size(1));
+					TEST_IS_FALSE(size.isValid());
+					TEST_IS_FALSE(size.getValue(sizeValue));
+				}
+
+				{
+					// constexpr invalid * invalid -> invalid
+					constexpr Ash::Size size = InvalidSize.multiply(InvalidSize);
+					TEST_IS_FALSE(size.isValid());
+					TEST_IS_FALSE(size.getValue(sizeValue));
+				}
+
+				{
+					// constexpr valid * invalid -> invalid
+					constexpr Ash::Size size = MaximumSize.multiply(InvalidSize);
+					TEST_IS_FALSE(size.isValid());
+					TEST_IS_FALSE(size.getValue(sizeValue));
+				}
 
 				return {};
 			}
