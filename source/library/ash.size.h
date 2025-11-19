@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <type_traits>
 
 
 namespace Ash
@@ -66,7 +67,18 @@ namespace Ash
 		constexpr Size add(size_t value) const
 		{
 			Size result;
-			result.m_IsValid = m_IsValid && !__builtin_add_overflow(m_Value, value, &result.m_Value);
+			if (std::is_constant_evaluated())
+			{
+				result.m_IsValid = m_IsValid && (value <= SIZE_MAX - m_Value);
+				if (result.m_IsValid)
+				{
+					result.m_Value = m_Value + value;
+				}
+			}
+			else
+			{
+				result.m_IsValid = m_IsValid && !__builtin_add_overflow(m_Value, value, &result.m_Value);
+			}
 			return result;
 		}
 
@@ -90,7 +102,18 @@ namespace Ash
 		constexpr Size subtract(size_t value) const
 		{
 			Size result;
-			result.m_IsValid = m_IsValid && !__builtin_sub_overflow(m_Value, value, &result.m_Value);
+			if (std::is_constant_evaluated())
+			{
+				result.m_IsValid = m_IsValid && (value <= m_Value);
+				if (result.m_IsValid)
+				{
+					result.m_Value = m_Value - value;
+				}
+			}
+			else
+			{
+				result.m_IsValid = m_IsValid && !__builtin_sub_overflow(m_Value, value, &result.m_Value);
+			}
 			return result;
 		}
 
@@ -114,7 +137,29 @@ namespace Ash
 		constexpr Size multiply(size_t value) const
 		{
 			Size result;
-			result.m_IsValid = m_IsValid && !__builtin_mul_overflow(m_Value, value, &result.m_Value);
+			if (std::is_constant_evaluated())
+			{
+				size_t shift = (sizeof(size_t) * 4);
+				size_t mask = size_t(~0) >> shift;
+				size_t msLeft = m_Value >> shift;
+				size_t lsLeft = m_Value & mask;
+				size_t msRight = value >> shift;
+				size_t lsRight = value & mask;
+				size_t lsResult = lsLeft * lsRight;
+				size_t msResult = (msLeft == 0) ? lsLeft * msRight : msLeft * lsRight;
+
+				result.m_IsValid = m_IsValid && ((msLeft == 0) || (msRight == 0)) && ((msResult & ~mask) == 0);
+				msResult = msResult << shift;
+				result.m_IsValid = result.m_IsValid && (lsResult <= SIZE_MAX - msResult);
+				if (result.m_IsValid)
+				{
+					result.m_Value = msResult + lsResult;
+				}
+			}
+			else
+			{
+				result.m_IsValid = m_IsValid && !__builtin_mul_overflow(m_Value, value, &result.m_Value);
+			}
 			return result;
 		}
 
@@ -279,7 +324,7 @@ namespace Ash
 		 * @param  value The percent value
 		 * @return A `Size` value that contains the reverse percentage value of `this`
 		 * @note   - The returned value will be marked as invalid if `this` is invalid or if `value` is greater than 100
-		 * @note   - The original value (before the percentage increase) can be determined by subtracting the result from `this` 
+		 * @note   - The original value (before the percentage increase) can be determined by subtracting the result from `this`
 		 */
 		constexpr Size reversePercent(size_t value) const
 		{
@@ -294,7 +339,7 @@ namespace Ash
 		 * @param  value The percent size value
 		 * @return A `Size` value that contains the reverse percentage value of `this`
 		 * @note   - The returned value will be marked as invalid if either `this` or `percent` are invalid or if `percent` is greater than 100
-		 * @note   - The original value (before the percentage increase) can be determined by subtracting the result from `this` 
+		 * @note   - The original value (before the percentage increase) can be determined by subtracting the result from `this`
 		 */
 		constexpr Size reversePercent(const Size &value) const
 		{
