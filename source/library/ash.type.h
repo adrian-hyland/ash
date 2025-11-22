@@ -562,13 +562,30 @@ namespace Ash
 		template
 		<
 			typename TYPE,
-			size_t SIZE
+			size_t   SIZE
 		>
 		struct Array<TYPE [SIZE]>
 		{
 			using Type = TYPE;
 
+			using BaseType = Type;
+
 			static constexpr size_t size = SIZE;
+		};
+
+		template
+		<
+			typename TYPE,
+			size_t   OUTER_SIZE,
+			size_t   INNER_SIZE
+		>
+		struct Array<TYPE [OUTER_SIZE][INNER_SIZE]>
+		{
+			using Type = TYPE [INNER_SIZE];
+
+			using BaseType = Array<Type>::BaseType;
+
+			static constexpr size_t size = OUTER_SIZE;
 		};
 
 		template
