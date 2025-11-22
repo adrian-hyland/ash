@@ -142,7 +142,7 @@ namespace Ash
 			constexpr Ash::Error::Value setHourMinuteSecond(HOUR hour, MINUTE minute, SECOND second)
 			{
 				Ash::Error::Value error = validateHourMinuteSecond(hour, minute, second);
-				if (error == Ash::Error::none)
+				if (!error.hasErrorSet())
 				{
 					m_Hour = hour;
 					m_Minute = minute;

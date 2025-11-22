@@ -438,7 +438,7 @@ namespace Ash
 				constexpr Ash::Error::Value set(DAYS days)
 				{
 					Ash::Error::Value error = validate(days);
-					if (error == Ash::Error::none)
+					if (!error.hasErrorSet())
 					{
 						Ordinal ordinal = 1;
 						Year year = Year::getYearOrdinal(days, ordinal);
@@ -458,7 +458,7 @@ namespace Ash
 				constexpr Ash::Error::Value setYearOrdinal(YEAR year, ORDINAL ordinal)
 				{
 					Ash::Error::Value error = validateYearOrdinal(year, ordinal);
-					if (error == Ash::Error::none)
+					if (!error.hasErrorSet())
 					{
 						m_Year = year;
 						m_Month = Month::getMonthDay(m_Year, ordinal, m_Day);
@@ -479,7 +479,7 @@ namespace Ash
 				constexpr Ash::Error::Value setYearMonthDay(YEAR year, MONTH month, DAY day)
 				{
 					Ash::Error::Value error = validateYearMonthDay(year, month, day);
-					if (error == Ash::Error::none)
+					if (!error.hasErrorSet())
 					{
 						m_Year = year;
 						m_Month = month;
@@ -501,7 +501,7 @@ namespace Ash
 				constexpr Ash::Error::Value setYearWeekday(YEAR year, WEEK week, WEEKDAY weekday)
 				{
 					Ash::Error::Value error = validateYearWeekday(year, week, weekday);
-					if (error == Ash::Error::none)
+					if (!error.hasErrorSet())
 					{
 						error = set(Year(year).getFirstWeek() + (week - 1) * Weekday::daysPerWeek + weekday - 1);
 					}
@@ -521,7 +521,7 @@ namespace Ash
 				constexpr Ash::Error::Value setYearMonthFirstWeekday(YEAR year, MONTH month, WEEKDAY weekday)
 				{
 					Ash::Error::Value error = validateYearMonthWeekday(year, month, weekday);
-					if (error == Ash::Error::none)
+					if (!error.hasErrorSet())
 					{
 						m_Year = year;
 						m_Month = month;
@@ -544,7 +544,7 @@ namespace Ash
 				constexpr Ash::Error::Value setYearMonthLastWeekday(YEAR year, MONTH month, WEEKDAY weekday)
 				{
 					Ash::Error::Value error = validateYearMonthWeekday(year, month, weekday);
-					if (error == Ash::Error::none)
+					if (!error.hasErrorSet())
 					{
 						m_Year = year;
 						m_Month = month;
