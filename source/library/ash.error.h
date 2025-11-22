@@ -211,12 +211,15 @@ namespace Ash
 			>
 			constexpr operator VALUE () const { return VALUE(m_ErrorCode); }
 
+			constexpr bool hasErrorSet() const { return m_ErrorCategory != nullptr; }
+
 			constexpr const Ash::Error::Category *getCategory() const { return m_ErrorCategory; }
 
 			constexpr Ash::Error::Code getCode() const { return m_ErrorCode; }
 
 			constexpr bool getDescription(Ash::Error::Code::Description description) const { return (m_ErrorCategory != nullptr) ? m_ErrorCategory->getErrorCodeDescription(m_ErrorCode, description) : false; }
 
+			[[nodiscard]]
 			constexpr Value &ignoreError(const Value &errorValue)
 			{
 				if (*this == errorValue)
@@ -226,6 +229,7 @@ namespace Ash
 				return *this;
 			}
 
+			[[nodiscard]]
 			constexpr const Value &throwOnError(const Value &errorValue, Ash::Source::Location location = Ash::Source::Location::inFunction()) const
 			{
 				if (*this == errorValue)
@@ -235,6 +239,7 @@ namespace Ash
 				return *this;
 			}
 
+			[[nodiscard]]
 			constexpr const Value &terminateOnError(const Value &errorValue, Ash::Source::Location location = Ash::Source::Location::inFunction()) const
 			{
 				if (*this == errorValue)
@@ -253,7 +258,7 @@ namespace Ash
 
 			constexpr void throwOnError(Ash::Source::Location location = Ash::Source::Location::inFunction()) const
 			{
-				if (*this != Ash::Error::Value())
+				if (hasErrorSet())
 				{
 					throw Ash::Error::Exception(m_ErrorCategory, m_ErrorCode, location);
 				}
@@ -261,7 +266,7 @@ namespace Ash
 
 			constexpr void terminateOnError(Ash::Source::Location location = Ash::Source::Location::inFunction()) const
 			{
-				if (*this != Ash::Error::Value())
+				if (hasErrorSet())
 				{
 					try
 					{
@@ -272,6 +277,23 @@ namespace Ash
 						std::terminate();
 					}
 				}
+			}
+
+			constexpr void assertErrorNotSet(Ash::Source::Location location = Ash::Source::Location::inFunction()) const
+			{
+#ifdef DEBUG
+				if (hasErrorSet())
+				{
+					try
+					{
+						throw Ash::Error::Exception(m_ErrorCategory, m_ErrorCode, location);
+					}
+					catch (...)
+					{
+						std::terminate();
+					}
+				}
+#endif
 			}
 
 		protected:
@@ -293,6 +315,21 @@ namespace Ash
 		};
 
 		constexpr Ash::Error::Value none = Ash::Error::Value();
+
+		constexpr void assert(bool condition, Ash::Error::Value errorValue, Ash::Source::Location location = Ash::Source::Location::inFunction())
+		{
+#ifdef DEBUG
+			if (!condition)
+			{
+				errorValue.assertErrorNotSet(location);
+			}
+#endif
+		}
+
+		constexpr void throwUsing(Ash::Error::Value errorValue, Ash::Source::Location location = Ash::Source::Location::inFunction())
+		{
+			errorValue.throwOnError(location);
+		}
 
 		constexpr void terminateWith(Ash::Error::Value errorValue, Ash::Source::Location location = Ash::Source::Location::inFunction())
 		{
