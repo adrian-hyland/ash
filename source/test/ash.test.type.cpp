@@ -1307,15 +1307,21 @@ namespace Ash
 				bool isSame;
 
 				using Array3 = int [2][3][4];
+				isSame = Ash::Type::isSame<Ash::Type::Array<Array3>::BaseType, int>;
+				TEST_IS_TRUE(isSame);
 				TEST_IS_EQ(Ash::Type::Array<Array3>::size, 2);
 
 				using Array2 = Ash::Type::Array<Array3>::Type;
 				isSame = Ash::Type::isSame<Array2, int [3][4]>;
 				TEST_IS_TRUE(isSame);
+				isSame = Ash::Type::isSame<Ash::Type::Array<Array2>::BaseType, int>;
+				TEST_IS_TRUE(isSame);
 				TEST_IS_EQ(Ash::Type::Array<Array2>::size, 3);
 
 				using Array1 = Ash::Type::Array<Array2>::Type;
 				isSame = Ash::Type::isSame<Array1, int [4]>;
+				TEST_IS_TRUE(isSame);
+				isSame = Ash::Type::isSame<Ash::Type::Array<Array1>::BaseType, int>;
 				TEST_IS_TRUE(isSame);
 				TEST_IS_EQ(Ash::Type::Array<Array1>::size, 4);
 
