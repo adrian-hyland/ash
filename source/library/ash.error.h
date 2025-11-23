@@ -47,6 +47,13 @@ namespace Ash
 
 			constexpr bool operator == (const Code &code) const { return (m_Value == code.m_Value) && (m_IsSigned == code.m_IsSigned); }
 
+			template
+			<
+				typename VALUE,
+				typename = Ash::Type::IsInteger<VALUE>
+			>
+			constexpr bool operator == (VALUE value) const { return *this == Code(value); }
+
 			constexpr void getString(String string) const
 			{
 				Value value = m_Value;
@@ -230,7 +237,7 @@ namespace Ash
 			}
 
 			[[nodiscard]]
-			constexpr const Value &throwOnError(const Value &errorValue, Ash::Source::Location location = Ash::Source::Location::inFunction()) const
+			constexpr Value &throwOnError(const Value &errorValue, Ash::Source::Location location = Ash::Source::Location::inFunction())
 			{
 				if (*this == errorValue)
 				{
@@ -240,7 +247,7 @@ namespace Ash
 			}
 
 			[[nodiscard]]
-			constexpr const Value &terminateOnError(const Value &errorValue, Ash::Source::Location location = Ash::Source::Location::inFunction()) const
+			constexpr Value &terminateOnError(const Value &errorValue, Ash::Source::Location location = Ash::Source::Location::inFunction())
 			{
 				if (*this == errorValue)
 				{
