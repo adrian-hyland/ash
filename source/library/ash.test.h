@@ -21,6 +21,8 @@ namespace Ash
 			#define TEST_ASSERTION(predicate, actual, condition, expected) if (!(predicate)) { return Ash::Test::Assertion(actual, condition, expected); }
 			#endif
 
+			#define TEST_FAIL(condition) TEST_ASSERTION(false, nullptr, condition, nullptr)
+
 			#define TEST_IS_EQ(actual, expected) TEST_ASSERTION((actual) == (expected), #actual, "equal to", #expected)
 
 			#define TEST_IS_NOT_EQ(actual, expected) TEST_ASSERTION((actual) != (expected), #actual, "not equal to", #expected)
@@ -69,14 +71,30 @@ namespace Ash
 				}
 				else
 				{
-					stream << "FAIL: Expected ";
-					stream << '\'' << assertion.m_Actual << '\'';
-					stream << " to be " << assertion.m_Condition << ' ';
-					stream << '\'' << assertion.m_Expected << '\'';
+					stream << "FAIL Expected";
+					if (assertion.m_Actual != nullptr)
+					{
+						stream << " \'" << assertion.m_Actual << '\'';
+						if ((assertion.m_Condition != nullptr) || (assertion.m_Expected != nullptr))
+						{
+							stream << " to be";
+						}
+					}
+
+					if (assertion.m_Condition != nullptr)
+					{
+						stream << ' ' << assertion.m_Condition;
+					}
+
+					if (assertion.m_Expected != nullptr)
+					{
+						stream << " \'" << assertion.m_Expected << '\'';
+					}
+
 					if (assertion.m_Location.isAvailable())
 					{
-						stream << " - see ";
-						stream << '\'' << assertion.m_Location << '\'';
+						stream << " - see";
+						stream << " \'" << assertion.m_Location << '\'';
 					}
 				}
 				return stream;
@@ -166,7 +184,7 @@ namespace Ash
 			static constexpr Result run(std::initializer_list<Case> caseList, Capture capture = outputCapture)
 			{
 				Result result;
-				
+
 				for (Case testCase : caseList)
 				{
 					Assertion assertion = testCase.run(capture);
@@ -180,7 +198,7 @@ namespace Ash
 			static constexpr Result run(std::initializer_list<Unit> unitList, Capture capture = outputCapture)
 			{
 				Result result;
-				
+
 				for (Unit testUnit : unitList)
 				{
 					result = result + testUnit.m_Function(capture);
