@@ -29,7 +29,7 @@ namespace Ash
 			constexpr Ash::Double getArea() const override { return Ash::Double::pi * m_Radius->square(); }
 
 		private:
-			Ash::Test::Memory::TraceValue<Ash::Double> m_Radius;
+			Ash::Test::Memory::Trace::Value<Ash::Double> m_Radius;
 		};
 
 		class Rectangle : public Shape
@@ -42,8 +42,8 @@ namespace Ash
 			constexpr Ash::Double getArea() const override { return *m_Width * *m_Height; }
 
 		private:
-			Ash::Test::Memory::TraceValue<Ash::Double> m_Width;
-			Ash::Test::Memory::TraceValue<Ash::Double> m_Height;
+			Ash::Test::Memory::Trace::Value<Ash::Double> m_Width;
+			Ash::Test::Memory::Trace::Value<Ash::Double> m_Height;
 		};
 
 		class Square : public Rectangle
@@ -79,8 +79,8 @@ namespace Ash
 			}
 
 		private:
-			Ash::Test::Memory::TraceValue<Ash::Double> m_X;
-			Ash::Test::Memory::TraceValue<Ash::Double> m_Y;
+			Ash::Test::Memory::Trace::Value<Ash::Double> m_X;
+			Ash::Test::Memory::Trace::Value<Ash::Double> m_Y;
 		};
 
 		namespace Unique

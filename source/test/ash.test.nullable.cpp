@@ -279,7 +279,7 @@ namespace Ash
 
 			Ash::Test::Assertion trace()
 			{
-				Ash::Nullable<Ash::Test::Memory::TraceValue<int>> trace1;
+				Ash::Nullable<Ash::Test::Memory::Trace::Value<int>> trace1;
 				TEST_IS_ZERO(Ash::Test::Memory::Trace::getAllocatedCount());
 
 				trace1 = 99;
@@ -291,13 +291,13 @@ namespace Ash
 				trace1 = 1;
 				TEST_IS_EQ(Ash::Test::Memory::Trace::getAllocatedCount(), 1);
 
-				Ash::Nullable<Ash::Test::Memory::TraceValue<int>> trace2(std::move(trace1));
+				Ash::Nullable<Ash::Test::Memory::Trace::Value<int>> trace2(std::move(trace1));
 				TEST_IS_EQ(Ash::Test::Memory::Trace::getAllocatedCount(), 1);
 
-				Ash::Nullable<Ash::Test::Memory::TraceValue<int>> trace3(trace2);
+				Ash::Nullable<Ash::Test::Memory::Trace::Value<int>> trace3(trace2);
 				TEST_IS_EQ(Ash::Test::Memory::Trace::getAllocatedCount(), 2);
 
-				Ash::Nullable<Ash::Test::Memory::TraceValue<int>> trace4;
+				Ash::Nullable<Ash::Test::Memory::Trace::Value<int>> trace4;
 
 				trace4 = std::move(trace3);
 				TEST_IS_EQ(Ash::Test::Memory::Trace::getAllocatedCount(), 2);

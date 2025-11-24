@@ -28,7 +28,7 @@ namespace Ash
 
 			static float floatFunctionFloatInt(float a, int b) { return a / b; }
 
-			static int intFunctionTrace(Ash::Test::Memory::TraceValue<int> &&value) { return !value.isNull() ? *value : 0; }
+			static int intFunctionTrace(Ash::Test::Memory::Trace::Value<int> &&value) { return !value.isNull() ? *value : 0; }
 
 			static int intFunctionIntCharString(int a, char b, const Ash::Ascii::View &c)
 			{
@@ -89,7 +89,7 @@ namespace Ash
 				isSame = Ash::Type::isSame<Ash::Callable::Return<decltype(floatFunctionFloatInt), float, int>::Type, float>;
 				TEST_IS_TRUE(isSame);
 
-				isSame = Ash::Type::isSame<Ash::Callable::Return<decltype(intFunctionTrace), Ash::Test::Memory::TraceValue<int> &&>::Type, int>;
+				isSame = Ash::Type::isSame<Ash::Callable::Return<decltype(intFunctionTrace), Ash::Test::Memory::Trace::Value<int> &&>::Type, int>;
 				TEST_IS_TRUE(isSame);
 
 				isSame = Ash::Type::isSame<Ash::Callable::Return<decltype(intFunctionIntCharString), int, char, const Ash::Ascii::View &>::Type, int>;
@@ -253,12 +253,12 @@ namespace Ash
 
 				TEST_IS_EQ(Ash::Callable::Function(floatFunctionFloatInt, 3, 2)(), 1.5);
 
-				Ash::Test::Memory::TraceValue<int> traceValue = 99;
+				Ash::Test::Memory::Trace::Value<int> traceValue = 99;
 				TEST_IS_EQ(Ash::Callable::Function(intFunctionTrace, std::move(traceValue))(), 99);
 				TEST_IS_TRUE(traceValue.isNull());
 				TEST_IS_ZERO(Ash::Test::Memory::Trace::getAllocatedCount());
 
-				TEST_IS_EQ(Ash::Callable::Function(intFunctionTrace, Ash::Test::Memory::TraceValue<int>(1234))(), 1234);
+				TEST_IS_EQ(Ash::Callable::Function(intFunctionTrace, Ash::Test::Memory::Trace::Value<int>(1234))(), 1234);
 				TEST_IS_ZERO(Ash::Test::Memory::Trace::getAllocatedCount());
 
 				TEST_IS_EQ(Ash::Callable::Function(intFunctionIntCharString, 10, 'l', Ash::Ascii::View("hello world"))(), 13);
