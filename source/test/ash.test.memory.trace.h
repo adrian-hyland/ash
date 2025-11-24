@@ -9,161 +9,154 @@ namespace Ash
 	{
 		namespace Memory
 		{
-			template
-			<
-				typename TYPE
-			>
-			class TraceAllocation;
-
-
-			class Trace
+			namespace Trace
 			{
-			public:
-				static size_t getAllocatedCount()
+				class Node
 				{
-					size_t count = 0;
+				public:
+					Node() : m_Previous(nullptr), m_Next(nullptr) {}
 
-					for (Node *node = m_Head; node != nullptr; node = node->m_Next)
+					static size_t getAllocatedCount()
 					{
-						count++;
+						return m_Count;
 					}
 
-					return count;
-				}
+					static void insert(Node *node)
+					{
+						node->m_Next = m_Head;
+						node->m_Previous = nullptr;
 
-			private:
-				struct Node
-				{
+						if (m_Head != nullptr)
+						{
+							m_Head->m_Previous = node;
+						}
+
+						m_Head = node;
+						m_Count++;
+					}
+
+					static void remove(Node *node)
+					{
+						if (node->m_Previous != nullptr)
+						{
+							node->m_Previous->m_Next = node->m_Next;
+						}
+						else
+						{
+							m_Head = node->m_Next;
+						}
+
+						if (node->m_Next != nullptr)
+						{
+							node->m_Next->m_Previous = node->m_Previous;
+						}
+
+						m_Count--;
+					}
+
+				private:
+					static inline Node  *m_Head = nullptr;
+					static inline size_t m_Count = 0;
+
 					struct Node *m_Previous;
 					struct Node *m_Next;
 				};
-
-				static void insert(Node *node)
+				template
+				<
+					typename TYPE
+				>
+				class Allocation : public Node
 				{
-					node->m_Next = m_Head;
-					node->m_Previous = nullptr;
+				public:
+					using Type = TYPE;
 
-					if (m_Head != nullptr)
-					{
-						m_Head->m_Previous = node;
-					}
-					m_Head = node;
-				}
+					constexpr Allocation(const Type &value) : Node(), m_Value(value) { insert(this); }
 
-				static void remove(Node *node)
-				{
-					if (node->m_Previous != nullptr)
-					{
-						node->m_Previous->m_Next = node->m_Next;
-					}
-					else
-					{
-						m_Head = node->m_Next;
-					}
-						
-					if (node->m_Next != nullptr)
-					{
-						node->m_Next->m_Previous = node->m_Previous;
-					}
-				}
+					inline ~Allocation() { remove(this); }
 
-				static Node *m_Head;
+					constexpr void setValue(const Type &value) { m_Value = value; }
+
+					constexpr const Type &getValue() const { return m_Value; }
+
+					constexpr Type &getValue() { return m_Value; }
+
+				private:
+					Type m_Value;
+				};
 
 				template
 				<
 					typename TYPE
 				>
-				friend class TraceAllocation;
-			};
-
-
-			template
-			<
-				typename TYPE
-			>
-			class TraceAllocation
-			{
-			public:
-				constexpr TraceAllocation(const TYPE &value) : m_Value(value) { Trace::insert(&m_Node); }
-
-				inline ~TraceAllocation() { Trace::remove(&m_Node); }
-
-				constexpr void setValue(const TYPE &value) { m_Value = value; }
-
-				constexpr const TYPE &getValue() const { return m_Value; }
-
-				constexpr TYPE &getValue() { return m_Value; }
-
-			private:
-				Trace::Node m_Node;
-				TYPE        m_Value;
-			};
-
-
-			template
-			<
-				typename TYPE
-			>
-			class TraceValue
-			{
-			public:
-				using Type = TYPE;
-
-				constexpr TraceValue() : m_Pointer(nullptr) {}
-
-				constexpr TraceValue(const Type &value) : m_Pointer(new TraceAllocation<Type>(value)) {}
-
-				constexpr TraceValue(const TraceValue &value) : m_Pointer((value.m_Pointer != nullptr) ? new TraceAllocation<Type>(value.m_Pointer->getValue()) : nullptr) {}
-
-				constexpr TraceValue(TraceValue &&value) : m_Pointer(value.m_Pointer) { value.m_Pointer = nullptr; }
-
-				inline ~TraceValue() { delete m_Pointer; }
-
-				constexpr TraceValue &operator = (const TraceValue &value)
+				class Value
 				{
-					if (this != &value)
+				public:
+					using Type = TYPE;
+
+					constexpr Value() : m_Pointer(nullptr) {}
+
+					constexpr Value(const Type &value) : m_Pointer(new Allocation<Type>(value)) {}
+
+					constexpr Value(const Value &value) : m_Pointer((value.m_Pointer != nullptr) ? new Allocation<Type>(value.m_Pointer->getValue()) : nullptr) {}
+
+					constexpr Value(Value &&value) : m_Pointer(value.m_Pointer) { value.m_Pointer = nullptr; }
+
+					inline ~Value() { delete m_Pointer; }
+
+					constexpr Value &operator = (const Value &value)
 					{
-						if (value.m_Pointer == nullptr)
+						if (this != &value)
+						{
+							if (value.m_Pointer == nullptr)
+							{
+								delete m_Pointer;
+								m_Pointer = nullptr;
+							}
+							else if (m_Pointer == nullptr)
+							{
+								m_Pointer = new Allocation<TYPE>(value.m_Pointer->getValue());
+							}
+							else
+							{
+								m_Pointer->setValue(value.m_Pointer->getValue());
+							}
+						}
+
+						return *this;
+					}
+
+					constexpr Value &operator = (Value &&allocation)
+					{
+						if (this != &allocation)
 						{
 							delete m_Pointer;
-							m_Pointer = nullptr;
+							m_Pointer = allocation.m_Pointer;
+							allocation.m_Pointer = nullptr;
 						}
-						else if (m_Pointer == nullptr)
-						{
-							m_Pointer = new TraceAllocation<TYPE>(value.m_Pointer->getValue());
-						}
-						else
-						{
-							m_Pointer->setValue(value.m_Pointer->getValue());
-						}
+
+						return *this;
 					}
 
-					return *this;
-				}
+					constexpr bool isNull() const { return m_Pointer == nullptr; }
 
-				constexpr TraceValue &operator = (TraceValue &&allocation)
-				{
-					if (this != &allocation)
-					{
-						delete m_Pointer;
-						m_Pointer = allocation.m_Pointer;
-						allocation.m_Pointer = nullptr;
-					}
+					constexpr operator Type *() { return &m_Pointer->getValue(); }
 
-					return *this;
-				}
+					constexpr operator const Type *() const { return &m_Pointer->getValue(); }
 
-				constexpr bool isNull() const { return m_Pointer == nullptr; }
+					constexpr Type &operator * () { return m_Pointer->getValue(); }
 
-				constexpr operator Type *() const { return &m_Pointer->getValue(); }
+					constexpr const Type &operator * () const { return m_Pointer->getValue(); }
 
-				constexpr Type &operator * () const { return m_Pointer->getValue(); }
+					constexpr Type *operator -> () { return &m_Pointer->getValue(); }
 
-				constexpr Type *operator -> () const { return &m_Pointer->getValue(); }
+					constexpr const Type *operator -> () const { return &m_Pointer->getValue(); }
 
-			private:
-				TraceAllocation<Type> *m_Pointer;
-			};
+				private:
+					Allocation<Type> *m_Pointer;
+				};
+
+				inline size_t getAllocatedCount() { return Node::getAllocatedCount(); }
+			}
 		}
 	}
 }
