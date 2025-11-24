@@ -22,12 +22,12 @@ namespace Ash
 					Value sinceEpoch;
 
 					Ash::Error::Value error = getTime(sinceEpoch);
-					if (error == Ash::Error::none)
+					if (!error.hasErrorSet())
 					{
 						struct tm localTime;
 
 						error = getLocalTime(sinceEpoch, localTime);
-						if (error == Ash::Error::none)
+						if (!error.hasErrorSet())
 						{
 							utcTime = m_Epoch + sinceEpoch;
 							dstOffset = (localTime.tm_isdst == 0) ? 0 : Ash::Calendar::Time::hour;

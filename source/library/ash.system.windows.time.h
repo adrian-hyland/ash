@@ -22,7 +22,7 @@ namespace Ash
 					Value sinceEpoch;
 
 					Ash::Error::Value error = getTime(sinceEpoch);
-					if (error == Ash::Error::none)
+					if (!error.hasErrorSet())
 					{
 						TIME_ZONE_INFORMATION timeZoneInformation;
 
