@@ -11,6 +11,401 @@ namespace Ash
 		{
 			namespace Core
 			{
+				class Rectangle
+				{
+				public:
+					constexpr Rectangle() : m_Width(0), m_Height(0) {}
+
+					constexpr Rectangle(int width, int height) : m_Width(width), m_Height(height) {}
+
+					constexpr int getArea() const { return m_Width * m_Height; }
+
+					constexpr int getPerimeter() const { return 2 * (m_Width + m_Height); }
+
+				private:
+					int m_Width;
+					int m_Height;
+				};
+
+				static Ash::Test::Assertion constructAndDestroy()
+				{
+					{
+						int value;
+
+						Ash::Memory::construct(value, 123);
+						TEST_IS_EQ(value, 123);
+
+						Ash::Memory::destroy(value);
+
+						Ash::Memory::construct(value, 456);
+						TEST_IS_EQ(value, 456);
+					}
+
+					{
+						Rectangle value;
+
+						Ash::Memory::construct(value, 5, 6);
+						TEST_IS_EQ(value.getArea(), 30);
+
+						Ash::Memory::destroy(value);
+
+						Ash::Memory::construct(value, 7, 8);
+						TEST_IS_EQ(value.getArea(), 56);
+					}
+
+					{
+						Ash::Test::Memory::Trace::Value<int> value;
+
+						Ash::Memory::construct(value, 123);
+						TEST_IS_EQ(*value, 123);
+						TEST_IS_EQ(Ash::Test::Memory::Trace::getAllocatedCount(), 1);
+
+						Ash::Memory::destroy(value);
+//						TEST_IS_ZERO(Ash::Test::Memory::Trace::getAllocatedCount());
+
+						Ash::Memory::construct(value, Ash::Test::Memory::Trace::Value<int>());
+						TEST_IS_TRUE(value.isNull());
+//						TEST_IS_ZERO(Ash::Test::Memory::Trace::getAllocatedCount());
+					}
+
+					TEST_IS_ZERO(Ash::Test::Memory::Trace::getAllocatedCount());
+
+					{
+						Ash::Test::Memory::Trace::Value<int> value[3];
+
+						Ash::Memory::construct(value, 123);
+						TEST_IS_EQ(*value[0], 123);
+						TEST_IS_EQ(*value[1], 123);
+						TEST_IS_EQ(*value[2], 123);
+						TEST_IS_EQ(Ash::Test::Memory::Trace::getAllocatedCount(), sizeof(value) / sizeof(value[0]));
+
+						Ash::Memory::destroy(value);
+						TEST_IS_ZERO(Ash::Test::Memory::Trace::getAllocatedCount());
+
+						Ash::Memory::construct(value, Ash::Test::Memory::Trace::Value<int>());
+						TEST_IS_TRUE(value[0].isNull());
+						TEST_IS_TRUE(value[1].isNull());
+						TEST_IS_TRUE(value[2].isNull());
+					}
+
+					{
+						Ash::Test::Memory::Trace::Value<int> value[2][3];
+
+						Ash::Memory::construct(value, 987);
+						TEST_IS_EQ(*value[0][0], 987);
+						TEST_IS_EQ(*value[0][1], 987);
+						TEST_IS_EQ(*value[0][2], 987);
+						TEST_IS_EQ(*value[1][0], 987);
+						TEST_IS_EQ(*value[1][1], 987);
+						TEST_IS_EQ(*value[1][2], 987);
+						TEST_IS_EQ(Ash::Test::Memory::Trace::getAllocatedCount(), sizeof(value) / sizeof(value[0][0]));
+
+						Ash::Memory::destroy(value);
+						TEST_IS_ZERO(Ash::Test::Memory::Trace::getAllocatedCount());
+
+						Ash::Memory::construct(value, Ash::Test::Memory::Trace::Value<int>());
+						TEST_IS_TRUE(value[0][0].isNull());
+						TEST_IS_TRUE(value[0][1].isNull());
+						TEST_IS_TRUE(value[0][2].isNull());
+						TEST_IS_TRUE(value[1][0].isNull());
+						TEST_IS_TRUE(value[1][1].isNull());
+						TEST_IS_TRUE(value[1][2].isNull());
+					}
+
+					TEST_IS_ZERO(Ash::Test::Memory::Trace::getAllocatedCount());
+
+					return {};
+				}
+
+				static Ash::Test::Assertion defaultConstructAndDestroy()
+				{
+					{
+						int value[5];
+
+						Ash::Memory::defaultConstruct(value, sizeof(value) / sizeof(value[0]));
+						TEST_IS_ZERO(value[0]);
+						TEST_IS_ZERO(value[1]);
+						TEST_IS_ZERO(value[2]);
+						TEST_IS_ZERO(value[3]);
+						TEST_IS_ZERO(value[4]);
+
+						Ash::Memory::destroy(value, sizeof(value) / sizeof(value[0]));
+
+						Ash::Memory::defaultConstruct(value, sizeof(value) / sizeof(value[0]));
+						TEST_IS_ZERO(value[0]);
+						TEST_IS_ZERO(value[1]);
+						TEST_IS_ZERO(value[2]);
+						TEST_IS_ZERO(value[3]);
+						TEST_IS_ZERO(value[4]);
+					}
+
+					{
+						Rectangle value[5];
+
+						Ash::Memory::defaultConstruct(value, sizeof(value) / sizeof(value[0]));
+						TEST_IS_ZERO(value[0].getPerimeter());
+						TEST_IS_ZERO(value[1].getPerimeter());
+						TEST_IS_ZERO(value[2].getPerimeter());
+						TEST_IS_ZERO(value[3].getPerimeter());
+						TEST_IS_ZERO(value[4].getPerimeter());
+
+						Ash::Memory::destroy(value, sizeof(value) / sizeof(value[0]));
+
+						Ash::Memory::defaultConstruct(value, sizeof(value) / sizeof(value[0]));
+						TEST_IS_ZERO(value[0].getPerimeter());
+						TEST_IS_ZERO(value[1].getPerimeter());
+						TEST_IS_ZERO(value[2].getPerimeter());
+						TEST_IS_ZERO(value[3].getPerimeter());
+						TEST_IS_ZERO(value[4].getPerimeter());
+					}
+
+					{
+						Ash::Test::Memory::Trace::Value<int> value[5];
+
+						Ash::Memory::defaultConstruct(value, sizeof(value) / sizeof(value[0]));
+						TEST_IS_TRUE(value[0].isNull());
+						TEST_IS_TRUE(value[1].isNull());
+						TEST_IS_TRUE(value[2].isNull());
+						TEST_IS_TRUE(value[3].isNull());
+						TEST_IS_TRUE(value[4].isNull());
+						TEST_IS_ZERO(Ash::Test::Memory::Trace::getAllocatedCount());
+
+						Ash::Memory::destroy(value, sizeof(value) / sizeof(value[0]));
+						TEST_IS_ZERO(Ash::Test::Memory::Trace::getAllocatedCount());
+
+						Ash::Memory::defaultConstruct(value, sizeof(value) / sizeof(value[0]));
+						TEST_IS_TRUE(value[0].isNull());
+						TEST_IS_TRUE(value[1].isNull());
+						TEST_IS_TRUE(value[2].isNull());
+						TEST_IS_TRUE(value[3].isNull());
+						TEST_IS_TRUE(value[4].isNull());
+						TEST_IS_ZERO(Ash::Test::Memory::Trace::getAllocatedCount());
+					}
+
+					{
+						Ash::Test::Memory::Trace::Value<int> value[2][3];
+
+						Ash::Memory::defaultConstruct(value, sizeof(value) / sizeof(value[0]));
+						TEST_IS_TRUE(value[0][0].isNull());
+						TEST_IS_TRUE(value[0][1].isNull());
+						TEST_IS_TRUE(value[0][2].isNull());
+						TEST_IS_TRUE(value[1][0].isNull());
+						TEST_IS_TRUE(value[1][1].isNull());
+						TEST_IS_TRUE(value[1][2].isNull());
+						TEST_IS_ZERO(Ash::Test::Memory::Trace::getAllocatedCount());
+
+						Ash::Memory::destroy(value, sizeof(value) / sizeof(value[0]));
+						TEST_IS_ZERO(Ash::Test::Memory::Trace::getAllocatedCount());
+
+						Ash::Memory::defaultConstruct(value, sizeof(value) / sizeof(value[0]));
+						TEST_IS_TRUE(value[0][0].isNull());
+						TEST_IS_TRUE(value[0][1].isNull());
+						TEST_IS_TRUE(value[0][2].isNull());
+						TEST_IS_TRUE(value[1][0].isNull());
+						TEST_IS_TRUE(value[1][1].isNull());
+						TEST_IS_TRUE(value[1][2].isNull());
+						TEST_IS_ZERO(Ash::Test::Memory::Trace::getAllocatedCount());
+					}
+
+					return {};
+				}
+
+				static Ash::Test::Assertion copyConstructAndDestroy()
+				{
+					{
+						int value[5] = { 1, 2, 3, 4, 5 };
+						int valueCopy[5];
+
+						Ash::Memory::copyConstruct(valueCopy, value, sizeof(value) / sizeof(value[0]));
+						TEST_IS_EQ(valueCopy[0], 1);
+						TEST_IS_EQ(valueCopy[1], 2);
+						TEST_IS_EQ(valueCopy[2], 3);
+						TEST_IS_EQ(valueCopy[3], 4);
+						TEST_IS_EQ(valueCopy[4], 5);
+
+						Ash::Memory::destroy(valueCopy, sizeof(value) / sizeof(value[0]));
+
+						Ash::Memory::copyConstruct(valueCopy, value, sizeof(value) / sizeof(value[0]));
+						TEST_IS_EQ(valueCopy[0], 1);
+						TEST_IS_EQ(valueCopy[1], 2);
+						TEST_IS_EQ(valueCopy[2], 3);
+						TEST_IS_EQ(valueCopy[3], 4);
+						TEST_IS_EQ(valueCopy[4], 5);
+					}
+
+					{
+						Rectangle value[5] = { { 1, 2 }, { 3, 4 }, { 5, 6 }, { 7, 8 }, { 9, 10 } };
+						Rectangle valueCopy[5];
+
+						Ash::Memory::copyConstruct(valueCopy, value, sizeof(value) / sizeof(value[0]));
+						TEST_IS_EQ(valueCopy[0].getPerimeter(), 6);
+						TEST_IS_EQ(valueCopy[1].getPerimeter(), 14);
+						TEST_IS_EQ(valueCopy[2].getPerimeter(), 22);
+						TEST_IS_EQ(valueCopy[3].getPerimeter(), 30);
+						TEST_IS_EQ(valueCopy[4].getPerimeter(), 38);
+
+						Ash::Memory::destroy(valueCopy, sizeof(value) / sizeof(value[0]));
+
+						Ash::Memory::copyConstruct(valueCopy, value, sizeof(value) / sizeof(value[0]));
+						TEST_IS_EQ(valueCopy[0].getPerimeter(), 6);
+						TEST_IS_EQ(valueCopy[1].getPerimeter(), 14);
+						TEST_IS_EQ(valueCopy[2].getPerimeter(), 22);
+						TEST_IS_EQ(valueCopy[3].getPerimeter(), 30);
+						TEST_IS_EQ(valueCopy[4].getPerimeter(), 38);
+					}
+
+					{
+						Ash::Test::Memory::Trace::Value<int> value[5] = { 2, 4, 6, 8, 10 };
+						Ash::Test::Memory::Trace::Value<int> valueCopy[5];
+
+						Ash::Memory::copyConstruct(valueCopy, value, sizeof(value) / sizeof(value[0]));
+						TEST_IS_EQ(*valueCopy[0], 2);
+						TEST_IS_EQ(*valueCopy[1], 4);
+						TEST_IS_EQ(*valueCopy[2], 6);
+						TEST_IS_EQ(*valueCopy[3], 8);
+						TEST_IS_EQ(*valueCopy[4], 10);
+						TEST_IS_EQ(Ash::Test::Memory::Trace::getAllocatedCount(), 2 * sizeof(value) / sizeof(value[0]));
+
+						Ash::Memory::destroy(valueCopy, sizeof(value) / sizeof(value[0]));
+						TEST_IS_EQ(Ash::Test::Memory::Trace::getAllocatedCount(), sizeof(value) / sizeof(value[0]));
+
+						Ash::Memory::copyConstruct(valueCopy, value, sizeof(value) / sizeof(value[0]));
+						TEST_IS_EQ(*valueCopy[0], 2);
+						TEST_IS_EQ(*valueCopy[1], 4);
+						TEST_IS_EQ(*valueCopy[2], 6);
+						TEST_IS_EQ(*valueCopy[3], 8);
+						TEST_IS_EQ(*valueCopy[4], 10);
+						TEST_IS_EQ(Ash::Test::Memory::Trace::getAllocatedCount(), 2 * sizeof(value) / sizeof(value[0]));
+					}
+
+					{
+						Ash::Test::Memory::Trace::Value<int> value[2][3] = { { 1, 2, 3 }, { 2, 4, 6 } };
+						Ash::Test::Memory::Trace::Value<int> valueCopy[2][3];
+
+						Ash::Memory::copyConstruct(valueCopy, value, sizeof(value) / sizeof(value[0]));
+						TEST_IS_EQ(*valueCopy[0][0], 1);
+						TEST_IS_EQ(*valueCopy[0][1], 2);
+						TEST_IS_EQ(*valueCopy[0][2], 3);
+						TEST_IS_EQ(*valueCopy[1][0], 2);
+						TEST_IS_EQ(*valueCopy[1][1], 4);
+						TEST_IS_EQ(*valueCopy[1][2], 6);
+						TEST_IS_EQ(Ash::Test::Memory::Trace::getAllocatedCount(), 2 * sizeof(value) / sizeof(value[0][0]));
+
+						Ash::Memory::destroy(valueCopy, sizeof(value) / sizeof(value[0]));
+						TEST_IS_EQ(Ash::Test::Memory::Trace::getAllocatedCount(), sizeof(value) / sizeof(value[0][0]));
+
+						Ash::Memory::copyConstruct(valueCopy, value, sizeof(value) / sizeof(value[0]));
+						TEST_IS_EQ(*valueCopy[0][0], 1);
+						TEST_IS_EQ(*valueCopy[0][1], 2);
+						TEST_IS_EQ(*valueCopy[0][2], 3);
+						TEST_IS_EQ(*valueCopy[1][0], 2);
+						TEST_IS_EQ(*valueCopy[1][1], 4);
+						TEST_IS_EQ(*valueCopy[1][2], 6);
+						TEST_IS_EQ(Ash::Test::Memory::Trace::getAllocatedCount(), 2 * sizeof(value) / sizeof(value[0][0]));
+					}
+
+					TEST_IS_ZERO(Ash::Test::Memory::Trace::getAllocatedCount());
+
+					return {};
+				}
+
+				static Ash::Test::Assertion moveConstructAndDestroy()
+				{
+					{
+						int value[5] = { 1, 2, 3, 4, 5 };
+						int valueCopy[5];
+
+						Ash::Memory::moveConstruct(valueCopy, value, sizeof(value) / sizeof(value[0]));
+						TEST_IS_EQ(valueCopy[0], 1);
+						TEST_IS_EQ(valueCopy[1], 2);
+						TEST_IS_EQ(valueCopy[2], 3);
+						TEST_IS_EQ(valueCopy[3], 4);
+						TEST_IS_EQ(valueCopy[4], 5);
+
+						Ash::Memory::destroy(valueCopy, sizeof(value) / sizeof(value[0]));
+
+						Ash::Memory::moveConstruct(valueCopy, value, sizeof(value) / sizeof(value[0]));
+						TEST_IS_EQ(valueCopy[0], 1);
+						TEST_IS_EQ(valueCopy[1], 2);
+						TEST_IS_EQ(valueCopy[2], 3);
+						TEST_IS_EQ(valueCopy[3], 4);
+						TEST_IS_EQ(valueCopy[4], 5);
+					}
+
+					{
+						Rectangle value[5] = { { 1, 2 }, { 3, 4 }, { 5, 6 }, { 7, 8 }, { 9, 10 } };
+						Rectangle valueCopy[5];
+
+						Ash::Memory::moveConstruct(valueCopy, value, sizeof(value) / sizeof(value[0]));
+						TEST_IS_EQ(valueCopy[0].getPerimeter(), 6);
+						TEST_IS_EQ(valueCopy[1].getPerimeter(), 14);
+						TEST_IS_EQ(valueCopy[2].getPerimeter(), 22);
+						TEST_IS_EQ(valueCopy[3].getPerimeter(), 30);
+						TEST_IS_EQ(valueCopy[4].getPerimeter(), 38);
+
+						Ash::Memory::destroy(valueCopy, 5);
+
+						Ash::Memory::moveConstruct(valueCopy, value, sizeof(value) / sizeof(value[0]));
+						TEST_IS_EQ(valueCopy[0].getPerimeter(), 6);
+						TEST_IS_EQ(valueCopy[1].getPerimeter(), 14);
+						TEST_IS_EQ(valueCopy[2].getPerimeter(), 22);
+						TEST_IS_EQ(valueCopy[3].getPerimeter(), 30);
+						TEST_IS_EQ(valueCopy[4].getPerimeter(), 38);
+					}
+
+					{
+						Ash::Test::Memory::Trace::Value<int> value[5] = { 2, 4, 6, 8, 10 };
+						Ash::Test::Memory::Trace::Value<int> valueCopy[5];
+
+						Ash::Memory::moveConstruct(valueCopy, value, sizeof(value) / sizeof(value[0]));
+						TEST_IS_EQ(*valueCopy[0], 2);
+						TEST_IS_EQ(*valueCopy[1], 4);
+						TEST_IS_EQ(*valueCopy[2], 6);
+						TEST_IS_EQ(*valueCopy[3], 8);
+						TEST_IS_EQ(*valueCopy[4], 10);
+						TEST_IS_EQ(Ash::Test::Memory::Trace::getAllocatedCount(), sizeof(value) / sizeof(value[0]));
+
+						Ash::Memory::destroy(valueCopy, sizeof(value) / sizeof(value[0]));
+						TEST_IS_ZERO(Ash::Test::Memory::Trace::getAllocatedCount());
+
+						Ash::Memory::moveConstruct(valueCopy, value, sizeof(value) / sizeof(value[0]));
+						TEST_IS_TRUE(valueCopy[0].isNull());
+						TEST_IS_TRUE(valueCopy[1].isNull());
+						TEST_IS_TRUE(valueCopy[2].isNull());
+						TEST_IS_TRUE(valueCopy[3].isNull());
+						TEST_IS_TRUE(valueCopy[4].isNull());
+						TEST_IS_ZERO(Ash::Test::Memory::Trace::getAllocatedCount());
+					}
+
+					{
+						Ash::Test::Memory::Trace::Value<int> value[2][3] = { { 1, 2, 3 }, { 2, 4, 6 } };
+						Ash::Test::Memory::Trace::Value<int> valueCopy[2][3];
+
+						Ash::Memory::moveConstruct(valueCopy, value, sizeof(value) / sizeof(value[0]));
+						TEST_IS_EQ(*valueCopy[0][0], 1);
+						TEST_IS_EQ(*valueCopy[0][1], 2);
+						TEST_IS_EQ(*valueCopy[0][2], 3);
+						TEST_IS_EQ(*valueCopy[1][0], 2);
+						TEST_IS_EQ(*valueCopy[1][1], 4);
+						TEST_IS_EQ(*valueCopy[1][2], 6);
+						TEST_IS_EQ(Ash::Test::Memory::Trace::getAllocatedCount(), sizeof(value) / sizeof(value[0][0]));
+
+						Ash::Memory::destroy(valueCopy, sizeof(value) / sizeof(value[0]));
+						TEST_IS_ZERO(Ash::Test::Memory::Trace::getAllocatedCount());
+
+						Ash::Memory::moveConstruct(valueCopy, value, sizeof(value) / sizeof(value[0]));
+						TEST_IS_TRUE(valueCopy[0][0].isNull());
+						TEST_IS_TRUE(valueCopy[0][1].isNull());
+						TEST_IS_TRUE(valueCopy[0][2].isNull());
+						TEST_IS_TRUE(valueCopy[1][0].isNull());
+						TEST_IS_TRUE(valueCopy[1][1].isNull());
+						TEST_IS_TRUE(valueCopy[1][2].isNull());
+						TEST_IS_ZERO(Ash::Test::Memory::Trace::getAllocatedCount());
+					}
+
+					return {};
+				}
+
 				static Ash::Test::Assertion clearArray()
 				{
 					{
@@ -32,13 +427,13 @@ namespace Ash
 					}
 
 					{
-						Ash::Test::Memory::TraceValue<int> arrayTrace[] = { 1, 2, 3, 4 };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace[] = { 1, 2, 3, 4 };
 						TEST_IS_EQ(Ash::Memory::clear(arrayTrace), sizeof(arrayTrace) / sizeof(arrayTrace[0]));
-						for (TraceValue n : arrayTrace)
+						for (Ash::Test::Memory::Trace::Value n : arrayTrace)
 						{
 							TEST_IS_TRUE(n.isNull());
 						}
-						TEST_IS_EQ(Ash::Test::Memory::Trace::getAllocatedCount(), 0);
+						TEST_IS_ZERO(Ash::Test::Memory::Trace::getAllocatedCount());
 					}
 
 					{
@@ -69,7 +464,7 @@ namespace Ash
 					}
 
 					{
-						Ash::Test::Memory::TraceValue<int> arrayTrace[2][3][4] = { { { 111, 112, 113, 114 }, { 121, 122, 123, 124 }, { 131, 132, 133, 134 } }, { { 211, 212, 213, 214 }, { 221, 222, 223, 224 }, { 23, 23, 23, 23 } } };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace[2][3][4] = { { { 111, 112, 113, 114 }, { 121, 122, 123, 124 }, { 131, 132, 133, 134 } }, { { 211, 212, 213, 214 }, { 221, 222, 223, 224 }, { 23, 23, 23, 23 } } };
 						TEST_IS_EQ(Ash::Memory::clear(arrayTrace), sizeof(arrayTrace) / sizeof(arrayTrace[0]));
 						for (size_t n1 = 0; n1 < 2; n1++)
 						{
@@ -81,7 +476,7 @@ namespace Ash
 								}
 							}
 						}
-						TEST_IS_EQ(Ash::Test::Memory::Trace::getAllocatedCount(), 0);
+						TEST_IS_ZERO(Ash::Test::Memory::Trace::getAllocatedCount());
 					}
 
 					return {};
@@ -136,21 +531,21 @@ namespace Ash
 					}
 
 					{
-						Ash::Test::Memory::TraceValue<int> arrayTrace1[] = { 17, 18, 19, 20 };
-						Ash::Test::Memory::TraceValue<int> arrayTrace2[] = { 21, 22, 23, 24 };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace1[] = { 17, 18, 19, 20 };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace2[] = { 21, 22, 23, 24 };
 						TEST_IS_EQ(Ash::Memory::copy(arrayTrace1, arrayTrace2), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
 						for (size_t n : Ash::Iterate<size_t>::from(0, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])))
 						{
 							TEST_IS_EQ(*arrayTrace1[n], *arrayTrace2[n]);
 						}
-						Ash::Test::Memory::TraceValue<int> arrayTrace3[] = { 25, 26, 27 };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace3[] = { 25, 26, 27 };
 						TEST_IS_EQ(Ash::Memory::copy(arrayTrace1, arrayTrace3), sizeof(arrayTrace3) / sizeof(arrayTrace3[0]));
 						for (size_t n : Ash::Iterate<size_t>::from(0, sizeof(arrayTrace3) / sizeof(arrayTrace3[0])))
 						{
 							TEST_IS_EQ(*arrayTrace1[n], *arrayTrace3[n]);
 						}
 						TEST_IS_EQ(*arrayTrace1[sizeof(arrayTrace1) / sizeof(arrayTrace1[0]) - 1], *arrayTrace2[sizeof(arrayTrace1) / sizeof(arrayTrace1[0]) - 1]);
-						Ash::Test::Memory::TraceValue<int> arrayTrace4[] = { 28, 29, 30, 31, 32 };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace4[] = { 28, 29, 30, 31, 32 };
 						TEST_IS_EQ(Ash::Memory::copy(arrayTrace1, arrayTrace4), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
 						for (size_t n : Ash::Iterate<size_t>::from(0, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])))
 						{
@@ -229,8 +624,8 @@ namespace Ash
 					}
 
 					{
-						Ash::Test::Memory::TraceValue<int> arrayTrace1[3][2] = { { 251, 252 }, { 261, 262 }, { 271, 272 } };
-						Ash::Test::Memory::TraceValue<int> arrayTrace2[3][2] = { { 281, 282 }, { 291, 292 }, { 301, 302 } };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace1[3][2] = { { 251, 252 }, { 261, 262 }, { 271, 272 } };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace2[3][2] = { { 281, 282 }, { 291, 292 }, { 301, 302 } };
 						TEST_IS_EQ(Ash::Memory::copy(arrayTrace1, arrayTrace2), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
 						for (size_t n1 = 0; n1 < 3; n1++)
 						{
@@ -239,7 +634,7 @@ namespace Ash
 								TEST_IS_EQ(*arrayTrace1[n1][n2], *arrayTrace2[n1][n2]);
 							}
 						}
-						Ash::Test::Memory::TraceValue<int> arrayTrace3[2][2] = { { 311, 312 }, { 321, 322 } };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace3[2][2] = { { 311, 312 }, { 321, 322 } };
 						TEST_IS_EQ(Ash::Memory::copy(arrayTrace1, arrayTrace3), sizeof(arrayTrace3) / sizeof(arrayTrace3[0]));
 						for (size_t n1 = 0; n1 < 2; n1++)
 						{
@@ -252,7 +647,7 @@ namespace Ash
 						{
 							TEST_IS_EQ(*arrayTrace1[2][n], *arrayTrace2[2][n]);
 						}
-						Ash::Test::Memory::TraceValue<int> arrayTrace4[4][2] = { { 331, 332 }, { 341, 342 }, { 351, 352 }, { 361, 362 } };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace4[4][2] = { { 331, 332 }, { 341, 342 }, { 351, 352 }, { 361, 362 } };
 						TEST_IS_EQ(Ash::Memory::copy(arrayTrace1, arrayTrace4), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
 						for (size_t n1 = 0; n1 < 3; n1++)
 						{
@@ -315,15 +710,15 @@ namespace Ash
 					}
 
 					{
-						Ash::Test::Memory::TraceValue<int> arrayTrace1[] = { 17, 18, 19, 20 };
-						Ash::Test::Memory::TraceValue<int> arrayTrace2[] = { 21, 22, 23, 24 };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace1[] = { 17, 18, 19, 20 };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace2[] = { 21, 22, 23, 24 };
 						TEST_IS_EQ(Ash::Memory::move(arrayTrace1, arrayTrace2), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
 						for (size_t n : Ash::Iterate<size_t>::from(0, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])))
 						{
 							TEST_IS_EQ(*arrayTrace1[n], int(21 + n));
 							TEST_IS_TRUE(arrayTrace2[n].isNull());
 						}
-						Ash::Test::Memory::TraceValue<int> arrayTrace3[] = { 25, 26, 27 };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace3[] = { 25, 26, 27 };
 						TEST_IS_EQ(Ash::Memory::move(arrayTrace1, arrayTrace3), sizeof(arrayTrace3) / sizeof(arrayTrace3[0]));
 						for (size_t n : Ash::Iterate<size_t>::from(0, sizeof(arrayTrace3) / sizeof(arrayTrace3[0])))
 						{
@@ -331,7 +726,7 @@ namespace Ash
 							TEST_IS_TRUE(arrayTrace3[n].isNull());
 						}
 						TEST_IS_EQ(*arrayTrace1[sizeof(arrayTrace1) / sizeof(arrayTrace1[0]) - 1], 24);
-						Ash::Test::Memory::TraceValue<int> arrayTrace4[] = { 28, 29, 30, 31, 32 };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace4[] = { 28, 29, 30, 31, 32 };
 						TEST_IS_EQ(Ash::Memory::move(arrayTrace1, arrayTrace4), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
 						for (size_t n : Ash::Iterate<size_t>::from(0, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])))
 						{
@@ -412,8 +807,8 @@ namespace Ash
 					}
 
 					{
-						Ash::Test::Memory::TraceValue<int> arrayTrace1[3][2] = { { 251, 252 }, { 261, 262 }, { 271, 272 } };
-						Ash::Test::Memory::TraceValue<int> arrayTrace2[3][2] = { { 281, 282 }, { 291, 292 }, { 301, 302 } };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace1[3][2] = { { 251, 252 }, { 261, 262 }, { 271, 272 } };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace2[3][2] = { { 281, 282 }, { 291, 292 }, { 301, 302 } };
 						TEST_IS_EQ(Ash::Memory::move(arrayTrace1, arrayTrace2), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
 						for (size_t n1 = 0; n1 < 3; n1++)
 						{
@@ -423,7 +818,7 @@ namespace Ash
 								TEST_IS_TRUE(arrayTrace2[n1][n2].isNull());
 							}
 						}
-						Ash::Test::Memory::TraceValue<int> arrayTrace3[2][2] = { { 311, 312 }, { 321, 322 } };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace3[2][2] = { { 311, 312 }, { 321, 322 } };
 						TEST_IS_EQ(Ash::Memory::move(arrayTrace1, arrayTrace3), sizeof(arrayTrace3) / sizeof(arrayTrace3[0]));
 						for (size_t n1 = 0; n1 < 2; n1++)
 						{
@@ -437,7 +832,7 @@ namespace Ash
 						{
 							TEST_IS_EQ(*arrayTrace1[2][n], int(301 + n));
 						}
-						Ash::Test::Memory::TraceValue<int> arrayTrace4[4][2] = { { 331, 332 }, { 341, 342 }, { 351, 352 }, { 361, 362 } };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace4[4][2] = { { 331, 332 }, { 341, 342 }, { 351, 352 }, { 361, 362 } };
 						TEST_IS_EQ(Ash::Memory::move(arrayTrace1, arrayTrace4), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
 						for (size_t n1 = 0; n1 < 3; n1++)
 						{
@@ -473,13 +868,13 @@ namespace Ash
 					}
 
 					{
-						Ash::Test::Memory::TraceValue<int> arrayTrace[] = { 1, 2, 3, 4 };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace[] = { 1, 2, 3, 4 };
 						TEST_IS_EQ(Ash::Memory::clear(arrayTrace, sizeof(arrayTrace) / sizeof(arrayTrace[0])), sizeof(arrayTrace) / sizeof(arrayTrace[0]));
-						for (TraceValue n : arrayTrace)
+						for (Trace::Value n : arrayTrace)
 						{
 							TEST_IS_TRUE(n.isNull());
 						}
-						TEST_IS_EQ(Ash::Test::Memory::Trace::getAllocatedCount(), 0);
+						TEST_IS_ZERO(Ash::Test::Memory::Trace::getAllocatedCount());
 					}
 
 					{
@@ -510,7 +905,7 @@ namespace Ash
 					}
 
 					{
-						Ash::Test::Memory::TraceValue<int> arrayTrace[2][3][4] = { { { 111, 112, 113, 114 }, { 121, 122, 123, 124 }, { 131, 132, 133, 134 } }, { { 211, 212, 213, 214 }, { 221, 222, 223, 224 }, { 23, 23, 23, 23 } } };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace[2][3][4] = { { { 111, 112, 113, 114 }, { 121, 122, 123, 124 }, { 131, 132, 133, 134 } }, { { 211, 212, 213, 214 }, { 221, 222, 223, 224 }, { 23, 23, 23, 23 } } };
 						TEST_IS_EQ(Ash::Memory::clear(arrayTrace, sizeof(arrayTrace) / sizeof(arrayTrace[0])), sizeof(arrayTrace) / sizeof(arrayTrace[0]));
 						for (size_t n1 = 0; n1 < 2; n1++)
 						{
@@ -522,7 +917,7 @@ namespace Ash
 								}
 							}
 						}
-						TEST_IS_EQ(Ash::Test::Memory::Trace::getAllocatedCount(), 0);
+						TEST_IS_ZERO(Ash::Test::Memory::Trace::getAllocatedCount());
 					}
 
 					return {};
@@ -589,21 +984,21 @@ namespace Ash
 					}
 
 					{
-						Ash::Test::Memory::TraceValue<int> arrayTrace1[] = { 17, 18, 19, 20 };
-						Ash::Test::Memory::TraceValue<int> arrayTrace2[] = { 21, 22, 23, 24 };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace1[] = { 17, 18, 19, 20 };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace2[] = { 21, 22, 23, 24 };
 						TEST_IS_EQ(Ash::Memory::copyForward(arrayTrace1, arrayTrace2, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
 						for (size_t n : Ash::Iterate<size_t>::from(0, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])))
 						{
 							TEST_IS_EQ(*arrayTrace1[n], *arrayTrace2[n]);
 						}
-						Ash::Test::Memory::TraceValue<int> arrayTrace3[] = { 25, 26, 27 };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace3[] = { 25, 26, 27 };
 						TEST_IS_EQ(Ash::Memory::copyForward(arrayTrace1, arrayTrace3, sizeof(arrayTrace3) / sizeof(arrayTrace3[0])), sizeof(arrayTrace3) / sizeof(arrayTrace3[0]));
 						for (size_t n : Ash::Iterate<size_t>::from(0, sizeof(arrayTrace3) / sizeof(arrayTrace3[0])))
 						{
 							TEST_IS_EQ(*arrayTrace1[n], *arrayTrace3[n]);
 						}
 						TEST_IS_EQ(*arrayTrace1[sizeof(arrayTrace1) / sizeof(arrayTrace1[0]) - 1], *arrayTrace2[sizeof(arrayTrace1) / sizeof(arrayTrace1[0]) - 1]);
-						Ash::Test::Memory::TraceValue<int> arrayTrace4[] = { 28, 29, 30, 31, 32 };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace4[] = { 28, 29, 30, 31, 32 };
 						TEST_IS_EQ(Ash::Memory::copyForward(arrayTrace1, arrayTrace4, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
 						for (size_t n : Ash::Iterate<size_t>::from(0, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])))
 						{
@@ -688,8 +1083,8 @@ namespace Ash
 					}
 
 					{
-						Ash::Test::Memory::TraceValue<int> arrayTrace1[3][2] = { { 251, 252 }, { 261, 262 }, { 271, 272 } };
-						Ash::Test::Memory::TraceValue<int> arrayTrace2[3][2] = { { 281, 282 }, { 291, 292 }, { 301, 302 } };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace1[3][2] = { { 251, 252 }, { 261, 262 }, { 271, 272 } };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace2[3][2] = { { 281, 282 }, { 291, 292 }, { 301, 302 } };
 						TEST_IS_EQ(Ash::Memory::copyForward(arrayTrace1, arrayTrace2, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
 						for (size_t n1 = 0; n1 < 3; n1++)
 						{
@@ -698,7 +1093,7 @@ namespace Ash
 								TEST_IS_EQ(*arrayTrace1[n1][n2], *arrayTrace2[n1][n2]);
 							}
 						}
-						Ash::Test::Memory::TraceValue<int> arrayTrace3[2][2] = { { 311, 312 }, { 321, 322 } };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace3[2][2] = { { 311, 312 }, { 321, 322 } };
 						TEST_IS_EQ(Ash::Memory::copyForward(arrayTrace1, arrayTrace3, sizeof(arrayTrace3) / sizeof(arrayTrace3[0])), sizeof(arrayTrace3) / sizeof(arrayTrace3[0]));
 						for (size_t n1 = 0; n1 < 2; n1++)
 						{
@@ -711,7 +1106,7 @@ namespace Ash
 						{
 							TEST_IS_EQ(*arrayTrace1[2][n], *arrayTrace2[2][n]);
 						}
-						Ash::Test::Memory::TraceValue<int> arrayTrace4[4][2] = { { 331, 332 }, { 341, 342 }, { 351, 352 }, { 361, 362 } };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace4[4][2] = { { 331, 332 }, { 341, 342 }, { 351, 352 }, { 361, 362 } };
 						TEST_IS_EQ(Ash::Memory::copyForward(arrayTrace1, arrayTrace4, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
 						for (size_t n1 = 0; n1 < 3; n1++)
 						{
@@ -786,21 +1181,21 @@ namespace Ash
 					}
 
 					{
-						Ash::Test::Memory::TraceValue<int> arrayTrace1[] = { 17, 18, 19, 20 };
-						Ash::Test::Memory::TraceValue<int> arrayTrace2[] = { 21, 22, 23, 24 };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace1[] = { 17, 18, 19, 20 };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace2[] = { 21, 22, 23, 24 };
 						TEST_IS_EQ(Ash::Memory::copyBackward(arrayTrace1, arrayTrace2, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
 						for (size_t n : Ash::Iterate<size_t>::from(0, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])))
 						{
 							TEST_IS_EQ(*arrayTrace1[n], *arrayTrace2[n]);
 						}
-						Ash::Test::Memory::TraceValue<int> arrayTrace3[] = { 25, 26, 27 };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace3[] = { 25, 26, 27 };
 						TEST_IS_EQ(Ash::Memory::copyBackward(arrayTrace1, arrayTrace3, sizeof(arrayTrace3) / sizeof(arrayTrace3[0])), sizeof(arrayTrace3) / sizeof(arrayTrace3[0]));
 						for (size_t n : Ash::Iterate<size_t>::from(0, sizeof(arrayTrace3) / sizeof(arrayTrace3[0])))
 						{
 							TEST_IS_EQ(*arrayTrace1[n], *arrayTrace3[n]);
 						}
 						TEST_IS_EQ(*arrayTrace1[sizeof(arrayTrace1) / sizeof(arrayTrace1[0]) - 1], *arrayTrace2[sizeof(arrayTrace1) / sizeof(arrayTrace1[0]) - 1]);
-						Ash::Test::Memory::TraceValue<int> arrayTrace4[] = { 28, 29, 30, 31, 32 };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace4[] = { 28, 29, 30, 31, 32 };
 						TEST_IS_EQ(Ash::Memory::copyBackward(arrayTrace1, arrayTrace4, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
 						for (size_t n : Ash::Iterate<size_t>::from(0, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])))
 						{
@@ -885,8 +1280,8 @@ namespace Ash
 					}
 
 					{
-						Ash::Test::Memory::TraceValue<int> arrayTrace1[3][2] = { { 251, 252 }, { 261, 262 }, { 271, 272 } };
-						Ash::Test::Memory::TraceValue<int> arrayTrace2[3][2] = { { 281, 282 }, { 291, 292 }, { 301, 302 } };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace1[3][2] = { { 251, 252 }, { 261, 262 }, { 271, 272 } };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace2[3][2] = { { 281, 282 }, { 291, 292 }, { 301, 302 } };
 						TEST_IS_EQ(Ash::Memory::copyBackward(arrayTrace1, arrayTrace2, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
 						for (size_t n1 = 0; n1 < 3; n1++)
 						{
@@ -895,7 +1290,7 @@ namespace Ash
 								TEST_IS_EQ(*arrayTrace1[n1][n2], *arrayTrace2[n1][n2]);
 							}
 						}
-						Ash::Test::Memory::TraceValue<int> arrayTrace3[2][2] = { { 311, 312 }, { 321, 322 } };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace3[2][2] = { { 311, 312 }, { 321, 322 } };
 						TEST_IS_EQ(Ash::Memory::copyBackward(arrayTrace1, arrayTrace3, sizeof(arrayTrace3) / sizeof(arrayTrace3[0])), sizeof(arrayTrace3) / sizeof(arrayTrace3[0]));
 						for (size_t n1 = 0; n1 < 2; n1++)
 						{
@@ -908,7 +1303,7 @@ namespace Ash
 						{
 							TEST_IS_EQ(*arrayTrace1[2][n], *arrayTrace2[2][n]);
 						}
-						Ash::Test::Memory::TraceValue<int> arrayTrace4[4][2] = { { 331, 332 }, { 341, 342 }, { 351, 352 }, { 361, 362 } };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace4[4][2] = { { 331, 332 }, { 341, 342 }, { 351, 352 }, { 361, 362 } };
 						TEST_IS_EQ(Ash::Memory::copyBackward(arrayTrace1, arrayTrace4, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
 						for (size_t n1 = 0; n1 < 3; n1++)
 						{
@@ -995,21 +1390,21 @@ namespace Ash
 					}
 
 					{
-						Ash::Test::Memory::TraceValue<int> arrayTrace1[] = { 17, 18, 19, 20 };
-						Ash::Test::Memory::TraceValue<int> arrayTrace2[] = { 21, 22, 23, 24 };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace1[] = { 17, 18, 19, 20 };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace2[] = { 21, 22, 23, 24 };
 						TEST_IS_EQ(Ash::Memory::copy(arrayTrace1, arrayTrace2, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
 						for (size_t n : Ash::Iterate<size_t>::from(0, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])))
 						{
 							TEST_IS_EQ(*arrayTrace1[n], *arrayTrace2[n]);
 						}
-						Ash::Test::Memory::TraceValue<int> arrayTrace3[] = { 25, 26, 27 };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace3[] = { 25, 26, 27 };
 						TEST_IS_EQ(Ash::Memory::copy(arrayTrace1, arrayTrace3, sizeof(arrayTrace3) / sizeof(arrayTrace3[0])), sizeof(arrayTrace3) / sizeof(arrayTrace3[0]));
 						for (size_t n : Ash::Iterate<size_t>::from(0, sizeof(arrayTrace3) / sizeof(arrayTrace3[0])))
 						{
 							TEST_IS_EQ(*arrayTrace1[n], *arrayTrace3[n]);
 						}
 						TEST_IS_EQ(*arrayTrace1[sizeof(arrayTrace1) / sizeof(arrayTrace1[0]) - 1], *arrayTrace2[sizeof(arrayTrace1) / sizeof(arrayTrace1[0]) - 1]);
-						Ash::Test::Memory::TraceValue<int> arrayTrace4[] = { 28, 29, 30, 31, 32 };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace4[] = { 28, 29, 30, 31, 32 };
 						TEST_IS_EQ(Ash::Memory::copy(arrayTrace1, arrayTrace4, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
 						for (size_t n : Ash::Iterate<size_t>::from(0, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])))
 						{
@@ -1148,8 +1543,8 @@ namespace Ash
 					}
 
 					{
-						Ash::Test::Memory::TraceValue<int> arrayTrace1[3][2] = { { 251, 252 }, { 261, 262 }, { 271, 272 } };
-						Ash::Test::Memory::TraceValue<int> arrayTrace2[3][2] = { { 281, 282 }, { 291, 292 }, { 301, 302 } };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace1[3][2] = { { 251, 252 }, { 261, 262 }, { 271, 272 } };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace2[3][2] = { { 281, 282 }, { 291, 292 }, { 301, 302 } };
 						TEST_IS_EQ(Ash::Memory::copy(arrayTrace1, arrayTrace2, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
 						for (size_t n1 = 0; n1 < 3; n1++)
 						{
@@ -1158,7 +1553,7 @@ namespace Ash
 								TEST_IS_EQ(*arrayTrace1[n1][n2], *arrayTrace2[n1][n2]);
 							}
 						}
-						Ash::Test::Memory::TraceValue<int> arrayTrace3[2][2] = { { 311, 312 }, { 321, 322 } };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace3[2][2] = { { 311, 312 }, { 321, 322 } };
 						TEST_IS_EQ(Ash::Memory::copy(arrayTrace1, arrayTrace3, sizeof(arrayTrace3) / sizeof(arrayTrace3[0])), sizeof(arrayTrace3) / sizeof(arrayTrace3[0]));
 						for (size_t n1 = 0; n1 < 2; n1++)
 						{
@@ -1171,7 +1566,7 @@ namespace Ash
 						{
 							TEST_IS_EQ(*arrayTrace1[2][n], *arrayTrace2[2][n]);
 						}
-						Ash::Test::Memory::TraceValue<int> arrayTrace4[4][2] = { { 331, 332 }, { 341, 342 }, { 351, 352 }, { 361, 362 } };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace4[4][2] = { { 331, 332 }, { 341, 342 }, { 351, 352 }, { 361, 362 } };
 						TEST_IS_EQ(Ash::Memory::copy(arrayTrace1, arrayTrace4, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
 						for (size_t n1 = 0; n1 < 3; n1++)
 						{
@@ -1270,15 +1665,15 @@ namespace Ash
 					}
 
 					{
-						Ash::Test::Memory::TraceValue<int> arrayTrace1[] = { 17, 18, 19, 20 };
-						Ash::Test::Memory::TraceValue<int> arrayTrace2[] = { 21, 22, 23, 24 };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace1[] = { 17, 18, 19, 20 };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace2[] = { 21, 22, 23, 24 };
 						TEST_IS_EQ(Ash::Memory::moveForward(arrayTrace1, arrayTrace2, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
 						for (size_t n : Ash::Iterate<size_t>::from(0, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])))
 						{
 							TEST_IS_EQ(*arrayTrace1[n], int(21 + n));
 							TEST_IS_TRUE(arrayTrace2[n].isNull());
 						}
-						Ash::Test::Memory::TraceValue<int> arrayTrace3[] = { 25, 26, 27 };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace3[] = { 25, 26, 27 };
 						TEST_IS_EQ(Ash::Memory::moveForward(arrayTrace1, arrayTrace3, sizeof(arrayTrace3) / sizeof(arrayTrace3[0])), sizeof(arrayTrace3) / sizeof(arrayTrace3[0]));
 						for (size_t n : Ash::Iterate<size_t>::from(0, sizeof(arrayTrace3) / sizeof(arrayTrace3[0])))
 						{
@@ -1286,7 +1681,7 @@ namespace Ash
 							TEST_IS_TRUE(arrayTrace3[n].isNull());
 						}
 						TEST_IS_EQ(*arrayTrace1[sizeof(arrayTrace1) / sizeof(arrayTrace1[0]) - 1], 24);
-						Ash::Test::Memory::TraceValue<int> arrayTrace4[] = { 28, 29, 30, 31, 32 };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace4[] = { 28, 29, 30, 31, 32 };
 						TEST_IS_EQ(Ash::Memory::moveForward(arrayTrace1, arrayTrace4, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
 						for (size_t n : Ash::Iterate<size_t>::from(0, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])))
 						{
@@ -1373,8 +1768,8 @@ namespace Ash
 					}
 
 					{
-						Ash::Test::Memory::TraceValue<int> arrayTrace1[3][2] = { { 251, 252 }, { 261, 262 }, { 271, 272 } };
-						Ash::Test::Memory::TraceValue<int> arrayTrace2[3][2] = { { 281, 282 }, { 291, 292 }, { 301, 302 } };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace1[3][2] = { { 251, 252 }, { 261, 262 }, { 271, 272 } };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace2[3][2] = { { 281, 282 }, { 291, 292 }, { 301, 302 } };
 						TEST_IS_EQ(Ash::Memory::moveForward(arrayTrace1, arrayTrace2, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
 						for (size_t n1 = 0; n1 < 3; n1++)
 						{
@@ -1384,7 +1779,7 @@ namespace Ash
 								TEST_IS_TRUE(arrayTrace2[n1][n2].isNull());
 							}
 						}
-						Ash::Test::Memory::TraceValue<int> arrayTrace3[2][2] = { { 311, 312 }, { 321, 322 } };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace3[2][2] = { { 311, 312 }, { 321, 322 } };
 						TEST_IS_EQ(Ash::Memory::moveForward(arrayTrace1, arrayTrace3, sizeof(arrayTrace3) / sizeof(arrayTrace3[0])), sizeof(arrayTrace3) / sizeof(arrayTrace3[0]));
 						for (size_t n1 = 0; n1 < 2; n1++)
 						{
@@ -1398,7 +1793,7 @@ namespace Ash
 						{
 							TEST_IS_EQ(*arrayTrace1[2][n], int(301 + n));
 						}
-						Ash::Test::Memory::TraceValue<int> arrayTrace4[4][2] = { { 331, 332 }, { 341, 342 }, { 351, 352 }, { 361, 362 } };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace4[4][2] = { { 331, 332 }, { 341, 342 }, { 351, 352 }, { 361, 362 } };
 						TEST_IS_EQ(Ash::Memory::moveForward(arrayTrace1, arrayTrace4, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
 						for (size_t n1 = 0; n1 < 3; n1++)
 						{
@@ -1474,15 +1869,15 @@ namespace Ash
 					}
 
 					{
-						Ash::Test::Memory::TraceValue<int> arrayTrace1[] = { 17, 18, 19, 20 };
-						Ash::Test::Memory::TraceValue<int> arrayTrace2[] = { 21, 22, 23, 24 };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace1[] = { 17, 18, 19, 20 };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace2[] = { 21, 22, 23, 24 };
 						TEST_IS_EQ(Ash::Memory::moveBackward(arrayTrace1, arrayTrace2, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
 						for (size_t n : Ash::Iterate<size_t>::from(0, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])))
 						{
 							TEST_IS_EQ(*arrayTrace1[n], int(21 + n));
 							TEST_IS_TRUE(arrayTrace2[n].isNull());
 						}
-						Ash::Test::Memory::TraceValue<int> arrayTrace3[] = { 25, 26, 27 };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace3[] = { 25, 26, 27 };
 						TEST_IS_EQ(Ash::Memory::moveBackward(arrayTrace1, arrayTrace3, sizeof(arrayTrace3) / sizeof(arrayTrace3[0])), sizeof(arrayTrace3) / sizeof(arrayTrace3[0]));
 						for (size_t n : Ash::Iterate<size_t>::from(0, sizeof(arrayTrace3) / sizeof(arrayTrace3[0])))
 						{
@@ -1490,7 +1885,7 @@ namespace Ash
 							TEST_IS_TRUE(arrayTrace3[n].isNull());
 						}
 						TEST_IS_EQ(*arrayTrace1[sizeof(arrayTrace1) / sizeof(arrayTrace1[0]) - 1], 24);
-						Ash::Test::Memory::TraceValue<int> arrayTrace4[] = { 28, 29, 30, 31, 32 };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace4[] = { 28, 29, 30, 31, 32 };
 						TEST_IS_EQ(Ash::Memory::moveBackward(arrayTrace1, arrayTrace4, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
 						for (size_t n : Ash::Iterate<size_t>::from(0, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])))
 						{
@@ -1577,8 +1972,8 @@ namespace Ash
 					}
 
 					{
-						Ash::Test::Memory::TraceValue<int> arrayTrace1[3][2] = { { 251, 252 }, { 261, 262 }, { 271, 272 } };
-						Ash::Test::Memory::TraceValue<int> arrayTrace2[3][2] = { { 281, 282 }, { 291, 292 }, { 301, 302 } };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace1[3][2] = { { 251, 252 }, { 261, 262 }, { 271, 272 } };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace2[3][2] = { { 281, 282 }, { 291, 292 }, { 301, 302 } };
 						TEST_IS_EQ(Ash::Memory::moveBackward(arrayTrace1, arrayTrace2, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
 						for (size_t n1 = 0; n1 < 3; n1++)
 						{
@@ -1588,7 +1983,7 @@ namespace Ash
 								TEST_IS_TRUE(arrayTrace2[n1][n2].isNull());
 							}
 						}
-						Ash::Test::Memory::TraceValue<int> arrayTrace3[2][2] = { { 311, 312 }, { 321, 322 } };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace3[2][2] = { { 311, 312 }, { 321, 322 } };
 						TEST_IS_EQ(Ash::Memory::moveBackward(arrayTrace1, arrayTrace3, sizeof(arrayTrace3) / sizeof(arrayTrace3[0])), sizeof(arrayTrace3) / sizeof(arrayTrace3[0]));
 						for (size_t n1 = 0; n1 < 2; n1++)
 						{
@@ -1602,7 +1997,7 @@ namespace Ash
 						{
 							TEST_IS_EQ(*arrayTrace1[2][n], int(301 + n));
 						}
-						Ash::Test::Memory::TraceValue<int> arrayTrace4[4][2] = { { 331, 332 }, { 341, 342 }, { 351, 352 }, { 361, 362 } };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace4[4][2] = { { 331, 332 }, { 341, 342 }, { 351, 352 }, { 361, 362 } };
 						TEST_IS_EQ(Ash::Memory::moveBackward(arrayTrace1, arrayTrace4, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
 						for (size_t n1 = 0; n1 < 3; n1++)
 						{
@@ -1690,15 +2085,15 @@ namespace Ash
 					}
 
 					{
-						Ash::Test::Memory::TraceValue<int> arrayTrace1[] = { 17, 18, 19, 20 };
-						Ash::Test::Memory::TraceValue<int> arrayTrace2[] = { 21, 22, 23, 24 };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace1[] = { 17, 18, 19, 20 };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace2[] = { 21, 22, 23, 24 };
 						TEST_IS_EQ(Ash::Memory::move(arrayTrace1, arrayTrace2, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
 						for (size_t n : Ash::Iterate<size_t>::from(0, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])))
 						{
 							TEST_IS_EQ(*arrayTrace1[n], int(21 + n));
 							TEST_IS_TRUE(arrayTrace2[n].isNull());
 						}
-						Ash::Test::Memory::TraceValue<int> arrayTrace3[] = { 25, 26, 27 };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace3[] = { 25, 26, 27 };
 						TEST_IS_EQ(Ash::Memory::move(arrayTrace1, arrayTrace3, sizeof(arrayTrace3) / sizeof(arrayTrace3[0])), sizeof(arrayTrace3) / sizeof(arrayTrace3[0]));
 						for (size_t n : Ash::Iterate<size_t>::from(0, sizeof(arrayTrace3) / sizeof(arrayTrace3[0])))
 						{
@@ -1706,7 +2101,7 @@ namespace Ash
 							TEST_IS_TRUE(arrayTrace3[n].isNull());
 						}
 						TEST_IS_EQ(*arrayTrace1[sizeof(arrayTrace1) / sizeof(arrayTrace1[0]) - 1], 24);
-						Ash::Test::Memory::TraceValue<int> arrayTrace4[] = { 28, 29, 30, 31, 32 };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace4[] = { 28, 29, 30, 31, 32 };
 						TEST_IS_EQ(Ash::Memory::move(arrayTrace1, arrayTrace4, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
 						for (size_t n : Ash::Iterate<size_t>::from(0, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])))
 						{
@@ -1847,8 +2242,8 @@ namespace Ash
 					}
 
 					{
-						Ash::Test::Memory::TraceValue<int> arrayTrace1[3][2] = { { 251, 252 }, { 261, 262 }, { 271, 272 } };
-						Ash::Test::Memory::TraceValue<int> arrayTrace2[3][2] = { { 281, 282 }, { 291, 292 }, { 301, 302 } };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace1[3][2] = { { 251, 252 }, { 261, 262 }, { 271, 272 } };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace2[3][2] = { { 281, 282 }, { 291, 292 }, { 301, 302 } };
 						TEST_IS_EQ(Ash::Memory::move(arrayTrace1, arrayTrace2, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
 						for (size_t n1 = 0; n1 < 3; n1++)
 						{
@@ -1858,7 +2253,7 @@ namespace Ash
 								TEST_IS_TRUE(arrayTrace2[n1][n2].isNull());
 							}
 						}
-						Ash::Test::Memory::TraceValue<int> arrayTrace3[2][2] = { { 311, 312 }, { 321, 322 } };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace3[2][2] = { { 311, 312 }, { 321, 322 } };
 						TEST_IS_EQ(Ash::Memory::move(arrayTrace1, arrayTrace3, sizeof(arrayTrace3) / sizeof(arrayTrace3[0])), sizeof(arrayTrace3) / sizeof(arrayTrace3[0]));
 						for (size_t n1 = 0; n1 < 2; n1++)
 						{
@@ -1872,7 +2267,7 @@ namespace Ash
 						{
 							TEST_IS_EQ(*arrayTrace1[2][n], int(301 + n));
 						}
-						Ash::Test::Memory::TraceValue<int> arrayTrace4[4][2] = { { 331, 332 }, { 341, 342 }, { 351, 352 }, { 361, 362 } };
+						Ash::Test::Memory::Trace::Value<int> arrayTrace4[4][2] = { { 331, 332 }, { 341, 342 }, { 351, 352 }, { 361, 362 } };
 						TEST_IS_EQ(Ash::Memory::move(arrayTrace1, arrayTrace4, sizeof(arrayTrace1) / sizeof(arrayTrace1[0])), sizeof(arrayTrace1) / sizeof(arrayTrace1[0]));
 						for (size_t n1 = 0; n1 < 3; n1++)
 						{
@@ -1921,6 +2316,10 @@ namespace Ash
 		(
 			testMemoryCore,
 
+			TEST_CASE(Ash::Test::Memory::Core::constructAndDestroy),
+			TEST_CASE(Ash::Test::Memory::Core::defaultConstructAndDestroy),
+			TEST_CASE(Ash::Test::Memory::Core::copyConstructAndDestroy),
+			TEST_CASE(Ash::Test::Memory::Core::moveConstructAndDestroy),
 			TEST_CASE(Ash::Test::Memory::Core::clearArray),
 			TEST_CASE(Ash::Test::Memory::Core::copyArray),
 			TEST_CASE(Ash::Test::Memory::Core::moveArray),
