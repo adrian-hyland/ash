@@ -2,6 +2,7 @@
 
 #include "ash.size.h"
 #include "ash.memory.core.h"
+#include "ash.memory.error.h"
 #include "ash.memory.generic.h"
 
 
@@ -27,49 +28,125 @@ namespace Ash
 
 				static constexpr bool isReference = false;
 
+				static constexpr size_t minCapacity = CAPACITY;
+
 				static constexpr size_t maxCapacity = CAPACITY;
+
+				constexpr void clear()
+				{
+					Ash::Memory::clear(m_Content, CAPACITY);
+				}
+
+				[[nodiscard]]
+				constexpr Ash::Error::Value copyFrom(const Sequence &value)
+				{
+					if (this != &value)
+					{
+						Ash::Memory::copyForward(m_Content, value.m_Content, CAPACITY);
+					}
+					return Ash::Error::none;
+				}
+
+				constexpr void moveFrom(Sequence &value)
+				{
+					if (this != &value)
+					{
+						Ash::Memory::moveForward(m_Content, value.m_Content, CAPACITY);
+					}
+				}
 
 				constexpr size_t getCapacity() const { return CAPACITY; }
 
+				[[nodiscard]]
+				constexpr Ash::Error::Value setCapacity(size_t capacity)
+				{
+					return (capacity != CAPACITY) ? Ash::Memory::Error::capacityIsFixed : Ash::Error::none;
+				}
+
 				constexpr size_t getLength() const { return CAPACITY; }
 
-				constexpr bool setLength(size_t length) const { return length == CAPACITY; }
-
-				constexpr bool decreaseLength(size_t length) { return length == 0; }
-
-				constexpr bool increaseLength(size_t length) { return length == 0; }
+				[[nodiscard]]
+				constexpr Ash::Error::Value setLength(size_t length)
+				{
+					return (length != CAPACITY) ? Ash::Memory::Error::lengthIsFixed : Ash::Error::none;
+				}
 
 			protected:
 				constexpr Sequence() : m_Content() {}
 
-				constexpr const Type *getContent() const { return m_Content; }
-
-				constexpr Type *getContent() { return m_Content; }
-
-				constexpr void copy(const Sequence &value) { copy(value.m_Content, CAPACITY); }
-
-				constexpr void move(Sequence &value) { move(value.m_Content, CAPACITY); }
-
-				constexpr void copy(const Type *content, size_t length)
+				constexpr Sequence(const Type *content, size_t contentLength) : m_Content()
 				{
-					if (length > CAPACITY)
+					if (contentLength != 0)
 					{
-						length = CAPACITY;
-					}
+						if (contentLength > CAPACITY)
+						{
+							Ash::Error::throwUsing(Ash::Memory::Error::capacityOverrun);
+						}
 
-					Ash::Memory::copyForward(m_Content, content, length);
-					Ash::Memory::clear(&m_Content[length], CAPACITY - length);
+						Ash::Memory::copyForward(m_Content, content, contentLength);
+					}
 				}
 
-				constexpr void move(Type *content, size_t length)
+				constexpr Type &operator [] (size_t offset)
 				{
-					if (length > CAPACITY)
+					return m_Content[offset];
+				}
+
+				constexpr const Type &operator [] (size_t offset) const
+				{
+					return m_Content[offset];
+				}
+
+				[[nodiscard]]
+				constexpr Ash::Error::Value copyFrom(const Type *content, size_t contentLength)
+				{
+					if (contentLength == 0)
 					{
-						length = CAPACITY;
+						clear();
+						return Ash::Error::none;
 					}
 
-					Ash::Memory::moveForward(m_Content, content, length);
-					Ash::Memory::clear(&m_Content[length], CAPACITY - length);
+					if (contentLength > maxCapacity)
+					{
+						return Ash::Memory::Error::capacityOverrun;
+					}
+
+					Ash::Memory::copyForward(m_Content, content, contentLength);
+					if (contentLength < maxCapacity)
+					{
+						Ash::Memory::clear(&m_Content[contentLength], maxCapacity - contentLength);
+					}
+
+					return Ash::Error::none;
+				}
+
+				[[nodiscard]]
+				constexpr Ash::Error::Value set(size_t offset, const Type *content, size_t contentLength)
+				{
+					if (contentLength == 0)
+					{
+						return Ash::Error::none;
+					}
+
+					if (offset > maxCapacity)
+					{
+						return Ash::Memory::Error::outOfBound;
+					}
+
+					size_t length = 0;
+					if (!Ash::Size(offset).add(contentLength).getValue(length))
+					{
+						return Ash::Memory::Error::lengthOverflow;
+					}
+
+					if (length > maxCapacity)
+					{
+						return Ash::Memory::Error::capacityOverrun;
+					}
+
+					Ash::Memory::copy(&m_Content[offset], content, contentLength);
+
+					return Ash::Error::none;
 				}
 
 			private:
