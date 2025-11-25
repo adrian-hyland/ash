@@ -82,44 +82,64 @@ namespace Ash
 
 			constexpr Value() : Allocation() {}
 
-			constexpr Value(std::initializer_list<Type> content) : Allocation() { Allocation::copy(content.begin(), content.size()); }
+			constexpr Value(std::initializer_list<Type> content) : Allocation(content.begin(), content.size()) {}
 
 			template
 			<
 				typename ALLOCATION_TYPE = typename Allocation::Type,
 				typename = Ash::Type::IsNotConstant<ALLOCATION_TYPE>
 			>
-			constexpr Value(Type *content, size_t length) : Allocation() { Allocation::copy(content, length); }
+			constexpr Value(Type *content, size_t length) : Allocation(content, length) {}
 
-			constexpr Value(const Type *content, size_t length) : Allocation() { Allocation::copy(content, length); }
+			constexpr Value(const Type *content, size_t length) : Allocation(content, length) {}
 
 			template
 			<
 				typename VALUE_ALLOCATION,
 				typename = Ash::Type::IsClass<VALUE_ALLOCATION, Ash::Memory::Generic::Allocation>
 			>
-			constexpr Value(const Value<VALUE_ALLOCATION, Type> &value) : Allocation() { Allocation::copy(value.at(0), value.getLength()); }
+			constexpr Value(const Value<VALUE_ALLOCATION, Type> &value) : Allocation(value.at(0), value.getLength()) {}
 
-			constexpr Value(const Value &value) : Allocation() { Allocation::copy(value); }
+			constexpr Value(const Value &value) : Allocation(value.at(0), value.getLength()) {}
 
-			constexpr Value(Value &&value) noexcept : Allocation() { Allocation::move(value); }
+			constexpr Value(Value &&value) noexcept : Allocation() { Allocation::moveFrom(value); }
+
+			template
+			<
+				typename VALUE_ALLOCATION,
+				typename = Ash::Type::IsClass<VALUE_ALLOCATION, Ash::Memory::Generic::Allocation>
+			>
+			constexpr Value &operator = (const Value<VALUE_ALLOCATION, Type> &value)
+			{
+				copyFrom(value).throwOnError();
+				return *this;
+			}
 
 			constexpr Value &operator = (const Value &value)
 			{
-				if (this != &value)
-				{
-					Allocation::copy(value);
-				}
+				Allocation::copyFrom(value).throwOnError();
 				return *this;
 			}
 
 			constexpr Value &operator = (Value &&value) noexcept
 			{
-				if (this != &value)
-				{
-					Allocation::move(value);
-				}
+				Allocation::moveFrom(value);
 				return *this;
+			}
+
+			constexpr Ash::Error::Value copyFrom(View<Type> value)
+			{
+					return Allocation::copyFrom(value.at(0), value.getLength());
+			}
+
+			constexpr Ash::Error::Value copyFrom(const Value &value)
+			{
+				return Allocation::copyFrom(value);
+			}
+
+			constexpr void moveFrom(Value &value)
+			{
+				Allocation::moveFrom(value);
 			}
 
 			constexpr Area<Type> getArea(size_t offset, size_t length)
@@ -192,158 +212,104 @@ namespace Ash
 				return (offset < Allocation::getLength()) ? (*this)[offset] : defaultValue;
 			}
 
-			constexpr bool get(size_t offset, Type &value) const
-			{
-				if (offset < Allocation::getLength())
-				{
-					value = (*this)[offset];
-					return true;
-				}
-				else
-				{
-					return false;
-				}
-			}
-
-			constexpr bool set(size_t offset, const Type &value)
-			{
-				if ((offset < Allocation::getLength()) || ((offset == Allocation::getLength()) && Allocation::increaseLength(1)))
-				{
-					(*this)[offset] = value;
-					return true;
-				}
-				else
-				{
-					return false;
-				}
-			}
-
-			constexpr bool set(size_t offset, Type &&value)
-			{
-				if ((offset < Allocation::getLength()) || ((offset == Allocation::getLength()) && Allocation::increaseLength(1)))
-				{
-					(*this)[offset] = std::move(value);
-					return true;
-				}
-				else
-				{
-					return false;
-				}
-			}
-
-			constexpr bool set(size_t offset, View<Type> value)
-			{
-				size_t valueLength = value.getLength();
-
-				if ((offset <= Allocation::getLength()) && ((valueLength <= Allocation::getLength() - offset) || Allocation::increaseLength(valueLength - Allocation::getLength() + offset)))
-				{
-					copyForward(offset, value);
-					return true;
-				}
-				else
-				{
-					return false;
-				}
-			}
-
-			constexpr void clear()
-			{
-				if (!Allocation::setLength(0))
-				{
-					Ash::Memory::clear(&(*this)[0], Allocation::getLength());
-				}
-			}
-
-			constexpr bool insert(size_t offset, Type &&value)
-			{
-				if ((offset <= Allocation::getLength()) && Allocation::increaseLength(1))
-				{
-					shiftRight(offset, 1);
-					(*this)[offset] = std::move(value);
-					return true;
-				}
-				else
-				{
-					return false;
-				}
-			}
-
-			constexpr bool insert(size_t offset, const Type &value)
-			{
-				if ((offset <= Allocation::getLength()) && Allocation::increaseLength(1))
-				{
-					shiftRight(offset, 1);
-					(*this)[offset] = value;
-					return true;
-				}
-				else
-				{
-					return false;
-				}
-			}
-
-			constexpr bool insert(size_t offset, View<Type> value)
-			{
-				size_t valueLength = value.getLength();
-
-				if (valueLength == 0)
-				{
-					return true;
-				}
-				else if ((offset <= Allocation::getLength()) && Allocation::increaseLength(valueLength))
-				{
-					shiftRight(offset, valueLength);
-					copyForward(offset, value);
-					return true;
-				}
-				else
-				{
-					return false;
-				}
-			}
-
-			constexpr bool append(Type &&value)
-			{
-				return set(Allocation::getLength(), std::move(value));
-			}
-
-			constexpr bool append(const Type &value)
-			{
-				return set(Allocation::getLength(), value);
-			}
-
-			constexpr bool append(View<Type> value)
-			{
-				return set(Allocation::getLength(), value);
-			}
-
-			constexpr bool remove(size_t offset, size_t length = 1)
-			{
-				if ((offset >= Allocation::getLength()) || (length > Allocation::getLength() - offset))
-				{
-					return false;
-				}
-
-				if (length != 0)
-				{
-					shiftLeft(offset, length);
-					if (!Allocation::decreaseLength(length))
-					{
-						for (size_t n = Allocation::getLength() - length; n < Allocation::getLength(); n++)
-						{
-							(*this)[n] = Type();
-						}
-					}
-				}
-
-				return true;
-			}
-
-			constexpr bool remove(size_t offset, Type &value)
+			[[nodiscard]]
+			constexpr Ash::Error::Value get(size_t offset, Type &value) const
 			{
 				if (offset >= Allocation::getLength())
 				{
-					return false;
+					return Ash::Memory::Error::outOfBound;
+				}
+
+				value = (*this)[offset];
+
+				return Ash::Error::none;
+			}
+
+			template
+			<
+				typename VALUE_TYPE,
+				typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsSame<std::remove_cvref_t<VALUE_TYPE>, Type>,
+				                                 Ash::Type::Requirement::IsClass<std::remove_cvref_t<VALUE_TYPE>, Type>>::IsValid
+			>
+			[[nodiscard]]
+			constexpr Ash::Error::Value set(size_t offset, VALUE_TYPE &&value)
+			{
+				if (offset > Allocation::getLength())
+				{
+					return Ash::Memory::Error::outOfBound;
+				}
+
+				if (offset == Allocation::getLength())
+				{
+					if constexpr (Allocation::isFixedLength)
+					{
+						return Ash::Memory::Error::lengthIsFixed;
+					}
+					else
+					{
+						return append(std::forward<VALUE_TYPE>(value));
+					}
+				}
+
+				(*this)[offset] = std::forward<VALUE_TYPE>(value);
+
+				return Ash::Error::none;
+			}
+
+			[[nodiscard]]
+			constexpr Ash::Error::Value set(size_t offset, View<Type> value)
+			{
+				return Allocation::set(offset, value.at(0), value.getLength());
+			}
+
+			template
+			<
+				typename VALUE_TYPE,
+				typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsSame<std::remove_cvref_t<VALUE_TYPE>, Type>,
+				                                 Ash::Type::Requirement::IsClass<std::remove_cvref_t<VALUE_TYPE>, Type>>::IsValid
+			>
+			[[nodiscard]]
+			constexpr Ash::Error::Value insert(size_t offset, VALUE_TYPE &&value)
+			{
+				return Allocation::insert(offset, std::forward<VALUE_TYPE>(value));
+			}
+
+			[[nodiscard]]
+			constexpr Ash::Error::Value insert(size_t offset, View<Type> value)
+			{
+				return Allocation::insert(offset, value.at(0), value.getLength());
+			}
+
+			template
+			<
+				typename VALUE_TYPE,
+				typename = Ash::Type::CheckIfAny<Ash::Type::Requirement::IsSame<std::remove_cvref_t<VALUE_TYPE>, Type>,
+				                                 Ash::Type::Requirement::IsClass<std::remove_cvref_t<VALUE_TYPE>, Type>>::IsValid
+			>
+			[[nodiscard]]
+			constexpr Ash::Error::Value append(VALUE_TYPE &&value)
+			{
+				return Allocation::append(std::forward<VALUE_TYPE>(value));
+			}
+
+			[[nodiscard]]
+			constexpr Ash::Error::Value append(View<Type> value)
+			{
+				return Allocation::append(value.at(0), value.getLength());
+			}
+
+			[[nodiscard]]
+			constexpr Ash::Error::Value remove(size_t offset, size_t length = 1)
+			{
+				return Allocation::remove(offset, length);
+			}
+
+			[[nodiscard]]
+			constexpr Ash::Error::Value remove(size_t offset, Type &value)
+			{
+				if (offset >= Allocation::getLength())
+				{
+					return Ash::Memory::Error::outOfBound;
 				}
 
 				value = std::move((*this)[offset]);
@@ -526,20 +492,58 @@ namespace Ash
 				return Allocation::getLength();
 			}
 
-			constexpr void shiftLeft(size_t offset, size_t count)
+			[[nodiscard]]
+			constexpr Ash::Error::Value shiftLeft(size_t offset, size_t count)
 			{
-				if ((count > 0) && (offset < Allocation::getLength()) && (count < Allocation::getLength() - offset))
+				if (count == 0)
 				{
-					Ash::Memory::moveForward(&(*this)[offset], &(*this)[offset + count], Allocation::getLength() - count - offset);
+					return Ash::Error::none;
 				}
+
+				if (offset >= Allocation::getLength())
+				{
+					return Ash::Memory::Error::outOfBound;
+				}
+
+				if (count > Allocation::getLength() - offset)
+				{
+					count = Allocation::getLength() - offset;
+				}
+
+				Ash::Memory::moveForward(&(*this)[offset], &(*this)[offset + count], Allocation::getLength() - count - offset);
+				if (count > Allocation::getLength() - count - offset)
+				{
+					Ash::Memory::clear(&(*this)[Allocation::getLength() - count], offset + 2 * count - Allocation::getLength());
+				}
+
+				return Ash::Error::none;
 			}
 
-			constexpr void shiftRight(size_t offset, size_t count)
+			[[nodiscard]]
+			constexpr Ash::Error::Value shiftRight(size_t offset, size_t count)
 			{
-				if ((count > 0) && (offset < Allocation::getLength()) && (count < Allocation::getLength() - offset))
+				if (count == 0)
 				{
-					Ash::Memory::moveBackward(&(*this)[offset + count], &(*this)[offset], Allocation::getLength() - count - offset);
+					return Ash::Error::none;
 				}
+
+				if (offset >= Allocation::getLength())
+				{
+					return Ash::Memory::Error::outOfBound;
+				}
+
+				if (count > Allocation::getLength() - offset)
+				{
+					count = Allocation::getLength() - offset;
+				}
+
+				Ash::Memory::moveBackward(&(*this)[offset + count], &(*this)[offset], Allocation::getLength() - count - offset);
+				if (count > Allocation::getLength() - count - offset)
+				{
+					Ash::Memory::clear(&(*this)[Allocation::getLength() - count], offset + 2 * count - Allocation::getLength());
+				}
+
+				return Ash::Error::none;
 			}
 
 			constexpr void rotateLeft()
@@ -784,27 +788,6 @@ namespace Ash
 				{
 					return iterateFrom(from) + iterateTo(from + count - Allocation::getLength() - 1);
 				}
-			}
-
-		protected:
-			template
-			<
-				typename ALLOCATION_TYPE = typename Allocation::Type,
-				typename = Ash::Type::IsNotConstant<ALLOCATION_TYPE>
-			>
-			constexpr Type &operator [] (size_t offset)
-			{
-				return Allocation::getContent()[offset];
-			}
-
-			constexpr const Type &operator [] (size_t offset) const
-			{
-				return Allocation::getContent()[offset];
-			}
-
-			constexpr void copyForward(size_t offset, View<Type> value)
-			{
-				Ash::Memory::copyForward(&(*this)[offset], value.at(0), value.getLength());
 			}
 		};
 	}
