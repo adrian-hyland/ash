@@ -58,8 +58,8 @@ namespace Ash
 					static inline Node  *m_Head = nullptr;
 					static inline size_t m_Count = 0;
 
-					struct Node *m_Previous;
-					struct Node *m_Next;
+					Node *m_Previous;
+					Node *m_Next;
 				};
 				template
 				<
