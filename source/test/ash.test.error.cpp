@@ -144,14 +144,6 @@ namespace Ash
 				constexpr Ash::Error::Value warning  = Ash::Error::Value(Ash::Test::Error::Category::general, -1);
 				constexpr Ash::Error::Value critical = Ash::Error::Value(Ash::Test::Error::Category::general, 1);
 
-				static Ash::Test::Assertion code()
-				{
-					TEST_IS_EQ((int)critical, 1);
-					TEST_IS_EQ((int)warning, -1);
-
-					return {};
-				}
-
 				static Ash::Test::Assertion equals()
 				{
 					TEST_IS_EQ(Ash::Error::none, Ash::Error::none);
@@ -328,7 +320,6 @@ namespace Ash
 
 			TEST_CASE(Ash::Test::Error::Exception::core),
 
-			TEST_CASE(Ash::Test::Error::Value::code),
 			TEST_CASE(Ash::Test::Error::Value::equals),
 			TEST_CASE(Ash::Test::Error::Value::getCategory),
 			TEST_CASE(Ash::Test::Error::Value::getCode),

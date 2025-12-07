@@ -211,13 +211,6 @@ namespace Ash
 
 			constexpr bool operator == (const Value &value) const { return (m_ErrorCategory == value.m_ErrorCategory) && (m_ErrorCode == value.m_ErrorCode); }
 
-			template
-			<
-				typename VALUE,
-				typename = Ash::Type::IsInteger<VALUE>
-			>
-			constexpr operator VALUE () const { return VALUE(m_ErrorCode); }
-
 			constexpr bool hasErrorSet() const { return m_ErrorCategory != nullptr; }
 
 			constexpr const Ash::Error::Category *getCategory() const { return m_ErrorCategory; }
