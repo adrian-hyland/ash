@@ -217,7 +217,7 @@ namespace Ash
 			{
 				if (offset >= Allocation::getLength())
 				{
-					return Ash::Memory::Error::outOfBound;
+					return Ash::Memory::Error::readAccessOutOfBound;
 				}
 
 				value = (*this)[offset];
@@ -236,7 +236,7 @@ namespace Ash
 			{
 				if (offset > Allocation::getLength())
 				{
-					return Ash::Memory::Error::outOfBound;
+					return Ash::Memory::Error::writeAccessOutOfBound;
 				}
 
 				if (offset == Allocation::getLength())
@@ -309,7 +309,7 @@ namespace Ash
 			{
 				if (offset >= Allocation::getLength())
 				{
-					return Ash::Memory::Error::outOfBound;
+					return Ash::Memory::Error::writeAccessOutOfBound;
 				}
 
 				value = std::move((*this)[offset]);
@@ -502,7 +502,7 @@ namespace Ash
 
 				if (offset >= Allocation::getLength())
 				{
-					return Ash::Memory::Error::outOfBound;
+					return Ash::Memory::Error::writeAccessOutOfBound;
 				}
 
 				if (count > Allocation::getLength() - offset)
@@ -529,7 +529,7 @@ namespace Ash
 
 				if (offset >= Allocation::getLength())
 				{
-					return Ash::Memory::Error::outOfBound;
+					return Ash::Memory::Error::writeAccessOutOfBound;
 				}
 
 				if (count > Allocation::getLength() - offset)

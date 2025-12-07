@@ -130,7 +130,7 @@ namespace Ash
 
 					if (offset > maxCapacity)
 					{
-						return Ash::Memory::Error::outOfBound;
+						return Ash::Memory::Error::writeAccessOutOfBound;
 					}
 
 					size_t length = 0;

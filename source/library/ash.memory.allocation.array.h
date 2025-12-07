@@ -195,13 +195,13 @@ namespace Ash
 				[[nodiscard]]
 				constexpr Ash::Error::Value reallocate(size_t capacity, VALUE_TYPE &&value, size_t retainStartLength, size_t retainEndLength)
 				{
-					Ash::Error::assert(retainStartLength <= m_Length, Ash::Memory::Error::outOfBound);
-					Ash::Error::assert(retainEndLength <= m_Length, Ash::Memory::Error::outOfBound);
-					Ash::Error::assert(retainEndLength <= m_Length - retainStartLength, Ash::Memory::Error::outOfBound);
-					Ash::Error::assert(retainStartLength <= capacity, Ash::Memory::Error::outOfBound);
-					Ash::Error::assert(retainEndLength <= capacity, Ash::Memory::Error::outOfBound);
-					Ash::Error::assert(retainEndLength <= capacity - retainStartLength, Ash::Memory::Error::outOfBound);
-					Ash::Error::assert(capacity - retainStartLength - retainEndLength >= 1, Ash::Memory::Error::outOfBound);
+					Ash::Error::assert(retainStartLength <= m_Length, Ash::Memory::Error::readAccessOutOfBound);
+					Ash::Error::assert(retainEndLength <= m_Length, Ash::Memory::Error::readAccessOutOfBound);
+					Ash::Error::assert(retainEndLength <= m_Length - retainStartLength, Ash::Memory::Error::readAccessOutOfBound);
+					Ash::Error::assert(retainStartLength <= capacity, Ash::Memory::Error::readAccessOutOfBound);
+					Ash::Error::assert(retainEndLength <= capacity, Ash::Memory::Error::readAccessOutOfBound);
+					Ash::Error::assert(retainEndLength <= capacity - retainStartLength, Ash::Memory::Error::readAccessOutOfBound);
+					Ash::Error::assert(capacity - retainStartLength - retainEndLength >= 1, Ash::Memory::Error::readAccessOutOfBound);
 
 					Type *previousContent = m_Content;
 					size_t previousLength = m_Length;
@@ -249,13 +249,13 @@ namespace Ash
 				[[nodiscard]]
 				constexpr Ash::Error::Value reallocate(size_t capacity, const Type *content, size_t contentLength, size_t retainStartLength, size_t retainEndLength)
 				{
-					Ash::Error::assert(retainStartLength <= m_Length, Ash::Memory::Error::outOfBound);
-					Ash::Error::assert(retainEndLength <= m_Length, Ash::Memory::Error::outOfBound);
-					Ash::Error::assert(retainEndLength <= m_Length - retainStartLength, Ash::Memory::Error::outOfBound);
-					Ash::Error::assert(retainStartLength <= capacity, Ash::Memory::Error::outOfBound);
-					Ash::Error::assert(retainEndLength <= capacity, Ash::Memory::Error::outOfBound);
-					Ash::Error::assert(retainEndLength <= capacity - retainStartLength, Ash::Memory::Error::outOfBound);
-					Ash::Error::assert(capacity - retainStartLength - retainEndLength >= contentLength, Ash::Memory::Error::outOfBound);
+					Ash::Error::assert(retainStartLength <= m_Length, Ash::Memory::Error::readAccessOutOfBound);
+					Ash::Error::assert(retainEndLength <= m_Length, Ash::Memory::Error::readAccessOutOfBound);
+					Ash::Error::assert(retainEndLength <= m_Length - retainStartLength, Ash::Memory::Error::readAccessOutOfBound);
+					Ash::Error::assert(retainStartLength <= capacity, Ash::Memory::Error::readAccessOutOfBound);
+					Ash::Error::assert(retainEndLength <= capacity, Ash::Memory::Error::readAccessOutOfBound);
+					Ash::Error::assert(retainEndLength <= capacity - retainStartLength, Ash::Memory::Error::readAccessOutOfBound);
+					Ash::Error::assert(capacity - retainStartLength - retainEndLength >= contentLength, Ash::Memory::Error::readAccessOutOfBound);
 
 					Type *previousContent = m_Content;
 					size_t previousLength = m_Length;
@@ -389,7 +389,7 @@ namespace Ash
 
 					if (offset > m_Length)
 					{
-						return Ash::Memory::Error::outOfBound;
+						return Ash::Memory::Error::writeAccessOutOfBound;
 					}
 
 					size_t length = 0;
@@ -426,7 +426,7 @@ namespace Ash
 				{
 					if (offset > m_Length)
 					{
-						return Ash::Memory::Error::outOfBound;
+						return Ash::Memory::Error::writeAccessOutOfBound;
 					}
 
 					size_t length = 0;
@@ -468,7 +468,7 @@ namespace Ash
 
 					if (offset > m_Length)
 					{
-						return Ash::Memory::Error::outOfBound;
+						return Ash::Memory::Error::writeAccessOutOfBound;
 					}
 
 					size_t length;
@@ -583,7 +583,7 @@ namespace Ash
 
 					if ((offset > m_Length) || (length > m_Length - offset))
 					{
-						return Ash::Memory::Error::outOfBound;
+						return Ash::Memory::Error::writeAccessOutOfBound;
 					}
 
 					if ((offset == 0) && (length == m_Length))

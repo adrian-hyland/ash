@@ -158,7 +158,7 @@ namespace Ash
 
 					if (offset > m_Length)
 					{
-						return Ash::Memory::Error::outOfBound;
+						return Ash::Memory::Error::writeAccessOutOfBound;
 					}
 
 					size_t length = 0;
@@ -192,7 +192,7 @@ namespace Ash
 				{
 					if (offset > m_Length)
 					{
-						return Ash::Memory::Error::outOfBound;
+						return Ash::Memory::Error::writeAccessOutOfBound;
 					}
 
 					size_t length = 0;
@@ -232,7 +232,7 @@ namespace Ash
 
 					if (offset > m_Length)
 					{
-						return Ash::Memory::Error::outOfBound;
+						return Ash::Memory::Error::writeAccessOutOfBound;
 					}
 
 					size_t length;
@@ -338,7 +338,7 @@ namespace Ash
 				{
 					if ((offset > m_Length) || (length > m_Length - offset))
 					{
-						return Ash::Memory::Error::outOfBound;
+						return Ash::Memory::Error::writeAccessOutOfBound;
 					}
 
 					Ash::Memory::moveForward(&m_Content[offset], &m_Content[offset + length], m_Length - offset - length);

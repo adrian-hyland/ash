@@ -317,7 +317,7 @@ namespace Ash
 						}
 						TEST_IS_EQ(Ash::Test::Memory::Trace::getAllocatedCount(), length);
 
-						TEST_IS_EQ(allocation2.set(1, &allocation1[0], allocation1.getLength()), Ash::Memory::Error::outOfBound);
+						TEST_IS_EQ(allocation2.set(1, &allocation1[0], allocation1.getLength()), Ash::Memory::Error::writeAccessOutOfBound);
 
 						TEST_IS_EQ(allocation2.set(0, &allocation1[0], allocation1.getLength()), Ash::Error::none);
 						TEST_IS_EQ(allocation2.getLength(), length);
@@ -393,7 +393,7 @@ namespace Ash
 						}
 						TEST_IS_EQ(Ash::Test::Memory::Trace::getAllocatedCount(), length);
 
-						TEST_IS_EQ(allocation.set(allocation.getLength() + 1, &allocation[0], allocation.getLength()), Ash::Memory::Error::outOfBound);
+						TEST_IS_EQ(allocation.set(allocation.getLength() + 1, &allocation[0], allocation.getLength()), Ash::Memory::Error::writeAccessOutOfBound);
 
 						size_t offset = allocation.getCapacity() - allocation.getLength();
 						if (offset > allocation.getLength())
@@ -460,7 +460,7 @@ namespace Ash
 						Array allocation;
 
 						TEST_IS_ZERO(allocation.getLength());
-						TEST_IS_EQ(allocation.insert(1, Type(123)), Ash::Memory::Error::outOfBound);
+						TEST_IS_EQ(allocation.insert(1, Type(123)), Ash::Memory::Error::writeAccessOutOfBound);
 
 						TEST_IS_EQ(allocation.insert(0, Type(123)), Ash::Error::none);
 						TEST_IS_EQ(allocation.getLength(), 1);
@@ -498,7 +498,7 @@ namespace Ash
 						}
 						TEST_IS_EQ(Ash::Test::Memory::Trace::getAllocatedCount(), length);
 
-						TEST_IS_EQ(allocation2.insert(1, &allocation1[0], allocation1.getLength()), Ash::Memory::Error::outOfBound);
+						TEST_IS_EQ(allocation2.insert(1, &allocation1[0], allocation1.getLength()), Ash::Memory::Error::writeAccessOutOfBound);
 
 						TEST_IS_EQ(allocation2.insert(0, &allocation1[0], allocation1.getLength()), Ash::Error::none);
 						TEST_IS_EQ(allocation2.getLength(), length);
@@ -558,7 +558,7 @@ namespace Ash
 						}
 						TEST_IS_EQ(Ash::Test::Memory::Trace::getAllocatedCount(), length);
 
-						TEST_IS_EQ(allocation.insert(allocation.getLength() + 1, &allocation[0], allocation.getLength()), Ash::Memory::Error::outOfBound);
+						TEST_IS_EQ(allocation.insert(allocation.getLength() + 1, &allocation[0], allocation.getLength()), Ash::Memory::Error::writeAccessOutOfBound);
 
 						size_t length2 = allocation.getCapacity() - allocation.getLength();
 						if (length2 > allocation.getLength())
@@ -815,9 +815,9 @@ namespace Ash
 						}
 						TEST_IS_EQ(Ash::Test::Memory::Trace::getAllocatedCount(), length);
 
-						TEST_IS_EQ(allocation.remove(length - 1, 2), Ash::Memory::Error::outOfBound);
-						TEST_IS_EQ(allocation.remove(length, 1), Ash::Memory::Error::outOfBound);
-						TEST_IS_EQ(allocation.remove(0, length + 1), Ash::Memory::Error::outOfBound);
+						TEST_IS_EQ(allocation.remove(length - 1, 2), Ash::Memory::Error::writeAccessOutOfBound);
+						TEST_IS_EQ(allocation.remove(length, 1), Ash::Memory::Error::writeAccessOutOfBound);
+						TEST_IS_EQ(allocation.remove(0, length + 1), Ash::Memory::Error::writeAccessOutOfBound);
 
 						TEST_IS_EQ(allocation.remove(0), Ash::Error::none);
 						TEST_IS_EQ(allocation.getLength(), length - 1);
@@ -1291,7 +1291,7 @@ namespace Ash
 						}
 						TEST_IS_EQ(Ash::Test::Memory::Trace::getAllocatedCount(), length);
 
-						TEST_IS_EQ(allocation2.set(1, &allocation1[0], allocation1.getLength()), Ash::Memory::Error::outOfBound);
+						TEST_IS_EQ(allocation2.set(1, &allocation1[0], allocation1.getLength()), Ash::Memory::Error::writeAccessOutOfBound);
 
 						TEST_IS_EQ(allocation2.set(0, &allocation1[0], allocation1.getLength()), Ash::Error::none);
 						TEST_IS_EQ(allocation2.getLength(), length);
@@ -1393,7 +1393,7 @@ namespace Ash
 						}
 						TEST_IS_EQ(Ash::Test::Memory::Trace::getAllocatedCount(), length);
 
-						TEST_IS_EQ(allocation.set(allocation.getLength() + 1, &allocation[0], allocation.getLength()), Ash::Memory::Error::outOfBound);
+						TEST_IS_EQ(allocation.set(allocation.getLength() + 1, &allocation[0], allocation.getLength()), Ash::Memory::Error::writeAccessOutOfBound);
 
 						size_t offset = allocation.getCapacity() - allocation.getLength();
 						if (offset > allocation.getLength())
@@ -1480,7 +1480,7 @@ namespace Ash
 						ArrayBuffer allocation;
 
 						TEST_IS_ZERO(allocation.getLength());
-						TEST_IS_EQ(allocation.insert(1, Type(123)), Ash::Memory::Error::outOfBound);
+						TEST_IS_EQ(allocation.insert(1, Type(123)), Ash::Memory::Error::writeAccessOutOfBound);
 
 						TEST_IS_EQ(allocation.insert(0, Type(123)), Ash::Error::none);
 						TEST_IS_EQ(allocation.getLength(), 1);
@@ -1530,7 +1530,7 @@ namespace Ash
 						}
 						TEST_IS_EQ(Ash::Test::Memory::Trace::getAllocatedCount(), length);
 
-						TEST_IS_EQ(allocation2.insert(1, &allocation1[0], allocation1.getLength()), Ash::Memory::Error::outOfBound);
+						TEST_IS_EQ(allocation2.insert(1, &allocation1[0], allocation1.getLength()), Ash::Memory::Error::writeAccessOutOfBound);
 
 						TEST_IS_EQ(allocation2.insert(0, &allocation1[0], allocation1.getLength()), Ash::Error::none);
 						TEST_IS_EQ(allocation2.getLength(), length);
@@ -1684,7 +1684,7 @@ namespace Ash
 						}
 						TEST_IS_EQ(Ash::Test::Memory::Trace::getAllocatedCount(), length);
 
-						TEST_IS_EQ(allocation.insert(allocation.getLength() + 1, &allocation[0], allocation.getLength()), Ash::Memory::Error::outOfBound);
+						TEST_IS_EQ(allocation.insert(allocation.getLength() + 1, &allocation[0], allocation.getLength()), Ash::Memory::Error::writeAccessOutOfBound);
 
 						size_t length2 = allocation.getCapacity() - allocation.getLength();
 						if (length2 > allocation.getLength())
@@ -2007,9 +2007,9 @@ namespace Ash
 						}
 						TEST_IS_EQ(Ash::Test::Memory::Trace::getAllocatedCount(), length);
 
-						TEST_IS_EQ(allocation.remove(length - 1, 2), Ash::Memory::Error::outOfBound);
-						TEST_IS_EQ(allocation.remove(length, 1), Ash::Memory::Error::outOfBound);
-						TEST_IS_EQ(allocation.remove(0, length + 1), Ash::Memory::Error::outOfBound);
+						TEST_IS_EQ(allocation.remove(length - 1, 2), Ash::Memory::Error::writeAccessOutOfBound);
+						TEST_IS_EQ(allocation.remove(length, 1), Ash::Memory::Error::writeAccessOutOfBound);
+						TEST_IS_EQ(allocation.remove(0, length + 1), Ash::Memory::Error::writeAccessOutOfBound);
 
 						TEST_IS_EQ(allocation.remove(0), Ash::Error::none);
 						TEST_IS_EQ(allocation.getLength(), length - 1);
@@ -2325,7 +2325,7 @@ namespace Ash
 
 						TEST_IS_EQ(allocation1.setLength(CAPACITY), Ash::Error::none);
 
-						TEST_IS_EQ(allocation2.set(1, &allocation1[0], allocation1.getLength()), Ash::Memory::Error::outOfBound);
+						TEST_IS_EQ(allocation2.set(1, &allocation1[0], allocation1.getLength()), Ash::Memory::Error::writeAccessOutOfBound);
 
 						TEST_IS_EQ(allocation2.setLength(CAPACITY), Ash::Error::none);
 						for (size_t n = 0; n < CAPACITY; n++)
@@ -2426,7 +2426,7 @@ namespace Ash
 							TEST_IS_EQ(*allocation[0], 123);
 							TEST_IS_EQ(*allocation[1], 123);
 							TEST_IS_EQ(*allocation[2], 456);
-							TEST_IS_EQ(allocation.set(4, &allocation[0], allocation.getLength()), Ash::Memory::Error::outOfBound);
+							TEST_IS_EQ(allocation.set(4, &allocation[0], allocation.getLength()), Ash::Memory::Error::writeAccessOutOfBound);
 						}
 
 						return {};
@@ -2436,7 +2436,7 @@ namespace Ash
 					{
 						Buffer allocation;
 
-						TEST_IS_EQ(allocation.insert(1, Type(123)), Ash::Memory::Error::outOfBound);
+						TEST_IS_EQ(allocation.insert(1, Type(123)), Ash::Memory::Error::writeAccessOutOfBound);
 
 						for (size_t n = 0; n < CAPACITY; n++)
 						{
@@ -2487,7 +2487,7 @@ namespace Ash
 						}
 						TEST_IS_EQ(Ash::Test::Memory::Trace::getAllocatedCount(), CAPACITY + CAPACITY / 2);
 
-						TEST_IS_EQ(allocation1.insert(allocation1.getLength() + 1, &allocation2[0], allocation2.getLength()), Ash::Memory::Error::outOfBound);
+						TEST_IS_EQ(allocation1.insert(allocation1.getLength() + 1, &allocation2[0], allocation2.getLength()), Ash::Memory::Error::writeAccessOutOfBound);
 						TEST_IS_EQ(allocation1.insert(0, Type(123)), Ash::Error::none);
 						TEST_IS_EQ(allocation2.insert(0, &allocation1[0], allocation1.getLength()), Ash::Memory::Error::capacityOverrun);
 
@@ -2591,7 +2591,7 @@ namespace Ash
 								TEST_IS_EQ(*allocation[n], int(456));
 							}
 
-							TEST_IS_EQ(allocation.insert(allocation.getLength() + 1, &allocation[0], allocation.getLength()), Ash::Memory::Error::outOfBound);
+							TEST_IS_EQ(allocation.insert(allocation.getLength() + 1, &allocation[0], allocation.getLength()), Ash::Memory::Error::writeAccessOutOfBound);
 							TEST_IS_EQ(allocation.insert(0, &allocation[0], allocation.getLength()), Ash::Memory::Error::capacityOverrun);
 
 							allocation.clear();
@@ -2740,9 +2740,9 @@ namespace Ash
 						}
 						TEST_IS_EQ(Ash::Test::Memory::Trace::getAllocatedCount(), CAPACITY);
 
-						TEST_IS_EQ(allocation.remove(CAPACITY - 1, 2), Ash::Memory::Error::outOfBound);
-						TEST_IS_EQ(allocation.remove(CAPACITY, 1), Ash::Memory::Error::outOfBound);
-						TEST_IS_EQ(allocation.remove(0, CAPACITY + 1), Ash::Memory::Error::outOfBound);
+						TEST_IS_EQ(allocation.remove(CAPACITY - 1, 2), Ash::Memory::Error::writeAccessOutOfBound);
+						TEST_IS_EQ(allocation.remove(CAPACITY, 1), Ash::Memory::Error::writeAccessOutOfBound);
+						TEST_IS_EQ(allocation.remove(0, CAPACITY + 1), Ash::Memory::Error::writeAccessOutOfBound);
 
 						TEST_IS_EQ(allocation.remove(0), Ash::Error::none);
 						TEST_IS_EQ(allocation.getLength(), CAPACITY - 1);
@@ -3011,7 +3011,7 @@ namespace Ash
 						Sequence allocation1;
 						Sequence allocation2;
 
-						TEST_IS_EQ(allocation2.set(CAPACITY + 1, &allocation1[0], allocation1.getLength()), Ash::Memory::Error::outOfBound);
+						TEST_IS_EQ(allocation2.set(CAPACITY + 1, &allocation1[0], allocation1.getLength()), Ash::Memory::Error::writeAccessOutOfBound);
 
 						for (size_t n = 0; n < CAPACITY; n++)
 						{
@@ -3263,7 +3263,7 @@ namespace Ash
 							TEST_IS_EQ(reference2[n], int(reference1.getLength() + n));
 						}
 
-						TEST_IS_EQ(reference1.set(reference1.getLength() + 1, &reference2[0], reference2.getLength()), Ash::Memory::Error::outOfBound);
+						TEST_IS_EQ(reference1.set(reference1.getLength() + 1, &reference2[0], reference2.getLength()), Ash::Memory::Error::writeAccessOutOfBound);
 						TEST_IS_EQ(reference1.set(1, &reference2[0], reference2.getLength()), Ash::Memory::Error::capacityOverrun);
 
 						TEST_IS_EQ(reference1.set(0, &reference2[0], reference2.getLength()), Ash::Error::none);
@@ -3307,7 +3307,7 @@ namespace Ash
 						int values[64];
 						Reference reference(values, sizeof(values) / sizeof(values[0]));
 
-						TEST_IS_EQ(reference.set(reference.getLength() + 1, &reference[0], reference.getLength()), Ash::Memory::Error::outOfBound);
+						TEST_IS_EQ(reference.set(reference.getLength() + 1, &reference[0], reference.getLength()), Ash::Memory::Error::writeAccessOutOfBound);
 						TEST_IS_EQ(reference.set(1, &reference[0], reference.getLength()), Ash::Memory::Error::capacityOverrun);
 						for (size_t n = 0; n < reference.getLength(); n++)
 						{

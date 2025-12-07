@@ -29,13 +29,14 @@ namespace Ash
 
 			static inline const Category category;
 
-			static constexpr Ash::Error::Value allocationFailure   = Ash::Error::Value(category, 0);
-			static constexpr Ash::Error::Value outOfBound          = Ash::Error::Value(category, 1);
-			static constexpr Ash::Error::Value lengthIsFixed       = Ash::Error::Value(category, 2);
-			static constexpr Ash::Error::Value lengthOverflow      = Ash::Error::Value(category, 3);
-			static constexpr Ash::Error::Value capacityIsFixed     = Ash::Error::Value(category, 4);
-			static constexpr Ash::Error::Value capacityOverrun     = Ash::Error::Value(category, 5);
-			static constexpr Ash::Error::Value capacityBelowLength = Ash::Error::Value(category, 6);
+			static constexpr Ash::Error::Value allocationFailure     = Ash::Error::Value(category, 0);
+			static constexpr Ash::Error::Value readAccessOutOfBound  = Ash::Error::Value(category, 1);
+			static constexpr Ash::Error::Value writeAccessOutOfBound = Ash::Error::Value(category, 2);
+			static constexpr Ash::Error::Value lengthIsFixed         = Ash::Error::Value(category, 3);
+			static constexpr Ash::Error::Value lengthOverflow        = Ash::Error::Value(category, 4);
+			static constexpr Ash::Error::Value capacityIsFixed       = Ash::Error::Value(category, 5);
+			static constexpr Ash::Error::Value capacityOverrun       = Ash::Error::Value(category, 6);
+			static constexpr Ash::Error::Value capacityBelowLength   = Ash::Error::Value(category, 7);
 
 		protected:
 			static inline bool getErrorCodeDescription(Code code, Ash::Error::Code::Description description)
@@ -43,7 +44,8 @@ namespace Ash
 				static const char *errorDescriptions[] =
 				{
 					"Allocation failure",
-					"Out of bound",
+					"Read access out of bound",
+					"Write access out of bound",
 					"Length is fixed",
 					"Length overflow",
 					"Capacity is fixed",
