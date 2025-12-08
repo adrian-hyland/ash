@@ -10,7 +10,7 @@ namespace Ash
 	{
 		class Ascii : Ash::Generic::Encoding
 		{
-		public:		
+		public:
 			using Code = char;
 
 			static constexpr size_t minSize = 1;
@@ -24,7 +24,7 @@ namespace Ash
 			class Character : public Ash::Memory::Buffer<Code, maxSize>
 			{
 			public:
-				static constexpr Ash::Unicode::Character replacement = '?';
+				static constexpr Code replacementCode = '?';
 
 				constexpr Character() : Ash::Memory::Buffer<Code, maxSize>() {}
 
@@ -39,61 +39,79 @@ namespace Ash
 					return character;
 				}
 
-				constexpr operator Ash::Unicode::Character () const { return (getLength() > 0) ? (*this)[0] : Ash::Unicode::Character::replacement; }
+				constexpr operator Ash::Unicode::Character () const { return (getLength() > 0) ? (*this)[0] : '\0'; }
 
 			protected:
 				constexpr void set(Ash::Unicode::Character character)
 				{
-					Ash::Unicode::Character::Value value = character;
-					if (value < 0x80)
-					{
-						setLength(1);
-						(*this)[0] = value;
-					}
-					else
-					{
-						setLength(0);
-					}
+					setLength(1).assertErrorNotSet();
+					(*this)[0] = (Ash::Unicode::Character::Value(character) < 0x80) ? Ash::Unicode::Character::Value(character) : Ash::Unicode::Character::Value(replacementCode);
 				}
 
-				constexpr size_t set(Code code)
+				[[nodiscard]]
+				constexpr Ash::Error::Value set(Code code)
 				{
-					setLength(1);
+					setLength(1).assertErrorNotSet();
 					(*this)[0] = code;
-					return 1;
+					return Ash::Error::none;
 				}
 
 				friend Ascii;
 			};
 
-			static constexpr size_t decodeNext(Ash::Memory::View<Code> value, size_t offset, Character &character)
+			[[nodiscard]]
+			static constexpr Ash::Error::Value decodeNext(Ash::Memory::View<Code> value, size_t offset, Character &character)
 			{
 				Code code = 0;
+				Ash::Error::Value error = getNextCode(value, offset, code);
+				if (!error.hasErrorSet())
+				{
+					if (code >= 0)
+					{
+						return character.set(code);
+					}
+					else
+					{
+						error = Ash::Encoding::Error::invalidCodeUnit;
+					}
+				}
 
-				if (value.get(offset, code) && (code >= 0))
-				{
-					return character.set(code);
-				}
-				else
-				{
-					character.clear();
-					return 0;
-				}
+				character.clear();
+				return error;
 			}
 
-			static constexpr size_t decodePrevious(Ash::Memory::View<Code> value, size_t offset, Character &character)
+			[[nodiscard]]
+			static constexpr Ash::Error::Value decodePrevious(Ash::Memory::View<Code> value, size_t offset, Character &character)
 			{
 				Code code = 0;
+				Ash::Error::Value error = getPreviousCode(value, offset, code);
+				if (!error.hasErrorSet())
+				{
+					if (code >= 0)
+					{
+						return character.set(code);
+					}
+					else
+					{
+						error = Ash::Encoding::Error::invalidCodeUnit;
+					}
+				}
 
-				if ((offset > 0) && value.get(--offset, code) && (code >= 0))
-				{
-					return character.set(code);
-				}
-				else
-				{
-					character.clear();
-					return 0;
-				}
+				character.clear();
+				return error;
+			}
+
+		protected:
+			[[nodiscard]]
+			static constexpr Ash::Error::Value getNextCode(Ash::Memory::View<Code> value, size_t &offset, Code &code)
+			{
+				return value.get(offset++, code);
+			}
+
+			[[nodiscard]]
+			static constexpr Ash::Error::Value getPreviousCode(Ash::Memory::View<Code> value, size_t &offset, Code &code)
+			{
+				return (offset != 0) ? value.get(--offset, code) : Ash::Memory::Error::readAccessOutOfBound;
 			}
 
 		private:
