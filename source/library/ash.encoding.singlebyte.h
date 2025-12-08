@@ -35,7 +35,7 @@ namespace Ash
 
 				static constexpr Ash::Unicode::Character getCharacter(Code code) { return toUnicode.convert(code); }
 
-				static constexpr Code getCode(Ash::Unicode::Character character, Code replacement = '?') { return fromUnicode.convert(character, replacement); }
+				static constexpr Code getCode(Ash::Unicode::Character character, Code replacement) { return fromUnicode.convert(character, replacement); }
 
 			protected:
 				class ToUnicode : public Ash::Memory::Sequence<Ash::Encoding::CodeUnit16, size>
@@ -68,65 +68,25 @@ namespace Ash
 							{
 								insert(Map(values[n], code));
 							}
+
 							code++;
 						}
 					}
 
 					constexpr bool isValid(Ash::Unicode::Character character) const
 					{
-						return convert(character, nullptr);
+						return (character < startCode) || (find(character) != nullptr);
 					}
 
-					constexpr Code convert(Ash::Unicode::Character character, Code replacement) const
-					{
-						Code code;
-						if (!convert(character, &code))
-						{
-							code = replacement;
-						}
-						return code;
-					}
-
-					constexpr bool convert(Ash::Unicode::Character character, Code *code) const
+					constexpr Code convert(Ash::Unicode::Character character, Code replacementCode) const
 					{
 						if (character < startCode)
 						{
-							if (code != nullptr)
-							{
-								*code = character;
-							}
-							return true;
+							return character;
 						}
 
-						size_t from = 0;
-						size_t to = m_Mappings.getLength();
-						
-						if ((character < m_Mappings.at(from)->from) || (character > m_Mappings.at(to - 1)->from))
-						{
-							return false;
-						}
-
-						while (to > from)
-						{
-							size_t middle = from + (to - from) / 2;
-							if (m_Mappings.at(middle)->from == character)
-							{
-								if (code != nullptr)
-								{
-									*code = m_Mappings.at(middle)->to;
-								}
-								return true;
-							}
-							else if (m_Mappings.at(middle)->from > character)
-							{
-								to = middle;
-							}
-							else
-							{
-								from = middle + 1;
-							}
-						}
-						return false;
+						const Code *code = find(character);
+						return (code != nullptr) ? *code : replacementCode;
 					}
 
 				protected:
@@ -139,6 +99,36 @@ namespace Ash
 						Ash::Encoding::CodeUnit16 from;
 						Code                      to;
 					};
+
+					constexpr const Code *find(Ash::Unicode::Character character) const
+					{
+						size_t from = 0;
+						size_t to = m_Mappings.getLength();
+
+						if ((character < m_Mappings.at(from)->from) || (character > m_Mappings.at(to - 1)->from))
+						{
+							return nullptr;
+						}
+
+						while (to > from)
+						{
+							size_t middle = from + (to - from) / 2;
+							if (m_Mappings.at(middle)->from == character)
+							{
+								return &m_Mappings.at(middle)->to;
+							}
+							else if (m_Mappings.at(middle)->from > character)
+							{
+								to = middle;
+							}
+							else
+							{
+								from = middle + 1;
+							}
+						}
+
+						return nullptr;
+					}
 
 					constexpr void insert(Map map)
 					{
@@ -175,7 +165,8 @@ namespace Ash
 								}
 							}
 						}
-						m_Mappings.insert(offset, map);
+
+						m_Mappings.insert(offset, map).assertErrorNotSet();
 					}
 
 				private:
@@ -207,7 +198,7 @@ namespace Ash
 
 				static constexpr Ash::Unicode::Character getCharacter(Code code) { return (code < startCode) ? code : Ash::Unicode::Character::replacement; }
 
-				static constexpr Code getCode(Ash::Unicode::Character character, Code replacementValue = '?') { return (character < startCode) ? Code(character) : replacementValue; }
+				static constexpr Code getCode(Ash::Unicode::Character character, Code replacement) { return (character < startCode) ? Code(character) : replacement; }
 			};
 
 			namespace Generic
@@ -218,6 +209,7 @@ namespace Ash
 			template
 			<
 				typename LOOKUP,
+				Code     REPLACEMENT_CODE = '?',
 				typename = Ash::Type::IsClass<LOOKUP, Ash::Encoding::SingleByte::Generic::Lookup>
 			>
 			class Table : Ash::Encoding::SingleByte::Generic::Table
@@ -238,7 +230,7 @@ namespace Ash
 				class Character : public Ash::Memory::Buffer<Code, maxSize>
 				{
 				public:
-					static constexpr Ash::Unicode::Character replacement = '?';
+					static constexpr Code replacementCode = REPLACEMENT_CODE;
 
 					constexpr Character() : Ash::Memory::Buffer<Code, maxSize>() {}
 
@@ -253,60 +245,82 @@ namespace Ash
 						return character;
 					}
 
-					constexpr operator Ash::Unicode::Character () const { return (getLength() > 0) ? Lookup::getCharacter((*this)[0]) : Ash::Unicode::Character(Ash::Unicode::Character::replacement); }
+					constexpr operator Ash::Unicode::Character () const
+					{
+						return (getLength() > 0) ? Lookup::getCharacter((*this)[0]) : Ash::Unicode::Character('\0');
+					}
 
 				protected:
 					constexpr void set(Ash::Unicode::Character character)
 					{
-						if (Lookup::isCharacterValid(character))
-						{
-							setLength(1);
-							(*this)[0] = Lookup::getCode(character);
-						}
-						else
-						{
-							setLength(0);
-						}
+						setLength(1).assertErrorNotSet();
+						(*this)[0] = Lookup::getCode(character, replacementCode);
 					}
 
-					constexpr size_t set(Code code)
+					[[nodiscard]]
+					constexpr Ash::Error::Value set(Code code)
 					{
-						setLength(1);
+						setLength(1).assertErrorNotSet();
 						(*this)[0] = code;
-						return 1;
+						return Ash::Error::none;
 					}
 
 					friend Table;
 				};
 
-				static constexpr size_t decodeNext(Ash::Memory::View<Code> value, size_t offset, Character &character)
+				[[nodiscard]]
+				static constexpr Ash::Error::Value decodeNext(Ash::Memory::View<Code> value, size_t offset, Character &character)
 				{
 					Code code = 0;
+					Ash::Error::Value error = getNextCode(value, offset, code);
+					if (!error.hasErrorSet())
+					{
+						if (Lookup::isCodeValid(code))
+						{
+							return character.set(code);
+						}
+						else
+						{
+							error = Ash::Encoding::Error::invalidCodeUnit;
+						}
+					}
 
-					if (value.get(offset, code) && Lookup::isCodeValid(code))
-					{
-						return character.set(code);
-					}
-					else
-					{
-						character.clear();
-						return 0;
-					}
+					character.clear();
+					return error;
 				}
 
-				static constexpr size_t decodePrevious(Ash::Memory::View<Code> value, size_t offset, Character &character)
+				[[nodiscard]]
+				static constexpr Ash::Error::Value decodePrevious(Ash::Memory::View<Code> value, size_t offset, Character &character)
 				{
 					Code code = 0;
+					Ash::Error::Value error = getPreviousCode(value, offset, code);
+					if (!error.hasErrorSet())
+					{
+						if (Lookup::isCodeValid(code))
+						{
+							return character.set(code);
+						}
+						else
+						{
+							error = Ash::Encoding::Error::invalidCodeUnit;
+						}
+					}
 
-					if ((offset > 0) && value.get(--offset, code) && Lookup::isCodeValid(code))
-					{
-						return character.set(code);
-					}
-					else
-					{
-						character.clear();
-						return 0;
-					}
+					character.clear();
+					return error;
+				}
+
+			protected:
+				[[nodiscard]]
+				static constexpr Ash::Error::Value getNextCode(Ash::Memory::View<Code> value, size_t &offset, Code &code)
+				{
+					return value.get(offset++, code);
+				}
+
+				[[nodiscard]]
+				static constexpr Ash::Error::Value getPreviousCode(Ash::Memory::View<Code> value, size_t &offset, Code &code)
+				{
+					return (offset != 0) ? value.get(--offset, code) : Ash::Memory::Error::readAccessOutOfBound;
 				}
 
 			private:
