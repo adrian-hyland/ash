@@ -24,8 +24,6 @@ namespace Ash
 			class Character : public Ash::Memory::Buffer<Code, maxSize>
 			{
 			public:
-				static constexpr Ash::Unicode::Character replacement = Ash::Unicode::Character::replacement;
-
 				constexpr Character() : Ash::Memory::Buffer<Code, maxSize>() {}
 
 				constexpr Character(Ash::Unicode::Character character) : Ash::Memory::Buffer<Code, maxSize>()
@@ -41,15 +39,31 @@ namespace Ash
 
 				constexpr operator Ash::Unicode::Character () const
 				{
-					if constexpr (maxSize == 2)
+					switch (getLength())
 					{
-						if (getLength() == 2)
-						{
-							return 0x10000 + ((getCode(0) & 0x3FF) << 10) + (getCode(1) & 0x3FF);
-						}
-					}
+						case 0:
+							return '\0';
+						break;
 
-					return (getLength() == 1) ? getCode(0) : Ash::Unicode::Character::replacement;
+						case 1:
+							return getCode(0);
+						break;
+
+						case 2:
+							if constexpr (maxSize == 2)
+							{
+								return 0x10000 + ((getCode(0) & 0x3FF) << 10) + (getCode(1) & 0x3FF);
+							}
+							else
+							{
+								return Ash::Unicode::Character::replacement;
+							}
+						break;
+
+						default:
+							return Ash::Unicode::Character::replacement;
+						break;
+					}
 				}
 
 			protected:
@@ -61,82 +75,87 @@ namespace Ash
 
 					if constexpr (maxSize == 1)
 					{
-						setLength(1);
+						setLength(maxSize).assertErrorNotSet();
 						(*this)[0] = value;
 					}
 					else if constexpr (maxSize == 2)
 					{
 						if (value < 0x10000)
 						{
-							setLength(1);
+							setLength(minSize).assertErrorNotSet();
 							(*this)[0] = value;
 						}
 						else
 						{
 							value = value - 0x10000;
-							setLength(2);
+							setLength(maxSize).assertErrorNotSet();
 							(*this)[0] = (value >> 10) | 0xD800;
 							(*this)[1] = (value & 0x3FF) | 0xDC00;
 						}
 					}
 				}
 
-				constexpr size_t set(Code code1)
+				[[nodiscard]]
+				constexpr Ash::Error::Value set(Code code1)
 				{
 					if constexpr (maxSize == 1)
 					{
-						if (((code1 >= 0) && (code1 < 0xD800)) || ((code1 >= 0xE000) && (code1 < 0x110000)))
+						if ((code1 < 0) || (code1 >= 0x110000) || ((code1 >= 0xD800) && (code1 < 0xE000)))
 						{
-							setLength(1);
-							(*this)[0] = code1;
-							return 1;
+							clear();
+							return Ash::Encoding::Error::invalidCodePoint;
 						}
+					}
 
-						clear();
-						return 0;
-					}
-					else
-					{
-						setLength(1);
-						(*this)[0] = code1;
-						return 1;
-					}
+					setLength(minSize).assertErrorNotSet();
+					(*this)[0] = code1;
+					return Ash::Error::none;
 				}
 
-				constexpr size_t set(Code code1, Code code2)
+				[[nodiscard]]
+				constexpr Ash::Error::Value set(Code code1, Code code2)
 				{
-					setLength(2);
+					setLength(maxSize).assertErrorNotSet();
 					(*this)[0] = code1;
 					(*this)[1] = code2;
-					return 2;
+					return Ash::Error::none;
 				}
 
 				friend Wide;
 			};
 
-			static constexpr size_t decodeNext(Ash::Memory::View<Code> value, size_t offset, Character &character)
+			[[nodiscard]]
+			static constexpr Ash::Error::Value decodeNext(Ash::Memory::View<Code> value, size_t offset, Character &character)
 			{
 				Code code1 = 0;
 				Code code2 = 0;
+				Ash::Error::Value error = Ash::Error::none;
 
 				if constexpr (maxSize == 1)
 				{
-					if (value.get(offset++, code1))
+					error = getNextCode(value, offset, code1);
+					if (!error.hasErrorSet())
 					{
 						return character.set(code1);
 					}
 				}
 				else if constexpr (maxSize == 2)
 				{
-					if (value.get(offset++, code1))
+					error = getNextCode(value, offset, code1);
+					if (!error.hasErrorSet())
 					{
 						if ((code1 & 0xFC00) == 0xD800)
 						{
-							if (value.get(offset++, code2))
+							error = getNextCode(value, offset, code2);
+							if (!error.hasErrorSet())
 							{
 								if ((code2 & 0xFC00) == 0xDC00)
 								{
 									return character.set(code1, code2);
+								}
+								else
+								{
+									error = Ash::Encoding::Error::invalidCodeUnit;
 								}
 							}
 						}
@@ -144,36 +163,49 @@ namespace Ash
 						{
 							return character.set(code1);
 						}
+						else
+						{
+							error = Ash::Encoding::Error::invalidCodeUnit;
+						}
 					}
 				}
 
 				character.clear();
-				return 0;
+				return error;
 			}
 
-			static constexpr size_t decodePrevious(Ash::Memory::View<Code> value, size_t offset, Character &character)
+			[[nodiscard]]
+			static constexpr Ash::Error::Value decodePrevious(Ash::Memory::View<Code> value, size_t offset, Character &character)
 			{
 				Code code1 = 0;
 				Code code2 = 0;
+				Ash::Error::Value error = Ash::Error::none;
 
 				if constexpr (maxSize == 1)
 				{
-					if ((offset > 0) && value.get(--offset, code1))
+					error = getPreviousCode(value, offset, code1);
+					if (!error.hasErrorSet())
 					{
 						return character.set(code1);
 					}
 				}
 				else if constexpr (maxSize == 2)
 				{
-					if ((offset > 0) && value.get(--offset, code1))
+					error = getPreviousCode(value, offset, code1);
+					if (!error.hasErrorSet())
 					{
 						if ((code1 & 0xFC00) == 0xDC00)
 						{
-							if ((offset > 0) && value.get(--offset, code2))
+							error = getPreviousCode(value, offset, code2);
+							if (!error.hasErrorSet())
 							{
 								if ((code2 & 0xFC00) == 0xD800)
 								{
 									return character.set(code2, code1);
+								}
+								else
+								{
+									error = Ash::Encoding::Error::invalidCodeUnit;
 								}
 							}
 						}
@@ -181,14 +213,31 @@ namespace Ash
 						{
 							return character.set(code1);
 						}
+						else
+						{
+							error = Ash::Encoding::Error::invalidCodeUnit;
+						}
 					}
 				}
 
 				character.clear();
-				return 0;
+				return error;
 			}
 
-		private:	
+		protected:
+			[[nodiscard]]
+			static constexpr Ash::Error::Value getNextCode(Ash::Memory::View<Code> value, size_t &offset, Code &code)
+			{
+				return value.get(offset++, code);
+			}
+
+			[[nodiscard]]
+			static constexpr Ash::Error::Value getPreviousCode(Ash::Memory::View<Code> value, size_t &offset, Code &code)
+			{
+				return (offset != 0) ? value.get(--offset, code) : Ash::Memory::Error::readAccessOutOfBound;
+			}
+
+		private:
 			Wide();
 		};
 	}
