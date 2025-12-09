@@ -26,7 +26,7 @@ namespace Ash
 
 				for (Ash::Encoding::Ascii::Code code : Ash::Iterate<Ash::Encoding::Ascii::Code>::between(1, 127))
 				{
-					TEST_IS_TRUE(asciiString.append(code));
+					TEST_IS_EQ(asciiString.append(code), Ash::Error::none);
 				}
 
 				offset = Ash::Encoding::find<Ash::Encoding::Ascii>(asciiString, 0, '\x01');
@@ -43,7 +43,7 @@ namespace Ash
 
 				offset = Ash::Encoding::find<Ash::Encoding::Ascii>(asciiString, asciiString.getLength(), '\x01');
 				TEST_IS_EQ(offset, asciiString.getLength());
-				
+
 				return {};
 			}
 
@@ -65,7 +65,7 @@ namespace Ash
 				{
 					if (Table::Lookup::isCodeValid(code))
 					{
-						TEST_IS_TRUE(string.append(code));
+						TEST_IS_EQ(string.append(Table::Lookup::getCharacter(code)), Ash::Error::none);
 					}
 				}
 
@@ -83,7 +83,7 @@ namespace Ash
 
 				offset = Ash::Encoding::find<Table>(string, string.getLength(), '\x01');
 				TEST_IS_EQ(offset, string.getLength());
-				
+
 				return {};
 			}
 
@@ -102,7 +102,7 @@ namespace Ash
 
 				for (Ash::Unicode::Character::Value value : Ash::Iterate<Ash::Unicode::Character::Value>::between(1, 0xD7FF) + Ash::Iterate<Ash::Unicode::Character::Value>::between(0xE000, Ash::Unicode::Character::maximum))
 				{
-					TEST_IS_TRUE(string.append(typename ENCODING::Character(value)));
+					TEST_IS_EQ(string.append(value), Ash::Error::none);
 				}
 
 				offset = Ash::Encoding::find<ENCODING>(string, 0, 0x00);
@@ -165,7 +165,7 @@ namespace Ash
 				}
 				offset = Ash::Encoding::find<ENCODING>(string, offset + ENCODING::minSize, Ash::Unicode::Character::maximum);
 				TEST_IS_EQ(offset, string.getLength());
-				
+
 				return {};
 			}
 
@@ -179,7 +179,7 @@ namespace Ash
 
 				for (Ash::Encoding::Ascii::Code code : Ash::Iterate<Ash::Encoding::Ascii::Code>::between(1, 127))
 				{
-					TEST_IS_TRUE(asciiString.append(code));
+					TEST_IS_EQ(asciiString.append(code), Ash::Error::none);
 				}
 
 				offset = Ash::Encoding::reverseFind<Ash::Encoding::Ascii>(asciiString, asciiString.getLength() - 1, '\x01');
@@ -196,7 +196,7 @@ namespace Ash
 
 				offset = Ash::Encoding::reverseFind<Ash::Encoding::Ascii>(asciiString, asciiString.getLength(), '\x7F');
 				TEST_IS_EQ(offset, asciiString.getLength());
-				
+
 				return {};
 			}
 
@@ -218,7 +218,7 @@ namespace Ash
 				{
 					if (Table::Lookup::isCodeValid(code))
 					{
-						TEST_IS_TRUE(string.append(code));
+						TEST_IS_EQ(string.append(Table::Lookup::getCharacter(code)), Ash::Error::none);
 					}
 				}
 
@@ -236,7 +236,7 @@ namespace Ash
 
 				offset = Ash::Encoding::reverseFind<Table>(string, string.getLength(), '\x01');
 				TEST_IS_EQ(offset, string.getLength());
-				
+
 				return {};
 			}
 
@@ -255,7 +255,7 @@ namespace Ash
 
 				for (Ash::Unicode::Character::Value value : Ash::Iterate<Ash::Unicode::Character::Value>::between(1, 0xD7FF) + Ash::Iterate<Ash::Unicode::Character::Value>::between(0xE000, Ash::Unicode::Character::maximum))
 				{
-					TEST_IS_TRUE(string.append(typename ENCODING::Character(value)));
+					TEST_IS_EQ(string.append(value), Ash::Error::none);
 				}
 
 				offset = Ash::Encoding::reverseFind<ENCODING>(string, string.getLength() - 1, 0x00);
@@ -318,7 +318,7 @@ namespace Ash
 				}
 				offset = Ash::Encoding::reverseFind<ENCODING>(string, offset - ENCODING::minSize, Ash::Unicode::Character::maximum);
 				TEST_IS_EQ(offset, string.getLength());
-				
+
 				return {};
 			}
 
@@ -333,7 +333,7 @@ namespace Ash
 
 				TEST_IS_FALSE(string.contains(' '));
 
-				TEST_IS_TRUE(string.append(typename ENCODING::Character(' ')));
+				TEST_IS_EQ(string.append(' '), Ash::Error::none);
 				TEST_IS_TRUE(string.contains(' '));
 				TEST_IS_FALSE(string.contains('!'));
 
@@ -351,7 +351,7 @@ namespace Ash
 
 				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, 0, { 'a' }), 0);
 
-				TEST_IS_TRUE(string.append(typename ENCODING::Character('a')));
+				TEST_IS_EQ(string.append('a'), Ash::Error::none);
 				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, 0, { 'a' }), ENCODING::minSize);
 				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, 0, { 'c', 'a' }), ENCODING::minSize);
 				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, 0, { 'b', 'c' }), 0);
@@ -361,8 +361,8 @@ namespace Ash
 				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, ENCODING::minSize, { 'b', 'c' }), 0);
 				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, ENCODING::minSize, { 'b' }), 0);
 
-				TEST_IS_TRUE(string.append(typename ENCODING::Character('a')));
-				TEST_IS_TRUE(string.append(typename ENCODING::Character('a')));
+				TEST_IS_EQ(string.append('a'), Ash::Error::none);
+				TEST_IS_EQ(string.append('a'), Ash::Error::none);
 				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, 0, { 'a' }), 3 * ENCODING::minSize);
 				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, 0, { 'c', 'a' }), 3 * ENCODING::minSize);
 				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, 0, { 'b', 'c' }), 0);
@@ -372,8 +372,8 @@ namespace Ash
 				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, 2 * ENCODING::minSize, { 'b', 'c' }), 0);
 				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, 2 * ENCODING::minSize, { 'b' }), 2 * 0);
 
-				TEST_IS_TRUE(string.append(typename ENCODING::Character('b')));
-				TEST_IS_TRUE(string.append(typename ENCODING::Character('b')));
+				TEST_IS_EQ(string.append('b'), Ash::Error::none);
+				TEST_IS_EQ(string.append('b'), Ash::Error::none);
 				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, 0, { 'a', 'b' }), 5 * ENCODING::minSize);
 				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, 0, { 'c', 'a' }), 3 * ENCODING::minSize);
 				TEST_IS_EQ(Ash::Encoding::skipAnyOf<ENCODING>(string, 0, { 'b', 'c' }), 0);
@@ -399,7 +399,7 @@ namespace Ash
 
 				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, 0, { 'a' }), 0);
 
-				TEST_IS_TRUE(string.append(typename ENCODING::Character('a')));
+				TEST_IS_EQ(string.append('a'), Ash::Error::none);
 				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, 0, { 'a' }), 0);
 				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, 0, { 'c', 'a' }), 0);
 				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, 0, { 'b', 'c' }), ENCODING::minSize);
@@ -409,8 +409,8 @@ namespace Ash
 				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, ENCODING::minSize, { 'b', 'c' }), 0);
 				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, ENCODING::minSize, { 'b' }), 0);
 
-				TEST_IS_TRUE(string.append(typename ENCODING::Character('a')));
-				TEST_IS_TRUE(string.append(typename ENCODING::Character('a')));
+				TEST_IS_EQ(string.append('a'), Ash::Error::none);
+				TEST_IS_EQ(string.append('a'), Ash::Error::none);
 				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, 0, { 'a' }), 0);
 				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, 0, { 'c', 'a' }), 0);
 				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, 0, { 'b', 'c' }), 3 * ENCODING::minSize);
@@ -420,8 +420,8 @@ namespace Ash
 				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, 2 * ENCODING::minSize, { 'b', 'c' }), ENCODING::minSize);
 				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, 2 * ENCODING::minSize, { 'b' }), ENCODING::minSize);
 
-				TEST_IS_TRUE(string.append(typename ENCODING::Character('b')));
-				TEST_IS_TRUE(string.append(typename ENCODING::Character('b')));
+				TEST_IS_EQ(string.append('b'), Ash::Error::none);
+				TEST_IS_EQ(string.append('b'), Ash::Error::none);
 				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, 0, { 'a', 'b' }), 0);
 				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, 0, { 'c', 'a' }), 0);
 				TEST_IS_EQ(Ash::Encoding::skipNoneOf<ENCODING>(string, 0, { 'b', 'c' }), 3 * ENCODING::minSize);
@@ -450,7 +450,7 @@ namespace Ash
 				Ash::String::Array<ENCODING> filename;
 				Ash::String::Buffer<ENCODING, 8> extension;
 
-				Ash::Ascii::View("/test/folder/source.c").convertTo(string);
+				TEST_IS_EQ(string.convertFrom("/test/folder/source.c"), Ash::Error::none);
 
 				size_t offset = 0;
 				size_t length = Ash::Encoding::token<ENCODING>(string, offset, { '/' }, token);
@@ -492,7 +492,6 @@ namespace Ash
 			>
 			static Ash::Test::Assertion convert()
 			{
-				using Character = typename ENCODING::Character;
 				Ash::String::Array<ENCODING> from;
 				Ash::String::Array<ENCODING> to;
 				Ash::Utf8::String<> utf8;
@@ -501,13 +500,12 @@ namespace Ash
 				Ash::Utf32be::String<> utf32be;
 				Ash::Utf32le::String<> utf32le;
 				Ash::Wide::String<> wide;
-				size_t length;
 
 				if constexpr (Ash::Type::isSame<ENCODING, Ash::Encoding::Ascii>)
 				{
 					for (Ash::Unicode::Character::Value value : Ash::Iterate<Ash::Unicode::Character::Value>::between(1, 0x7F))
 					{
-						TEST_IS_TRUE(from.append(Character(value)));
+						TEST_IS_EQ(from.append(value), Ash::Error::none);
 					}
 				}
 				else if constexpr (Ash::Type::isClass<ENCODING, Ash::Encoding::SingleByte::Generic::Table>)
@@ -516,7 +514,7 @@ namespace Ash
 					{
 						if (ENCODING::Lookup::isCodeValid(value))
 						{
-							TEST_IS_TRUE(from.append(Character(ENCODING::Lookup::getCharacter(value))));
+							TEST_IS_EQ(from.append(ENCODING::Lookup::getCharacter(value)), Ash::Error::none);
 						}
 					}
 				}
@@ -524,49 +522,49 @@ namespace Ash
 				{
 					for (Ash::Unicode::Character::Value value : Ash::Iterate<Ash::Unicode::Character::Value>::between(1, 0xD7FF) + Ash::Iterate<Ash::Unicode::Character::Value>::between(0xE000, Ash::Unicode::Character::maximum))
 					{
-						TEST_IS_TRUE(from.append(Character(value)));
+						TEST_IS_EQ(from.append(value), Ash::Error::none);
 					}
 				}
 
-				length = Ash::Encoding::convert<ENCODING, Ash::Encoding::Utf8>(from, utf8);
-				TEST_IS_EQ(length, from.getLength());
-				length = Ash::Encoding::convert<Ash::Encoding::Utf8, ENCODING>(utf8, to);
-				TEST_IS_EQ(length, utf8.getLength());
+				Ash::Error::Value error = Ash::Encoding::convert<ENCODING, Ash::Encoding::Utf8>(from, utf8);
+				TEST_IS_EQ(error, Ash::Error::none);
+				error = Ash::Encoding::convert<Ash::Encoding::Utf8, ENCODING>(utf8, to);
+				TEST_IS_EQ(error, Ash::Error::none);
 				TEST_IS_EQ(from.getLength(), to.getLength());
 				TEST_IS_EQ(from.match(0, to), from.getLength());
 
-				length = Ash::Encoding::convert<ENCODING, Ash::Encoding::Utf16be>(from, utf16be);
-				TEST_IS_EQ(length, from.getLength());
-				length = Ash::Encoding::convert<Ash::Encoding::Utf16be, ENCODING>(utf16be, to);
-				TEST_IS_EQ(length, utf16be.getLength());
+				error = Ash::Encoding::convert<ENCODING, Ash::Encoding::Utf16be>(from, utf16be);
+				TEST_IS_EQ(error, Ash::Error::none);
+				error = Ash::Encoding::convert<Ash::Encoding::Utf16be, ENCODING>(utf16be, to);
+				TEST_IS_EQ(error, Ash::Error::none);
 				TEST_IS_EQ(from.getLength(), to.getLength());
 				TEST_IS_EQ(from.match(0, to), from.getLength());
 
-				length = Ash::Encoding::convert<ENCODING, Ash::Encoding::Utf16le>(from, utf16le);
-				TEST_IS_EQ(length, from.getLength());
-				length = Ash::Encoding::convert<Ash::Encoding::Utf16le, ENCODING>(utf16le, to);
-				TEST_IS_EQ(length, utf16le.getLength());
+				error = Ash::Encoding::convert<ENCODING, Ash::Encoding::Utf16le>(from, utf16le);
+				TEST_IS_EQ(error, Ash::Error::none);
+				error = Ash::Encoding::convert<Ash::Encoding::Utf16le, ENCODING>(utf16le, to);
+				TEST_IS_EQ(error, Ash::Error::none);
 				TEST_IS_EQ(from.getLength(), to.getLength());
 				TEST_IS_EQ(from.match(0, to), from.getLength());
 
-				length = Ash::Encoding::convert<ENCODING, Ash::Encoding::Utf32be>(from, utf32be);
-				TEST_IS_EQ(length, from.getLength());
-				length = Ash::Encoding::convert<Ash::Encoding::Utf32be, ENCODING>(utf32be, to);
-				TEST_IS_EQ(length, utf32be.getLength());
+				error = Ash::Encoding::convert<ENCODING, Ash::Encoding::Utf32be>(from, utf32be);
+				TEST_IS_EQ(error, Ash::Error::none);
+				error = Ash::Encoding::convert<Ash::Encoding::Utf32be, ENCODING>(utf32be, to);
+				TEST_IS_EQ(error, Ash::Error::none);
 				TEST_IS_EQ(from.getLength(), to.getLength());
 				TEST_IS_EQ(from.match(0, to), from.getLength());
 
-				length = Ash::Encoding::convert<ENCODING, Ash::Encoding::Utf32le>(from, utf32le);
-				TEST_IS_EQ(length, from.getLength());
-				length = Ash::Encoding::convert<Ash::Encoding::Utf32le, ENCODING>(utf32le, to);
-				TEST_IS_EQ(length, utf32le.getLength());
+				error = Ash::Encoding::convert<ENCODING, Ash::Encoding::Utf32le>(from, utf32le);
+				TEST_IS_EQ(error, Ash::Error::none);
+				error = Ash::Encoding::convert<Ash::Encoding::Utf32le, ENCODING>(utf32le, to);
+				TEST_IS_EQ(error, Ash::Error::none);
 				TEST_IS_EQ(from.getLength(), to.getLength());
 				TEST_IS_EQ(from.match(0, to), from.getLength());
 
-				length = Ash::Encoding::convert<ENCODING, Ash::Encoding::Wide>(from, wide);
-				TEST_IS_EQ(length, from.getLength());
-				length = Ash::Encoding::convert<Ash::Encoding::Wide, ENCODING>(wide, to);
-				TEST_IS_EQ(length, wide.getLength());
+				error = Ash::Encoding::convert<ENCODING, Ash::Encoding::Wide>(from, wide);
+				TEST_IS_EQ(error, Ash::Error::none);
+				error = Ash::Encoding::convert<Ash::Encoding::Wide, ENCODING>(wide, to);
+				TEST_IS_EQ(error, Ash::Error::none);
 				TEST_IS_EQ(from.getLength(), to.getLength());
 				TEST_IS_EQ(from.match(0, to), from.getLength());
 

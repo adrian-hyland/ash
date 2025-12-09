@@ -40,7 +40,7 @@ namespace Ash
 						}
 						for (Ash::Unicode::Character character : Ash::Iterate<Ash::Unicode::Character::Value>::between(0x00, 0x7F))
 						{
-							TEST_IS_EQ(TestLookup::getCode(character), character);
+							TEST_IS_EQ(TestLookup::getCode(character, 0xFF), character);
 						}
 						for (Ash::Unicode::Character character : Ash::Iterate<Ash::Unicode::Character::Value>::between(0x80, 0xFF))
 						{
@@ -76,12 +76,12 @@ namespace Ash
 						}
 						for (Ash::Unicode::Character character : Ash::Iterate<Ash::Unicode::Character::Value>::between('0', '9'))
 						{
-							TEST_IS_EQ(TestLookup::getCode(character), character - '0');
+							TEST_IS_EQ(TestLookup::getCode(character, 0xFF), character - '0');
 						}
 						TEST_IS_FALSE(TestLookup::isCharacterValid('0' - 1));
 						TEST_IS_FALSE(TestLookup::isCharacterValid('9' + 1));
-						TEST_IS_EQ(TestLookup::getCode('0' - 1), '?');
-						TEST_IS_EQ(TestLookup::getCode('9' + 1), '?');
+						TEST_IS_EQ(TestLookup::getCode('0' - 1, '?'), '?');
+						TEST_IS_EQ(TestLookup::getCode('9' + 1, '?'), '?');
 					}
 
 					{
@@ -113,7 +113,7 @@ namespace Ash
 						}
 						for (Ash::Unicode::Character character : Ash::Iterate<Ash::Unicode::Character::Value>::between(0x00, 0x7F))
 						{
-							TEST_IS_EQ(TestLookup::getCode(character), character);
+							TEST_IS_EQ(TestLookup::getCode(character, 0xFF), character);
 						}
 						for (Ash::Unicode::Character character : Ash::Iterate<Ash::Unicode::Character::Value>::between(0x80, 0xFF))
 						{
@@ -123,9 +123,9 @@ namespace Ash
 						TEST_IS_TRUE(TestLookup::isCharacterValid(0x1000));
 						TEST_IS_FALSE(TestLookup::isCharacterValid(0x1001));
 						TEST_IS_EQ(TestLookup::getCharacter(0x80), 0x1000);
-						TEST_IS_EQ(TestLookup::getCode(0x0FFF), '?');
-						TEST_IS_EQ(TestLookup::getCode(0x1000), 0x80);
-						TEST_IS_EQ(TestLookup::getCode(0x1001), '?');
+						TEST_IS_EQ(TestLookup::getCode(0x0FFF, '?'), '?');
+						TEST_IS_EQ(TestLookup::getCode(0x1000, '?'), 0x80);
+						TEST_IS_EQ(TestLookup::getCode(0x1001, '?'), '?');
 					}
 
 					{
@@ -157,7 +157,7 @@ namespace Ash
 						}
 						for (Ash::Unicode::Character character : Ash::Iterate<Ash::Unicode::Character::Value>::between(0x00, 0x7F))
 						{
-							TEST_IS_EQ(TestLookup::getCode(character), character);
+							TEST_IS_EQ(TestLookup::getCode(character, 0xFF), character);
 						}
 						for (Ash::Unicode::Character character : Ash::Iterate<Ash::Unicode::Character::Value>::between(0x80, 0xFF))
 						{
@@ -169,10 +169,10 @@ namespace Ash
 						TEST_IS_FALSE(TestLookup::isCharacterValid(0x1002));
 						TEST_IS_EQ(TestLookup::getCharacter(0x80), 0x1001);
 						TEST_IS_EQ(TestLookup::getCharacter(0x81), 0x1000);
-						TEST_IS_EQ(TestLookup::getCode(0x0FFF), '?');
-						TEST_IS_EQ(TestLookup::getCode(0x1000), 0x81);
-						TEST_IS_EQ(TestLookup::getCode(0x1001), 0x80);
-						TEST_IS_EQ(TestLookup::getCode(0x1002), '?');
+						TEST_IS_EQ(TestLookup::getCode(0x0FFF, '?'), '?');
+						TEST_IS_EQ(TestLookup::getCode(0x1000, '?'), 0x81);
+						TEST_IS_EQ(TestLookup::getCode(0x1001, '?'), 0x80);
+						TEST_IS_EQ(TestLookup::getCode(0x1002, '?'), '?');
 					}
 
 					{
@@ -204,7 +204,7 @@ namespace Ash
 						}
 						for (Ash::Unicode::Character character : Ash::Iterate<Ash::Unicode::Character::Value>::between(0x00, 0x7F))
 						{
-							TEST_IS_EQ(TestLookup::getCode(character), character);
+							TEST_IS_EQ(TestLookup::getCode(character, 0xFF), character);
 						}
 						for (Ash::Unicode::Character character : Ash::Iterate<Ash::Unicode::Character::Value>::between(0x80, 0xFF))
 						{
@@ -232,18 +232,18 @@ namespace Ash
 						TEST_IS_EQ(TestLookup::getCharacter(0x87), 0x1003);
 						TEST_IS_EQ(TestLookup::getCharacter(0x88), 0x1007);
 						TEST_IS_EQ(TestLookup::getCharacter(0x89), 0x1005);
-						TEST_IS_EQ(TestLookup::getCode(0x0FFF), '?');
-						TEST_IS_EQ(TestLookup::getCode(0x1000), 0x83);
-						TEST_IS_EQ(TestLookup::getCode(0x1001), 0x81);
-						TEST_IS_EQ(TestLookup::getCode(0x1002), 0x85);
-						TEST_IS_EQ(TestLookup::getCode(0x1003), 0x87);
-						TEST_IS_EQ(TestLookup::getCode(0x1004), 0x84);
-						TEST_IS_EQ(TestLookup::getCode(0x1005), 0x89);
-						TEST_IS_EQ(TestLookup::getCode(0x1006), 0x86);
-						TEST_IS_EQ(TestLookup::getCode(0x1007), 0x88);
-						TEST_IS_EQ(TestLookup::getCode(0x1008), 0x80);
-						TEST_IS_EQ(TestLookup::getCode(0x1009), 0x82);
-						TEST_IS_EQ(TestLookup::getCode(0x100A), '?');
+						TEST_IS_EQ(TestLookup::getCode(0x0FFF, '?'), '?');
+						TEST_IS_EQ(TestLookup::getCode(0x1000, '?'), 0x83);
+						TEST_IS_EQ(TestLookup::getCode(0x1001, '?'), 0x81);
+						TEST_IS_EQ(TestLookup::getCode(0x1002, '?'), 0x85);
+						TEST_IS_EQ(TestLookup::getCode(0x1003, '?'), 0x87);
+						TEST_IS_EQ(TestLookup::getCode(0x1004, '?'), 0x84);
+						TEST_IS_EQ(TestLookup::getCode(0x1005, '?'), 0x89);
+						TEST_IS_EQ(TestLookup::getCode(0x1006, '?'), 0x86);
+						TEST_IS_EQ(TestLookup::getCode(0x1007, '?'), 0x88);
+						TEST_IS_EQ(TestLookup::getCode(0x1008, '?'), 0x80);
+						TEST_IS_EQ(TestLookup::getCode(0x1009, '?'), 0x82);
+						TEST_IS_EQ(TestLookup::getCode(0x100A, '?'), '?');
 					}
 
 					return {};
@@ -256,25 +256,27 @@ namespace Ash
 						'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
 					};
 					using DecimalLookup = Ash::Encoding::SingleByte::Lookup<0, sizeof(decimalValues) / sizeof(decimalValues[0]), decimalValues>;
-					using DecimalTable = Ash::Encoding::SingleByte::Table<DecimalLookup>;
+					using DecimalTable = Ash::Encoding::SingleByte::Table<DecimalLookup, '#'>;
+
+					DecimalTable::Character character;
+					TEST_IS_ZERO(character.getLength());
+					TEST_IS_EQ(Ash::Unicode::Character(character), '\0');
 
 					for (Ash::Unicode::Character::Value value : decimalValues)
 					{
 						DecimalTable::Character character(value);
 
 						TEST_IS_EQ(character.getLength(), 1);
-
-						TEST_IS_EQ(Ash::Unicode::Character(*character.at(0)), value - '0');
-
+						TEST_IS_EQ(*character.at(0), value - '0');
 						TEST_IS_EQ(Ash::Unicode::Character(character), value);
 					}
 
-					for (Ash::Unicode::Character::Value value : Ash::Iterate<Ash::Unicode::Character::Value>::between(0, '0' - 1))
+					for (Ash::Unicode::Character::Value value : Ash::Iterate<Ash::Unicode::Character::Value>::between(1, '0' - 1))
 					{
 						DecimalTable::Character character(value);
 
-						TEST_IS_ZERO(character.getLength());
-
+						TEST_IS_EQ(character.getLength(), 1);
+						TEST_IS_EQ(*character.at(0), DecimalTable::Character::replacementCode);
 						TEST_IS_EQ(Ash::Unicode::Character(character), Ash::Unicode::Character::replacement);
 					}
 
@@ -282,8 +284,8 @@ namespace Ash
 					{
 						DecimalTable::Character character(value);
 
-						TEST_IS_ZERO(character.getLength());
-
+						TEST_IS_EQ(character.getLength(), 1);
+						TEST_IS_EQ(*character.at(0), DecimalTable::Character::replacementCode);
 						TEST_IS_EQ(Ash::Unicode::Character(character), Ash::Unicode::Character::replacement);
 					}
 
@@ -303,40 +305,33 @@ namespace Ash
 					Ash::Unicode::Character expectedCharacter = 0;
 					size_t offset = 0;
 
-					TEST_IS_ZERO(DecimalTable::decodeNext(content, offset, character));
-
+					TEST_IS_EQ(DecimalTable::decodeNext(content, offset, character), Ash::Memory::Error::readAccessOutOfBound);
 					TEST_IS_ZERO(character.getLength());
 
 					for (Ash::Unicode::Character::Value value : decimalValues)
 					{
-						TEST_IS_TRUE(content.append(DecimalTable::Character(value)));
+						TEST_IS_EQ(content.append(DecimalTable::Character(value)), Ash::Error::none);
 					}
 
 					expectedCharacter = decimalValues[0];
 					while (offset < content.getLength())
 					{
-						size_t length = DecimalTable::decodeNext(content, offset, character);
-
-						TEST_IS_NOT_ZERO(length);
-
+						TEST_IS_EQ(DecimalTable::decodeNext(content, offset, character), Ash::Error::none);
 						TEST_IS_EQ(Ash::Unicode::Character(character), expectedCharacter);
 
-						offset = offset + length;
+						offset = offset + character.getLength();
 						expectedCharacter = expectedCharacter + 1;
 					}
 
-					TEST_IS_ZERO(DecimalTable::decodeNext(content, offset, character));
-
+					TEST_IS_EQ(DecimalTable::decodeNext(content, offset, character), Ash::Memory::Error::readAccessOutOfBound);
 					TEST_IS_ZERO(character.getLength());
 
 					for (Ash::Unicode::Character::Value value : Ash::Iterate<Ash::Unicode::Character::Value>::between(0x0A, 0xFF))
 					{
 						Ash::Memory::Sequence<DecimalTable::Code, 1> invalidContent;
 
-						TEST_IS_TRUE(invalidContent.set(0, value));
-
-						TEST_IS_ZERO(DecimalTable::decodeNext(invalidContent, 0, character));
-
+						TEST_IS_EQ(invalidContent.set(0, DecimalTable::Code(value)), Ash::Error::none);
+						TEST_IS_EQ(DecimalTable::decodeNext(invalidContent, 0, character), Ash::Encoding::Error::invalidCodeUnit);
 						TEST_IS_ZERO(character.getLength());
 					}
 
@@ -356,41 +351,34 @@ namespace Ash
 					Ash::Unicode::Character expectedCharacter = 0;
 					size_t offset = 0;
 
-					TEST_IS_ZERO(DecimalTable::decodePrevious(content, offset, character));
-
+					TEST_IS_EQ(DecimalTable::decodePrevious(content, offset, character), Ash::Memory::Error::readAccessOutOfBound);
 					TEST_IS_ZERO(character.getLength());
 
 					for (Ash::Unicode::Character::Value value : decimalValues)
 					{
-						TEST_IS_TRUE(content.append(DecimalTable::Character(value)));
+						TEST_IS_EQ(content.append(DecimalTable::Character(value)), Ash::Error::none);
 					}
 
 					expectedCharacter = decimalValues[sizeof(decimalValues) / sizeof(decimalValues[0]) - 1];
 					offset = content.getLength();
 					while (offset > 0)
 					{
-						size_t length = DecimalTable::decodePrevious(content, offset, character);
-
-						TEST_IS_NOT_ZERO(length);
-
+						TEST_IS_EQ(DecimalTable::decodePrevious(content, offset, character), Ash::Error::none);
 						TEST_IS_EQ(Ash::Unicode::Character(character), expectedCharacter);
 
-						offset = offset - length;
+						offset = offset - character.getLength();
 						expectedCharacter = expectedCharacter - 1;
 					}
 
-					TEST_IS_ZERO(DecimalTable::decodePrevious(content, offset, character));
-
+					TEST_IS_EQ(DecimalTable::decodePrevious(content, offset, character), Ash::Memory::Error::readAccessOutOfBound);
 					TEST_IS_ZERO(character.getLength());
 
 					for (Ash::Unicode::Character::Value value : Ash::Iterate<Ash::Unicode::Character::Value>::between(0x0A, 0xFF))
 					{
 						Ash::Memory::Sequence<DecimalTable::Code, 1> invalidContent;
 
-						TEST_IS_TRUE(invalidContent.set(0, value));
-
-						TEST_IS_ZERO(DecimalTable::decodePrevious(invalidContent, invalidContent.getLength(), character));
-
+						TEST_IS_EQ(invalidContent.set(0, DecimalTable::Code(value)), Ash::Error::none);
+						TEST_IS_EQ(DecimalTable::decodePrevious(invalidContent, invalidContent.getLength(), character), Ash::Encoding::Error::invalidCodeUnit);
 						TEST_IS_ZERO(character.getLength());
 					}
 

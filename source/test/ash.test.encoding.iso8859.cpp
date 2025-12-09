@@ -23,14 +23,12 @@ namespace Ash
 					{
 						if (Table::Lookup::isCodeValid(code))
 						{
-							TEST_IS_TRUE(Table::Lookup::isCodeValid(code));
 							Ash::Unicode::Character character = Table::Lookup::getCharacter(code);
 							TEST_IS_NOT_EQ(character, Ash::Unicode::Character::replacement);
-							TEST_IS_EQ(Table::Lookup::getCode(character), code);
+							TEST_IS_EQ(Table::Lookup::getCode(character, 0xFF), code);
 						}
 						else
 						{
-							TEST_IS_FALSE(Table::Lookup::isCodeValid(code));
 							TEST_IS_EQ(Table::Lookup::getCharacter(code), Ash::Unicode::Character::replacement);
 						}
 					}
@@ -48,14 +46,16 @@ namespace Ash
 					using Table = TABLE;
 					using Character = Table::Character;
 
+					Character character;
+					TEST_IS_ZERO(character.getLength());
+					TEST_IS_EQ(Ash::Unicode::Character(character), '\0');
+
 					for (Ash::Unicode::Character::Value value : Ash::Iterate<Ash::Unicode::Character::Value>::between(0x00, 0x9F))
 					{
 						Character character(value);
 
 						TEST_IS_EQ(character.getLength(), 1);
-
-						TEST_IS_EQ(Ash::Unicode::Character(*character.at(0)), value);
-
+						TEST_IS_EQ(*character.at(0), value);
 						TEST_IS_EQ(Ash::Unicode::Character(character), value);
 					}
 
@@ -66,14 +66,14 @@ namespace Ash
 						if (Table::Lookup::isCharacterValid(value))
 						{
 							TEST_IS_EQ(character.getLength(), 1);
-
-							TEST_IS_EQ(Ash::Unicode::Character(*character.at(0)), Table::Lookup::getCode(character));
-
+							TEST_IS_EQ(*character.at(0), Table::Lookup::getCode(character, Character::replacementCode));
 							TEST_IS_EQ(Ash::Unicode::Character(character), value);
 						}
 						else
 						{
-							TEST_IS_EQ(character.getLength(), 0);
+							TEST_IS_EQ(character.getLength(), 1);
+							TEST_IS_EQ(*character.at(0), Character::replacementCode);
+							TEST_IS_EQ(Ash::Unicode::Character(character), Ash::Unicode::Character(Character::replacementCode));
 						}
 					}
 
@@ -95,28 +95,24 @@ namespace Ash
 					Ash::Encoding::SingleByte::Code expectedCode = 0;
 					size_t offset = 0;
 
-					TEST_IS_ZERO(Table::decodeNext(content, offset, character));
-
+					TEST_IS_EQ(Table::decodeNext(content, offset, character), Ash::Memory::Error::readAccessOutOfBound);
 					TEST_IS_ZERO(character.getLength());
 
 					for (Ash::Encoding::SingleByte::Code code : Ash::Iterate<Ash::Encoding::SingleByte::Code>::between(0x00, 0xFF))
 					{
 						if (Table::Lookup::isCodeValid(code))
 						{
-							TEST_IS_TRUE(content.append(Character(Table::Lookup::getCharacter(code))));
+							TEST_IS_EQ(content.append(code), Ash::Error::none);
 						}
 					}
 
 					expectedCode = 0;
 					while (offset < content.getLength())
 					{
-						size_t length = Table::decodeNext(content, offset, character);
-
-						TEST_IS_NOT_ZERO(length);
-
+						TEST_IS_EQ(Table::decodeNext(content, offset, character), Ash::Error::none);
 						TEST_IS_EQ(Ash::Unicode::Character(character), Table::Lookup::getCharacter(expectedCode));
 
-						offset = offset + length;
+						offset = offset + character.getLength();
 						do
 						{
 							expectedCode++;
@@ -124,8 +120,7 @@ namespace Ash
 						while (!Table::Lookup::isCodeValid(expectedCode));
 					}
 
-					TEST_IS_ZERO(Table::decodeNext(content, offset, character));
-
+					TEST_IS_EQ(Table::decodeNext(content, offset, character), Ash::Memory::Error::readAccessOutOfBound);
 					TEST_IS_ZERO(character.getLength());
 
 					for (Ash::Encoding::SingleByte::Code code : Ash::Iterate<Ash::Encoding::SingleByte::Code>::between(0xA0, 0xFF))
@@ -134,10 +129,8 @@ namespace Ash
 						{
 							Ash::Memory::Sequence<Ash::Encoding::SingleByte::Code, 1> invalidContent;
 
-							TEST_IS_TRUE(invalidContent.set(0, code));
-
-							TEST_IS_ZERO(Table::decodeNext(invalidContent, 0, character));
-
+							TEST_IS_EQ(invalidContent.set(0, code), Ash::Error::none);
+							TEST_IS_EQ(Table::decodeNext(invalidContent, 0, character), Ash::Encoding::Error::invalidCodeUnit);
 							TEST_IS_ZERO(character.getLength());
 						}
 					}
@@ -160,15 +153,14 @@ namespace Ash
 					Ash::Encoding::SingleByte::Code expectedCode = 0;
 					size_t offset = 0;
 
-					TEST_IS_ZERO(Table::decodePrevious(content, offset, character));
-
+					TEST_IS_EQ(Table::decodePrevious(content, offset, character), Ash::Memory::Error::readAccessOutOfBound);
 					TEST_IS_ZERO(character.getLength());
 
 					for (Ash::Encoding::SingleByte::Code code : Ash::Iterate<Ash::Encoding::SingleByte::Code>::between(0x00, 0xFF))
 					{
 						if (Table::Lookup::isCodeValid(code))
 						{
-							TEST_IS_TRUE(content.append(Character(Table::Lookup::getCharacter(code))));
+							TEST_IS_EQ(content.append(code), Ash::Error::none);
 						}
 					}
 
@@ -181,18 +173,14 @@ namespace Ash
 							expectedCode--;
 						}
 
-						size_t length = Table::decodePrevious(content, offset, character);
-
-						TEST_IS_NOT_ZERO(length);
-
+						TEST_IS_EQ(Table::decodePrevious(content, offset, character), Ash::Error::none);
 						TEST_IS_EQ(Ash::Unicode::Character(character), Table::Lookup::getCharacter(expectedCode));
 
-						offset = offset - length;
+						offset = offset - character.getLength();
 						expectedCode--;
 					}
 
-					TEST_IS_ZERO(Table::decodePrevious(content, offset, character));
-
+					TEST_IS_EQ(Table::decodePrevious(content, offset, character), Ash::Memory::Error::readAccessOutOfBound);
 					TEST_IS_ZERO(character.getLength());
 
 					for (Ash::Encoding::SingleByte::Code code : Ash::Iterate<Ash::Encoding::SingleByte::Code>::between(0xA0, 0xFF))
@@ -201,10 +189,8 @@ namespace Ash
 						{
 							Ash::Memory::Sequence<Ash::Encoding::SingleByte::Code, 1> invalidContent;
 
-							TEST_IS_TRUE(invalidContent.set(0, code));
-
-							TEST_IS_ZERO(Table::decodePrevious(invalidContent, invalidContent.getLength(), character));
-
+							TEST_IS_EQ(invalidContent.set(0, code), Ash::Error::none);
+							TEST_IS_EQ(Table::decodePrevious(invalidContent, invalidContent.getLength(), character), Ash::Encoding::Error::invalidCodeUnit);
 							TEST_IS_ZERO(character.getLength());
 						}
 					}
