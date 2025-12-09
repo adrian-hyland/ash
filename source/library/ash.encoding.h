@@ -3,6 +3,7 @@
 #include "ash.type.h"
 #include "ash.memory.h"
 #include "ash.unicode.character.h"
+#include "ash.encoding.error.h"
 
 
 namespace Ash
@@ -35,35 +36,43 @@ namespace Ash
 			typename = Ash::Type::IsClass<TO_ENCODING, Ash::Generic::Encoding>,
 			typename = Ash::Type::IsClass<TO_ALLOCATION, Ash::Memory::Generic::Allocation>
 		>
-		constexpr size_t convert(Ash::Memory::View<typename FROM_ENCODING::Code> from, Ash::Memory::Value<TO_ALLOCATION, typename TO_ENCODING::Code> &to, size_t &toOffset, Ash::Unicode::Character replacementCharacter = TO_ENCODING::Character::replacement)
+		[[nodiscard]]
+		constexpr Ash::Error::Value convert(Ash::Memory::View<typename FROM_ENCODING::Code> from, size_t &fromOffset, Ash::Memory::Value<TO_ALLOCATION, typename TO_ENCODING::Code> &to, size_t &toOffset, bool replaceInvalidCharacter = true)
 		{
-			size_t fromOffset = 0;
+			if (fromOffset > from.getLength())
+			{
+				return Ash::Memory::Error::readAccessOutOfBound;
+			}
 
 			while (fromOffset < from.getLength())
 			{
 				typename FROM_ENCODING::Character fromCharacter;
-				size_t decodeLength = FROM_ENCODING::decodeNext(from, fromOffset, fromCharacter);
+				typename TO_ENCODING::Character toCharacter;
 
-				typename TO_ENCODING::Character toCharacter(fromCharacter);
-				if (toCharacter.getLength() == 0)
+				Ash::Error::Value error = FROM_ENCODING::decodeNext(from, fromOffset, fromCharacter);
+				if (error.hasErrorSet())
 				{
-					toCharacter = replacementCharacter;
-					if (toCharacter.getLength() == 0)
+					if ((error.getCategory() != &Ash::Encoding::Error::category) || !replaceInvalidCharacter)
 					{
-						break;
+						return error;
 					}
+
+					fromCharacter = Ash::Unicode::Character::replacement;
 				}
 
-				if (!to.set(toOffset, toCharacter))
+				toCharacter = fromCharacter;
+
+				error = to.set(toOffset, toCharacter);
+				if (error.hasErrorSet())
 				{
-					break;
+					return error;
 				}
 
-				fromOffset = fromOffset + ((decodeLength != 0) ? decodeLength : FROM_ENCODING::minSize);
+				fromOffset = fromOffset + ((fromCharacter.getLength() != 0) ? fromCharacter.getLength() : FROM_ENCODING::minSize);
 				toOffset = toOffset + toCharacter.getLength();
 			}
 
-			return fromOffset;
+			return Ash::Error::none;
 		}
 
 		template
@@ -75,13 +84,15 @@ namespace Ash
 			typename = Ash::Type::IsClass<TO_ENCODING, Ash::Generic::Encoding>,
 			typename = Ash::Type::IsClass<TO_ALLOCATION, Ash::Memory::Generic::Allocation>
 		>
-		constexpr size_t convert(Ash::Memory::View<typename FROM_ENCODING::Code> from, Ash::Memory::Value<TO_ALLOCATION, typename TO_ENCODING::Code> &to, Ash::Unicode::Character replacementCharacter = TO_ENCODING::Character::replacement)
+		[[nodiscard]]
+		constexpr Ash::Error::Value convert(Ash::Memory::View<typename FROM_ENCODING::Code> from, Ash::Memory::Value<TO_ALLOCATION, typename TO_ENCODING::Code> &to, bool replaceInvalidCharacter = true)
 		{
+			size_t fromOffset = 0;
 			size_t toOffset = 0;
 
 			to.clear();
 
-			return convert<FROM_ENCODING, TO_ENCODING, TO_ALLOCATION>(from, to, toOffset, replacementCharacter);
+			return convert<FROM_ENCODING, TO_ENCODING, TO_ALLOCATION>(from, fromOffset, to, toOffset, replaceInvalidCharacter);
 		}
 
 		template
@@ -92,58 +103,50 @@ namespace Ash
 		constexpr size_t find(Ash::Memory::View<typename ENCODING::Code> value, size_t offset, Ash::Unicode::Character character)
 		{
 			typename ENCODING::Character characterEncoding(character);
-			typename ENCODING::Code characterCode;
-			
+
 			if (characterEncoding.getLength() <= value.getLength())
 			{
 				if (characterEncoding.getLength() == 1)
 				{
-					if (characterEncoding.get(0, characterCode))
-					{
-						return value.find(offset, characterCode);
-					}
+					return value.find(offset, *characterEncoding.at(0));
 				}
 				else if (characterEncoding.getLength() > 1)
 				{
 					if constexpr (ENCODING::isBigEndian)
 					{
-						if (characterEncoding.get(ENCODING::minSize - 1, characterCode))
+						typename ENCODING::Code characterCode = *characterEncoding.at(ENCODING::minSize - 1);
+						for (; offset <= value.getLength() - characterEncoding.getLength(); offset = offset + ENCODING::minSize)
 						{
-							for (; offset <= value.getLength() - characterEncoding.getLength(); offset = offset + ENCODING::minSize)
+							offset = value.template find<ENCODING::minSize, ENCODING::minSize - 1>(offset, characterCode);
+							if (offset == value.getLength())
 							{
-								offset = value.template find<ENCODING::minSize, ENCODING::minSize - 1>(offset, characterCode);
-								if (offset == value.getLength())
-								{
-									return offset;
-								}
-								if (value.match(offset - (ENCODING::minSize - 1), characterEncoding) == characterEncoding.getLength())
-								{
-									return offset - (ENCODING::minSize - 1);
-								}
+								return offset;
+							}
+							if (value.match(offset - (ENCODING::minSize - 1), characterEncoding) == characterEncoding.getLength())
+							{
+								return offset - (ENCODING::minSize - 1);
 							}
 						}
 					}
 					else
 					{
-						if (characterEncoding.get(0, characterCode))
+						typename ENCODING::Code characterCode = *characterEncoding.at(0);
+						for (; offset <= value.getLength() - characterEncoding.getLength(); offset = offset + ENCODING::minSize)
 						{
-							for (; offset <= value.getLength() - characterEncoding.getLength(); offset = offset + ENCODING::minSize)
+							offset = value.template find<ENCODING::minSize>(offset, characterCode);
+							if (offset == value.getLength())
 							{
-								offset = value.template find<ENCODING::minSize>(offset, characterCode);
-								if (offset == value.getLength())
-								{
-									return offset;
-								}
-								if (value.match(offset, characterEncoding) == characterEncoding.getLength())
-								{
-									return offset;
-								}
+								return offset;
+							}
+							if (value.match(offset, characterEncoding) == characterEncoding.getLength())
+							{
+								return offset;
 							}
 						}
 					}
 				}
 			}
-			
+
 			return value.getLength();
 		}
 
@@ -155,23 +158,20 @@ namespace Ash
 		constexpr size_t reverseFind(Ash::Memory::View<typename ENCODING::Code> value, size_t offset, Ash::Unicode::Character character)
 		{
 			typename ENCODING::Character characterEncoding(character);
-			typename ENCODING::Code characterCode;
-			
+
 			if (characterEncoding.getLength() <= value.getLength())
 			{
 				if (characterEncoding.getLength() == 1)
 				{
-					if (characterEncoding.get(0, characterCode))
-					{
-						return value.reverseFind(offset, characterCode);
-					}
+					return value.reverseFind(offset, *characterEncoding.at(0));
 				}
 				else if (characterEncoding.getLength() > 1)
 				{
 					if constexpr (ENCODING::isBigEndian)
 					{
-						if (characterEncoding.get(ENCODING::minSize - 1, characterCode) && (offset < value.getLength()))
+						if (offset < value.getLength())
 						{
+							typename ENCODING::Code characterCode = *characterEncoding.at(ENCODING::minSize - 1);
 							offset = offset + ENCODING::minSize - 1 - (offset % ENCODING::minSize);
 							for (; offset >= ENCODING::minSize; offset = offset - ENCODING::minSize)
 							{
@@ -193,8 +193,9 @@ namespace Ash
 					}
 					else
 					{
-						if (characterEncoding.get(0, characterCode) && (offset < value.getLength()))
+						if (offset < value.getLength())
 						{
+							typename ENCODING::Code characterCode = *characterEncoding.at(0);
 							offset = offset - (offset % ENCODING::minSize);
 							for (; offset >= ENCODING::minSize; offset = offset - ENCODING::minSize)
 							{
@@ -216,7 +217,7 @@ namespace Ash
 					}
 				}
 			}
-			
+
 			return value.getLength();
 		}
 
@@ -239,21 +240,12 @@ namespace Ash
 		{
 			typename ENCODING::Character character;
 			size_t start = offset;
-			size_t decodeLength = 0;
 
-			for (; offset < value.getLength(); offset = offset + decodeLength)
+			for (; offset < value.getLength(); offset = offset + ((character.getLength() != 0) ? character.getLength() : ENCODING::minSize))
 			{
-				decodeLength = ENCODING::decodeNext(value, offset, character);
-				if (decodeLength != 0)
+				if (!ENCODING::decodeNext(value, offset, character).hasErrorSet() && !Ash::Unicode::Character::contains(characterList, character))
 				{
-					if (!Ash::Unicode::Character::contains(characterList, character))
-					{
-						break;
-					}
-				}
-				else
-				{
-					decodeLength = ENCODING::minSize;
+					break;
 				}
 			}
 
@@ -269,21 +261,12 @@ namespace Ash
 		{
 			typename ENCODING::Character character;
 			size_t start = offset;
-			size_t decodeLength = 0;
 
-			for (; offset < value.getLength(); offset = offset + decodeLength)
+			for (; offset < value.getLength(); offset = offset + ((character.getLength() != 0) ? character.getLength() : ENCODING::minSize))
 			{
-				decodeLength = ENCODING::decodeNext(value, offset, character);
-				if (decodeLength != 0)
+				if (!ENCODING::decodeNext(value, offset, character).hasErrorSet() && Ash::Unicode::Character::contains(characterList, character))
 				{
-					if (Ash::Unicode::Character::contains(characterList, character))
-					{
-						break;
-					}
-				}
-				else
-				{
-					decodeLength = ENCODING::minSize;
+					break;
 				}
 			}
 
