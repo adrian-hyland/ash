@@ -77,7 +77,7 @@ namespace Ash
 		>
 		constexpr size_t copy(TYPE *to, const TYPE *from, size_t length)
 		{
-			return ((from < to) && (from + length > to)) ? copyBackward(to, from, length) : copyForward(to, from, length);
+			return (!std::is_constant_evaluated() && (from < to) && (from + length > to)) ? copyBackward(to, from, length) : copyForward(to, from, length);
 		}
 
 		template
