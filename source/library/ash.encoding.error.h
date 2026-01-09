@@ -8,9 +8,8 @@ namespace Ash
 {
 	namespace Encoding
 	{
-		class Error : public Ash::Error::Value
+		namespace Error
 		{
-		public:
 			using Code = unsigned int;
 
 			class Category : public Ash::Error::Category
@@ -23,33 +22,35 @@ namespace Ash
 
 				virtual bool getErrorCodeDescription(Ash::Error::Code code, Ash::Error::Code::Description description) const override
 				{
-					return Ash::Encoding::Error::getErrorCodeDescription(code, description);
+					return getDescription(code, description);
+				}
+
+			protected:
+				static inline bool getDescription(Code code, Ash::Error::Code::Description description)
+				{
+					static const char *errorDescriptions[] =
+					{
+						"Invalid code unit",
+						"Invalid code point",
+						"Overlong encoding"
+					};
+
+					const char *errorDescription = (code < sizeof(errorDescriptions) / sizeof(errorDescriptions[0])) ? errorDescriptions[code] : nullptr;
+					if ((errorDescription == nullptr) || (strlen(errorDescription) > sizeof(Ash::Error::Code::Description) - 1))
+					{
+						return false;
+					}
+
+					strcpy(description, errorDescription);
+					return true;
 				}
 			};
 
-			static inline const Category category;
+			inline constexpr Category category;
 
-			static constexpr Ash::Error::Value invalidCodeUnit      = Ash::Error::Value(category, 0);
-			static constexpr Ash::Error::Value invalidCodePoint     = Ash::Error::Value(category, 1);
-			static constexpr Ash::Error::Value overlongEncoding     = Ash::Error::Value(category, 2);
-
-		protected:
-			static inline bool getErrorCodeDescription(Code code, Ash::Error::Code::Description description)
-			{
-				static const char *errorDescriptions[] =
-				{
-					"Invalid code unit",
-					"Invalid code point",
-					"Overlong encoding"
-				};
-				const char *errorDescription = (code < sizeof(errorDescriptions) / sizeof(errorDescriptions[0])) ? errorDescriptions[code] : nullptr;
-				if ((errorDescription == nullptr) || (strlen(errorDescription) > sizeof(Ash::Error::Code::Description) - 1))
-				{
-					return false;
-				}
-				strcpy(description, errorDescription);
-				return true;
-			}
-		};
+			constexpr Ash::Error::Value invalidCodeUnit  = { category, 0 };
+			constexpr Ash::Error::Value invalidCodePoint = { category, 1 };
+			constexpr Ash::Error::Value overlongEncoding = { category, 2 };
+		}
 	}
 }
