@@ -8,9 +8,8 @@ namespace Ash
 {
 	namespace Memory
 	{
-		class Error : public Ash::Error::Value
+		namespace Error
 		{
-		public:
 			using Code = unsigned int;
 
 			class Category : public Ash::Error::Category
@@ -23,43 +22,47 @@ namespace Ash
 
 				virtual bool getErrorCodeDescription(Ash::Error::Code code, Ash::Error::Code::Description description) const override
 				{
-					return Ash::Memory::Error::getErrorCodeDescription(code, description);
+					return getDescription(code, description);
+				}
+
+			protected:
+				static inline bool getDescription(Code code, Ash::Error::Code::Description description)
+				{
+					static const char *errorDescriptions[] =
+					{
+						"Allocation failure",
+						"Read access out of bound",
+						"Write access out of bound",
+						"Length is fixed",
+						"Length overflow",
+						"Length underflow",
+						"Capacity is fixed",
+						"Capacity overrun",
+						"Capacity below length"
+					};
+
+					const char *errorDescription = (code < sizeof(errorDescriptions) / sizeof(errorDescriptions[0])) ? errorDescriptions[code] : nullptr;
+					if ((errorDescription == nullptr) || (strlen(errorDescription) > sizeof(Ash::Error::Code::Description) - 1))
+					{
+						return false;
+					}
+
+					strcpy(description, errorDescription);
+					return true;
 				}
 			};
 
-			static inline const Category category;
+			inline constexpr Category category;
 
-			static constexpr Ash::Error::Value allocationFailure     = Ash::Error::Value(category, 0);
-			static constexpr Ash::Error::Value readAccessOutOfBound  = Ash::Error::Value(category, 1);
-			static constexpr Ash::Error::Value writeAccessOutOfBound = Ash::Error::Value(category, 2);
-			static constexpr Ash::Error::Value lengthIsFixed         = Ash::Error::Value(category, 3);
-			static constexpr Ash::Error::Value lengthOverflow        = Ash::Error::Value(category, 4);
-			static constexpr Ash::Error::Value capacityIsFixed       = Ash::Error::Value(category, 5);
-			static constexpr Ash::Error::Value capacityOverrun       = Ash::Error::Value(category, 6);
-			static constexpr Ash::Error::Value capacityBelowLength   = Ash::Error::Value(category, 7);
-
-		protected:
-			static inline bool getErrorCodeDescription(Code code, Ash::Error::Code::Description description)
-			{
-				static const char *errorDescriptions[] =
-				{
-					"Allocation failure",
-					"Read access out of bound",
-					"Write access out of bound",
-					"Length is fixed",
-					"Length overflow",
-					"Capacity is fixed",
-					"Capacity overrun",
-					"Capacity below length"
-				};
-				const char *errorDescription = (code < sizeof(errorDescriptions) / sizeof(errorDescriptions[0])) ? errorDescriptions[code] : nullptr;
-				if ((errorDescription == nullptr) || (strlen(errorDescription) > sizeof(Ash::Error::Code::Description) - 1))
-				{
-					return false;
-				}
-				strcpy(description, errorDescription);
-				return true;
-			}
-		};
+			constexpr Ash::Error::Value allocationFailure     = { category, 0 };
+			constexpr Ash::Error::Value readAccessOutOfBound  = { category, 1 };
+			constexpr Ash::Error::Value writeAccessOutOfBound = { category, 2 };
+			constexpr Ash::Error::Value lengthIsFixed         = { category, 3 };
+			constexpr Ash::Error::Value lengthOverflow        = { category, 4 };
+			constexpr Ash::Error::Value lengthUnderflow       = { category, 5 };
+			constexpr Ash::Error::Value capacityIsFixed       = { category, 6 };
+			constexpr Ash::Error::Value capacityOverrun       = { category, 7 };
+			constexpr Ash::Error::Value capacityBelowLength   = { category, 8 };
+		}
 	}
 }
