@@ -11,9 +11,8 @@ namespace Ash
 	{
 		namespace Linux
 		{
-			class Error : public Ash::Error::Value
+			namespace Error
 			{
-			public:
 				using Code = int;
 
 				class Category : public Ash::Error::Category
@@ -26,34 +25,35 @@ namespace Ash
 
 					virtual bool getErrorCodeDescription(Ash::Error::Code code, Ash::Error::Code::Description description) const override
 					{
-						return Ash::System::Linux::Error::getErrorCodeDescription(code, description);
+						return getDescription(code, description);
+					}
+
+				protected:
+					static bool getDescription(Code code, Ash::Error::Code::Description description)
+					{
+						const char *value = strerror(code);
+						if ((value == nullptr) || (strlen(value) > sizeof(Ash::Error::Code::Description) - 1))
+						{
+							return false;
+						}
+
+						strcpy(description, value);
+						return true;
 					}
 				};
 
-				static inline const Category category;
+				inline constexpr Category category;
 
-				Error() : Error(errno) {}
+				constexpr Ash::Error::Value pathNotFound   = { category, ENOENT };
+				constexpr Ash::Error::Value accessDenied   = { category, EACCES };
+				constexpr Ash::Error::Value fileNotOpen    = { category, EBADF  };
+				constexpr Ash::Error::Value diskOutOfSpace = { category, ENOSPC };
+			}
 
-				Error(Code code) : Ash::Error::Value()
-				{
-					if (code != 0)
-					{
-						set(category, code);
-					}
-				}
-
-			protected:
-				static bool getErrorCodeDescription(Code code, Ash::Error::Code::Description description)
-				{
-					const char *value = strerror(code);
-					if ((value == nullptr) || (strlen(value) > sizeof(Ash::Error::Code::Description) - 1))
-					{
-						return false;
-					}
-					strcpy(description, value);
-					return true;
-				}
-			};
+			constexpr Ash::Error::Value error(Ash::System::Linux::Error::Code code = errno)
+			{
+				return (code == 0) ? Ash::Error::none : Ash::Error::Value(Ash::System::Linux::Error::category, code);
+			}
 		}
 	}
 }
