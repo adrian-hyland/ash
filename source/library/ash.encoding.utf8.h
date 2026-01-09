@@ -181,7 +181,7 @@ namespace Ash
 				Code code4 = 0;
 
 				Ash::Error::Value error = getNextCode(value, offset, code1);
-				if (!error.hasErrorSet())
+				if (!error)
 				{
 					if ((code1 & 0x80) == 0x00)
 					{
@@ -194,7 +194,7 @@ namespace Ash
 					else
 					{
 						error = getNextCode(value, offset, code2);
-						if (!error.hasErrorSet())
+						if (!error)
 						{
 							if ((code2 & 0xC0) != 0x80)
 							{
@@ -207,7 +207,7 @@ namespace Ash
 							else
 							{
 								error = getNextCode(value, offset, code3);
-								if (!error.hasErrorSet())
+								if (!error)
 								{
 									if ((code3 & 0xC0) != 0x80)
 									{
@@ -220,7 +220,7 @@ namespace Ash
 									else
 									{
 										error = getNextCode(value, offset, code4);
-										if (!error.hasErrorSet())
+										if (!error)
 										{
 											if (((code1 & 0xF8) == 0xF0) && ((code4 & 0xC0) == 0x80))
 											{
@@ -251,7 +251,7 @@ namespace Ash
 				Code code4 = 0;
 
 				Ash::Error::Value error = getPreviousCode(value, offset, code1);
-				if (!error.hasErrorSet())
+				if (!error)
 				{
 					if ((code1 & 0x80) == 0x00)
 					{
@@ -264,7 +264,7 @@ namespace Ash
 					else
 					{
 						error = getPreviousCode(value, offset, code2);
-						if (!error.hasErrorSet())
+						if (!error)
 						{
 							if ((code2 & 0xE0) == 0xC0)
 							{
@@ -277,7 +277,7 @@ namespace Ash
 							else
 							{
 								error = getPreviousCode(value, offset, code3);
-								if (!error.hasErrorSet())
+								if (!error)
 								{
 									if ((code3 & 0xF0) == 0xE0)
 									{
@@ -290,7 +290,7 @@ namespace Ash
 									else
 									{
 										error = getPreviousCode(value, offset, code4);
-										if (!error.hasErrorSet())
+										if (!error)
 										{
 											if ((code4 & 0xF8) == 0xF0)
 											{

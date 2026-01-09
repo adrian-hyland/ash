@@ -207,19 +207,17 @@ namespace Ash
 					size_t previousLength = m_Length;
 
 					Ash::Error::Value error = acquire(capacity);
-					if (error.hasErrorSet())
+					if (!error)
 					{
-						return error;
+						Ash::Memory::construct(m_Content[retainStartLength], std::forward<VALUE_TYPE>(value));
+						Ash::Memory::moveConstruct(m_Content, previousContent, retainStartLength);
+						Ash::Memory::moveConstruct(&m_Content[retainStartLength + 1], &previousContent[previousLength - retainEndLength], retainEndLength);
+						m_Length = retainStartLength + retainEndLength + 1;
+
+						release(previousContent, retainStartLength, previousLength - retainStartLength - retainEndLength);
 					}
 
-					Ash::Memory::construct(m_Content[retainStartLength], std::forward<VALUE_TYPE>(value));
-					Ash::Memory::moveConstruct(m_Content, previousContent, retainStartLength);
-					Ash::Memory::moveConstruct(&m_Content[retainStartLength + 1], &previousContent[previousLength - retainEndLength], retainEndLength);
-					m_Length = retainStartLength + retainEndLength + 1;
-
-					release(previousContent, retainStartLength, previousLength - retainStartLength - retainEndLength);
-
-					return Ash::Error::none;
+					return error;
 				}
 
 				template
@@ -261,27 +259,25 @@ namespace Ash
 					size_t previousLength = m_Length;
 
 					Ash::Error::Value error = acquire(capacity);
-					if (error.hasErrorSet())
+					if (!error)
 					{
-						return error;
+						if (content != nullptr)
+						{
+							Ash::Memory::copyConstruct(&m_Content[retainStartLength], content, contentLength);
+						}
+						else
+						{
+							Ash::Memory::defaultConstruct(&m_Content[retainStartLength], contentLength);
+						}
+
+						Ash::Memory::moveConstruct(m_Content, previousContent, retainStartLength);
+						Ash::Memory::moveConstruct(&m_Content[retainStartLength + contentLength], &previousContent[previousLength - retainEndLength], retainEndLength);
+						m_Length = retainStartLength + retainEndLength + contentLength;
+
+						release(previousContent, retainStartLength, previousLength - retainStartLength - retainEndLength);
 					}
 
-					if (content != nullptr)
-					{
-						Ash::Memory::copyConstruct(&m_Content[retainStartLength], content, contentLength);
-					}
-					else
-					{
-						Ash::Memory::defaultConstruct(&m_Content[retainStartLength], contentLength);
-					}
-
-					Ash::Memory::moveConstruct(m_Content, previousContent, retainStartLength);
-					Ash::Memory::moveConstruct(&m_Content[retainStartLength + contentLength], &previousContent[previousLength - retainEndLength], retainEndLength);
-					m_Length = retainStartLength + retainEndLength + contentLength;
-
-					release(previousContent, retainStartLength, previousLength - retainStartLength - retainEndLength);
-
-					return Ash::Error::none;
+					return error;
 				}
 
 				[[nodiscard]]

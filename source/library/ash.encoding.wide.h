@@ -134,7 +134,7 @@ namespace Ash
 				if constexpr (maxSize == 1)
 				{
 					error = getNextCode(value, offset, code1);
-					if (!error.hasErrorSet())
+					if (!error)
 					{
 						return character.set(code1);
 					}
@@ -142,12 +142,12 @@ namespace Ash
 				else if constexpr (maxSize == 2)
 				{
 					error = getNextCode(value, offset, code1);
-					if (!error.hasErrorSet())
+					if (!error)
 					{
 						if ((code1 & 0xFC00) == 0xD800)
 						{
 							error = getNextCode(value, offset, code2);
-							if (!error.hasErrorSet())
+							if (!error)
 							{
 								if ((code2 & 0xFC00) == 0xDC00)
 								{
@@ -184,7 +184,7 @@ namespace Ash
 				if constexpr (maxSize == 1)
 				{
 					error = getPreviousCode(value, offset, code1);
-					if (!error.hasErrorSet())
+					if (!error)
 					{
 						return character.set(code1);
 					}
@@ -192,12 +192,12 @@ namespace Ash
 				else if constexpr (maxSize == 2)
 				{
 					error = getPreviousCode(value, offset, code1);
-					if (!error.hasErrorSet())
+					if (!error)
 					{
 						if ((code1 & 0xFC00) == 0xDC00)
 						{
 							error = getPreviousCode(value, offset, code2);
-							if (!error.hasErrorSet())
+							if (!error)
 							{
 								if ((code2 & 0xFC00) == 0xD800)
 								{

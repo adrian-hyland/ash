@@ -64,7 +64,7 @@ namespace Ash
 			{
 				Code code = 0;
 				Ash::Error::Value error = getNextCode(value, offset, code);
-				if (!error.hasErrorSet())
+				if (!error)
 				{
 					if (code >= 0)
 					{
@@ -85,7 +85,7 @@ namespace Ash
 			{
 				Code code = 0;
 				Ash::Error::Value error = getPreviousCode(value, offset, code);
-				if (!error.hasErrorSet())
+				if (!error)
 				{
 					if (code >= 0)
 					{

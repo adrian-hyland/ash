@@ -92,16 +92,16 @@ namespace Ash
 				Code code4 = 0;
 
 				Ash::Error::Value error = getNextCode(value, offset, code1);
-				if (!error.hasErrorSet())
+				if (!error)
 				{
 					error = getNextCode(value, offset, code2);
-					if (!error.hasErrorSet())
+					if (!error)
 					{
 						error = getNextCode(value, offset, code3);
-						if (!error.hasErrorSet())
+						if (!error)
 						{
 							error = getNextCode(value, offset, code4);
-							if (!error.hasErrorSet())
+							if (!error)
 							{
 								return character.set(code1, code2, code3, code4);
 							}
@@ -122,16 +122,16 @@ namespace Ash
 				Code code4 = 0;
 
 				Ash::Error::Value error = getPreviousCode(value, offset, code1);
-				if (!error.hasErrorSet())
+				if (!error)
 				{
 					error = getPreviousCode(value, offset, code2);
-					if (!error.hasErrorSet())
+					if (!error)
 					{
 						error = getPreviousCode(value, offset, code3);
-						if (!error.hasErrorSet())
+						if (!error)
 						{
 							error = getPreviousCode(value, offset, code4);
-							if (!error.hasErrorSet())
+							if (!error)
 							{
 								return character.set(code4, code3, code2, code1);
 							}

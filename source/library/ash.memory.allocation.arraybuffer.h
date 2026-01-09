@@ -234,28 +234,26 @@ namespace Ash
 					size_t previousLength = m_Length;
 
 					Ash::Error::Value error = acquire(capacity);
-					if (error.hasErrorSet())
+					if (!error)
 					{
-						return error;
+						if (m_Content != m_Buffer)
+						{
+							Ash::Memory::construct(m_Content[retainStartLength], std::forward<VALUE_TYPE>(value));
+							Ash::Memory::moveConstruct(m_Content, previousContent, retainStartLength);
+							Ash::Memory::moveConstruct(&m_Content[retainStartLength + 1], &previousContent[previousLength - retainEndLength], retainEndLength);
+						}
+						else
+						{
+							m_Content[retainStartLength] = std::forward<VALUE_TYPE>(value);
+							Ash::Memory::moveForward(m_Content, previousContent, retainStartLength);
+							Ash::Memory::moveForward(&m_Content[retainStartLength + 1], &previousContent[previousLength - retainEndLength], retainEndLength);
+						}
+						m_Length = retainStartLength + retainEndLength + 1;
+
+						release(previousContent, retainStartLength, previousLength - retainStartLength - retainEndLength);
 					}
 
-					if (m_Content != m_Buffer)
-					{
-						Ash::Memory::construct(m_Content[retainStartLength], std::forward<VALUE_TYPE>(value));
-						Ash::Memory::moveConstruct(m_Content, previousContent, retainStartLength);
-						Ash::Memory::moveConstruct(&m_Content[retainStartLength + 1], &previousContent[previousLength - retainEndLength], retainEndLength);
-					}
-					else
-					{
-						m_Content[retainStartLength] = std::forward<VALUE_TYPE>(value);
-						Ash::Memory::moveForward(m_Content, previousContent, retainStartLength);
-						Ash::Memory::moveForward(&m_Content[retainStartLength + 1], &previousContent[previousLength - retainEndLength], retainEndLength);
-					}
-					m_Length = retainStartLength + retainEndLength + 1;
-
-					release(previousContent, retainStartLength, previousLength - retainStartLength - retainEndLength);
-
-					return Ash::Error::none;
+					return error;
 				}
 
 				template
@@ -296,38 +294,36 @@ namespace Ash
 					Type *previousContent = m_Content;
 					size_t previousLength = m_Length;
 					Ash::Error::Value error = acquire(capacity);
-					if (error.hasErrorSet())
+					if (!error)
 					{
-						return error;
-					}
-
-					if (m_Content != m_Buffer)
-					{
-						if (content != nullptr)
+						if (m_Content != m_Buffer)
 						{
-							Ash::Memory::copyConstruct(&m_Content[retainStartLength], content, contentLength);
+							if (content != nullptr)
+							{
+								Ash::Memory::copyConstruct(&m_Content[retainStartLength], content, contentLength);
+							}
+							else
+							{
+								Ash::Memory::defaultConstruct(&m_Content[retainStartLength], contentLength);
+							}
+							Ash::Memory::moveConstruct(m_Content, previousContent, retainStartLength);
+							Ash::Memory::moveConstruct(&m_Content[retainStartLength + contentLength], &previousContent[previousLength - retainEndLength], retainEndLength);
 						}
 						else
 						{
-							Ash::Memory::defaultConstruct(&m_Content[retainStartLength], contentLength);
+							if (content != nullptr)
+							{
+								Ash::Memory::copyForward(&m_Content[retainStartLength], content, contentLength);
+							}
+							Ash::Memory::moveForward(m_Content, previousContent, retainStartLength);
+							Ash::Memory::moveForward(&m_Content[retainStartLength + contentLength], &previousContent[previousLength - retainEndLength], retainEndLength);
 						}
-						Ash::Memory::moveConstruct(m_Content, previousContent, retainStartLength);
-						Ash::Memory::moveConstruct(&m_Content[retainStartLength + contentLength], &previousContent[previousLength - retainEndLength], retainEndLength);
-					}
-					else
-					{
-						if (content != nullptr)
-						{
-							Ash::Memory::copyForward(&m_Content[retainStartLength], content, contentLength);
-						}
-						Ash::Memory::moveForward(m_Content, previousContent, retainStartLength);
-						Ash::Memory::moveForward(&m_Content[retainStartLength + contentLength], &previousContent[previousLength - retainEndLength], retainEndLength);
-					}
-					m_Length = retainStartLength + retainEndLength + contentLength;
+						m_Length = retainStartLength + retainEndLength + contentLength;
 
-					release(previousContent, retainStartLength, previousLength - retainStartLength - retainEndLength);
+						release(previousContent, retainStartLength, previousLength - retainStartLength - retainEndLength);
+					}
 
-					return Ash::Error::none;
+					return error;
 				}
 
 				[[nodiscard]]
