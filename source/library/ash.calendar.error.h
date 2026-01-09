@@ -8,9 +8,8 @@ namespace Ash
 {
 	namespace Calendar
 	{
-		class Error : public Ash::Error::Value
+		namespace Error
 		{
-		public:
 			using Code = unsigned int;
 
 			class Category : public Ash::Error::Category
@@ -23,47 +22,49 @@ namespace Ash
 
 				virtual bool getErrorCodeDescription(Ash::Error::Code code, Ash::Error::Code::Description description) const override
 				{
-					return Ash::Calendar::Error::getErrorCodeDescription(code, description);
+					return getDescription(code, description);
+				}
+
+			protected:
+				static inline bool getDescription(Code code, Ash::Error::Code::Description description)
+				{
+					static const char *errorDescriptions[] =
+					{
+						"Invalid duration value",
+						"Invalid year value",
+						"Invalid month value",
+						"Invalid weekday value",
+						"Invalid day value",
+						"Invalid ordinal value",
+						"Invalid week value",
+						"Invalid hour value",
+						"Invalid minute value",
+						"Invalid second value"
+					};
+
+					const char *errorDescription = (code < sizeof(errorDescriptions) / sizeof(errorDescriptions[0])) ? errorDescriptions[code] : nullptr;
+					if ((errorDescription == nullptr) || (strlen(errorDescription) > sizeof(Ash::Error::Code::Description) - 1))
+					{
+						return false;
+					}
+
+					strcpy(description, errorDescription);
+					return true;
 				}
 			};
 
-			static inline const Category category;
+			inline constexpr Category category;
 
-			static constexpr Ash::Error::Value invalidDuration = Ash::Error::Value(category, 0);
-			static constexpr Ash::Error::Value invalidYear     = Ash::Error::Value(category, 1);
-			static constexpr Ash::Error::Value invalidMonth    = Ash::Error::Value(category, 2);
-			static constexpr Ash::Error::Value invalidWeekday  = Ash::Error::Value(category, 3);
-			static constexpr Ash::Error::Value invalidDay      = Ash::Error::Value(category, 4);
-			static constexpr Ash::Error::Value invalidOrdinal  = Ash::Error::Value(category, 5);
-			static constexpr Ash::Error::Value invalidWeek     = Ash::Error::Value(category, 6);
-			static constexpr Ash::Error::Value invalidHour     = Ash::Error::Value(category, 7);
-			static constexpr Ash::Error::Value invalidMinute   = Ash::Error::Value(category, 8);
-			static constexpr Ash::Error::Value invalidSecond   = Ash::Error::Value(category, 9);
-
-		protected:
-			static inline bool getErrorCodeDescription(Code code, Ash::Error::Code::Description description)
-			{
-				static const char *errorDescriptions[] =
-				{
-					"Invalid duration value",
-					"Invalid year value",
-					"Invalid month value",
-					"Invalid weekday value",
-					"Invalid day value",
-					"Invalid ordinal value",
-					"Invalid week value",
-					"Invalid hour value",
-					"Invalid minute value",
-					"Invalid second value"
-				};
-				const char *errorDescription = (code < sizeof(errorDescriptions) / sizeof(errorDescriptions[0])) ? errorDescriptions[code] : nullptr;
-				if ((errorDescription == nullptr) || (strlen(errorDescription) > sizeof(Ash::Error::Code::Description) - 1))
-				{
-					return false;
-				}
-				strcpy(description, errorDescription);
-				return true;
-			}
-		};
+			constexpr Ash::Error::Value invalidDuration = { category, 0 };
+			constexpr Ash::Error::Value invalidYear     = { category, 1 };
+			constexpr Ash::Error::Value invalidMonth    = { category, 2 };
+			constexpr Ash::Error::Value invalidWeekday  = { category, 3 };
+			constexpr Ash::Error::Value invalidDay      = { category, 4 };
+			constexpr Ash::Error::Value invalidOrdinal  = { category, 5 };
+			constexpr Ash::Error::Value invalidWeek     = { category, 6 };
+			constexpr Ash::Error::Value invalidHour     = { category, 7 };
+			constexpr Ash::Error::Value invalidMinute   = { category, 8 };
+			constexpr Ash::Error::Value invalidSecond   = { category, 9 };
+		}
 	}
 }
