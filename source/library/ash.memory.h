@@ -142,6 +142,42 @@ namespace Ash
 				Allocation::moveFrom(value);
 			}
 
+			[[nodiscard]]
+			constexpr Ash::Error::Value increaseLength(size_t increase)
+			{
+				if (increase == 0)
+				{
+					return Ash::Error::none;
+				}
+
+				size_t length;
+
+				if (!Ash::Size(Allocation::getLength()).add(increase).getValue(length))
+				{
+					return Ash::Memory::Error::lengthOverflow;
+				}
+
+				return Allocation::setLength(length);
+			}
+
+			[[nodiscard]]
+			constexpr Ash::Error::Value decreaseLength(size_t decrease)
+			{
+				if (decrease == 0)
+				{
+					return Ash::Error::none;
+				}
+
+				size_t length;
+
+				if (!Ash::Size(Allocation::getLength()).subtract(decrease).getValue(length))
+				{
+					return Ash::Memory::Error::lengthUnderflow;
+				}
+
+				return Allocation::setLength(length);
+			}
+
 			constexpr Area<Type> getArea(size_t offset, size_t length)
 			{
 				if (offset > Allocation::getLength())
