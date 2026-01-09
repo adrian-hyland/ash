@@ -211,13 +211,18 @@ namespace Ash
 
 			constexpr bool operator == (const Value &value) const { return (m_ErrorCategory == value.m_ErrorCategory) && (m_ErrorCode == value.m_ErrorCode); }
 
-			constexpr bool hasErrorSet() const { return m_ErrorCategory != nullptr; }
+			constexpr operator bool () const { return m_ErrorCategory != nullptr; }
 
 			constexpr const Ash::Error::Category *getCategory() const { return m_ErrorCategory; }
 
 			constexpr Ash::Error::Code getCode() const { return m_ErrorCode; }
 
 			constexpr bool getDescription(Ash::Error::Code::Description description) const { return (m_ErrorCategory != nullptr) ? m_ErrorCategory->getErrorCodeDescription(m_ErrorCode, description) : false; }
+
+			constexpr Value translateError(const Value &from, const Value &to)
+			{
+				return (*this == from) ? to : *this;
+			}
 
 			[[nodiscard]]
 			constexpr Value &ignoreError(const Value &errorValue)
@@ -258,7 +263,7 @@ namespace Ash
 
 			constexpr void throwOnError(Ash::Source::Location location = Ash::Source::Location::inFunction()) const
 			{
-				if (hasErrorSet())
+				if (*this)
 				{
 					throw Ash::Error::Exception(m_ErrorCategory, m_ErrorCode, location);
 				}
@@ -266,7 +271,7 @@ namespace Ash
 
 			constexpr void terminateOnError(Ash::Source::Location location = Ash::Source::Location::inFunction()) const
 			{
-				if (hasErrorSet())
+				if (*this)
 				{
 					try
 					{
@@ -282,7 +287,7 @@ namespace Ash
 			constexpr void assertErrorNotSet(Ash::Source::Location location = Ash::Source::Location::inFunction()) const
 			{
 #ifdef DEBUG
-				if (hasErrorSet())
+				if (*this)
 				{
 					try
 					{
@@ -315,6 +320,11 @@ namespace Ash
 		};
 
 		constexpr Ash::Error::Value none = Ash::Error::Value();
+
+		constexpr bool isSet(Ash::Error::Value error)
+		{
+			return error;
+		}
 
 		constexpr void assert(bool condition, Ash::Error::Value errorValue, Ash::Source::Location location = Ash::Source::Location::inFunction())
 		{
