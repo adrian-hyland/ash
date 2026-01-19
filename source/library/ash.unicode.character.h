@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cstddef>
 #include <initializer_list>
+#include "ash.unicode.error.h"
 
 
 namespace Ash
@@ -22,9 +23,30 @@ namespace Ash
 
 			static constexpr Value surrogateEnd = 0xDFFF;
 
-			constexpr Character(Value value = 0) : m_Value(isValid(value) ? value : replacement) {}
+			constexpr Character(Value value = 0, bool replaceInvalidValue = true) : m_Value()
+			{
+				set(value, replaceInvalidValue).throwOnError();
+			}
 
 			constexpr operator Value () const { return m_Value; }
+
+			[[nodiscard]]
+			constexpr Ash::Error::Value set(Value value, bool replaceInvalidValue = true)
+			{
+				if (isValid(value))
+				{
+					m_Value = value;
+					return Ash::Error::none;
+				}
+
+				if (replaceInvalidValue)
+				{
+					m_Value = replacement;
+					return Ash::Error::none;
+				}
+
+				return Ash::Unicode::Error::invalidValue;
+			}
 
 			static constexpr bool isValid(Value value) { return (value < surrogateStart) || ((value > surrogateEnd) && (value <= maximum)); }
 
@@ -37,6 +59,7 @@ namespace Ash
 						return true;
 					}
 				}
+
 				return false;
 			}
 
