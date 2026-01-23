@@ -26,15 +26,39 @@ namespace Ash
 			public:
 				constexpr Character() : Ash::Memory::Buffer<Code, maxSize>() {}
 
-				constexpr Character(Ash::Unicode::Character character) : Ash::Memory::Buffer<Code, maxSize>()
+				constexpr Character(Ash::Unicode::Character character, bool replaceInvalidCharacter = true) : Ash::Memory::Buffer<Code, maxSize>()
 				{
-					set(character);
+					set(character, replaceInvalidCharacter).assertErrorNotSet();
 				}
 
 				constexpr Ash::Unicode::Character operator = (Ash::Unicode::Character character)
 				{
-					set(character);
+					set(character).assertErrorNotSet();
 					return character;
+				}
+
+				[[nodiscard]]
+				constexpr Ash::Error::Value set(Ash::Unicode::Character character, bool replaceInvalidCharacter = true)
+				{
+					Ash::Unicode::Character::Value value = character;
+
+					if (value < 0x10000)
+					{
+						setLength(minSize).assertErrorNotSet();
+						(*this)[0] = value >> 8;
+						(*this)[1] = value & 0xFF;
+					}
+					else
+					{
+						value = value - 0x10000;
+						setLength(maxSize).assertErrorNotSet();
+						(*this)[0] = ((value >> 18) & 0x03) | 0xD8;
+						(*this)[1] = value >> 10;
+						(*this)[2] = ((value >> 8) & 0x03) | 0xDC;
+						(*this)[3] = value;
+					}
+
+					return Ash::Error::none;
 				}
 
 				constexpr operator Ash::Unicode::Character () const
@@ -59,29 +83,13 @@ namespace Ash
 					}
 				}
 
+				static constexpr bool isValid(Ash::Unicode::Character character)
+				{
+					return true;
+				}
+
 			protected:
 				constexpr Ash::Unicode::Character::Value getCode(size_t offset) const { return Ash::Unicode::Character::Value(uint8_t((*this)[offset])); }
-
-				constexpr void set(Ash::Unicode::Character character)
-				{
-					Ash::Unicode::Character::Value value = character;
-
-					if (value < 0x10000)
-					{
-						setLength(minSize).assertErrorNotSet();
-						(*this)[0] = value >> 8;
-						(*this)[1] = value & 0xFF;
-					}
-					else
-					{
-						value = value - 0x10000;
-						setLength(maxSize).assertErrorNotSet();
-						(*this)[0] = ((value >> 18) & 0x03) | 0xD8;
-						(*this)[1] = value >> 10;
-						(*this)[2] = ((value >> 8) & 0x03) | 0xDC;
-						(*this)[3] = value;
-					}
-				}
 
 				[[nodiscard]]
 				constexpr Ash::Error::Value set(Code code1, Code code2)

@@ -26,15 +26,50 @@ namespace Ash
 			public:
 				constexpr Character() : Ash::Memory::Buffer<Code, maxSize>() {}
 
-				constexpr Character(Ash::Unicode::Character character) : Ash::Memory::Buffer<Code, maxSize>()
+				constexpr Character(Ash::Unicode::Character character, bool replaceInvalidCharacter = true) : Ash::Memory::Buffer<Code, maxSize>()
 				{
-					set(character);
+					set(character, replaceInvalidCharacter).assertErrorNotSet();
 				}
 
 				constexpr Ash::Unicode::Character operator = (Ash::Unicode::Character character)
 				{
-					set(character);
+					set(character).assertErrorNotSet();
 					return character;
+				}
+
+				[[nodiscard]]
+				constexpr Ash::Error::Value set(Ash::Unicode::Character character, bool replaceInvalidCharacter = true)
+				{
+					Ash::Unicode::Character::Value value = character;
+
+					if (value < 0x80)
+					{
+						setLength(1).assertErrorNotSet();
+						(*this)[0] = value;
+					}
+					else if (value < 0x0800)
+					{
+						setLength(2).assertErrorNotSet();
+						(*this)[0] = (value >> 6) | 0xC0;
+						(*this)[1] = (value & 0x3F) | 0x80;
+					}
+					else if (value < 0x10000)
+					{
+						setLength(3).assertErrorNotSet();
+						(*this)[0] = (value >> 12) | 0xE0;
+						(*this)[1] = ((value >> 6) & 0x3F) | 0x80;
+						(*this)[2] = (value & 0x3F) | 0x80;
+					}
+					else
+					{
+						setLength(4).assertErrorNotSet();
+						(*this)[0] = (value >> 18) | 0xF0;
+						(*this)[1] = ((value >> 12) & 0x3F) | 0x80;
+						(*this)[2] = ((value >> 6) & 0x3F) | 0x80;
+						(*this)[3] = (value & 0x3F) | 0x80;
+					}
+
+					return Ash::Error::none;
 				}
 
 				constexpr operator Ash::Unicode::Character () const
@@ -66,40 +101,13 @@ namespace Ash
 					}
 				}
 
+				static constexpr bool isValid(Ash::Unicode::Character character)
+				{
+					return true;
+				}
+
 			protected:
 				constexpr Ash::Unicode::Character::Value getCode(size_t offset) const { return Ash::Unicode::Character::Value(uint8_t((*this)[offset])); }
-
-				constexpr void set(Ash::Unicode::Character character)
-				{
-					Ash::Unicode::Character::Value value = character;
-
-					if (value < 0x80)
-					{
-						setLength(1).assertErrorNotSet();
-						(*this)[0] = value;
-					}
-					else if (value < 0x0800)
-					{
-						setLength(2).assertErrorNotSet();
-						(*this)[0] = (value >> 6) | 0xC0;
-						(*this)[1] = (value & 0x3F) | 0x80;
-					}
-					else if (value < 0x10000)
-					{
-						setLength(3).assertErrorNotSet();
-						(*this)[0] = (value >> 12) | 0xE0;
-						(*this)[1] = ((value >> 6) & 0x3F) | 0x80;
-						(*this)[2] = (value & 0x3F) | 0x80;
-					}
-					else
-					{
-						setLength(4).assertErrorNotSet();
-						(*this)[0] = (value >> 18) | 0xF0;
-						(*this)[1] = ((value >> 12) & 0x3F) | 0x80;
-						(*this)[2] = ((value >> 6) & 0x3F) | 0x80;
-						(*this)[3] = (value & 0x3F) | 0x80;
-					}
-				}
 
 				[[nodiscard]]
 				constexpr Ash::Error::Value set(Code code1)
