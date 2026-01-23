@@ -28,26 +28,44 @@ namespace Ash
 
 				constexpr Character() : Ash::Memory::Buffer<Code, maxSize>() {}
 
-				constexpr Character(Ash::Unicode::Character character) : Ash::Memory::Buffer<Code, maxSize>()
+				constexpr Character(Ash::Unicode::Character character, bool replaceInvalidCharacter = true) : Ash::Memory::Buffer<Code, maxSize>()
 				{
-					set(character);
+					set(character, replaceInvalidCharacter).throwOnError();
 				}
 
 				constexpr Ash::Unicode::Character operator = (Ash::Unicode::Character character)
 				{
-					set(character);
+					set(character).assertErrorNotSet();
 					return character;
+				}
+
+				[[nodiscard]]
+				constexpr Ash::Error::Value set(Ash::Unicode::Character character, bool replaceInvalidCharacter = true)
+				{
+					setLength(1).assertErrorNotSet();
+					if (isValid(character))
+					{
+						(*this)[0] = Ash::Unicode::Character::Value(character);
+						return Ash::Error::none;
+					}
+
+					if (replaceInvalidCharacter)
+					{
+						(*this)[0] = replacementCode;
+						return Ash::Error::none;
+					}
+
+					return Ash::Encoding::Error::invalidCodePoint;
 				}
 
 				constexpr operator Ash::Unicode::Character () const { return (getLength() > 0) ? (*this)[0] : '\0'; }
 
-			protected:
-				constexpr void set(Ash::Unicode::Character character)
+				static constexpr bool isValid(Ash::Unicode::Character character)
 				{
-					setLength(1).assertErrorNotSet();
-					(*this)[0] = (Ash::Unicode::Character::Value(character) < 0x80) ? Ash::Unicode::Character::Value(character) : Ash::Unicode::Character::Value(replacementCode);
+					return Ash::Unicode::Character::Value(character) < 0x80;
 				}
 
+			protected:
 				[[nodiscard]]
 				constexpr Ash::Error::Value set(Code code)
 				{
