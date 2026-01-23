@@ -127,6 +127,11 @@ namespace Ash
 				return *this;
 			}
 
+			template
+			<
+				typename ALLOCATION_TYPE = typename Allocation::Type,
+				typename = Ash::Type::IsNotConstant<ALLOCATION_TYPE>
+			>
 			constexpr Ash::Error::Value copyFrom(View<Type> value)
 			{
 					return Allocation::copyFrom(value.at(0), value.getLength());
