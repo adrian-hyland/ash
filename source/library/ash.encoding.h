@@ -39,40 +39,52 @@ namespace Ash
 		[[nodiscard]]
 		constexpr Ash::Error::Value convert(Ash::Memory::View<typename FROM_ENCODING::Code> from, size_t &fromOffset, Ash::Memory::Value<TO_ALLOCATION, typename TO_ENCODING::Code> &to, size_t &toOffset, bool replaceInvalidCharacter = true)
 		{
-			if (fromOffset > from.getLength())
-			{
-				return Ash::Memory::Error::readAccessOutOfBound;
-			}
+			Ash::Error::Value error = (fromOffset > from.getLength()) ? Ash::Memory::Error::readAccessOutOfBound : Ash::Error::none;
 
-			while (fromOffset < from.getLength())
+			while (!error && (fromOffset < from.getLength()))
 			{
 				typename FROM_ENCODING::Character fromCharacter;
 				typename TO_ENCODING::Character toCharacter;
 
-				Ash::Error::Value error = FROM_ENCODING::decodeNext(from, fromOffset, fromCharacter);
-				if (error.hasErrorSet())
+				error = FROM_ENCODING::decodeNext(from, fromOffset, fromCharacter);
+				if (error && (error.getCategory() == &Ash::Encoding::Error::category) && replaceInvalidCharacter)
 				{
-					if ((error.getCategory() != &Ash::Encoding::Error::category) || !replaceInvalidCharacter)
-					{
-						return error;
-					}
-
 					fromCharacter = Ash::Unicode::Character::replacement;
+					error = Ash::Error::none;
 				}
 
-				toCharacter = fromCharacter;
-
-				error = to.set(toOffset, toCharacter);
-				if (error.hasErrorSet())
+				if (!error)
 				{
-					return error;
+					error = toCharacter.set(fromCharacter, replaceInvalidCharacter);
+					if (!error)
+					{
+						error = to.set(toOffset, toCharacter);
+						if (!error)
+						{
+							fromOffset = fromOffset + ((fromCharacter.getLength() != 0) ? fromCharacter.getLength() : FROM_ENCODING::minSize);
+							toOffset = toOffset + toCharacter.getLength();
+						}
+					}
 				}
-
-				fromOffset = fromOffset + ((fromCharacter.getLength() != 0) ? fromCharacter.getLength() : FROM_ENCODING::minSize);
-				toOffset = toOffset + toCharacter.getLength();
 			}
 
-			return Ash::Error::none;
+			return error;
+		}
+
+		template
+		<
+			typename FROM_ENCODING,
+			typename TO_ENCODING,
+			typename TO_ALLOCATION,
+			typename = Ash::Type::IsClass<FROM_ENCODING, Ash::Generic::Encoding>,
+			typename = Ash::Type::IsClass<TO_ENCODING, Ash::Generic::Encoding>,
+			typename = Ash::Type::IsClass<TO_ALLOCATION, Ash::Memory::Generic::Allocation>
+		>
+		[[nodiscard]]
+		constexpr Ash::Error::Value convert(Ash::Memory::View<typename FROM_ENCODING::Code> from, Ash::Memory::Value<TO_ALLOCATION, typename TO_ENCODING::Code> &to, size_t &toOffset, bool replaceInvalidCharacter = true)
+		{
+			size_t fromOffset = 0;
+			return convert<FROM_ENCODING, TO_ENCODING, TO_ALLOCATION>(from, fromOffset, to, toOffset, replaceInvalidCharacter);
 		}
 
 		template
@@ -236,20 +248,35 @@ namespace Ash
 			typename ENCODING,
 			typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
 		>
-		constexpr size_t skipAnyOf(Ash::Memory::View<typename ENCODING::Code> value, size_t offset, std::initializer_list<Ash::Unicode::Character> characterList)
+		[[nodiscard]]
+		constexpr Ash::Error::Value skipAnyOf(Ash::Memory::View<typename ENCODING::Code> value, size_t &offset, std::initializer_list<Ash::Unicode::Character> characterList, bool skipInvalidCharacter = false)
 		{
-			typename ENCODING::Character character;
-			size_t start = offset;
-
-			for (; offset < value.getLength(); offset = offset + ((character.getLength() != 0) ? character.getLength() : ENCODING::minSize))
+			while (offset != value.getLength())
 			{
-				if (!ENCODING::decodeNext(value, offset, character).hasErrorSet() && !Ash::Unicode::Character::contains(characterList, character))
+				typename ENCODING::Character character;
+
+				Ash::Error::Value error = ENCODING::decodeNext(value, offset, character);
+				if (error)
 				{
-					break;
+					if ((error.getCategory() != &Ash::Encoding::Error::category) || !skipInvalidCharacter)
+					{
+						return error;
+					}
+
+					offset = offset + ENCODING::minSize;
+				}
+				else
+				{
+					if (!Ash::Unicode::Character::contains(characterList, character))
+					{
+						break;
+					}
+
+					offset = offset + character.getLength();
 				}
 			}
 
-			return offset - start;
+			return Ash::Error::none;
 		}
 
 		template
@@ -257,20 +284,35 @@ namespace Ash
 			typename ENCODING,
 			typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
 		>
-		constexpr size_t skipNoneOf(Ash::Memory::View<typename ENCODING::Code> value, size_t offset, std::initializer_list<Ash::Unicode::Character> characterList)
+		[[nodiscard]]
+		constexpr Ash::Error::Value skipNoneOf(Ash::Memory::View<typename ENCODING::Code> value, size_t &offset, std::initializer_list<Ash::Unicode::Character> characterList, bool skipInvalidCharacter = false)
 		{
-			typename ENCODING::Character character;
-			size_t start = offset;
-
-			for (; offset < value.getLength(); offset = offset + ((character.getLength() != 0) ? character.getLength() : ENCODING::minSize))
+			while (offset != value.getLength())
 			{
-				if (!ENCODING::decodeNext(value, offset, character).hasErrorSet() && Ash::Unicode::Character::contains(characterList, character))
+				typename ENCODING::Character character;
+
+				Ash::Error::Value error = ENCODING::decodeNext(value, offset, character);
+				if (error)
 				{
-					break;
+					if ((error.getCategory() != &Ash::Encoding::Error::category) || !skipInvalidCharacter)
+					{
+						return error;
+					}
+
+					offset = offset + ENCODING::minSize;
+				}
+				else
+				{
+					if (Ash::Unicode::Character::contains(characterList, character))
+					{
+						break;
+					}
+
+					offset = offset + character.getLength();
 				}
 			}
 
-			return offset - start;
+			return Ash::Error::none;
 		}
 
 		template
@@ -280,14 +322,22 @@ namespace Ash
 			typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>,
 			typename = Ash::Type::IsClass<TOKEN_ALLOCATION, Ash::Memory::Generic::Allocation>
 		>
-		constexpr size_t token(Ash::Memory::View<typename ENCODING::Code> value, size_t offset, std::initializer_list<Ash::Unicode::Character> delimiters, Ash::Memory::Value<TOKEN_ALLOCATION, typename ENCODING::Code> &tokenValue)
+		[[nodiscard]]
+		constexpr Ash::Error::Value token(Ash::Memory::View<typename ENCODING::Code> value, size_t &offset, std::initializer_list<Ash::Unicode::Character> delimiters, Ash::Memory::Value<TOKEN_ALLOCATION, typename ENCODING::Code> &tokenValue, bool skipInvalidCharacter = false)
 		{
-			size_t delimiterLength = skipAnyOf<ENCODING>(value, offset, delimiters);
-			size_t tokenLength = skipNoneOf<ENCODING>(value, offset + delimiterLength, delimiters);
+			Ash::Error::Value error = skipAnyOf<ENCODING>(value, offset, delimiters, skipInvalidCharacter);
+			if (!error)
+			{
+				size_t tokenOffset = offset;
+				error = skipNoneOf<ENCODING>(value, offset, delimiters, skipInvalidCharacter);
+				if (!error)
+				{
+					size_t tokenLength = offset - tokenOffset;
+					error = tokenValue.copyFrom(value.getView(tokenOffset, tokenLength));
+				}
+			}
 
-			tokenValue = Ash::Memory::Value<TOKEN_ALLOCATION, typename ENCODING::Code>(value.at(offset + delimiterLength), tokenLength);
-
-			return delimiterLength + tokenLength;
+			return error;
 		}
 	}
 }
