@@ -43,7 +43,7 @@ namespace Ash
 					}
 					else
 					{
-						for (length = 0; value[length] != '\0'; length++) 
+						for (length = 0; value[length] != '\0'; length++)
 							;
 					}
 				}
@@ -51,19 +51,14 @@ namespace Ash
 				return length;
 			}
 
-			static constexpr size_t getLength(Value value, size_t length, size_t maxLength)
+			static constexpr size_t getLength(Value value, size_t length)
 			{
-				return length < maxLength ? length : maxLength;
+				return (value != nullptr) ? length : 0;
 			}
 
-			static constexpr size_t getLength(Value value, size_t maxLength)
-			{
-				return getLength(value, getLength(value), maxLength);
-			}
+			static constexpr Ash::Memory::View<Code> getView(Value value) { return { value, getLength(value) }; }
 
-			static constexpr Ash::Memory::View<Code> getView(Value value, size_t maxLength) { return { value, getLength(value, maxLength) }; }
-
-			static constexpr Ash::Memory::View<Code> getView(Value value, size_t length, size_t maxLength) { return { value, getLength(value, length, maxLength) }; }
+			static constexpr Ash::Memory::View<Code> getView(Value value, size_t length) { return { value, getLength(value, length) }; }
 		};
 
 		template
@@ -89,7 +84,7 @@ namespace Ash
 					}
 					else
 					{
-						for (length = 0; value[length] != '\0'; length++) 
+						for (length = 0; value[length] != '\0'; length++)
 							;
 					}
 				}
@@ -97,35 +92,26 @@ namespace Ash
 				return length;
 			}
 
-			static constexpr size_t getLength(Value value, size_t length, size_t maxLength)
+			static constexpr size_t getLength(Value value, size_t length)
 			{
-				if (length < maxLength)
+				if (value != nullptr)
 				{
-					return length;
-				}
-				else
-				{
-					for (size_t offset = maxLength; offset != 0; offset = offset - Encoding::minSize)
+					for (size_t offset = length; offset != 0; offset = offset - Encoding::minSize)
 					{
 						Encoding::Character character;
-						if (Encoding::decodePrevious(Ash::Memory::View<Code>(value, length), offset, character) != 0)
+						if (!Ash::Error::isSet(Encoding::decodePrevious(Ash::Memory::View<Code>(value, length), offset, character)))
 						{
 							return offset;
 						}
 					}
-
-					return 0;
 				}
+
+				return 0;
 			}
 
-			static constexpr size_t getLength(Value value, size_t maxLength)
-			{
-				return getLength(value, getLength(value), maxLength);
-			}
+			static constexpr Ash::Memory::View<Code> getView(Value value) { return { value, getLength(value) }; }
 
-			static constexpr Ash::Memory::View<Code> getView(Value value, size_t maxLength) { return { value, getLength(value, maxLength) }; }
-
-			static constexpr Ash::Memory::View<Code> getView(Value value, size_t length, size_t maxLength) { return { value, getLength(value, length, maxLength) }; }
+			static constexpr Ash::Memory::View<Code> getView(Value value, size_t length) { return { value, getLength(value, length) }; }
 		};
 
 		template
@@ -151,7 +137,7 @@ namespace Ash
 					}
 					else
 					{
-						for (length = 0; value[length] != '\0'; length++) 
+						for (length = 0; value[length] != '\0'; length++)
 							;
 					}
 				}
@@ -159,39 +145,27 @@ namespace Ash
 				return length;
 			}
 
-			static constexpr size_t getLength(Value value, size_t length, size_t maxLength)
+			static constexpr size_t getLength(Value value, size_t length)
 			{
-				if (length < maxLength)
+				if (value != nullptr)
 				{
-					return length;
-				}
-				else if constexpr (Encoding::minSize == Encoding::maxSize)
-				{
-					return maxLength;
-				}
-				else
-				{
-					for (size_t offset = maxLength; offset != 0; offset = offset - Encoding::minSize)
+					for (size_t offset = length; offset != 0; offset = offset - Encoding::minSize)
 					{
 						Encoding::Character character;
-						if (Encoding::decodePrevious(Ash::Memory::View<Code>(value, length), offset, character) != 0)
+
+						if (!Ash::Error::isSet(Encoding::decodePrevious(Ash::Memory::View<Code>(value, length), offset, character)))
 						{
 							return offset;
 						}
 					}
-
-					return 0;
 				}
+
+				return 0;
 			}
 
-			static constexpr size_t getLength(Value value, size_t maxLength)
-			{
-				return getLength(value, getLength(value), maxLength);
-			}
+			static constexpr Ash::Memory::View<Code> getView(Value value) { return { value, getLength(value) }; }
 
-			static constexpr Ash::Memory::View<Code> getView(Value value, size_t maxLength) { return { value, getLength(value, maxLength) }; }
-
-			static constexpr Ash::Memory::View<Code> getView(Value value, size_t length, size_t maxLength) { return { value, getLength(value, length, maxLength) }; }
+			static constexpr Ash::Memory::View<Code> getView(Value value, size_t length) { return { value, getLength(value, length) }; }
 		};
 
 		template
@@ -263,7 +237,7 @@ namespace Ash
 				typename = Ash::Type::IsStringLiteral<VALUE>,
 				typename = Ash::Type::IsSame<typename Ash::String::Literal<VALUE>::Encoding, STRING_ENCODING>
 			>
-			constexpr Value(VALUE value) : Memory(value, Ash::String::Literal<VALUE>::getLength(value, Memory::maxCapacity)) {}
+			constexpr Value(VALUE value) : Memory(Ash::String::Literal<VALUE>::getView(value)) {}
 
 			template
 			<
@@ -272,7 +246,7 @@ namespace Ash
 				typename = Ash::Type::IsStringLiteral<VALUE>,
 				typename = Ash::Type::IsSame<typename Ash::String::Literal<VALUE>::Encoding, STRING_ENCODING>
 			>
-			constexpr Value(VALUE value, size_t length) : Memory(value, Ash::String::Literal<VALUE>::getLength(value, length, Memory::maxCapacity)) {}
+			constexpr Value(VALUE value, size_t length) : Memory(Ash::String::Literal<VALUE>::getView(value, length)) {}
 
 			template
 			<
@@ -283,9 +257,9 @@ namespace Ash
 				typename = Ash::Type::IsNotSame<typename Ash::String::Literal<VALUE>::Encoding, STRING_ENCODING>,
 				typename = Ash::Type::IsNotConstant<typename STRING_ALLOCATION::Type>
 			>
-			constexpr Value(VALUE value, Ash::Unicode::Character replacementCharacter = Character::replacement) : Memory()
+			constexpr Value(VALUE value, bool replaceInvalidCharacter = true) : Memory()
 			{
-				Ash::Encoding::convert<typename Ash::String::Literal<VALUE>::Encoding, ENCODING>(Literal<VALUE>::getView(value, Memory::maxCapacity), *this, replacementCharacter);
+				Ash::Encoding::convert<typename Ash::String::Literal<VALUE>::Encoding, Encoding>(Ash::String::Literal<VALUE>::getView(value), *this, replaceInvalidCharacter).throwOnError();
 			}
 
 			template
@@ -297,9 +271,9 @@ namespace Ash
 				typename = Ash::Type::IsNotSame<typename Ash::String::Literal<VALUE>::Encoding, STRING_ENCODING>,
 				typename = Ash::Type::IsNotConstant<typename STRING_ALLOCATION::Type>
 			>
-			constexpr Value(VALUE value, size_t length, Ash::Unicode::Character replacementCharacter = Character::replacement) : Memory()
+			constexpr Value(VALUE value, size_t length, bool replaceInvalidCharacter = true) : Memory()
 			{
-				Ash::Encoding::convert<typename Ash::String::Literal<VALUE>::Encoding, ENCODING>(Literal<VALUE>::getView(value, length, Memory::maxCapacity), *this, replacementCharacter);
+				Ash::Encoding::convert<typename Ash::String::Literal<VALUE>::Encoding, Encoding>(Ash::String::Literal<VALUE>::getView(value, length), *this, replaceInvalidCharacter).throwOnError();
 			}
 
 			template
@@ -313,9 +287,9 @@ namespace Ash
 				typename = Ash::Type::IsNotSame<VALUE_ENCODING, STRING_ENCODING>,
 				typename = Ash::Type::IsNotConstant<typename STRING_ALLOCATION::Type>
 			>
-			constexpr Value(const Value<VALUE_ALLOCATION, VALUE_ENCODING> &value, Ash::Unicode::Character replacementCharacter = Character::replacement) : Memory()
+			constexpr Value(const Value<VALUE_ALLOCATION, VALUE_ENCODING> &value, bool replaceInvalidCharacter = true) : Memory()
 			{
-				Ash::Encoding::convert<VALUE_ENCODING, ENCODING>(value, *this, replacementCharacter);
+				Ash::Encoding::convert<VALUE_ENCODING, Encoding>(value, *this, replaceInvalidCharacter).throwOnError();
 			}
 
 			template
@@ -325,9 +299,7 @@ namespace Ash
 				typename = Ash::Type::IsClass<VALUE_ALLOCATION, Ash::Memory::Generic::Allocation>,
 				typename = Ash::Type::IsNotSame<VALUE_ALLOCATION, STRING_ALLOCATION>
 			>
-			constexpr Value(const Value<VALUE_ALLOCATION, Encoding> &value) : Memory(value.at(0), getCodeLength(value.at(0), value.getLength())) {}
-
-			constexpr Value(Ash::Memory::View<Code> value) : Memory(value.at(0), getCodeLength(value.at(0), value.getLength())) {}
+			constexpr Value(const Value<VALUE_ALLOCATION, Encoding> &value) : Memory(value) {}
 
 			constexpr Value(const Value &value) : Memory(value) {}
 
@@ -347,61 +319,140 @@ namespace Ash
 				return *this;
 			}
 
-			constexpr View<Encoding> getView(size_t offset, size_t length) const
+			constexpr Ash::String::View<Encoding> getView(size_t offset, size_t length) const
 			{
 				return Memory::getView(offset, length);
 			}
 
-			constexpr View<Encoding> getView(size_t offset = 0) const
+			constexpr Ash::String::View<Encoding> getView(size_t offset = 0) const
 			{
 				return Memory::getView(offset);
 			}
 
-			constexpr size_t getNextCharacter(size_t offset, Character &character) const
+			[[nodiscard]]
+			constexpr Ash::Error::Value insert(size_t offset, Ash::Unicode::Character character, bool replaceInvalidCharacter = true)
+			{
+				Character encodedCharacter;
+				Ash::Error::Value error = encodedCharacter.set(character, replaceInvalidCharacter);
+				if (!error)
+				{
+					error = Memory::insert(offset, encodedCharacter);
+				}
+
+				return error;
+			}
+
+			[[nodiscard]]
+			constexpr Ash::Error::Value insert(size_t offset, Ash::String::View<Encoding> value)
+			{
+				return Memory::insert(offset, value);
+			}
+
+			[[nodiscard]]
+			constexpr Ash::Error::Value append(Ash::Unicode::Character character, bool replaceInvalidCharacter = true)
+			{
+				Character encodedCharacter;
+				Ash::Error::Value error = encodedCharacter.set(character, replaceInvalidCharacter);
+				if (!error)
+				{
+					error = Memory::append(encodedCharacter);
+				}
+
+				return error;
+			}
+
+			[[nodiscard]]
+			constexpr Ash::Error::Value append(Ash::String::View<Encoding> value)
+			{
+				return Memory::append(value);
+			}
+
+			template
+			<
+				typename VALUE_ENCODING,
+				typename = Ash::Type::IsClass<VALUE_ENCODING, Ash::Generic::Encoding>,
+				typename = Ash::Type::IsNotSame<VALUE_ENCODING, ENCODING>
+			>
+			[[nodiscard]]
+			constexpr Ash::Error::Value append(Ash::String::View<VALUE_ENCODING> value, bool replaceInvalidCharacter = true)
+			{
+				size_t offset = Memory::getLength();
+				return Ash::Encoding::convert<VALUE_ENCODING, Encoding>(value, *this, offset, replaceInvalidCharacter);
+			}
+
+			[[nodiscard]]
+			constexpr Ash::Error::Value getNextCharacter(size_t offset, Character &character) const
 			{
 				return Encoding::decodeNext(*this, offset, character);
 			}
 
-			constexpr size_t getPreviousCharacter(size_t offset, Character &character) const
+			[[nodiscard]]
+			constexpr Ash::Error::Value getPreviousCharacter(size_t offset, Character &character) const
 			{
 				return Encoding::decodePrevious(*this, offset, character);
 			}
 
 			template
 			<
-				typename TO_ALLOCATION,
-				typename TO_ENCODING,
-				typename = Ash::Type::IsClass<TO_ALLOCATION, Ash::Memory::Generic::Allocation>,
-				typename = Ash::Type::IsClass<TO_ENCODING, Ash::Generic::Encoding>
+				typename VALUE,
+				typename = Ash::Type::IsStringLiteral<VALUE>
 			>
-			constexpr size_t convertTo(Value<TO_ALLOCATION, TO_ENCODING> &value, Ash::Unicode::Character replacementCharacter = TO_ENCODING::Character::replacement) const
+			[[nodiscard]]
+			constexpr Ash::Error::Value convertFrom(VALUE value, bool replaceInvalidCharacter = true)
 			{
-				return Ash::Encoding::convert<ENCODING, TO_ENCODING>(*this, value, replacementCharacter);
+				if constexpr (Ash::Type::isSame<typename Ash::String::Literal<VALUE>::Encoding, Encoding>)
+				{
+					return Memory::copyFrom(Ash::String::Literal<VALUE>::getView(value));
+				}
+				else
+				{
+					return Ash::Encoding::convert<typename Ash::String::Literal<VALUE>::Encoding, Encoding>(Ash::String::Literal<VALUE>::getView(value), *this, replaceInvalidCharacter);
+				}
+			}
+
+			template
+			<
+				typename FROM_ENCODING,
+				typename = Ash::Type::IsClass<FROM_ENCODING, Ash::Generic::Encoding>
+			>
+			[[nodiscard]]
+			constexpr Ash::Error::Value convertFrom(Ash::String::View<FROM_ENCODING> value, bool replaceInvalidCharacter = true)
+			{
+				if constexpr (Ash::Type::isSame<FROM_ENCODING, Encoding>)
+				{
+					return Memory::copyFrom(value);
+				}
+				else
+				{
+					return Ash::Encoding::convert<FROM_ENCODING, Encoding>(value, *this, replaceInvalidCharacter);
+				}
 			}
 
 			constexpr size_t find(size_t offset, Ash::Unicode::Character character) const
 			{
-				return Ash::Encoding::find<ENCODING>(*this, offset, character);
+				return Ash::Encoding::find<Encoding>(*this, offset, character);
 			}
 
 			constexpr size_t reverseFind(size_t offset, Ash::Unicode::Character character) const
 			{
-				return Ash::Encoding::reverseFind<ENCODING>(*this, offset, character);
+				return Ash::Encoding::reverseFind<Encoding>(*this, offset, character);
 			}
 
 			constexpr bool contains(Ash::Unicode::Character character) const
 			{
-				return Ash::Encoding::contains<ENCODING>(*this, character);
+				return Ash::Encoding::contains<Encoding>(*this, character);
 			}
 
-			constexpr size_t skipAnyOf(size_t offset, std::initializer_list<Ash::Unicode::Character> characterList) const
+			[[nodiscard]]
+			constexpr Ash::Error::Value skipAnyOf(size_t &offset, std::initializer_list<Ash::Unicode::Character> characterList) const
 			{
-				return Ash::Encoding::skipAnyOf<ENCODING>(*this, offset, characterList);
+				return Ash::Encoding::skipAnyOf<Encoding>(*this, offset, characterList, false);
 			}
 
-			constexpr size_t skipNoneOf(size_t offset, std::initializer_list<Ash::Unicode::Character> characterList) const
+			[[nodiscard]]
+			constexpr Ash::Error::Value skipNoneOf(size_t &offset, std::initializer_list<Ash::Unicode::Character> characterList) const
 			{
-				return Ash::Encoding::skipNoneOf<ENCODING>(*this, offset, characterList);
+				return Ash::Encoding::skipNoneOf<Encoding>(*this, offset, characterList, false);
 			}
 
 			template
@@ -409,33 +460,34 @@ namespace Ash
 				typename TOKEN_ALLOCATION,
 				typename = Ash::Type::IsClass<TOKEN_ALLOCATION, Ash::Memory::Generic::Allocation>
 			>
-			constexpr size_t token(size_t offset, std::initializer_list<Ash::Unicode::Character> delimiters, Ash::String::Value<TOKEN_ALLOCATION, ENCODING> &tokenString) const
+			[[nodiscard]]
+			constexpr Ash::Error::Value token(size_t &offset, std::initializer_list<Ash::Unicode::Character> delimiters, Ash::String::Value<TOKEN_ALLOCATION, Encoding> &tokenString) const
 			{
-				return Ash::Encoding::token<ENCODING>(*this, offset, delimiters, tokenString);
+				return Ash::Encoding::token<Encoding>(*this, offset, delimiters, tokenString, false);
 			}
 
 		protected:
-			static constexpr size_t getCodeLength(const Code *value, size_t length)
-			{
-				if constexpr (Memory::isFixedCapacity && !Memory::isReference)
-				{
-					if (length > Memory::maxCapacity)
-					{
-						for (size_t offset = Memory::maxCapacity - Memory::maxCapacity % Encoding::minSize; offset != 0; offset = offset - Encoding::minSize)
-						{
-							Character character;
-							if (Encoding::decodePrevious(Ash::Memory::View<Code>(value, length), offset, character) != 0)
-							{
-								return offset;
-							}
-						}
+			constexpr Value(Ash::Memory::View<Code> value) : Memory(value) {}
 
-						return 0;
-					}
-				}
-
-				return length;
-			}
+		private:
+			template
+			<
+				typename FRIEND_ALLOCATION,
+				typename FRIEND_ENCODING,
+				typename,
+				typename
+			>
+			friend class Value;
 		};
+
+		template
+		<
+			typename VALUE,
+			typename = Ash::Type::IsStringLiteral<VALUE>
+		>
+		constexpr Ash::String::View<typename Ash::String::Literal<VALUE>::Encoding> view(VALUE value)
+		{
+			return value;
+		}
 	}
 }
