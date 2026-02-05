@@ -22,7 +22,7 @@ namespace Ash
 					Value sinceEpoch;
 
 					Ash::Error::Value error = getTime(sinceEpoch);
-					if (!error.hasErrorSet())
+					if (!error)
 					{
 						TIME_ZONE_INFORMATION timeZoneInformation;
 
@@ -58,7 +58,7 @@ namespace Ash
 					fileTime.dwLowDateTime = integer.LowPart;
 					fileTime.dwHighDateTime = integer.HighPart;
 
-					return !::FileTimeToSystemTime(&fileTime, &gmtTime) ? Ash::System::Windows::Error() : Ash::Error::none;
+					return !::FileTimeToSystemTime(&fileTime, &gmtTime) ? Ash::System::Windows::error() : Ash::Error::none;
 				}
 
 				static inline Ash::Calendar::Date getEpoch()
