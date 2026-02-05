@@ -22,12 +22,12 @@ namespace Ash
 					Value sinceEpoch;
 
 					Ash::Error::Value error = getTime(sinceEpoch);
-					if (!error.hasErrorSet())
+					if (!error)
 					{
 						struct tm localTime;
 
 						error = getLocalTime(sinceEpoch, localTime);
-						if (!error.hasErrorSet())
+						if (!error)
 						{
 							utcTime = m_Epoch + sinceEpoch;
 							dstOffset = (localTime.tm_isdst == 0) ? 0 : Ash::Calendar::Time::hour;
@@ -41,17 +41,17 @@ namespace Ash
 			protected:
 				static inline Ash::Error::Value getTime(Value &sinceEpoch)
 				{
-					return (time(&sinceEpoch) == -1) ? Ash::System::Linux::Error() : Ash::Error::none;
+					return (time(&sinceEpoch) == -1) ? Ash::System::Linux::error() : Ash::Error::none;
 				}
 
 				static inline Ash::Error::Value getGmtTime(Value sinceEpoch, struct tm &gmtTime)
 				{
-					return (gmtime_r(&sinceEpoch, &gmtTime) == nullptr) ? Ash::System::Linux::Error() : Ash::Error::none;
+					return (gmtime_r(&sinceEpoch, &gmtTime) == nullptr) ? Ash::System::Linux::error() : Ash::Error::none;
 				}
 
 				static inline Ash::Error::Value getLocalTime(Value sinceEpoch, struct tm &localTime)
 				{
-					return (localtime_r(&sinceEpoch, &localTime) == nullptr) ? Ash::System::Linux::Error() : Ash::Error::none;
+					return (localtime_r(&sinceEpoch, &localTime) == nullptr) ? Ash::System::Linux::error() : Ash::Error::none;
 				}
 
 				static inline Ash::Calendar::Date getEpoch()
