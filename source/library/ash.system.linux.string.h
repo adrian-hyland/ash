@@ -27,7 +27,7 @@ namespace Ash
 
 				constexpr String() : Content()
 				{
-					Content::append('\0');
+					Content::append('\0').assertErrorNotSet();
 				}
 
 				template
@@ -35,9 +35,9 @@ namespace Ash
 					typename VALUE,
 					typename = Ash::Type::IsStringLiteral<VALUE>
 				>
-				constexpr String(VALUE value, Ash::Unicode::Character replacementCharacter = Character::replacement) : Content()
+				constexpr String(VALUE value, bool replaceInvalidCharacter = true) : Content()
 				{
-					convert(Ash::String::View<typename Ash::String::Literal<VALUE>::Encoding>(value), replacementCharacter);
+					convertFrom(value, replaceInvalidCharacter).throwOnError();
 				}
 
 				template
@@ -45,26 +45,48 @@ namespace Ash
 					typename FROM_ENCODING,
 					typename = Ash::Type::IsClass<FROM_ENCODING, Ash::Generic::Encoding>
 				>
-				constexpr String(const Ash::String::View<FROM_ENCODING> value, Ash::Unicode::Character replacementCharacter = Character::replacement) : Content()
+				constexpr String(const Ash::String::View<FROM_ENCODING> value, bool replaceInvalidCharacter = true) : Content()
 				{
-					convert(value, replacementCharacter);
+					convertFrom(value, replaceInvalidCharacter).throwOnError();
+				}
+
+				template
+				<
+					typename VALUE,
+					typename = Ash::Type::IsStringLiteral<VALUE>
+				>
+				[[nodiscard]]
+				constexpr Ash::Error::Value convertFrom(VALUE value, bool replaceInvalidCharacter = true)
+				{
+					return convertFrom(Ash::String::view(value), replaceInvalidCharacter);
+				}
+
+				template
+				<
+					typename FROM_ENCODING,
+					typename = Ash::Type::IsClass<FROM_ENCODING, Ash::Generic::Encoding>
+				>
+				[[nodiscard]]
+				constexpr Ash::Error::Value convertFrom(const Ash::String::View<FROM_ENCODING> value, bool replaceInvalidCharacter = true)
+				{
+					Content content;
+
+					Ash::Error::Value error = content.convertFrom(value, replaceInvalidCharacter);
+					if (!error)
+					{
+						error = content.append('\0');
+						if (!error)
+						{
+							Content::moveFrom(content);
+						}
+					}
+
+					return error;
 				}
 
 				constexpr operator const Code *() const { return Content::at(0); }
 
 				constexpr operator const char *() const { return reinterpret_cast<const char *>(Content::at(0)); }
-
-			protected:
-				template
-				<
-					typename FROM_ENCODING,
-					typename = Ash::Type::IsClass<FROM_ENCODING, Ash::Generic::Encoding>
-				>
-				constexpr void convert(Ash::String::View<FROM_ENCODING> value, Ash::Unicode::Character replacementCharacter)
-				{
-					value.convertTo(*this, replacementCharacter);
-					Content::append('\0');
-				}
 			};
 		}
 	}
