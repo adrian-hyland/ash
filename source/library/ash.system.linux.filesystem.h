@@ -5,6 +5,8 @@
 #include <unistd.h>
 #include <sys/file.h>
 #include <sys/stat.h>
+#include "ash.filesystem.error.h"
+#include "ash.system.linux.error.h"
 #include "ash.system.linux.string.h"
 
 
@@ -67,39 +69,17 @@ namespace Ash
 
 					template
 					<
-						typename ENCODING,
-						typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
+						typename START_PATH,
+						typename ...RELATIVE_PATH
 					>
-					constexpr Path(Ash::String::View<ENCODING> path) : m_Content()
+					constexpr Path(START_PATH startPath, RELATIVE_PATH ...relativePath) : m_Content()
 					{
-						if (!setPath(path) || !m_Content.append('\0'))
-						{
-							clear();
-						}
+						set(std::forward<START_PATH>(startPath), std::forward<RELATIVE_PATH>(relativePath)...).throwOnError();
 					}
-
-					template
-					<
-						typename ...COMPONENT
-					>
-					constexpr Path(COMPONENT ...components)
-					{
-						if (!setCurrentComponent() || !appendComponent(components...) || !m_Content.append('\0'))
-						{
-							clear();
-						}
-					}
-
-					template
-					<
-						typename VALUE,
-						typename = Ash::Type::IsStringLiteral<VALUE>
-					>
-					constexpr Path(VALUE value) : Path(Ash::String::View<typename Ash::String::Literal<VALUE>::Encoding>(value)) {}
 
 					constexpr operator const Encoding::Code *() const { return m_Content.at(0); }
 
-					constexpr View getValue() const
+					constexpr View getView() const
 					{
 						return m_Content.getView(0, m_Content.getLength() - 1);
 					}
@@ -118,8 +98,10 @@ namespace Ash
 								{
 									return Type::relativeUncontained;
 								}
+
 								depth = depth - count + getChildComponentCount(offset);
 							}
+
 							return Type::relativeContained;
 						}
 						else if (isSeparator(initialCharacter))
@@ -147,131 +129,243 @@ namespace Ash
 						return isValid() && !isRelative();
 					}
 
-					constexpr Path reduce() const
+					[[nodiscard]]
+					constexpr Ash::Error::Value copyFrom(const Path &path)
 					{
-						Path reducedPath;
+						return m_Content.copyFrom(path.m_Content);
+					}
 
-						if (m_Content.getLength() > 1)
+					constexpr void moveFrom(Path &path)
+					{
+						m_Content.moveFrom(path.m_Content);
+					}
+
+					constexpr void clear()
+					{
+						m_Content.clear();
+						m_Content.append('\0').assertErrorNotSet();
+					}
+
+					constexpr Ash::Error::Value reduce(Path &reducedPath) const
+					{
+						if (&reducedPath == this)
 						{
-							size_t offset = skipBaseComponents();
-							reducedPath.m_Content = m_Content.getView(0, offset);
-							bool isRelative = isCurrentComponent(reducedPath.m_Content);
-							while (offset < m_Content.getLength() - 1)
+							return reducedPath.reduce();
+						}
+
+						if (!isValid())
+						{
+							return Ash::FileSystem::Error::invalidPath;
+						}
+
+						Content content;
+
+						size_t offset = skipBaseComponents();
+						Ash::Error::Value error = content.copyFrom(m_Content.getView(0, offset));
+						bool isRelative = isCurrentComponent(content);
+						while (!error && (offset < m_Content.getLength() - 1))
+						{
+							size_t currentOffset = offset;
+							if (offset == 0)
 							{
-								size_t currentOffset = offset;
-								if (offset == 0)
+								offset++;
+							}
+
+							size_t childCount = getChildComponentCount(offset);
+							size_t parentCount = getParentComponentCount(offset);
+
+							if (parentCount < childCount)
+							{
+								View components = getComponents(currentOffset, childCount - parentCount);
+								error = content.append(components);
+							}
+							else if (isRelative)
+							{
+								for (size_t n = 0; !error && (n < parentCount - childCount); n++)
 								{
-									offset++;
-								}
-								size_t childCount = getChildComponentCount(offset);
-								size_t parentCount = getParentComponentCount(offset);
-								if (parentCount < childCount)
-								{
-									reducedPath.m_Content.append(getComponents(currentOffset, childCount - parentCount));
-								}
-								else if (isRelative)
-								{
-									for (size_t n = 0; n < parentCount - childCount; n++)
+									error = content.append(separator);
+									if (!error)
 									{
-										reducedPath.m_Content.append(separator);
-										reducedPath.m_Content.append(dot);
-										reducedPath.m_Content.append(dot);
+										error = content.append(dot);
+										if (!error)
+										{
+											error = content.append(dot);
+										}
 									}
 								}
 							}
+						}
 
-							if (reducedPath.m_Content.getLength() == 0)
+						if (!error && (content.getLength() == 0))
+						{
+							error = content.append(separator);
+						}
+
+						if (!error)
+						{
+							error = content.append('\0');
+							if (!error)
 							{
-								reducedPath.m_Content.append(separator);
+								reducedPath.m_Content.moveFrom(content);
 							}
-
-							reducedPath.m_Content.append('\0');
 						}
 
-						return reducedPath;
+						return error;
 					}
 
-					static constexpr Path fromBase(const Path &basePath, const Path &relativePath)
+					constexpr Ash::Error::Value reduce()
 					{
-						Path path;
-						if (!path.setBase(basePath) || !path.appendRelative(relativePath))
+						Path reducedPath;
+
+						Ash::Error::Value error = reduce(reducedPath);
+						if (!error)
 						{
-							path.clear();
+							m_Content.moveFrom(reducedPath.m_Content);
 						}
-						return path;
-					}
 
-					static inline Path fromCurrentDirectory(const Path &relativePath)
-					{
-						Path path;
-						if (!path.setCurrentDirectory() || !path.appendRelative(relativePath))
-						{
-							path.clear();
-						}
-						return path;
-					}
-
-					static constexpr Path fromRoot(const Path &relativePath)
-					{
-						Path path;
-						if (!path.setRoot() || !path.appendRelative(relativePath))
-						{
-							path.clear();
-						}
-						return path;
-					}
-
-					static constexpr Path fromDrive(Drive driveLetter, const Path &relativePath)
-					{
-						return {};
+						return error;
 					}
 
 					template
 					<
-						typename NAME_ENCODING,
-						typename SHARE_ENCODING,
-						typename = Ash::Type::IsClass<NAME_ENCODING, Ash::Generic::Encoding>,
-						typename = Ash::Type::IsClass<SHARE_ENCODING, Ash::Generic::Encoding>
+						typename ...RELATIVE_PATH
 					>
-					static constexpr Path fromNetworkShare(Ash::String::View<NAME_ENCODING> name, Ash::String::View<SHARE_ENCODING> share, const Path &relativePath)
+					static inline Path fromCurrentDirectory(RELATIVE_PATH ...relativePath)
 					{
-						return {};
+						Path path;
+
+						path.setCurrentDirectory(std::forward<RELATIVE_PATH>(relativePath)...).throwOnError();
+
+						return path;
 					}
 
 					template
 					<
-						typename NAME_ENCODING,
-						typename SHARE,
-						typename = Ash::Type::IsClass<NAME_ENCODING, Ash::Generic::Encoding>,
-						typename = Ash::Type::IsStringLiteral<SHARE>
+						typename ...RELATIVE_PATH
 					>
-					static constexpr Path fromNetworkShare(Ash::String::View<NAME_ENCODING> name, SHARE share, const Path &relativePath)
+					static constexpr Path fromRoot(RELATIVE_PATH ...relativePath)
 					{
-						return fromNetworkShare(name, Ash::String::View<typename Ash::String::Literal<SHARE>::Encoding>(share), relativePath);
+						Path path;
+
+						path.setRoot(std::forward<RELATIVE_PATH>(relativePath)...).throwOnError();
+
+						return path;
 					}
 
 					template
 					<
-						typename NAME,
-						typename SHARE_ENCODING,
-						typename = Ash::Type::IsStringLiteral<NAME>,
-						typename = Ash::Type::IsClass<SHARE_ENCODING, Ash::Generic::Encoding>
+						typename ...RELATIVE_PATH
 					>
-					static constexpr Path fromNetworkShare(NAME name, Ash::String::View<SHARE_ENCODING> share, const Path &relativePath)
+					static constexpr Path fromDrive(Drive driveLetter, RELATIVE_PATH ...relativePath)
 					{
-						return fromNetworkShare(Ash::String::View<typename Ash::String::Literal<NAME>::Encoding>(name), share, relativePath);
+						Path path;
+
+						path.setDrive(driveLetter, std::forward<RELATIVE_PATH>(relativePath)...).throwOnError();
+
+						return path;
 					}
 
 					template
 					<
 						typename NAME,
 						typename SHARE,
-						typename = Ash::Type::IsStringLiteral<NAME>,
-						typename = Ash::Type::IsStringLiteral<SHARE>
+						typename ...RELATIVE_PATH
 					>
-					static constexpr Path fromNetworkShare(NAME name, SHARE share, const Path &relativePath)
+					static constexpr Path fromNetworkShare(NAME name, SHARE share, RELATIVE_PATH ...relativePath)
 					{
-						return fromNetworkShare(Ash::String::View<typename Ash::String::Literal<NAME>::Encoding>(name), Ash::String::View<typename Ash::String::Literal<SHARE>::Encoding>(share), relativePath);
+						Path path;
+
+						path.setNetworkShare(std::forward<NAME>(name), std::forward<SHARE>(share), std::forward<RELATIVE_PATH>(relativePath)...).throwOnError();
+
+						return path;
+					}
+
+					template
+					<
+						typename START_PATH,
+						typename ...RELATIVE_PATH
+					>
+					[[nodiscard]]
+					constexpr Ash::Error::Value set(START_PATH startPath, RELATIVE_PATH ...relativePath)
+					{
+						Path path;
+
+						Ash::Error::Value error = path.startWith(std::forward<START_PATH>(startPath));
+						if (!error)
+						{
+							error = path.endWith(std::forward<RELATIVE_PATH>(relativePath)...);
+							if (!error)
+							{
+								moveFrom(path);
+							}
+						}
+
+						return error;
+					}
+
+					template
+					<
+						typename ...RELATIVE_PATH
+					>
+					[[nodiscard]]
+					inline Ash::Error::Value setCurrentDirectory(RELATIVE_PATH ...relativePath)
+					{
+						Path path;
+
+						Ash::Error::Value error = path.startWithCurrentDirectory();
+						if (!error)
+						{
+							error = path.endWith(std::forward<RELATIVE_PATH>(relativePath)...);
+							if (!error)
+							{
+								moveFrom(path);
+							}
+						}
+
+						return error;
+					}
+
+					template
+					<
+						typename ...RELATIVE_PATH
+					>
+					[[nodiscard]]
+					constexpr Ash::Error::Value setRoot(RELATIVE_PATH ...relativePath)
+					{
+						Path path;
+
+						Ash::Error::Value error = path.startWithRoot();
+						if (!error)
+						{
+							error = path.endWith(std::forward<RELATIVE_PATH>(relativePath)...);
+							if (!error)
+							{
+								moveFrom(path);
+							}
+						}
+
+						return error;
+					}
+
+					template
+					<
+						typename ...RELATIVE_PATH
+					>
+					[[nodiscard]]
+					constexpr Ash::Error::Value setDrive(Drive driveLetter, RELATIVE_PATH ...relativePath)
+					{
+						return Ash::FileSystem::Error::drivePathNotSupported;
+					}
+
+					template
+					<
+						typename NAME,
+						typename SHARE,
+						typename ...RELATIVE_PATH
+					>
+					constexpr Ash::Error::Value setNetworkShare(NAME name, SHARE share, RELATIVE_PATH ...relativePath)
+					{
+						return Ash::FileSystem::Error::networkPathNotSupported;
 					}
 
 					template
@@ -281,7 +375,8 @@ namespace Ash
 						typename = Ash::Type::IsClass<VALUE_ALLOCATION, Ash::Memory::Generic::Allocation>,
 						typename = Ash::Type::IsClass<VALUE_ENCODING, Ash::Generic::Encoding>
 					>
-					constexpr bool getLastComponent(Ash::String::Value<VALUE_ALLOCATION, VALUE_ENCODING> &value) const
+					[[nodiscard]]
+					constexpr Ash::Error::Value getLastComponent(Ash::String::Value<VALUE_ALLOCATION, VALUE_ENCODING> &value) const
 					{
 						size_t length = m_Content.getLength();
 						if (length > 1)
@@ -296,13 +391,14 @@ namespace Ash
 							{
 								offset++;
 							}
+
 							length = length - offset;
-							return m_Content.getView(offset, length).convertTo(value) == length;
+							return value.convertFrom(m_Content.getView(offset, length), false);
 						}
 						else
 						{
 							value.clear();
-							return false;
+							return Ash::FileSystem::Error::invalidPath;
 						}
 					}
 
@@ -321,7 +417,9 @@ namespace Ash
 
 					static constexpr bool isValidComponent(View component)
 					{
-						return component.skipNoneOf(0, { '/', '\0' }) == component.getLength();
+						size_t offset = 0;
+
+						return !Ash::Error::isSet(component.skipNoneOf(offset, { '/', '\0' })) && (offset == component.getLength());
 					}
 
 					static constexpr bool isCurrentComponent(View component)
@@ -339,114 +437,113 @@ namespace Ash
 						typename ENCODING,
 						typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
 					>
-					static constexpr size_t getComponent(Ash::String::View<ENCODING> path, size_t offset, Ash::String::View<ENCODING> &component)
+					[[nodiscard]]
+					static constexpr Type getType(Ash::String::View<ENCODING> path)
 					{
-						return path.token(offset, { separator, '\0' }, component);
+						return isSeparator(path.getOr(0, '\0')) ? Type::absoluteRoot : Type::relative;
 					}
 
-					constexpr size_t getComponent(size_t offset, View &component) const
+					template
+					<
+						typename ENCODING,
+						typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
+					>
+					[[nodiscard]]
+					static constexpr Ash::Error::Value getComponent(Ash::String::View<ENCODING> path, size_t &offset, Ash::String::View<ENCODING> &component)
 					{
-						return getComponent(m_Content.getView(), offset, component);
+						return path.token(offset, { separator }, component);
 					}
 
-					constexpr size_t skipComponent(size_t offset) const
+					[[nodiscard]]
+					constexpr Ash::Error::Value getComponent(size_t &offset, View &component) const
+					{
+						return getComponent(getView(), offset, component);
+					}
+
+					[[nodiscard]]
+					constexpr Ash::Error::Value skipComponent(size_t &offset) const
 					{
 						View component;
+
 						return getComponent(offset, component);
 					}
 
 					constexpr size_t skipBaseComponents() const
 					{
-						return m_Content.skipNoneOf(0, { separator, '\0' });
+						size_t offset = 0;
+
+						getView().skipNoneOf(offset, { separator }).assertErrorNotSet();
+
+						return offset;
 					}
 
 					constexpr View getComponents(size_t offset, size_t componentCount) const
 					{
-						size_t end = offset;
+						size_t start = offset;
+
 						for (size_t n = 0; n < componentCount; n++)
 						{
-							end = end + skipComponent(end);
+							skipComponent(offset).assertErrorNotSet();
 						}
-						return m_Content.getView(offset, end - offset);
+
+						return m_Content.getView(start, offset - start);
 					}
 
 					constexpr size_t getParentComponentCount(size_t &offset) const
 					{
 						size_t count = 0;
+
 						while (offset < m_Content.getLength() - 1)
 						{
 							View component;
-							size_t length = getComponent(offset, component);
+							size_t nextOffset = offset;
+
+							getComponent(nextOffset, component).assertErrorNotSet();
 							if (!isParentComponent(component))
 							{
 								break;
 							}
+
 							count++;
-							offset = offset + length;
+							offset = nextOffset;
 						}
+
 						return count;
 					}
 
 					constexpr size_t getChildComponentCount(size_t &offset) const
 					{
 						size_t count = 0;
+
 						while (offset < m_Content.getLength() - 1)
 						{
 							View component;
-							size_t length = getComponent(offset, component);
+							size_t nextOffset = offset;
+
+							getComponent(nextOffset, component).assertErrorNotSet();
 							if (isParentComponent(component))
 							{
 								break;
 							}
+
 							count++;
-							offset = offset + length;
+							offset = nextOffset;
 						}
+
 						return count;
 					}
 
-					constexpr void clear()
+					[[nodiscard]]
+					constexpr Ash::Error::Value startWith(const Path &path)
 					{
 						m_Content.clear();
-						m_Content.set(0, '\0');
-					}
-
-					constexpr bool setRoot()
-					{
-						m_Content.clear();
-						
-						return true;
-					}
-
-					constexpr bool setCurrentComponent()
-					{
-						m_Content.clear();
-
-						bool ok = m_Content.append(dot);
-						
-						return ok;
-					}
-
-					constexpr bool setBase(const Path &path)
-					{
-						m_Content.clear();
-
-						bool ok = ((*path.m_Content.at(0) == separator) && (*path.m_Content.at(1) == '\0')) || m_Content.append(path.m_Content.getView(0, path.m_Content.getLength() - 1));
-						
-						return ok;
-					}
-
-					inline bool setCurrentDirectory()
-					{
-						m_Content.clear();
-
-						char *currentDirectory = ::getcwd(nullptr, 0);
-						bool ok = (currentDirectory != nullptr) && (((currentDirectory[0] == separator) && (currentDirectory[1] == '\0')) || m_Content.append(Ash::Utf8::View((const Ash::Encoding::Utf8::Code *)currentDirectory)));
-						if (currentDirectory != nullptr)
+						Ash::Error::Value error = path.isValid() ? Ash::Error::none : Ash::FileSystem::Error::invalidPath;
+						if (!error && ((path.m_Content.getLength() > 2) || !isSeparator(*path.m_Content.at(0))))
 						{
-							free(currentDirectory);
+							error = m_Content.append(path.getView());
 						}
-						
-						return ok;
+
+						return error;
 					}
 
 					template
@@ -454,59 +551,243 @@ namespace Ash
 						typename ENCODING,
 						typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
 					>
-					constexpr bool setPath(Ash::String::View<ENCODING> path)
+					[[nodiscard]]
+					constexpr Ash::Error::Value startWith(Ash::String::View<ENCODING> path)
 					{
-						bool ok = true;
-						size_t offset = 0;
-
-						Ash::Unicode::Character initialCharacter = path.getOr(0, '\0');
-						if (isSeparator(initialCharacter))
+						Ash::Error::Value error = Ash::Error::none;
+						switch (getType(path))
 						{
-							ok = setRoot();
+							case Type::absoluteRoot:
+								error = startWithRoot();
+							break;
+
+							case Type::relative:
+								error = startWithCurrentComponent();
+							break;
+
+							default:
+								error = Ash::FileSystem::Error::invalidPath;
+							break;
+						}
+
+						if (!error)
+						{
+							error = appendPathComponents(path);
+						}
+
+						return error;
+					}
+
+					template
+					<
+						typename PATH,
+						typename = Ash::Type::IsStringLiteral<PATH>
+					>
+					[[nodiscard]]
+					constexpr Ash::Error::Value startWith(PATH path)
+					{
+						return startWith(Ash::String::view(path));
+					}
+
+					[[nodiscard]]
+					constexpr Ash::Error::Value startWithRoot()
+					{
+						m_Content.clear();
+						return Ash::Error::none;
+					}
+
+					[[nodiscard]]
+					constexpr Ash::Error::Value startWithCurrentComponent()
+					{
+						m_Content.clear();
+						return m_Content.append(dot);
+					}
+
+					[[nodiscard]]
+					inline Ash::Error::Value startWithCurrentDirectory()
+					{
+						m_Content.clear();
+						char *currentDirectory = ::getcwd(nullptr, 0);
+						if (currentDirectory == nullptr)
+						{
+							return Ash::System::Linux::error();
+						}
+
+						Ash::Error::Value error = Ash::Error::none;
+						if ((currentDirectory[0] != separator) || (currentDirectory[1] != '\0'))
+						{
+							error = m_Content.append(Ash::Utf8::View((const Ash::Encoding::Utf8::Code *)currentDirectory));
+						}
+
+						free(currentDirectory);
+
+						return error;
+					}
+
+					template
+					<
+						typename ...RELATIVE_PATH
+					>
+					[[nodiscard]]
+					constexpr Ash::Error::Value endWith(RELATIVE_PATH ...relativePath)
+					{
+						Ash::Error::Value error = appendRelativePath(std::forward<RELATIVE_PATH>(relativePath)...);
+						if (!error)
+						{
+							error = endWith();
+						}
+
+						return error;
+					}
+
+					[[nodiscard]]
+					constexpr Ash::Error::Value endWith()
+					{
+						Ash::Error::Value error = (m_Content.getLength() == 0) ? m_Content.append(separator) : Ash::Error::none;
+						if (!error)
+						{
+							error = m_Content.append('\0');
+						}
+
+						return error;
+					}
+
+					template
+					<
+						typename FIRST_RELATIVE_PATH,
+						typename ...NEXT_RELATIVE_PATH
+					>
+					[[nodiscard]]
+					constexpr Ash::Error::Value appendRelativePath(FIRST_RELATIVE_PATH firstRelativePath, NEXT_RELATIVE_PATH ...nextRelativePath)
+					{
+						Ash::Error::Value error = appendRelativePath(std::forward<FIRST_RELATIVE_PATH>(firstRelativePath));
+						if (!error)
+						{
+							error = appendRelativePath(std::forward<NEXT_RELATIVE_PATH>(nextRelativePath)...);
+						}
+
+						return error;
+					}
+
+					[[nodiscard]]
+					constexpr Ash::Error::Value appendRelativePath(const Path &path)
+					{
+						Ash::Error::Value error = path.isRelative() ? Ash::Error::none : Ash::FileSystem::Error::pathNotRelative;
+						if (!error)
+						{
+							error = m_Content.append(path.m_Content.getView(1, path.m_Content.getLength() - 2));
+						}
+
+						return error;
+					}
+
+					template
+					<
+						typename ENCODING,
+						typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
+					>
+					[[nodiscard]]
+					constexpr Ash::Error::Value appendRelativePath(Ash::String::View<ENCODING> path)
+					{
+						Ash::Error::Value error = (getType(path) == Type::relative) ? Ash::Error::none : Ash::FileSystem::Error::pathNotRelative;
+						if (!error)
+						{
+							error = appendPathComponents(path);
+						}
+
+						return error;
+					}
+
+					template
+					<
+						typename PATH,
+						typename = Ash::Type::IsStringLiteral<PATH>
+					>
+					[[nodiscard]]
+					constexpr Ash::Error::Value appendRelativePath(PATH path)
+					{
+						return appendRelativePath(Ash::String::view(path));
+					}
+
+					template
+					<
+						typename ENCODING,
+						typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
+					>
+					[[nodiscard]]
+					constexpr Ash::Error::Value appendPathComponents(Ash::String::View<ENCODING> path)
+					{
+						size_t offset = 0;
+						while (offset < path.getLength())
+						{
+							Ash::String::View<ENCODING> component;
+
+							Ash::Error::Value error = getComponent(path, offset, component);
+							if (error)
+							{
+								return error;
+							}
+
+							error = appendComponent(component);
+							if (error)
+							{
+								return error;
+							}
+						}
+
+						return Ash::Error::none;
+					}
+
+					template
+					<
+						typename ENCODING,
+						typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
+					>
+					[[nodiscard]]
+					constexpr Ash::Error::Value appendComponent(Ash::String::View<ENCODING> component)
+					{
+						Ash::Error::Value error = Ash::Error::none;
+
+						if constexpr (Ash::Type::isSame<ENCODING, Encoding>)
+						{
+							if ((component.getLength() != 0) && !isCurrentComponent(component))
+							{
+								if (!isValidComponent(component))
+								{
+									error = Ash::FileSystem::Error::invalidPathComponent;
+								}
+								else
+								{
+									error = m_Content.append(separator);
+									if (!error)
+									{
+										error = m_Content.append(component);
+									}
+								}
+							}
 						}
 						else
 						{
-							ok = setCurrentComponent();
+							Content value;
+							error = value.convertFrom(component, false);
+							if (!error && (value.getLength() != 0) && !isCurrentComponent(value))
+							{
+								if (!isValidComponent(value))
+								{
+									error = Ash::FileSystem::Error::invalidPathComponent;
+								}
+								else
+								{
+									error = m_Content.append(separator);
+									if (!error)
+									{
+										error = m_Content.append(value);
+									}
+								}
+							}
 						}
 
-						while (ok && (offset < path.getLength()))
-						{
-							Ash::String::View<ENCODING> component;
-							offset = offset + getComponent(path, offset, component);
-							ok = appendComponent(component);
-						}
-
-						ok = ok && ((m_Content.getLength() != 0) || m_Content.append(separator));
-
-						return ok;
-					}
-
-					constexpr bool appendRelative(const Path &path)
-					{
-						size_t length = path.skipBaseComponents();
-						bool ok = path.isRelative();
-						ok = ok && (((m_Content.getLength() != 0) || (*path.m_Content.at(length) != '\0')) || m_Content.append(separator));
-						ok = ok && m_Content.append(path.m_Content.getView(length));
-						return ok;
-					}
-
-					template
-					<
-						typename ENCODING,
-						typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
-					>
-					constexpr bool appendComponent(Ash::String::View<ENCODING> component)
-					{
-						Content value;
-						if (component.convertTo(value, '_') != component.getLength())
-						{
-							return false;
-						}
-						if ((value.getLength() == 0) || isCurrentComponent(value))
-						{
-							return true;
-						}
-						return isValidComponent(value) && m_Content.append(separator) && m_Content.append(value);
+						return error;
 					}
 
 					template
@@ -514,9 +795,10 @@ namespace Ash
 						typename COMPONENT,
 						typename = Ash::Type::IsStringLiteral<COMPONENT>
 					>
-					constexpr bool appendComponent(COMPONENT component)
+					[[nodiscard]]
+					constexpr Ash::Error::Value appendComponent(COMPONENT component)
 					{
-						return appendComponent(Ash::String::View<typename Ash::String::Literal<COMPONENT>::Encoding>(component));
+						return appendComponent(Ash::String::view(component));
 					}
 
 					template
@@ -524,9 +806,16 @@ namespace Ash
 						typename COMPONENT,
 						typename ...NEXT_COMPONENT
 					>
-					constexpr bool appendComponent(COMPONENT component, NEXT_COMPONENT ...nextComponent)
+					[[nodiscard]]
+					constexpr Ash::Error::Value appendComponent(COMPONENT component, NEXT_COMPONENT ...nextComponent)
 					{
-						return appendComponent(component) && appendComponent(nextComponent...);
+						Ash::Error::Value error = appendComponent(component);
+						if (!error)
+						{
+							error = appendComponent(nextComponent...);
+						}
+
+						return error;
 					}
 
 				private:
@@ -576,7 +865,7 @@ namespace Ash
 						if (this != &file)
 						{
 							close();
-							
+
 							m_Handle = file.m_Handle;
 							file.m_Handle = nullptr;
 						}
@@ -588,30 +877,44 @@ namespace Ash
 
 					inline bool isOpen() const { return m_Handle != nullptr; }
 
-					inline bool open(const Path &fileName, Create create, Access access, Inherit inherit = Inherit::Deny)
+					[[nodiscard]]
+					inline Ash::Error::Value open(const Path &fileName, Create create, Access access, Inherit inherit = Inherit::Deny)
 					{
 						close();
 
 						int file = ::open((const char *)(const Path::Encoding::Code *)fileName, getFlags(create, access, inherit), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 						if (file < 0)
 						{
-							return false;
+							return Ash::System::Linux::error();
+						}
+
+						struct stat status;
+						if (::fstat(file, &status) != 0)
+						{
+							::close(file);
+							return Ash::System::Linux::error();
+						}
+
+						if (S_ISDIR(status.st_mode))
+						{
+							::close(file);
+							return Ash::Error::Value(Ash::System::Linux::Error::category, EISDIR);
 						}
 
 						if ((access != SharedRead) && (::flock(file, LOCK_EX | LOCK_NB) != 0))
 						{
 							::close(file);
-							return false;
+							return Ash::System::Linux::error();
 						}
 
 						m_Handle = ::fdopen(file, ((access == SharedRead) || (access == ExclusiveRead)) ? "rb" : "rb+");
 						if (m_Handle == nullptr)
 						{
 							::close(file);
-							return false;
+							return Ash::System::Linux::error();
 						}
 
-						return true;
+						return Ash::Error::none;
 					}
 
 					inline void close()
@@ -623,31 +926,50 @@ namespace Ash
 						}
 					}
 
-					inline bool movePositionToStart(Position offset = 0)
-					{
-						return (m_Handle != nullptr) && (::fseeko64(m_Handle, offset, SEEK_SET) == 0);
-					}
-
-					inline bool movePositionToEnd(Position offset = 0)
-					{
-						return (m_Handle != nullptr) && (::fseeko64(m_Handle, offset, SEEK_END) == 0);
-					}
-
-					inline bool movePosition(Position offset)
-					{
-						return (m_Handle != nullptr) && (::fseeko64(m_Handle, offset, SEEK_CUR) == 0);
-					}
-
-					inline bool getPosition(Position &position)
+					[[nodiscard]]
+					inline Ash::Error::Value movePositionFromStart(Position offset = 0)
 					{
 						if (m_Handle == nullptr)
 						{
-							return false;
+							return Ash::System::Linux::Error::fileNotOpen;
+						}
+
+						return (::fseeko64(m_Handle, offset, SEEK_SET) == 0) ? Ash::Error::none : Ash::System::Linux::error();
+					}
+
+					[[nodiscard]]
+					inline Ash::Error::Value movePositionFromEnd(Position offset = 0)
+					{
+						if (m_Handle == nullptr)
+						{
+							return Ash::System::Linux::Error::fileNotOpen;
+						}
+
+						return (::fseeko64(m_Handle, offset, SEEK_END) == 0) ? Ash::Error::none : Ash::System::Linux::error();
+					}
+
+					[[nodiscard]]
+					inline Ash::Error::Value movePosition(Position offset)
+					{
+						if (m_Handle == nullptr)
+						{
+							return Ash::System::Linux::Error::fileNotOpen;
+						}
+
+						return (::fseeko64(m_Handle, offset, SEEK_CUR) == 0) ? Ash::Error::none : Ash::System::Linux::error();
+					}
+
+					[[nodiscard]]
+					inline Ash::Error::Value getPosition(Position &position)
+					{
+						if (m_Handle == nullptr)
+						{
+							return Ash::System::Linux::Error::fileNotOpen;
 						}
 
 						position = ::ftello64(m_Handle);
 
-						return position >= 0;
+						return (position >= 0) ? Ash::Error::none : Ash::System::Linux::error();
 					}
 
 					template
@@ -655,9 +977,20 @@ namespace Ash
 						typename TYPE,
 						typename = Ash::Type::IsByteSizeInteger<TYPE>
 					>
-					inline bool read(TYPE &byte)
+					[[nodiscard]]
+					inline Ash::Error::Value read(TYPE &byte)
 					{
-						return (m_Handle != nullptr) && (::fread(&byte, sizeof(byte), 1, m_Handle) == 1);
+						if (m_Handle == nullptr)
+						{
+							return Ash::System::Linux::Error::fileNotOpen;
+						}
+
+						if (::fread(&byte, sizeof(byte), 1, m_Handle) != 1)
+						{
+							return ::feof(m_Handle) ? Ash::FileSystem::Error::endOfFile : Ash::System::Linux::error();
+						}
+
+						return Ash::Error::none;
 					}
 
 					template
@@ -665,9 +998,15 @@ namespace Ash
 						typename TYPE,
 						typename = Ash::Type::IsByteSizeInteger<TYPE>
 					>
-					inline bool write(TYPE byte)
+					[[nodiscard]]
+					inline Ash::Error::Value write(TYPE byte)
 					{
-						return (m_Handle != nullptr) && (::fwrite(&byte, sizeof(byte), 1, m_Handle) == 1);
+						if (m_Handle == nullptr)
+						{
+							return Ash::System::Linux::Error::fileNotOpen;
+						}
+
+						return (::fwrite(&byte, sizeof(byte), 1, m_Handle) == 1) ? Ash::Error::none : Ash::System::Linux::error();
 					}
 
 					template
@@ -675,9 +1014,16 @@ namespace Ash
 						typename TYPE,
 						typename = Ash::Type::IsByteSizeInteger<TYPE>
 					>
-					inline bool append(TYPE byte)
+					[[nodiscard]]
+					inline Ash::Error::Value append(TYPE byte)
 					{
-						return movePositionToEnd() && write(byte);
+						Ash::Error::Value error = movePositionFromEnd();
+						if (!error)
+						{
+							error = write(byte);
+						}
+
+						return error;
 					}
 
 					template
@@ -687,30 +1033,38 @@ namespace Ash
 						typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>,
 						typename = Ash::Type::IsByteSizeInteger<TYPE>
 					>
-					inline bool read(Ash::Memory::Value<ALLOCATION, TYPE> &content, size_t &length)
+					[[nodiscard]]
+					inline Ash::Error::Value read(Ash::Memory::Value<ALLOCATION, TYPE> &content, size_t length)
 					{
-						size_t offset = content.getLength();
-
-						if ((m_Handle == nullptr) || !content.increaseLength(length))
+						if (m_Handle == nullptr)
 						{
-							return false;
+							return Ash::System::Linux::Error::fileNotOpen;
 						}
 
-						Ash::Memory::Area<TYPE> memoryArea = content.getArea(offset, length);
+						size_t offset = content.getLength();
 
-						length = ::fread(memoryArea.at(0), sizeof(TYPE), memoryArea.getLength(), m_Handle);
-						
-						if (length < memoryArea.getLength())
+						Ash::Error::Value error = content.increaseLength(length);
+						if (!error)
 						{
-							if (!::feof(m_Handle))
+							size_t readLength = ::fread(content.at(offset), sizeof(TYPE), length, m_Handle);
+							if (readLength < length)
 							{
-								length = 0;
-								content.setLength(offset);
-								return false;
+								if (!::feof(m_Handle))
+								{
+									error = Ash::System::Linux::error();
+								}
+								else
+								{
+									error = content.decreaseLength(length - readLength);
+									if (!error && (readLength == 0))
+									{
+										error = Ash::FileSystem::Error::endOfFile;
+									}
+								}
 							}
 						}
 
-						return content.setLength(offset + length);
+						return error;
 					}
 
 					template
@@ -718,9 +1072,15 @@ namespace Ash
 						typename TYPE,
 						typename = Ash::Type::IsByteSizeInteger<TYPE>
 					>
-					inline bool write(Ash::Memory::View<TYPE> content)
+					[[nodiscard]]
+					inline Ash::Error::Value write(Ash::Memory::View<TYPE> content)
 					{
-						return (m_Handle != nullptr) && (::fwrite(content.at(0), sizeof(TYPE), content.getLength(), m_Handle) == content.getLength());
+						if (m_Handle == nullptr)
+						{
+							return Ash::System::Linux::Error::fileNotOpen;
+						}
+
+						return (::fwrite(content.at(0), sizeof(TYPE), content.getLength(), m_Handle) == content.getLength()) ? Ash::Error::none : Ash::System::Linux::error();
 					}
 
 					template
@@ -728,9 +1088,16 @@ namespace Ash
 						typename TYPE,
 						typename = Ash::Type::IsByteSizeInteger<TYPE>
 					>
+					[[nodiscard]]
 					inline bool append(Ash::Memory::View<TYPE> content)
 					{
-						return movePositionToEnd() && write(content);
+						Ash::Error::Value error = movePositionFromEnd();
+						if (!error)
+						{
+							error = write(content);
+						}
+
+						return error;
 					}
 
 				protected:
