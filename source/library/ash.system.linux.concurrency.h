@@ -8,6 +8,7 @@
 #include <errno.h>
 #include <utility>
 #include "ash.system.linux.filesystem.h"
+#include "ash.concurrency.error.h"
 #include "ash.concurrency.generic.h"
 #include "ash.nullable.h"
 #include "ash.ascii.h"
@@ -153,14 +154,14 @@ namespace Ash
 
 					inline ~Thread()
 					{
-						join();
+						join().assertErrorNotSet();
 					}
 
 					inline Thread &operator = (Thread &&thread) noexcept
 					{
 						if (this != &thread)
 						{
-							join();
+							join().assertErrorNotSet();
 							m_Handle = std::move(thread.m_Handle);
 						}
 
@@ -172,30 +173,35 @@ namespace Ash
 						typename FUNCTION,
 						typename ...ARGUMENTS
 					>
-					inline bool run(FUNCTION function, ARGUMENTS &&...arguments)
+					[[nodiscard]]
+					inline Ash::Error::Value run(FUNCTION function, ARGUMENTS &&...arguments)
 					{
 						if (!m_Handle.isNull())
 						{
-							return false;
+							return Ash::Concurrency::Error::threadAlreadyStarted;
 						}
 
 						m_Handle = runFunction(function, std::forward<ARGUMENTS>(arguments)...);
 
-						return !m_Handle.isNull();
+						return !m_Handle.isNull() ? Ash::Error::none : Ash::Concurrency::Error::threadNotStarted;
 					}
 
-					inline bool join()
+					[[nodiscard]]
+					inline Ash::Error::Value join()
 					{
+						Ash::Error::Value error = Ash::Error::none;
+
 						if (!m_Handle.isNull())
 						{
-							if (::pthread_join(*m_Handle.getAt(), nullptr) != 0)
-							{
-								return false;
-							}
+							int errorCode = ::pthread_join(*m_Handle.getAt(), nullptr);
 							m_Handle.clear();
+							if (errorCode != 0)
+							{
+								error = Ash::System::Linux::error(errorCode);
+							}
 						}
 
-						return true;
+						return error;
 					}
 
 					template
@@ -203,15 +209,18 @@ namespace Ash
 						typename FUNCTION,
 						typename ...ARGUMENTS
 					>
-					static inline bool runDetached(FUNCTION function, ARGUMENTS &&...arguments)
+					[[nodiscard]]
+					static inline Ash::Error::Value runDetached(FUNCTION function, ARGUMENTS &&...arguments)
 					{
 						Handle handle = runFunction(function, std::forward<ARGUMENTS>(arguments)...);
-						if (!handle.isNull())
+						if (handle.isNull())
 						{
-							::pthread_detach(*handle.getAt());
-							return true;
+							return Ash::Concurrency::Error::threadNotStarted;
 						}
-						return false;
+
+						::pthread_detach(*handle.getAt());
+
+						return Ash::Error::none;
 					}
 
 				protected:
@@ -290,21 +299,71 @@ namespace Ash
 
 						template
 						<
-							typename ...ARGUMENTS
+							typename ...ARGUMENT
 						>
-						constexpr CommandLine(const Ash::System::Linux::FileSystem::Path &command, ARGUMENTS ...arguments) : m_Content()
+						constexpr CommandLine(const Ash::System::Linux::FileSystem::Path &command, ARGUMENT ...argument) : m_Content()
 						{
-							append(command.getValue(), arguments...);
+							append(command.getView(), std::forward<ARGUMENT>(argument)...).throwOnError();
+						}
+
+						[[nodiscard]]
+						constexpr Ash::Error::Value copyFrom(const CommandLine &commandLine)
+						{
+							return m_Content.copyFrom(commandLine.m_Content);
+						}
+
+						constexpr void moveFrom(CommandLine &commandLine)
+						{
+							m_Content.moveFrom(commandLine.m_Content);
+						}
+
+						template
+						<
+							typename ...ARGUMENT
+						>
+						[[nodiscard]]
+						constexpr Ash::Error::Value set(const Ash::System::Linux::FileSystem::Path &command, ARGUMENT ...argument)
+						{
+							CommandLine commandLine;
+
+							Ash::Error::Value error = commandLine.append(command.getView(), std::forward<ARGUMENT>(argument)...);
+							if (!error)
+							{
+								moveFrom(commandLine);
+							}
+
+							return error;
+						}
+
+						[[nodiscard]]
+						constexpr Ash::Error::Value getArray(Array &array) const
+						{
+							Ash::Error::Value error = Ash::Error::none;
+							Array commandLineArguments;
+
+							for (size_t offset = 0; !error && (offset < m_Content.getLength()); offset = m_Content.find(offset, '\0') + 1)
+							{
+								error = commandLineArguments.append(m_Content.at(offset));
+							}
+
+							if (!error)
+							{
+								error = commandLineArguments.append(Array::Type(nullptr));
+								if (!error)
+								{
+									array.moveFrom(commandLineArguments);
+								}
+							}
+
+							return error;
 						}
 
 						constexpr Array getArray() const
 						{
 							Array array;
-							for (size_t offset = 0; offset < m_Content.getLength(); offset = m_Content.find(offset, '\0') + 1)
-							{
-								array.append(m_Content.at(offset));
-							}
-							array.append(nullptr);
+
+							getArray(array).throwOnError();
+
 							return array;
 						}
 
@@ -314,11 +373,16 @@ namespace Ash
 							typename ENCODING,
 							typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
 						>
-						constexpr void append(Ash::String::View<ENCODING> value)
+						[[nodiscard]]
+						constexpr Ash::Error::Value append(Ash::String::View<ENCODING> value)
 						{
-							size_t offset = m_Content.getLength();
-							Ash::Encoding::convert<ENCODING, Encoding>(value, m_Content, offset);
-							m_Content.set(offset, '\0');
+							Ash::Error::Value error = m_Content.append(value);
+							if (!error)
+							{
+								error = m_Content.append('\0');
+							}
+
+							return error;
 						}
 
 						template
@@ -326,9 +390,10 @@ namespace Ash
 							typename VALUE,
 							typename = Ash::Type::IsStringLiteral<VALUE>
 						>
-						constexpr void append(VALUE value)
+						[[nodiscard]]
+						constexpr Ash::Error::Value append(VALUE value)
 						{
-							append(Ash::String::View<typename Ash::String::Literal<VALUE>::Encoding>(value));
+							return append(Ash::String::view(value));
 						}
 
 						template
@@ -336,10 +401,16 @@ namespace Ash
 							typename VALUE,
 							typename ...NEXT
 						>
-						constexpr void append(VALUE value, NEXT ...nextValue)
+						[[nodiscard]]
+						constexpr Ash::Error::Value append(VALUE value, NEXT ...nextValue)
 						{
-							append(value);
-							append(nextValue...);
+							Ash::Error::Value error = append(value);
+							if (!error)
+							{
+								error = append(nextValue...);
+							}
+
+							return error;
 						}
 
 					private:
@@ -365,6 +436,11 @@ namespace Ash
 
 								constexpr View(const Content &content) : Content(content) {}
 
+								constexpr bool isEmpty() const
+								{
+									return Content::getLength() == 0;
+								}
+
 								constexpr Ash::Utf8::View getName() const
 								{
 									return Content::getView(0, getNameLength());
@@ -377,10 +453,10 @@ namespace Ash
 									typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>,
 									typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
 								>
-								constexpr bool getName(Ash::String::Value<ALLOCATION, ENCODING> &name) const
+								[[nodiscard]]
+								constexpr Ash::Error::Value getName(Ash::String::Value<ALLOCATION, ENCODING> &name) const
 								{
-									View settingName = getName();
-									return settingName.convertTo(name) == settingName.getLength();
+									return name.convertFrom(getName());
 								}
 
 								constexpr Ash::Utf8::View getValue() const
@@ -395,10 +471,10 @@ namespace Ash
 									typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>,
 									typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
 								>
-								constexpr bool getValue(Ash::String::Value<ALLOCATION, ENCODING> &value) const
+								[[nodiscard]]
+								constexpr Ash::Error::Value getValue(Ash::String::Value<ALLOCATION, ENCODING> &value) const
 								{
-									View settingValue = getValue();
-									return settingValue.convertTo(value) == settingValue.getLength();
+									return value.convertFrom(getValue());
 								}
 
 								template
@@ -412,22 +488,23 @@ namespace Ash
 									typename ENCODING::Character nameCharacter;
 									size_t offset = 0;
 									size_t nameOffset = 0;
-									
+
 									while ((offset < Content::getLength()) && (nameOffset < name.getLength()))
 									{
-										if ((Content::getNextCharacter(offset, character) == 0) || (name.getNextCharacter(nameOffset, nameCharacter) == 0))
+										if (Ash::Error::isSet(Content::getNextCharacter(offset, character)) || Ash::Error::isSet(name.getNextCharacter(nameOffset, nameCharacter)))
 										{
 											return false;
 										}
+
 										if (Ash::Unicode::Character(character) != Ash::Unicode::Character(nameCharacter))
 										{
 											return false;
 										}
-										offset = offset + character.getLength();
-										nameOffset = nameOffset + nameCharacter.getLength();
-									}
 
-									return (nameOffset == name.getLength()) && (Content::getNextCharacter(offset, character) != 0) && (Ash::Unicode::Character(character) == '=');
+										offset = offset + character.getLength();
+										nameOffset = nameOffset + nameCharacter.getLength();									}
+
+									return (nameOffset == name.getLength()) && !Ash::Error::isSet(Content::getNextCharacter(offset, character)) && (Ash::Unicode::Character(character) == '=');
 								}
 
 							protected:
@@ -455,13 +532,7 @@ namespace Ash
 							>
 							constexpr Setting(const Ash::String::View<NAME_ENCODING> &name, Ash::String::View<VALUE_ENCODING> value) : m_Content()
 							{
-								if (isNameValid(name))
-								{
-									size_t offset = 0;
-									Ash::Encoding::convert<NAME_ENCODING, Encoding>(name, m_Content, offset);
-									m_Content.set(offset++, '=');
-									Ash::Encoding::convert<VALUE_ENCODING, Encoding>(value, m_Content, offset);
-								}
+								format(name, value).throwOnError();
 							}
 
 							template
@@ -471,7 +542,7 @@ namespace Ash
 								typename = Ash::Type::IsClass<NAME_ENCODING, Ash::Generic::Encoding>,
 								typename = Ash::Type::IsStringLiteral<VALUE>
 							>
-							constexpr Setting(Ash::String::View<NAME_ENCODING> name, VALUE value) : Setting(name, Ash::String::View<typename Ash::String::Literal<VALUE>::Encoding>(value)) {}
+							constexpr Setting(Ash::String::View<NAME_ENCODING> name, VALUE value) : Setting(name, Ash::String::view(value)) {}
 
 							template
 							<
@@ -480,7 +551,7 @@ namespace Ash
 								typename = Ash::Type::IsStringLiteral<NAME>,
 								typename = Ash::Type::IsClass<VALUE_ENCODING, Ash::Generic::Encoding>
 							>
-							constexpr Setting(NAME name, Ash::String::View<VALUE_ENCODING> value) : Setting(Ash::String::View<typename Ash::String::Literal<NAME>::Encoding>(name), value) {}
+							constexpr Setting(NAME name, Ash::String::View<VALUE_ENCODING> value) : Setting(Ash::String::view(name), value) {}
 
 							template
 							<
@@ -489,9 +560,90 @@ namespace Ash
 								typename = Ash::Type::IsStringLiteral<NAME>,
 								typename = Ash::Type::IsStringLiteral<VALUE>
 							>
-							constexpr Setting(NAME name, VALUE value) : Setting(Ash::String::View<typename Ash::String::Literal<NAME>::Encoding>(name), Ash::String::View<typename Ash::String::Literal<VALUE>::Encoding>(value)) {}
+							constexpr Setting(NAME name, VALUE value) : Setting(Ash::String::view(name), Ash::String::view(value)) {}
 
 							constexpr operator Setting::View () const { return m_Content.getView(); }
+
+							[[nodiscard]]
+							constexpr Ash::Error::Value copyFrom(const Setting &setting)
+							{
+								return m_Content.copyFrom(setting.m_Content);
+							}
+
+							constexpr void moveFrom(Setting &setting)
+							{
+								m_Content.moveFrom(setting.m_Content);
+							}
+
+							constexpr void clear()
+							{
+								m_Content.clear();
+							}
+
+							template
+							<
+								typename NAME_ENCODING,
+								typename VALUE_ENCODING,
+								typename = Ash::Type::IsClass<NAME_ENCODING, Ash::Generic::Encoding>,
+								typename = Ash::Type::IsClass<VALUE_ENCODING, Ash::Generic::Encoding>
+							>
+							[[nodiscard]]
+							constexpr Ash::Error::Value set(Ash::String::View<NAME_ENCODING> name, Ash::String::View<VALUE_ENCODING> value)
+							{
+								Setting setting;
+
+								Ash::Error::Value error = setting.format(name, value);
+								if (!error)
+								{
+									moveFrom(setting);
+								}
+
+								return error;
+							}
+
+							template
+							<
+								typename NAME_ENCODING,
+								typename VALUE,
+								typename = Ash::Type::IsClass<NAME_ENCODING, Ash::Generic::Encoding>,
+								typename = Ash::Type::IsStringLiteral<VALUE>
+							>
+							[[nodiscard]]
+							constexpr Ash::Error::Value set(Ash::String::View<NAME_ENCODING> name, VALUE value)
+							{
+								return set(name, Ash::String::view(value));
+							}
+
+							template
+							<
+								typename NAME,
+								typename VALUE_ENCODING,
+								typename = Ash::Type::IsStringLiteral<NAME>,
+								typename = Ash::Type::IsClass<VALUE_ENCODING, Ash::Generic::Encoding>
+							>
+							[[nodiscard]]
+							constexpr Ash::Error::Value set(NAME name, Ash::String::View<VALUE_ENCODING> value)
+							{
+								return set(Ash::String::view(name), value);
+							}
+
+							template
+							<
+								typename NAME,
+								typename VALUE,
+								typename = Ash::Type::IsStringLiteral<NAME>,
+								typename = Ash::Type::IsStringLiteral<VALUE>
+							>
+							[[nodiscard]]
+							constexpr Ash::Error::Value set(NAME name, VALUE value)
+							{
+								return set(Ash::String::view(name), Ash::String::view(value));
+							}
+
+							constexpr bool isEmpty() const
+							{
+								return m_Content.getLength() == 0;
+							}
 
 							constexpr Ash::Utf8::View getName() const
 							{
@@ -505,7 +657,8 @@ namespace Ash
 								typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>,
 								typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
 							>
-							constexpr bool getName(Ash::String::Value<ALLOCATION, ENCODING> &name) const
+							[[nodiscard]]
+							constexpr Ash::Error::Value getName(Ash::String::Value<ALLOCATION, ENCODING> &name) const
 							{
 								return View(m_Content).getName(name);
 							}
@@ -522,7 +675,8 @@ namespace Ash
 								typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>,
 								typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
 							>
-							constexpr bool getValue(Ash::String::Value<ALLOCATION, ENCODING> &value) const
+							[[nodiscard]]
+							constexpr Ash::Error::Value getValue(Ash::String::Value<ALLOCATION, ENCODING> &value) const
 							{
 								return View(m_Content).getValue(value);
 							}
@@ -544,7 +698,35 @@ namespace Ash
 							>
 							static constexpr bool isNameValid(NAME name)
 							{
-								return isNameValid(Ash::String::View<typename Ash::String::Literal<NAME>::Encoding>(name));
+								return isNameValid(Ash::String::view(name));
+							}
+
+						protected:
+							template
+							<
+								typename NAME_ENCODING,
+								typename VALUE_ENCODING,
+								typename = Ash::Type::IsClass<NAME_ENCODING, Ash::Generic::Encoding>,
+								typename = Ash::Type::IsClass<VALUE_ENCODING, Ash::Generic::Encoding>
+							>
+							[[nodiscard]]
+							constexpr Ash::Error::Value format(const Ash::String::View<NAME_ENCODING> &name, Ash::String::View<VALUE_ENCODING> value)
+							{
+								Ash::Error::Value error = isNameValid(name) ? Ash::Error::none : Ash::Concurrency::Error::invalidEnvironmentName;
+								if (!error)
+								{
+									error = m_Content.append(name);
+									if (!error)
+									{
+										error = m_Content.append('=');
+										if (!error)
+										{
+											error = m_Content.append(value);
+										}
+									}
+								}
+
+								return error;
 							}
 
 						private:
@@ -568,15 +750,36 @@ namespace Ash
 							{
 								for (const Setting &setting : settings)
 								{
-									append(setting);
+									append(setting).throwOnError();
 								}
 							}
 
-							constexpr Block &set(const Setting &setting)
+							[[nodiscard]]
+							constexpr Ash::Error::Value copyFrom(const Block &block)
 							{
-								remove(setting.getName());
-								append(setting);
-								return *this;
+								return m_Content.copyFrom(block.m_Content);
+							}
+
+							constexpr void moveFrom(Block &block)
+							{
+								m_Content.moveFrom(block.m_Content);
+							}
+
+							constexpr void clear()
+							{
+								return m_Content.clear();
+							}
+
+							[[nodiscard]]
+							constexpr Ash::Error::Value set(const Setting &setting)
+							{
+								Ash::Error::Value error = remove(setting.getName());
+								if (!error)
+								{
+									error = append(setting);
+								}
+
+								return error;
 							}
 
 							template
@@ -602,11 +805,11 @@ namespace Ash
 							template
 							<
 								typename NAME,
-								typename Ash::Type::IsStringLiteral<NAME>
+								typename = Ash::Type::IsStringLiteral<NAME>
 							>
 							constexpr Setting::View get(NAME name) const
 							{
-								return get(Ash::String::View<typename Ash::String::Literal<NAME>::Encoding>(name));
+								return get(Ash::String::view(name));
 							}
 
 							template
@@ -614,19 +817,28 @@ namespace Ash
 								typename ENCODING,
 								typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
 							>
-							constexpr Block &remove(Ash::String::View<ENCODING> name)
+							[[nodiscard]]
+							constexpr Ash::Error::Value remove(Ash::String::View<ENCODING> name)
 							{
 								size_t offset = 0;
+
 								while (offset < m_Content.getLength())
 								{
 									Setting::View setting = getSetting(offset);
+
 									if (setting.matchName(name))
 									{
-										m_Content.remove(offset, setting.getLength() + 1);
+										Ash::Error::Value error = m_Content.remove(offset, setting.getLength() + 1);
+										if (error)
+										{
+											return error;
+										}
 									}
+
 									offset = offset + setting.getLength() + 1;
 								}
-								return *this;
+
+								return Ash::Error::none;
 							}
 
 							template
@@ -634,42 +846,88 @@ namespace Ash
 								typename NAME,
 								typename Ash::Type::IsStringLiteral<NAME>
 							>
-							constexpr Block &remove(NAME name)
+							[[nodiscard]]
+							constexpr Ash::Error::Value remove(NAME name)
 							{
-								return remove(Ash::String::View<typename Ash::String::Literal<NAME>::Encoding>(name));
+								return remove(Ash::String::view(name));
+							}
+
+							[[nodiscard]]
+							constexpr Ash::Error::Value getArray(Array &array) const
+							{
+								Ash::Error::Value error = Ash::Error::none;
+								Array blockSettings;
+
+								for (size_t offset = 0; !error && (offset < m_Content.getLength()); offset = m_Content.find(offset, '\0') + 1)
+								{
+									error = blockSettings.append(m_Content.at(offset));
+								}
+
+								if (!error)
+								{
+									error = blockSettings.append(Array::Type(nullptr));
+									if (!error)
+									{
+										array.moveFrom(blockSettings);
+									}
+								}
+
+								return error;
 							}
 
 							constexpr Array getArray() const
 							{
 								Array array;
-								for (size_t offset = 0; offset < m_Content.getLength(); offset = m_Content.find(offset, '\0') + 1)
-								{
-									array.append(m_Content.at(offset));
-								}
-								array.append(nullptr);
+
+								getArray(array).throwOnError();
+
 								return array;
 							}
 
 						protected:
 							constexpr Block(const Encoding::Code **value) : m_Content()
 							{
+								set(value).throwOnError();
+							}
+
+							[[nodiscard]]
+							constexpr Ash::Error::Value set(const Encoding::Code **value)
+							{
+								Ash::Error::Value error = Ash::Error::none;
+								Block block;
+
 								if (value != nullptr)
 								{
-									while (*value != nullptr)
+									while (!error && (*value != nullptr))
 									{
-										append(Ash::Utf8::View(*value));
+										error = block.append(Ash::Utf8::View(*value));
 										value++;
 									}
 								}
+
+								if (!error)
+								{
+									moveFrom(block);
+								}
+
+								return error;
 							}
 
-							constexpr void append(Setting::View setting)
+							[[nodiscard]]
+							constexpr Ash::Error::Value append(Setting::View setting)
 							{
-								if (setting.getLength() != 0)
+								Ash::Error::Value error = Ash::Error::none;
+
+								if (!setting.isEmpty())
 								{
-									m_Content.append(setting);
-									m_Content.append('\0');
+									error = m_Content.append(setting);
+									if (!error)
+									{
+										error = m_Content.append('\0');
+									}
 								}
+
+								return error;
 							}
 
 							constexpr Setting::View getSetting(size_t offset) const
@@ -685,14 +943,64 @@ namespace Ash
 							friend Environment;
 						};
 
-						static inline Block getBlock()
+						[[nodiscard]]
+						static inline Ash::Error::Value getBlock(Block &block)
 						{
-							return Block((const Block::Encoding::Code **)environ);
+							Block environmentBlock;
+
+							Ash::Error::Value error = environmentBlock.set((const Block::Encoding::Code **)environ);
+							if (!error)
+							{
+								block.moveFrom(environmentBlock);
+							}
+
+							return error;
 						}
 
-						static inline bool set(const Setting &setting)
+						static inline Block getBlock()
 						{
-							return ::setenv(Name(setting.getName()), Value(setting.getValue()), true) == 0;
+							Block block;
+
+							getBlock(block).throwOnError();
+
+							return block;
+						}
+
+						[[nodiscard]]
+						static inline Ash::Error::Value set(const Setting &setting)
+						{
+							return (::setenv(Name(setting.getName()), Value(setting.getValue()), true) == 0) ? Ash::Error::none : Ash::System::Linux::error();
+						}
+
+						template
+						<
+							typename ENCODING,
+							typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
+						>
+						static inline Ash::Error::Value get(Ash::String::View<ENCODING> name, Setting &setting)
+						{
+							Name settingName;
+
+							Ash::Error::Value error = settingName.convertFrom(name);
+							if (!error)
+							{
+								Value settingValue;
+
+								const Ash::Encoding::Ascii::Code *value = ::getenv(settingName);
+								error = (value != nullptr) ? settingValue.convertFrom(value) : Ash::Concurrency::Error::environmentNameNotFound;
+								if (!error)
+								{
+									Setting environmentSetting;
+
+									error = environmentSetting.set(settingName.getView(0, settingName.getLength() - 1), settingValue.getView(0, settingValue.getLength() - 1));
+									if (!error)
+									{
+										setting.moveFrom(environmentSetting);
+									}
+								}
+							}
+
+							return error;
 						}
 
 						template
@@ -702,9 +1010,11 @@ namespace Ash
 						>
 						static inline Setting get(Ash::String::View<ENCODING> name)
 						{
-							Name settingName(name);
-							Value settingValue((const Ash::Encoding::Utf8::Code *)::getenv(settingName));
-							return Setting(settingName.getView(0, settingName.getLength() - 1), settingValue.getView(0, settingValue.getLength() - 1));
+							Setting setting;
+
+							get(name, setting).ignoreError(Ash::Concurrency::Error::environmentNameNotFound).throwOnError();
+
+							return setting;
 						}
 
 						template
@@ -714,7 +1024,65 @@ namespace Ash
 						>
 						static inline Setting get(NAME name)
 						{
-							return get(Ash::String::View<typename Ash::String::Literal<NAME>::Encoding>(name));
+							return get(Ash::String::view(name));
+						}
+
+						template
+						<
+							typename NAME_ENCODING,
+							typename VALUE_ENCODING,
+							typename = Ash::Type::IsClass<NAME_ENCODING, Ash::Generic::Encoding>,
+							typename = Ash::Type::IsClass<VALUE_ENCODING, Ash::Generic::Encoding>
+						>
+						static inline Setting get(Ash::String::View<NAME_ENCODING> name, Ash::String::View<VALUE_ENCODING> defaultValue)
+						{
+							Setting setting;
+
+							Ash::Error::Value error = get(name, setting);
+							if (error == Ash::Concurrency::Error::environmentNameNotFound)
+							{
+								error = setting.set(name, defaultValue);
+							}
+
+							error.throwOnError();
+
+							return setting;
+						}
+
+						template
+						<
+							typename NAME_ENCODING,
+							typename VALUE,
+							typename = Ash::Type::IsClass<NAME_ENCODING, Ash::Generic::Encoding>,
+							typename = Ash::Type::IsStringLiteral<VALUE>
+						>
+						static inline Setting get(Ash::String::View<NAME_ENCODING> name, VALUE defaultValue)
+						{
+							return get(name, Ash::String::view(defaultValue));
+						}
+
+						template
+						<
+							typename NAME,
+							typename VALUE_ENCODING,
+							typename = Ash::Type::IsStringLiteral<NAME>,
+							typename = Ash::Type::IsClass<VALUE_ENCODING, Ash::Generic::Encoding>
+						>
+						static inline Setting get(NAME name, Ash::String::View<VALUE_ENCODING> defaultValue)
+						{
+							return get(Ash::String::view(name), defaultValue);
+						}
+
+						template
+						<
+							typename NAME,
+							typename VALUE,
+							typename = Ash::Type::IsStringLiteral<NAME>,
+							typename = Ash::Type::IsStringLiteral<VALUE>
+						>
+						static inline Setting get(NAME name, VALUE defaultValue)
+						{
+							return get(Ash::String::view(name), Ash::String::view(defaultValue));
 						}
 
 					protected:
@@ -737,7 +1105,7 @@ namespace Ash
 					{
 						if (this != &process)
 						{
-							join();
+							join().assertErrorNotSet();
 
 							m_Identifier = process.m_Identifier;
 
@@ -749,7 +1117,7 @@ namespace Ash
 
 					inline ~Process()
 					{
-						join();
+						join().assertErrorNotSet();
 					}
 
 					inline Identifier getIdentifier() const { return m_Identifier; }
@@ -761,31 +1129,49 @@ namespace Ash
 						return (const char *)::program_invocation_name;
 					}
 
-					inline bool run(const CommandLine &commandLine)
+					[[nodiscard]]
+					inline Ash::Error::Value run(const CommandLine &commandLine)
 					{
-						CommandLine::Array commandLineArray = commandLine.getArray();
-
-						if (::posix_spawn(&m_Identifier, (const char *)*commandLineArray.at(0), nullptr, nullptr, (char *const *)commandLineArray.at(0), nullptr) != 0)
+						Ash::Error::Value error = (m_Identifier == invalid) ? Ash::Error::none : Ash::Concurrency::Error::processAlreadyStarted;
+						if (!error)
 						{
-							m_Identifier = invalid;
+							CommandLine::Array commandLineArray;
+							error = commandLine.getArray(commandLineArray);
+							if (!error && (::posix_spawn(&m_Identifier, (const char *)*commandLineArray.at(0), nullptr, nullptr, (char *const *)commandLineArray.at(0), nullptr) != 0))
+							{
+								m_Identifier = invalid;
+								error = Ash::Concurrency::Error::processNotStarted;
+							}
 						}
 
-						return m_Identifier != invalid;
+						return error;
 					}
 
-					inline bool run(const CommandLine &commandLine, const Environment::Block &environmentBlock)
+					[[nodiscard]]
+					inline Ash::Error::Value run(const CommandLine &commandLine, const Environment::Block &environmentBlock)
 					{
-						CommandLine::Array commandLineArray = commandLine.getArray();
-
-						if (::posix_spawn(&m_Identifier, (const char *)*commandLineArray.at(0), nullptr, nullptr, (char *const *)commandLineArray.at(0), (char *const *)environmentBlock.getArray().at(0)) != 0)
+						Ash::Error::Value error = (m_Identifier == invalid) ? Ash::Error::none : Ash::Concurrency::Error::processAlreadyStarted;
+						if (!error)
 						{
-							m_Identifier = invalid;
+							CommandLine::Array commandLineArray;
+							error = commandLine.getArray(commandLineArray);
+							if (!error)
+							{
+								Environment::Block::Array environmentBlockArray;
+								error = environmentBlock.getArray(environmentBlockArray);
+								if (!error && (::posix_spawn(&m_Identifier, (const char *)*commandLineArray.at(0), nullptr, nullptr, (char *const *)commandLineArray.at(0), (char *const *)environmentBlockArray.at(0)) != 0))
+								{
+									m_Identifier = invalid;
+									error = Ash::Concurrency::Error::processNotStarted;
+								}
+							}
 						}
 
-						return m_Identifier != invalid;
+						return error;
 					}
 
-					inline bool join(int *exitCode = nullptr)
+					[[nodiscard]]
+					inline Ash::Error::Value join(int *exitCode = nullptr)
 					{
 						if (m_Identifier != invalid)
 						{
@@ -795,7 +1181,7 @@ namespace Ash
 							{
 								if (::waitpid(m_Identifier, &status, 0) == -1)
 								{
-									return false;
+									return Ash::System::Linux::error();
 								}
 							}
 							while (!WIFEXITED(status) && !WIFSIGNALED(status));
@@ -807,8 +1193,12 @@ namespace Ash
 
 							m_Identifier = invalid;
 						}
+						else if (exitCode != nullptr)
+						{
+							*exitCode = 0;
+						}
 
-						return m_Identifier == invalid;
+						return Ash::Error::none;
 					}
 
 				private:
