@@ -663,7 +663,7 @@ namespace Ash
 									}
 								},
 								value
-							);
+							).throwOnError();
 							decrementThread[n].run
 							(
 								[](Ash::Shared::Atomic::Pointer<Value> value)
@@ -674,7 +674,7 @@ namespace Ash
 									}
 								},
 								value
-							);
+							).throwOnError();
 						}
 					}
 
