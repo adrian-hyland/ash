@@ -195,11 +195,16 @@ namespace Ash
 					return {};
 				}
 
-				static Ash::Test::Assertion hasErrorSet()
+				static Ash::Test::Assertion translateError()
 				{
-					TEST_IS_FALSE(Ash::Error::none.hasErrorSet());
+					Ash::Error::Value error = warning;
+					TEST_IS_EQ(error.translateError(warning, critical), critical);
 
-					TEST_IS_TRUE(critical.hasErrorSet());
+					error = critical;
+					TEST_IS_EQ(error.translateError(warning, critical), critical);
+
+					error = Ash::Error::none;
+					TEST_IS_EQ(error.translateError(warning, critical), Ash::Error::none);
 
 					return {};
 				}
@@ -229,8 +234,7 @@ namespace Ash
 					try
 					{
 						critical.throwOnError();
-
-						TEST_FAIL("thrown error");
+						TEST_FAIL("Ash::Error::Exception");
 					}
 					catch (const Ash::Error::Exception &exception)
 					{
@@ -252,7 +256,7 @@ namespace Ash
 					{
 						Ash::Error::Value error = critical;
 						TEST_IS_NOT_EQ(error.throwOnError(critical), critical);
-						TEST_FAIL("thrown error");
+						TEST_FAIL("Ash::Error::Exception");
 					}
 					catch (const Ash::Error::Exception &exception)
 					{
@@ -274,11 +278,19 @@ namespace Ash
 				static Ash::Test::Assertion callChain()
 				{
 					Ash::Error::Value error = warning;
+					TEST_IS_EQ(error.translateError(warning, critical).ignoreError(critical).terminateOnError(warning), Ash::Error::none);
+
+					error = warning;
 					TEST_IS_EQ(error.ignoreError(warning).terminateOnError(critical), Ash::Error::none);
+
+					error = warning;
 					TEST_IS_EQ(error.ignoreError(warning).throwOnError(critical), Ash::Error::none);
+
 					try
 					{
-						TEST_IS_EQ(error.throwOnError(warning).terminateOnError(critical), Ash::Error::none);
+						error = warning;
+						TEST_IS_EQ(error.terminateOnError(critical).throwOnError(warning), Ash::Error::none);
+						TEST_FAIL("Ash::Error::Exception");
 					}
 					catch (const Ash::Error::Exception &exception)
 					{
@@ -290,13 +302,25 @@ namespace Ash
 				}
 			}
 
+			static Ash::Test::Assertion isSet()
+			{
+				TEST_IS_FALSE(Ash::Error::none);
+
+				TEST_IS_TRUE(Ash::Test::Error::Value::critical);
+
+				TEST_IS_FALSE(Ash::Error::isSet(Ash::Error::none));
+
+				TEST_IS_TRUE(Ash::Error::isSet(Ash::Test::Error::Value::critical));
+
+				return {};
+			}
+
 			static Ash::Test::Assertion throwUsing()
 			{
 				try
 				{
 					Ash::Error::throwUsing(Ash::Test::Error::Value::critical);
-
-					TEST_FAIL("thrown error");
+					TEST_FAIL("Ash::Error::Exception");
 				}
 				catch (const Ash::Error::Exception &exception)
 				{
@@ -324,12 +348,13 @@ namespace Ash
 			TEST_CASE(Ash::Test::Error::Value::getCategory),
 			TEST_CASE(Ash::Test::Error::Value::getCode),
 			TEST_CASE(Ash::Test::Error::Value::getDescription),
-			TEST_CASE(Ash::Test::Error::Value::hasErrorSet),
+			TEST_CASE(Ash::Test::Error::Value::translateError),
 			TEST_CASE(Ash::Test::Error::Value::ignoreError),
 			TEST_CASE(Ash::Test::Error::Value::throwOnError),
 			TEST_CASE(Ash::Test::Error::Value::terminateOnError),
 			TEST_CASE(Ash::Test::Error::Value::callChain),
 
+			TEST_CASE(Ash::Test::Error::isSet),
 			TEST_CASE(Ash::Test::Error::throwUsing)
 		);
 	}
