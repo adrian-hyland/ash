@@ -249,6 +249,35 @@ namespace Ash
 					return {};
 				}
 
+				static Ash::Test::Assertion isValid()
+				{
+					static constexpr Ash::Encoding::CodeUnit16 decimalValues[] =
+					{
+						'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
+					};
+					using DecimalLookup = Ash::Encoding::SingleByte::Lookup<0, sizeof(decimalValues) / sizeof(decimalValues[0]), decimalValues>;
+					using DecimalTable = Ash::Encoding::SingleByte::Table<DecimalLookup, '#'>;
+
+					TEST_IS_FALSE(DecimalTable::Character::isValid(0x00));
+					TEST_IS_FALSE(DecimalTable::Character::isValid('0' - 1));
+
+					TEST_IS_TRUE(DecimalTable::Character::isValid('0'));
+					TEST_IS_TRUE(DecimalTable::Character::isValid('1'));
+					TEST_IS_TRUE(DecimalTable::Character::isValid('2'));
+					TEST_IS_TRUE(DecimalTable::Character::isValid('3'));
+					TEST_IS_TRUE(DecimalTable::Character::isValid('4'));
+					TEST_IS_TRUE(DecimalTable::Character::isValid('5'));
+					TEST_IS_TRUE(DecimalTable::Character::isValid('6'));
+					TEST_IS_TRUE(DecimalTable::Character::isValid('7'));
+					TEST_IS_TRUE(DecimalTable::Character::isValid('8'));
+					TEST_IS_TRUE(DecimalTable::Character::isValid('9'));
+
+					TEST_IS_FALSE(DecimalTable::Character::isValid('9' + 1));
+					TEST_IS_FALSE(DecimalTable::Character::isValid(Ash::Unicode::Character::maximum));
+
+					return {};
+				}
+
 				static Ash::Test::Assertion character()
 				{
 					static constexpr Ash::Encoding::CodeUnit16 decimalValues[] =
@@ -280,13 +309,84 @@ namespace Ash
 						TEST_IS_EQ(Ash::Unicode::Character(character), Ash::Unicode::Character::replacement);
 					}
 
-					for (Ash::Unicode::Character::Value value : Ash::Iterate<Ash::Unicode::Character::Value>::between('9' + 1, std::numeric_limits<Ash::Unicode::Character::Value>::max()))
+					for (Ash::Unicode::Character::Value value : Ash::Iterate<Ash::Unicode::Character::Value>::between('9' + 1, Ash::Unicode::Character::maximum))
 					{
 						DecimalTable::Character character(value);
 
 						TEST_IS_EQ(character.getLength(), 1);
 						TEST_IS_EQ(*character.at(0), DecimalTable::Character::replacementCode);
 						TEST_IS_EQ(Ash::Unicode::Character(character), Ash::Unicode::Character::replacement);
+					}
+
+					for (Ash::Unicode::Character::Value value : Ash::Iterate<Ash::Unicode::Character::Value>::between(1, '0' - 1))
+					{
+						try
+						{
+							DecimalTable::Character character(value, false);
+
+							TEST_FAIL("Ash::Encoding::Error::invalidCodePoint exception");
+						}
+						catch (const Ash::Error::Exception &exception)
+						{
+							TEST_IS_EQ(Ash::Error::Value(*exception.getCategory(), exception.getCode()), Ash::Encoding::Error::invalidCodePoint);
+						}
+					}
+
+					for (Ash::Unicode::Character::Value value : Ash::Iterate<Ash::Unicode::Character::Value>::between('9' + 1, Ash::Unicode::Character::maximum))
+					{
+						try
+						{
+							DecimalTable::Character character(value, false);
+
+							TEST_FAIL("Ash::Encoding::Error::invalidCodePoint exception");
+						}
+						catch (const Ash::Error::Exception &exception)
+						{
+							TEST_IS_EQ(Ash::Error::Value(*exception.getCategory(), exception.getCode()), Ash::Encoding::Error::invalidCodePoint);
+						}
+					}
+
+					return {};
+				}
+
+				static Ash::Test::Assertion set()
+				{
+					static constexpr Ash::Encoding::CodeUnit16 decimalValues[] =
+					{
+						'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
+					};
+					using DecimalLookup = Ash::Encoding::SingleByte::Lookup<0, sizeof(decimalValues) / sizeof(decimalValues[0]), decimalValues>;
+					using DecimalTable = Ash::Encoding::SingleByte::Table<DecimalLookup, '#'>;
+
+					for (Ash::Unicode::Character value : decimalValues)
+					{
+						DecimalTable::Character character;
+
+						TEST_IS_EQ(character.set(value), Ash::Error::none);
+						TEST_IS_EQ(Ash::Unicode::Character(character), value);
+
+						TEST_IS_EQ(character.set(value), Ash::Error::none);
+						TEST_IS_EQ(Ash::Unicode::Character(character), value);
+					}
+
+					for (Ash::Unicode::Character value : Ash::Iterate<Ash::Unicode::Character::Value>::between(1, '0' - 1))
+					{
+						DecimalTable::Character character;
+
+						TEST_IS_EQ(character.set(value), Ash::Error::none);
+						TEST_IS_EQ(Ash::Unicode::Character(character), Ash::Unicode::Character::replacement);
+
+						TEST_IS_EQ(character.set(value, false), Ash::Encoding::Error::invalidCodePoint);
+					}
+
+					for (Ash::Unicode::Character value : Ash::Iterate<Ash::Unicode::Character::Value>::between('9' + 1, Ash::Unicode::Character::maximum))
+					{
+						DecimalTable::Character character;
+
+						TEST_IS_EQ(character.set(value), Ash::Error::none);
+						TEST_IS_EQ(Ash::Unicode::Character(character), Ash::Unicode::Character::replacement);
+
+						TEST_IS_EQ(character.set(value, false), Ash::Encoding::Error::invalidCodePoint);
 					}
 
 					return {};
@@ -391,7 +491,9 @@ namespace Ash
 		(
 			testSingleByte,
 			TEST_CASE(Ash::Test::Encoding::SingleByte::lookup),
+			TEST_CASE(Ash::Test::Encoding::SingleByte::isValid),
 			TEST_CASE(Ash::Test::Encoding::SingleByte::character),
+			TEST_CASE(Ash::Test::Encoding::SingleByte::set),
 			TEST_CASE(Ash::Test::Encoding::SingleByte::decodeNext),
 			TEST_CASE(Ash::Test::Encoding::SingleByte::decodePrevious),
 		);
