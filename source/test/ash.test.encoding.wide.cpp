@@ -11,6 +11,14 @@ namespace Ash
 		{
 			namespace Wide
 			{
+				static Ash::Test::Assertion isValid()
+				{
+					TEST_IS_TRUE(Ash::Encoding::Wide::Character::isValid(0x00));
+					TEST_IS_TRUE(Ash::Encoding::Wide::Character::isValid(Ash::Unicode::Character::maximum));
+
+					return {};
+				}
+
 				static Ash::Test::Assertion character()
 				{
 					Ash::Encoding::Wide::Character character;
@@ -54,11 +62,20 @@ namespace Ash
 						TEST_IS_EQ(Ash::Unicode::Character(character), value);
 					}
 
-					for (Ash::Unicode::Character::Value value : Ash::Iterate<Ash::Unicode::Character::Value>::between(Ash::Unicode::Character::surrogateStart, Ash::Unicode::Character::surrogateEnd))
-					{
-						Ash::Encoding::Wide::Character character(value);
+					return {};
+				}
 
-						TEST_IS_EQ(Ash::Unicode::Character(character), Ash::Unicode::Character::replacement);
+				static Ash::Test::Assertion set()
+				{
+					for (Ash::Unicode::Character value : Ash::Iterate<Ash::Unicode::Character::Value>::between(0x00, Ash::Unicode::Character::maximum))
+					{
+						Ash::Encoding::Wide::Character character;
+
+						TEST_IS_EQ(character.set(value), Ash::Error::none);
+						TEST_IS_EQ(Ash::Unicode::Character(character), value);
+
+						TEST_IS_EQ(character.set(value, false), Ash::Error::none);
+						TEST_IS_EQ(Ash::Unicode::Character(character), value);
 					}
 
 					return {};
@@ -217,7 +234,9 @@ namespace Ash
 		TEST_UNIT
 		(
 			testWide,
+			TEST_CASE(Ash::Test::Encoding::Wide::isValid),
 			TEST_CASE(Ash::Test::Encoding::Wide::character),
+			TEST_CASE(Ash::Test::Encoding::Wide::set),
 			TEST_CASE(Ash::Test::Encoding::Wide::decodeNext),
 			TEST_CASE(Ash::Test::Encoding::Wide::decodePrevious)
 		);

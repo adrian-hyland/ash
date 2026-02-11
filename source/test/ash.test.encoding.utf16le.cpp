@@ -11,6 +11,14 @@ namespace Ash
 		{
 			namespace Utf16le
 			{
+				static Ash::Test::Assertion isValid()
+				{
+					TEST_IS_TRUE(Ash::Encoding::Utf16le::Character::isValid(0x00));
+					TEST_IS_TRUE(Ash::Encoding::Utf16le::Character::isValid(Ash::Unicode::Character::maximum));
+
+					return {};
+				}
+
 				static Ash::Test::Assertion character()
 				{
 					Ash::Encoding::Utf16le::Character character;
@@ -50,11 +58,20 @@ namespace Ash
 						TEST_IS_EQ(Ash::Unicode::Character(character), value);
 					}
 
-					for (Ash::Unicode::Character::Value value : Ash::Iterate<Ash::Unicode::Character::Value>::between(Ash::Unicode::Character::surrogateStart, Ash::Unicode::Character::surrogateEnd))
-					{
-						Ash::Encoding::Utf16le::Character character(value);
+					return {};
+				}
 
-						TEST_IS_EQ(Ash::Unicode::Character(character), Ash::Unicode::Character::replacement);
+				static Ash::Test::Assertion set()
+				{
+					for (Ash::Unicode::Character value : Ash::Iterate<Ash::Unicode::Character::Value>::between(0x00, Ash::Unicode::Character::maximum))
+					{
+						Ash::Encoding::Utf16le::Character character;
+
+						TEST_IS_EQ(character.set(value), Ash::Error::none);
+						TEST_IS_EQ(Ash::Unicode::Character(character), value);
+
+						TEST_IS_EQ(character.set(value, false), Ash::Error::none);
+						TEST_IS_EQ(Ash::Unicode::Character(character), value);
 					}
 
 					return {};
@@ -211,7 +228,9 @@ namespace Ash
 		TEST_UNIT
 		(
 			testUtf16le,
+			TEST_CASE(Ash::Test::Encoding::Utf16le::isValid),
 			TEST_CASE(Ash::Test::Encoding::Utf16le::character),
+			TEST_CASE(Ash::Test::Encoding::Utf16le::set),
 			TEST_CASE(Ash::Test::Encoding::Utf16le::decodeNext),
 			TEST_CASE(Ash::Test::Encoding::Utf16le::decodePrevious)
 		);
