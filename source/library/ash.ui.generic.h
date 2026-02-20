@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ash.error.h"
 #include "ash.ui.core.h"
 #include "ash.ui.keyboard.h"
 #include "ash.ui.mouse.h"
@@ -14,17 +15,23 @@ namespace Ash
 			class Window
 			{
 			public:
-				virtual bool onClose() { return true; }
+				[[nodiscard]]
+				virtual Ash::Error::Value onClose() { return Ash::Error::none; }
 
-				virtual bool onResize(Ash::UI::Size size) { return true; }
+				[[nodiscard]]
+				virtual Ash::Error::Value onResize(Ash::UI::Size size) { return Ash::Error::none; }
 
-				virtual bool onMouse(Ash::UI::Position position, Ash::UI::Mouse::Button buttonState, Ash::UI::Mouse::Button buttonPressed) { return true; }
+				[[nodiscard]]
+				virtual Ash::Error::Value onMouse(Ash::UI::Position position, Ash::UI::Mouse::Button buttonState, Ash::UI::Mouse::Button buttonPressed) { return Ash::Error::none; }
 
-				virtual bool onMouseWheel(Ash::UI::Position position, Ash::UI::Mouse::Wheel wheel) { return true; }
+				[[nodiscard]]
+				virtual Ash::Error::Value onMouseWheel(Ash::UI::Position position, Ash::UI::Mouse::Wheel wheel) { return Ash::Error::none; }
 
-				virtual bool onKey(Ash::UI::Keyboard::State keyState, Ash::UI::Keyboard::Key key) { return true; }
+				[[nodiscard]]
+				virtual Ash::Error::Value onKey(Ash::UI::Keyboard::State keyState, Ash::UI::Keyboard::Key key) { return Ash::Error::none; }
 
-				virtual bool onKeyCharacter(Ash::Unicode::Character character) { return true; }
+				[[nodiscard]]
+				virtual Ash::Error::Value onKeyCharacter(Ash::Unicode::Character character) { return Ash::Error::none; }
 			};
 		}
 	}
