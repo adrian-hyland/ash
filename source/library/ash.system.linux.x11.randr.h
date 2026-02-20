@@ -18,15 +18,15 @@ namespace Ash
 				class RandR
 				{
 				public:
-					static inline bool isAvailable() { return m_Instance.isAvailable(); }
+					static bool isAvailable() { return m_Instance.isAvailable(); }
 
-					static inline bool isEvent(const xcb_generic_event_t *event, uint8_t identifier)
+					static bool isEvent(const xcb_generic_event_t *event, uint8_t identifier)
 					{
 						uint8_t eventType = m_Instance.getEventType();
 						return (eventType != 0) && ((event->response_type & 0x7F) == eventType + identifier);
 					}
 
-					static inline bool isDisplayEvent(const xcb_generic_event_t *event, uint8_t identifier)
+					static bool isDisplayEvent(const xcb_generic_event_t *event, uint8_t identifier)
 					{
 						return isEvent(event, XCB_RANDR_NOTIFY) && (reinterpret_cast<const xcb_randr_notify_event_t *>(event)->subCode == identifier);
 					}
@@ -61,9 +61,10 @@ namespace Ash
 					public:
 						using Message = Ash::System::Linux::X11::Message<xcb_randr_query_version_cookie_t, xcb_randr_query_version_reply_t>;
 
-						inline QueryVersion(uint8_t major = XCB_RANDR_MAJOR_VERSION, uint8_t minor = XCB_RANDR_MINOR_VERSION) : Message(xcb_randr_query_version, major, minor) {}
+						QueryVersion(uint8_t major = XCB_RANDR_MAJOR_VERSION, uint8_t minor = XCB_RANDR_MINOR_VERSION) : Message(xcb_randr_query_version, major, minor) {}
 
-						inline Reply getReply(Error *error = nullptr) { return Message::getReply(xcb_randr_query_version_reply, error); }
+						[[nodiscard]]
+						Ash::Error::Value getReply(Reply &reply) { return Message::getReply(xcb_randr_query_version_reply, reply); }
 					};
 
 					class SelectInput : public Ash::System::Linux::X11::Message<>
@@ -71,7 +72,7 @@ namespace Ash
 					public:
 						using Message = Ash::System::Linux::X11::Message<>;
 
-						inline SelectInput(xcb_window_t window, uint16_t enable) : Message(xcb_randr_select_input_checked, window, enable) {}
+						SelectInput(xcb_window_t window, uint16_t enable) : Message(xcb_randr_select_input_checked, window, enable) {}
 					};
 
 					class GetMonitors : public Ash::System::Linux::X11::Message<xcb_randr_get_monitors_cookie_t, xcb_randr_get_monitors_reply_t>
@@ -81,30 +82,31 @@ namespace Ash
 
 						using Iterate = Ash::System::Linux::X11::Iterate<xcb_randr_monitor_info_iterator_t, xcb_randr_monitor_info_next>;
 
-						inline GetMonitors(xcb_window_t window, uint8_t getActive) : Message(xcb_randr_get_monitors, window, getActive) {};
+						GetMonitors(xcb_window_t window, uint8_t getActive) : Message(xcb_randr_get_monitors, window, getActive) {};
 
-						inline Reply getReply(Error *error = nullptr) { return Message::getReply(xcb_randr_get_monitors_reply, error); }
+						[[nodiscard]]
+						Ash::Error::Value getReply(Reply &reply) { return Message::getReply(xcb_randr_get_monitors_reply, reply); }
 
-						static inline Iterate iterate(const Reply &reply) { return !reply.isNull() ? Iterate(xcb_randr_get_monitors_monitors_iterator(reply)) : Iterate(); }
+						static Iterate iterate(const Reply &reply) { return !reply.isNull() ? Iterate(xcb_randr_get_monitors_monitors_iterator(reply)) : Iterate(); }
 					};
 
 				protected:
 					class Instance
 					{
 					public:
-						inline Instance() : m_IsAvailable(false), m_EventType(0)
+						Instance() : m_IsAvailable(false), m_EventType(0)
 						{
-							Ash::System::Linux::X11::QueryExtension::Reply queryExtension = Ash::System::Linux::X11::QueryExtension(extensionName).getReply();
-							if (!queryExtension.isNull())
+							Ash::System::Linux::X11::QueryExtension::Reply queryExtension;
+							if (!Ash::Error::isSet(Ash::System::Linux::X11::QueryExtension(extensionName).getReply(queryExtension)))
 							{
 								m_IsAvailable = queryExtension->present;
 								m_EventType = queryExtension->first_event;
 							}
 						}
 
-						constexpr uint8_t isAvailable() const { return m_IsAvailable; }
+						uint8_t isAvailable() const { return m_IsAvailable; }
 
-						constexpr uint8_t getEventType() const { return m_EventType; }
+						uint8_t getEventType() const { return m_EventType; }
 
 					private:
 						uint8_t m_IsAvailable;
