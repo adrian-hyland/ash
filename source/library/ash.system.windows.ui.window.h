@@ -6,6 +6,7 @@
 #include "ash.system.windows.string.h"
 #include "ash.system.windows.library.user32.h"
 #include "ash.system.windows.library.shcore.h"
+#include "ash.system.windows.ui.error.h"
 #include "ash.system.windows.ui.screen.h"
 
 
@@ -22,14 +23,14 @@ namespace Ash
 				public:
 					using Handle = HWND;
 
-					inline Window() : m_Handle(nullptr) {}
+					Window() : m_Handle(nullptr) {}
 
 					template
 					<
 						typename ENCODING,
 						typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
 					>
-					inline Window(Ash::String::View<ENCODING> title) : m_Handle(nullptr)
+					Window(Ash::String::View<ENCODING> title) : m_Handle(nullptr)
 					{
 						Ash::System::Windows::String titleString(title);
 
@@ -41,37 +42,38 @@ namespace Ash
 						typename TITLE,
 						typename = Ash::Type::IsStringLiteral<TITLE>
 					>
-					inline Window(TITLE title) : Window(Ash::String::View<typename Ash::String::Literal<TITLE>::Encoding>(title)) {}
+					Window(TITLE title) : Window(Ash::String::view(title)) {}
 
-					inline Window(Window &&window) : m_Handle(window.m_Handle)
+					Window(Window &&window) : m_Handle(window.m_Handle)
 					{
 						window.m_Handle = nullptr;
-						m_Registry.replace(&window, this);
+						m_Registry.replace(&window, this).assertErrorNotSet();
 					}
 
-					inline ~Window()
+					~Window()
 					{
 						destroy();
 					}
 
-					inline Window &operator = (Window &&window)
+					Window &operator = (Window &&window)
 					{
 						if (this != &window)
 						{
 							destroy();
 							m_Handle = window.m_Handle;
 							window.m_Handle = nullptr;
-							m_Registry.replace(&window, this);
+							m_Registry.replace(&window, this).assertErrorNotSet();
 						}
 
 						return *this;
 					}
 
-					constexpr operator Handle () const { return m_Handle; }
+					operator Handle () const { return m_Handle; }
 
-					constexpr bool isCreated() const { return m_Handle != nullptr; }
+					bool isCreated() const { return m_Handle != nullptr; }
 
-					inline bool show(Ash::UI::AspectRatio aspectRatio, Ash::UI::Size::Dimension percentSize = 100)
+					[[nodiscard]]
+					Ash::Error::Value show(Ash::UI::AspectRatio aspectRatio, Ash::UI::Size::Dimension percentSize = 100)
 					{
 						if (percentSize > 100)
 						{
@@ -82,12 +84,21 @@ namespace Ash
 
 						Ash::UI::Boundary boundary = getBoundary(getFrame(style), aspectRatio, percentSize);
 
-						::SetWindowLongW(m_Handle, GWL_STYLE, style);
+						::SetLastError(ERROR_SUCCESS);
+						if (::SetWindowLongW(m_Handle, GWL_STYLE, style) == 0)
+						{
+							return Ash::System::Windows::error();
+						}
 
-						return ::SetWindowPos(m_Handle, HWND_NOTOPMOST, boundary.position.x, boundary.position.y, boundary.size.width, boundary.size.height, SWP_SHOWWINDOW | SWP_FRAMECHANGED);
+						if (!::SetWindowPos(m_Handle, HWND_NOTOPMOST, boundary.position.x, boundary.position.y, boundary.size.width, boundary.size.height, SWP_SHOWWINDOW | SWP_FRAMECHANGED))
+						{
+							return Ash::System::Windows::error();
+						}
+
+						return Ash::Error::none;
 					}
 
-					inline void close()
+					void close()
 					{
 						if (isCreated())
 						{
@@ -95,36 +106,52 @@ namespace Ash
 						}
 					}
 
-					static inline bool processEvent()
+					[[nodiscard]]
+					static Ash::Error::Value processEvent()
 					{
 						MSG msg;
-						if (!::GetMessageW(&msg, nullptr, 0, 0))
+						BOOL result = ::GetMessageW(&msg, nullptr, 0, 0);
+						if (result == -1)
 						{
-							return false;
+							return Ash::System::Windows::error();
+						}
+						else if (result == 0)
+						{
+							return Ash::System::Windows::UI::Error::exitEventLoop;
+						}
+						else
+						{
+							::TranslateMessage(&msg);
+							::DispatchMessageW(&msg);
+							return Ash::Error::none;
+						}
+					}
+
+					[[nodiscard]]
+					static Ash::Error::Value eventLoop()
+					{
+						Ash::Error::Value error = Ash::Error::none;
+
+						while (!error)
+						{
+							error = processEvent();
 						}
 
-						::TranslateMessage(&msg);
-						::DispatchMessageW(&msg);
-						return true;
+						return error.translateError(Ash::System::Windows::UI::Error::exitEventLoop, Ash::Error::none);
 					}
 
-					static void eventLoop()
-					{
-						while (processEvent())
-							;
-					}
-
-					inline Ash::UI::Size getSize() const
+					Ash::UI::Size getSize() const
 					{
 						RECT rectangle;
 
 						return ((m_Handle != nullptr) && ::GetClientRect(m_Handle, &rectangle)) ? Ash::UI::Size(Ash::UI::Size::Dimension(rectangle.right - rectangle.left), Ash::UI::Size::Dimension(rectangle.bottom - rectangle.top)) : Ash::UI::Size();
 					}
 
-					virtual bool onClose() override
+					[[nodiscard]]
+					virtual Ash::Error::Value onClose() override
 					{
 						destroy();
-						return true;
+						return Ash::Error::none;
 					}
 
 				protected:
@@ -133,7 +160,7 @@ namespace Ash
 					public:
 						static inline Ash::Wide::Literal::Value name = L"Ash::System::Windows::UI::Window";
 
-						inline Registry() : m_Entries(), m_Exit(false)
+						Registry() : m_Entries(), m_Exit(false)
 						{
 							WNDCLASSEXW windowClass =
 							{
@@ -145,39 +172,55 @@ namespace Ash
 								.hbrBackground = nullptr,
 								.lpszClassName = name
 							};
-							::RegisterClassExW(&windowClass);
+
+							if (::RegisterClassExW(&windowClass) == 0)
+							{
+								Ash::Error::throwUsing(Ash::System::Windows::error());
+							}
 						}
 
-						inline ~Registry()
+						~Registry()
 						{
 							::UnregisterClassW(name, ::GetModuleHandleW(nullptr));
 						}
 
-						constexpr bool add(Window *window)
+						[[nodiscard]]
+						Ash::Error::Value add(Window *window)
 						{
-							return (window != nullptr) && m_Entries.append(window);
+							return (window != nullptr) ? m_Entries.append(window) : Ash::System::Windows::UI::Error::invalidWindow;
 						}
 
-						constexpr bool remove(Window *window)
+						[[nodiscard]]
+						Ash::Error::Value remove(Window *window)
 						{
-							if (window == nullptr)
+							size_t index = find(window);
+							if (index == m_Entries.getLength())
 							{
-								return false;
+								return Ash::System::Windows::UI::Error::invalidWindow;
 							}
-							m_Entries.remove(find(window));
-							if (m_Entries.getLength() == 0)
+
+							Ash::Error::Value error = m_Entries.remove(index);
+							if (!error && (m_Entries.getLength() == 0))
 							{
 								::PostQuitMessage(0);
 							}
-							return true;
+
+							return error;
 						}
 
-						constexpr bool replace(Window *oldWindow, Window *newWindow)
+						[[nodiscard]]
+						Ash::Error::Value replace(Window *oldWindow, Window *newWindow)
 						{
-							return (oldWindow != nullptr) && (newWindow != nullptr) && m_Entries.set(find(oldWindow), newWindow);
+							size_t index = find(oldWindow);
+							if (index == m_Entries.getLength() || (newWindow == nullptr))
+							{
+								return Ash::System::Windows::UI::Error::invalidWindow;
+							}
+
+							return m_Entries.set(index, newWindow);
 						}
 
-						constexpr Window *getWindow(Handle handle) const
+						Window *getWindow(Handle handle) const
 						{
 							for (Window *entry : m_Entries)
 							{
@@ -186,10 +229,11 @@ namespace Ash
 									return entry;
 								}
 							}
+
 							return nullptr;
 						}
 
-						inline bool signalExit(bool exit)
+						bool signalExit(bool exit)
 						{
 							if (!m_Exit && exit)
 							{
@@ -198,6 +242,7 @@ namespace Ash
 								{
 									window->destroy();
 								}
+
 								m_Entries.clear();
 								::PostQuitMessage(0);
 							}
@@ -206,7 +251,7 @@ namespace Ash
 						}
 
 					protected:
-						constexpr size_t find(Window *window) const
+						size_t find(Window *window) const
 						{
 							size_t index;
 
@@ -221,7 +266,7 @@ namespace Ash
 						bool                         m_Exit;
 					};
 
-					inline void destroy()
+					void destroy()
 					{
 						if (isCreated())
 						{
@@ -230,7 +275,7 @@ namespace Ash
 						}
 					}
 
-					static inline Ash::UI::Frame getFrame(DWORD style)
+					static Ash::UI::Frame getFrame(DWORD style)
 					{
 						RECT rectangle = { 0, 0, 0, 0 };
 						if (!::AdjustWindowRect(&rectangle, style, false))
@@ -240,7 +285,7 @@ namespace Ash
 						return { Ash::UI::Size::Dimension(-rectangle.left), Ash::UI::Size::Dimension(rectangle.right), Ash::UI::Size::Dimension(-rectangle.top), Ash::UI::Size::Dimension(rectangle.bottom) };
 					}
 
-					static constexpr Ash::UI::Position getCenterPosition(Ash::UI::Boundary boundary, Ash::UI::Size size)
+					static Ash::UI::Position getCenterPosition(Ash::UI::Boundary boundary, Ash::UI::Size size)
 					{
 						Ash::UI::Position position;
 
@@ -250,7 +295,7 @@ namespace Ash
 						return position;
 					}
 
-					static inline Ash::UI::Boundary getBoundary(Ash::UI::Frame frame, Ash::UI::AspectRatio aspectRatio, Ash::UI::Size::Dimension percentSize)
+					static Ash::UI::Boundary getBoundary(Ash::UI::Frame frame, Ash::UI::AspectRatio aspectRatio, Ash::UI::Size::Dimension percentSize)
 					{
 						Ash::UI::Boundary desktopBoundary = Ash::System::Windows::UI::Metrics::getDesktopBoundary();
 						Ash::UI::Boundary boundary;
@@ -265,60 +310,60 @@ namespace Ash
 						return boundary;
 					}
 
-					static inline LRESULT eventHandler(HWND handle, UINT messageId, WPARAM wParam, LPARAM lParam)
+					static LRESULT eventHandler(HWND handle, UINT messageId, WPARAM wParam, LPARAM lParam)
 					{
-						bool ok = true;
+						Ash::Error::Value error = Ash::Error::none;
 
 						switch (messageId)
 						{
 							case WM_CREATE:
-								ok = handleCreate(lParam);
+								error = handleCreate(lParam);
 							break;
-	
+
 							case WM_DESTROY:
-								ok = handleDestroy(handle);
+								error = handleDestroy(handle);
 							break;
-	
+
 							case WM_CLOSE:
-								ok = handleClose(handle);
+								error = handleClose(handle);
 							break;
 
 							case WM_SIZE:
-								ok = handleResize(handle, lParam);
+								error = handleResize(handle, lParam);
 							break;
 
 							case WM_MOUSEMOVE:
-								ok = handleMouseMove(handle, lParam);
+								error = handleMouseMove(handle, lParam);
 							break;
 
 							case WM_LBUTTONDOWN:
 							case WM_MBUTTONDOWN:
 							case WM_RBUTTONDOWN:
 							case WM_XBUTTONDOWN:
-								ok = handleMouseButtonPress(handle, messageId, wParam, lParam);
+								error = handleMouseButtonPress(handle, messageId, wParam, lParam);
 							break;
 
 							case WM_LBUTTONUP:
 							case WM_MBUTTONUP:
 							case WM_RBUTTONUP:
 							case WM_XBUTTONUP:
-								ok = handleMouseButtonRelease(handle, messageId, wParam, lParam);
+								error = handleMouseButtonRelease(handle, messageId, wParam, lParam);
 							break;
 
 							case WM_MOUSEWHEEL:
 							case WM_MOUSEHWHEEL:
-								ok = handleMouseWheel(handle, messageId, wParam, lParam);
+								error = handleMouseWheel(handle, messageId, wParam, lParam);
 							break;
 
 							case WM_KEYUP:
 							case WM_KEYDOWN:
 							case WM_SYSKEYUP:
 							case WM_SYSKEYDOWN:
-								ok = handleKeyboardKey(handle, messageId, wParam, lParam);
+								error = handleKeyboardKey(handle, messageId, wParam, lParam);
 							break;
 
 							case WM_CHAR:
-								ok = handleKeyboardCharacter(handle, messageId, wParam, lParam);
+								error = handleKeyboardCharacter(handle, messageId, wParam, lParam);
 							break;
 
 							case WM_DEADCHAR:
@@ -329,134 +374,130 @@ namespace Ash
 							break;
 						}
 
-						m_Registry.signalExit(!ok);
+						m_Registry.signalExit(error);
 						return 0;
 					}
 
-					static inline bool handleCreate(LPARAM lParam)
+					[[nodiscard]]
+					static Ash::Error::Value handleCreate(LPARAM lParam)
 					{
 						CREATESTRUCTW *create = reinterpret_cast<CREATESTRUCTW *>(lParam);
-						return (create != nullptr) && m_Registry.add(static_cast<Window *>(create->lpCreateParams));
+						Window *window = (create != nullptr) ? static_cast<Window *>(create->lpCreateParams) : nullptr;
+
+						return m_Registry.add(window);
 					}
 
-					static inline bool handleDestroy(HWND handle)
+					[[nodiscard]]
+					static Ash::Error::Value handleDestroy(HWND handle)
 					{
 						return m_Registry.remove(m_Registry.getWindow(handle));
 					}
 
-					static inline bool handleClose(HWND handle)
+					[[nodiscard]]
+					static Ash::Error::Value handleClose(HWND handle)
 					{
 						Window *window = m_Registry.getWindow(handle);
-						if (window != nullptr)
-						{
-							return window->onClose();
-						}
-
-						return true;
+						return (window != nullptr) ? window->onClose() : Ash::System::Windows::UI::Error::invalidWindow;
 					}
 
-					static inline bool handleResize(HWND handle, LPARAM lParam)
+					[[nodiscard]]
+					static Ash::Error::Value handleResize(HWND handle, LPARAM lParam)
 					{
 						Window *window = m_Registry.getWindow(handle);
-						if (window != nullptr)
-						{
-							return window->onResize(getSize(lParam));
-						}
-
-						return true;
+						return (window != nullptr) ? window->onResize(getSize(lParam)) : Ash::System::Windows::UI::Error::invalidWindow;
 					}
 
-					static inline bool handleMouseButtonPress(HWND handle, UINT messageId, WPARAM wParam, LPARAM lParam)
+					[[nodiscard]]
+					static Ash::Error::Value handleMouseButtonPress(HWND handle, UINT messageId, WPARAM wParam, LPARAM lParam)
 					{
 						Window *window = m_Registry.getWindow(handle);
-						if (window != nullptr)
+						if (window == nullptr)
 						{
-							Ash::UI::Mouse::Button button = getMouseButton(messageId, wParam);
-							return window->onMouse(getMousePosition(lParam), getMouseState(button, Ash::UI::Mouse::Button::none), button);
+							return Ash::System::Windows::UI::Error::invalidWindow;
 						}
 
-						return true;
+						Ash::UI::Mouse::Button button = getMouseButton(messageId, wParam);
+						return window->onMouse(getMousePosition(lParam), getMouseState(button, Ash::UI::Mouse::Button::none), button);
 					}
 
-					static inline bool handleMouseButtonRelease(HWND handle, UINT messageId, WPARAM wParam, LPARAM lParam)
+					[[nodiscard]]
+					static Ash::Error::Value handleMouseButtonRelease(HWND handle, UINT messageId, WPARAM wParam, LPARAM lParam)
 					{
 						Window *window = m_Registry.getWindow(handle);
-						if (window != nullptr)
+						if (window == nullptr)
 						{
-							Ash::UI::Mouse::Button button = getMouseButton(messageId, wParam);
-							return window->onMouse(getMousePosition(lParam), getMouseState(Ash::UI::Mouse::Button::none, button), Ash::UI::Mouse::Button::none);
+							return Ash::System::Windows::UI::Error::invalidWindow;
 						}
 
-						return true;
+						Ash::UI::Mouse::Button button = getMouseButton(messageId, wParam);
+						return window->onMouse(getMousePosition(lParam), getMouseState(Ash::UI::Mouse::Button::none, button), Ash::UI::Mouse::Button::none);
 					}
 
-					static inline bool handleMouseWheel(HWND handle, UINT messageId, WPARAM wParam, LPARAM lParam)
+					[[nodiscard]]
+					static Ash::Error::Value handleMouseWheel(HWND handle, UINT messageId, WPARAM wParam, LPARAM lParam)
 					{
 						Window *window = m_Registry.getWindow(handle);
-						if (window != nullptr)
-						{
-							return window->onMouseWheel(getMousePosition(lParam), getMouseWheel(messageId, wParam));
-						}
-
-						return true;
+						return (window != nullptr) ? window->onMouseWheel(getMousePosition(lParam), getMouseWheel(messageId, wParam)) : Ash::System::Windows::UI::Error::invalidWindow;
 					}
 
-					static inline bool handleMouseMove(HWND handle, LPARAM lParam)
+					[[nodiscard]]
+					static Ash::Error::Value handleMouseMove(HWND handle, LPARAM lParam)
 					{
 						Window *window = m_Registry.getWindow(handle);
-						if (window != nullptr)
-						{
-							return window->onMouse(getMousePosition(lParam), getMouseState(Ash::UI::Mouse::Button::none, Ash::UI::Mouse::Button::none), Ash::UI::Mouse::Button::none);
-						}
-
-						return true;
+						return (window != nullptr) ? window->onMouse(getMousePosition(lParam), getMouseState(Ash::UI::Mouse::Button::none, Ash::UI::Mouse::Button::none), Ash::UI::Mouse::Button::none) : Ash::System::Windows::UI::Error::invalidWindow;
 					}
 
-					static inline bool handleKeyboardKey(HWND handle, UINT messageId, WPARAM wParam, LPARAM lParam)
+					[[nodiscard]]
+					static Ash::Error::Value handleKeyboardKey(HWND handle, UINT messageId, WPARAM wParam, LPARAM lParam)
 					{
 						Window *window = m_Registry.getWindow(handle);
-						if (window != nullptr)
+						if (window == nullptr)
 						{
-							Ash::UI::Keyboard::State keyState;
-							Ash::UI::Keyboard::Key key = getKeyboardKey(messageId, wParam, lParam, keyState);
-							return (key == Ash::UI::Keyboard::Key::none) || window->onKey(keyState, key);
+							return Ash::System::Windows::UI::Error::invalidWindow;
 						}
 
-						return true;
+						Ash::UI::Keyboard::State keyState;
+						Ash::UI::Keyboard::Key key = getKeyboardKey(messageId, wParam, lParam, keyState);
+
+						return (key != Ash::UI::Keyboard::Key::none) ? window->onKey(keyState, key) : Ash::Error::none;
 					}
 
-					static inline bool handleKeyboardCharacter(HWND handle, UINT messageId, WPARAM wParam, LPARAM lParam)
+					[[nodiscard]]
+					static Ash::Error::Value handleKeyboardCharacter(HWND handle, UINT messageId, WPARAM wParam, LPARAM lParam)
 					{
 						Window *window = m_Registry.getWindow(handle);
-						if (window != nullptr)
+						if (window == nullptr)
 						{
-							static Ash::Memory::Sequence<wchar_t, 2> encoding;
-							Ash::Encoding::Wide::Character character;
-							if (*encoding.at(0) == 0)
-							{
-								*encoding.at(0) = wParam;
-							}
-							else
-							{
-								*encoding.at(1) = wParam;
-							}
-							if ((Ash::Encoding::Wide::decodeNext(encoding, 0, character) != 0) || (Ash::Encoding::Wide::decodeNext(encoding, 1, character) != 0))
-							{
-								*encoding.at(0) = 0;
-							}
-							else if (*encoding.at(1) != 0)
-							{
-								*encoding.at(0) = *encoding.at(1);
-							}
-							*encoding.at(1) = 0;
-
-							return (character.getLength() == 0) || window->onKeyCharacter(character);
+							return Ash::System::Windows::UI::Error::invalidWindow;
 						}
 
-						return true;
+						static Ash::Memory::Sequence<wchar_t, 2> encoding;
+						Ash::Encoding::Wide::Character character;
+
+						if (*encoding.at(0) == 0)
+						{
+							*encoding.at(0) = wParam;
+						}
+						else
+						{
+							*encoding.at(1) = wParam;
+						}
+
+						if (!Ash::Error::isSet(Ash::Encoding::Wide::decodeNext(encoding, 0, character)) || !Ash::Error::isSet(Ash::Encoding::Wide::decodeNext(encoding, 1, character)))
+						{
+							*encoding.at(0) = 0;
+						}
+						else if (*encoding.at(1) != 0)
+						{
+							*encoding.at(0) = *encoding.at(1);
+						}
+
+						*encoding.at(1) = 0;
+
+						return (character.getLength() != 0) ? window->onKeyCharacter(character) : Ash::Error::none;
 					}
 
-					static inline Ash::UI::Keyboard::Key getKeyboardKey(UINT messageId, WPARAM wParam, LPARAM lParam, Ash::UI::Keyboard::State &keyState)
+					static Ash::UI::Keyboard::Key getKeyboardKey(UINT messageId, WPARAM wParam, LPARAM lParam, Ash::UI::Keyboard::State &keyState)
 					{
 						bool isExtendedKey = HIWORD(lParam) & KF_EXTENDED;
 						bool isKeyRepeat = HIWORD(lParam) & KF_REPEAT;
@@ -676,7 +717,7 @@ namespace Ash
 								if (::ToUnicode(wParam, scanCode, keyState, encoding.at(0), encoding.getCapacity(), 4) != 0)
 								{
 									Ash::Encoding::Wide::Character character;
-									if (Ash::Encoding::Wide::decodeNext(encoding, 0, character) > 0)
+									if (!Ash::Error::isSet(Ash::Encoding::Wide::decodeNext(encoding, 0, character)))
 									{
 										return Ash::UI::Keyboard::Key(character);
 									}
@@ -686,12 +727,12 @@ namespace Ash
 						}
 					}
 
-					static constexpr Ash::UI::Position getMousePosition(LPARAM lParam)
+					static Ash::UI::Position getMousePosition(LPARAM lParam)
 					{
 						return { Ash::UI::Position::Dimension(GET_X_LPARAM(lParam)), Ash::UI::Position::Dimension(GET_Y_LPARAM(lParam)) };
 					}
 
-					static constexpr Ash::UI::Mouse::Button getMouseButton(UINT messageId, WPARAM wParam)
+					static Ash::UI::Mouse::Button getMouseButton(UINT messageId, WPARAM wParam)
 					{
 						Ash::UI::Mouse::Button button = 0;
 						switch (messageId)
@@ -719,7 +760,7 @@ namespace Ash
 						return button;
 					}
 
-					static constexpr Ash::UI::Mouse::Wheel getMouseWheel(UINT messageId, WPARAM wParam)
+					static Ash::UI::Mouse::Wheel getMouseWheel(UINT messageId, WPARAM wParam)
 					{
 						Ash::UI::Mouse::Wheel wheel = 0;
 						if (messageId == WM_MOUSEWHEEL)
@@ -738,7 +779,7 @@ namespace Ash
 						return wheel | ((delta / WHEEL_DELTA) & Ash::UI::Mouse::Wheel::delta);
 					}
 
-					static inline Ash::UI::Mouse::Button getMouseState(Ash::UI::Mouse::Button press, Ash::UI::Mouse::Button release)
+					static Ash::UI::Mouse::Button getMouseState(Ash::UI::Mouse::Button press, Ash::UI::Mouse::Button release)
 					{
 						static Ash::UI::Mouse::Button state = Ash::UI::Mouse::Button::none;
 
@@ -747,7 +788,7 @@ namespace Ash
 						return state;
 					}
 
-					static constexpr Ash::UI::Size getSize(LPARAM lParam)
+					static Ash::UI::Size getSize(LPARAM lParam)
 					{
 						return { LOWORD(lParam), HIWORD(lParam) };
 					}
