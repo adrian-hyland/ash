@@ -9,6 +9,7 @@
 #include <X11/keysymdef.h>
 
 #include <xkbcommon/xkbcommon-x11.h>
+#include "ash.system.linux.x11.client.error.h"
 #include "ash.system.linux.x11.memory.h"
 #include "ash.system.linux.x11.event.h"
 
@@ -34,9 +35,9 @@ namespace Ash
 				class Keyboard
 				{
 				public:
-					static inline bool isAvailable() { return m_Instance.hasContext(); }
+					static bool isAvailable() { return m_Instance.hasContext(); }
 
-					static inline bool isEvent(const xcb_generic_event_t *event, uint8_t identifier)
+					static bool isEvent(const xcb_generic_event_t *event, uint8_t identifier)
 					{
 						uint8_t eventType = m_Instance.getEventType();
 						return (eventType != 0) && ((event->response_type & 0x7F) == eventType) && (reinterpret_cast<const xcb_xkb_generic_event_t *>(event)->xkb_type == identifier);
@@ -55,27 +56,32 @@ namespace Ash
 
 					using StateNotify = Event<xcb_xkb_state_notify_event_t, XCB_XKB_STATE_NOTIFY>;
 
-					static inline bool onKeyPress(xcb_keycode_t keycode, xcb_keysym_t &key, xcb_keysym_t &character, bool &isRepeat)
+					[[nodiscard]]
+					static Ash::Error::Value onKeyPress(xcb_keycode_t keycode, xcb_keysym_t &key, xcb_keysym_t &character, bool &isRepeat)
 					{
 						return m_Instance.keyPress(keycode, key, character, isRepeat);
 					}
 
-					static inline bool onKeyRelease(xcb_keycode_t keycode, xcb_keysym_t &key)
+					[[nodiscard]]
+					static Ash::Error::Value onKeyRelease(xcb_keycode_t keycode, xcb_keysym_t &key)
 					{
 						return m_Instance.keyRelease(keycode, key);
 					}
 
-					static inline bool onChangeNew(const NewNotify &event)
+					[[nodiscard]]
+					static Ash::Error::Value onChangeNew(const NewNotify &event)
 					{
 						return m_Instance.changeNew(event);
 					}
 
-					static inline bool onChangeMap(const MapNotify &event)
+					[[nodiscard]]
+					static Ash::Error::Value onChangeMap(const MapNotify &event)
 					{
 						return m_Instance.changeMap(event);
 					}
 
-					static inline bool onChangeState(const StateNotify &event)
+					[[nodiscard]]
+					static Ash::Error::Value onChangeState(const StateNotify &event)
 					{
 						return m_Instance.changeState(event);
 					}
@@ -330,54 +336,61 @@ namespace Ash
 							return *this;
 						}
 
-						inline bool updateMask(uint8_t baseMods, uint8_t latchedMods, uint8_t lockedMods, uint8_t baseGroup, uint8_t latchedGroup, uint8_t lockedGroup)
+						[[nodiscard]]
+						Ash::Error::Value updateMask(uint8_t baseMods, uint8_t latchedMods, uint8_t lockedMods, uint8_t baseGroup, uint8_t latchedGroup, uint8_t lockedGroup)
 						{
-							bool ok = false;
-
-							if (!isNull())
+							if (isNull())
 							{
-								xkb_state_update_mask(*this, baseMods, latchedMods, lockedMods, baseGroup, latchedGroup, lockedGroup);
-								ok = true;
+								return Ash::System::Linux::X11::Client::Error::invalidKeyboardState;
 							}
 
-							return ok;
+							xkb_state_update_mask(*this, baseMods, latchedMods, lockedMods, baseGroup, latchedGroup, lockedGroup);
+							return Ash::Error::none;
 						}
 
-						inline int isModifierActive(xkb_mod_index_t modifier, enum xkb_state_component type)
+						[[nodiscard]]
+						Ash::Error::Value getKeySymbols(xkb_keycode_t keycode, Ash::Memory::View<xkb_keysym_t> &keySymbols)
 						{
-							int isActive = -1;
-
-							if (!isNull())
+							if (isNull())
 							{
-								isActive = xkb_state_mod_index_is_active(*this, modifier, XKB_STATE_MODS_EFFECTIVE);
+								return Ash::System::Linux::X11::Client::Error::invalidKeyboardState;
 							}
 
-							return isActive;
-						}
-
-						inline int isModifierConsumed(xkb_mod_index_t modifier, xkb_keycode_t keycode)
-						{
-							int isConsumed = -1;
-
-							if (!isNull())
-							{
-								isConsumed = xkb_state_mod_index_is_consumed(*this, keycode, modifier);
-							}
-
-							return isConsumed;
-						}
-
-						Ash::Memory::View<xkb_keysym_t> getKeySymbols(xkb_keycode_t keycode)
-						{
 							const xkb_keysym_t *keysyms = nullptr;
-							int keysym_count = 0;
+							int keysym_count = xkb_state_key_get_syms(*this, keycode, &keysyms);
+							keySymbols = Ash::Memory::View<xkb_keysym_t>(keysyms, keysym_count);
+							return Ash::Error::none;
+						}
 
-							if (!isNull())
+						[[nodiscard]]
+						Ash::Error::Value modifyCtrlKeySymbol(xkb_mod_index_t ctrlModifierIndex, xcb_keycode_t keycode, xkb_keysym_t &keySymbol)
+						{
+							if (isNull())
 							{
-								keysym_count = xkb_state_key_get_syms(*this, keycode, &keysyms);
+								return Ash::System::Linux::X11::Client::Error::invalidKeyboardState;
 							}
 
-							return Ash::Memory::View<xkb_keysym_t>(keysyms, keysym_count);
+							int isActive = xkb_state_mod_index_is_active(*this, ctrlModifierIndex, XKB_STATE_MODS_EFFECTIVE);
+							if (isActive < 0)
+							{
+								return Ash::System::Linux::X11::Client::Error::invalidKeyboardModifierIndex;
+							}
+
+							int isConsumed = xkb_state_mod_index_is_consumed(*this, keycode, ctrlModifierIndex);
+							if (isConsumed < 0)
+							{
+								return Ash::System::Linux::X11::Client::Error::invalidKeyboardModifierIndex;
+							}
+
+							if (isActive && !isConsumed)
+							{
+								if (((keySymbol >= '@') && (keySymbol <= '_')) || ((keySymbol >= 'a') && (keySymbol <= 'z')))
+								{
+									keySymbol = (keySymbol & 0x1F) | 0x1000000;
+								}
+							}
+
+							return Ash::Error::none;
 						}
 
 					private:
@@ -390,34 +403,35 @@ namespace Ash
 					public:
 						using Reference = Ash::System::Linux::X11::Memory::Reference<xkb_keymap, xkb_keymap_unref>;
 
-						constexpr Keymap() : Reference(nullptr) {}
+						Keymap() : Reference(nullptr) {}
 
-						constexpr Keymap(Type *&&value) : Reference(std::move(value)) {}
+						Keymap(Type *&&value) : Reference(std::move(value)) {}
 
-						constexpr Keymap(Keymap &&keymap) : Reference(std::move(keymap)) {}
+						Keymap(Keymap &&keymap) : Reference(std::move(keymap)) {}
 
-						constexpr Keymap &operator = (Keymap &&keymap)
+						Keymap &operator = (Keymap &&keymap)
 						{
 							Reference::operator = (std::move(keymap));
 							return *this;
 						}
 
-						constexpr Keymap &operator = (Type *&&value)
+						Keymap &operator = (Type *&&value)
 						{
 							Reference::operator = (std::move(value));
 							return *this;
 						}
 
-						inline State newDeviceState(int32_t deviceId)
+						[[nodiscard]]
+						Ash::Error::Value newDeviceState(int32_t deviceId, State &state)
 						{
-							State state;
-
-							if (!isNull())
+							if (isNull())
 							{
-								state = xkb_x11_state_new_from_device(*this, Ash::System::Linux::X11::Connection::getHandle(), deviceId);
+								return Ash::System::Linux::X11::Client::Error::invalidKeyboardMap;
 							}
 
-							return state;
+							state = xkb_x11_state_new_from_device(*this, Ash::System::Linux::X11::Connection::getHandle(), deviceId);
+
+							return state.isNull() ? Ash::System::Linux::X11::Client::Error::invalidKeyboardState : Ash::Error::none;
 						}
 
 						xkb_mod_index_t getModifierIndex(const char *modifierName)
@@ -425,17 +439,18 @@ namespace Ash
 							return !isNull() ? xkb_keymap_mod_get_index(*this, modifierName) : XKB_MOD_INVALID;
 						}
 
-						Ash::Memory::View<xkb_keysym_t> getKeySymbols(xkb_keycode_t keycode)
+						[[nodiscard]]
+						Ash::Error::Value getKeySymbols(xkb_keycode_t keycode, Ash::Memory::View<xkb_keysym_t> &keySymbols)
 						{
-							const xkb_keysym_t *keysyms = nullptr;
-							int keysym_count = 0;
-
-							if (!isNull())
+							if (isNull())
 							{
-								keysym_count = xkb_keymap_key_get_syms_by_level(*this, keycode, 0, 0, &keysyms);
+								return Ash::System::Linux::X11::Client::Error::invalidKeyboardMap;
 							}
 
-							return Ash::Memory::View<xkb_keysym_t>(keysyms, keysym_count);
+							const xkb_keysym_t *keysyms = nullptr;
+							int keysym_count = xkb_keymap_key_get_syms_by_level(*this, keycode, 0, 0, &keysyms);
+							keySymbols = Ash::Memory::View<xkb_keysym_t>(keysyms, keysym_count);
+							return Ash::Error::none;
 						}
 
 					private:
@@ -448,39 +463,42 @@ namespace Ash
 					public:
 						using Reference = Ash::System::Linux::X11::Memory::Reference<xkb_context, xkb_context_unref>;
 
-						static inline Context value()
+						[[nodiscard]]
+						static Ash::Error::Value newValue(Context &context)
 						{
-							return xkb_context_new(XKB_CONTEXT_NO_FLAGS);
+							context = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
+							return context.isNull() ? Ash::System::Linux::X11::Client::Error::invalidKeyboardContext : Ash::Error::none;
 						}
 
-						constexpr Context() : Reference(nullptr) {}
+						Context() : Reference(nullptr) {}
 
-						constexpr Context(Type *&&value) : Reference(std::move(value)) {}
+						Context(Type *&&value) : Reference(std::move(value)) {}
 
-						constexpr Context(Context &&context) : Reference(std::move(context)) {}
+						Context(Context &&context) : Reference(std::move(context)) {}
 
-						constexpr Context &operator = (Context &&context)
+						Context &operator = (Context &&context)
 						{
 							Reference::operator = (std::move(context));
 							return *this;
 						}
 
-						constexpr Context &operator = (Type *&&value)
+						Context &operator = (Type *&&value)
 						{
 							Reference::operator = (std::move(value));
 							return *this;
 						}
 
-						inline Keymap newDeviceKeymap(int32_t deviceId)
+						[[nodiscard]]
+						Ash::Error::Value newDeviceKeymap(int32_t deviceId, Keymap &keymap)
 						{
-							Keymap keymap;
-
-							if (!isNull())
+							if (isNull())
 							{
-								keymap = xkb_x11_keymap_new_from_device(*this, Ash::System::Linux::X11::Connection::getHandle(), deviceId, XKB_KEYMAP_COMPILE_NO_FLAGS);
+								return Ash::System::Linux::X11::Client::Error::invalidKeyboardContext;
 							}
 
-							return keymap;
+							keymap = xkb_x11_keymap_new_from_device(*this, Ash::System::Linux::X11::Connection::getHandle(), deviceId, XKB_KEYMAP_COMPILE_NO_FLAGS);
+
+							return keymap.isNull() ? Ash::System::Linux::X11::Client::Error::invalidKeyboardMap : Ash::Error::none;
 						}
 
 					private:
@@ -493,7 +511,7 @@ namespace Ash
 					public:
 						using Message = Ash::System::Linux::X11::Message<>;
 
-						inline SelectEventsAux(xcb_xkb_device_spec_t deviceId, uint16_t affectWhich,uint16_t clear, uint16_t selectAll, uint16_t affectMap, uint16_t map, const xcb_xkb_select_events_details_t *details) : Message(xcb_xkb_select_events_aux_checked, deviceId, affectWhich, clear, selectAll, affectMap, map, details) {}
+						SelectEventsAux(xcb_xkb_device_spec_t deviceId, uint16_t affectWhich, uint16_t clear, uint16_t selectAll, uint16_t affectMap, uint16_t map, const xcb_xkb_select_events_details_t *details) : Message(xcb_xkb_select_events_aux_checked, deviceId, affectWhich, clear, selectAll, affectMap, map, details) {}
 					};
 
 					class ClientFlags : public Ash::System::Linux::X11::Message<xcb_xkb_per_client_flags_cookie_t, xcb_xkb_per_client_flags_reply_t>
@@ -501,149 +519,190 @@ namespace Ash
 					public:
 						using Message = Ash::System::Linux::X11::Message<xcb_xkb_per_client_flags_cookie_t, xcb_xkb_per_client_flags_reply_t>;
 
-						inline ClientFlags(xcb_xkb_device_spec_t deviceId, uint32_t change, uint32_t value, uint32_t ctrlsToChange, uint32_t autoCtrls, uint32_t autoCtrlsValues) : Message(xcb_xkb_per_client_flags, deviceId, change, value, ctrlsToChange, autoCtrls, autoCtrlsValues) {}
+						ClientFlags(xcb_xkb_device_spec_t deviceId, uint32_t change, uint32_t value, uint32_t ctrlsToChange, uint32_t autoCtrls, uint32_t autoCtrlsValues) : Message(xcb_xkb_per_client_flags, deviceId, change, value, ctrlsToChange, autoCtrls, autoCtrlsValues) {}
 
-						inline Reply getReply(Error *error = nullptr) { return Message::getReply(xcb_xkb_per_client_flags_reply, error); }
+						[[nodiscard]]
+						Ash::Error::Value getReply(Message::Reply &reply) { return Message::getReply(xcb_xkb_per_client_flags_reply, reply); }
 					};
 
 					class Instance
 					{
 					public:
-						inline Instance() : m_Context(), m_Keymap(), m_State(), m_LastKeycode(0), m_DeviceId(0), m_EventType(0)
+						Instance() : m_Context(), m_Keymap(), m_State(), m_LastKeycode(0), m_DeviceId(0), m_EventType(0)
 						{
-							if (xkb_x11_setup_xkb_extension(Ash::System::Linux::X11::Connection::getHandle(), XKB_X11_MIN_MAJOR_XKB_VERSION, XKB_X11_MIN_MINOR_XKB_VERSION, XKB_X11_SETUP_XKB_EXTENSION_NO_FLAGS, NULL, NULL, &m_EventType, NULL))
+							if (Ash::Error::isSet(construct()))
 							{
-								m_Context = Context::value();
-								if (!hasContext() || !newDevice() || !setFlags() || !selectEvents())
-								{
-									cleanUp();
-								}
+								destroy();
 							}
 						}
 
-						inline ~Instance()
+						~Instance()
 						{
-							cleanUp();
+							destroy();
 						}
 
-						constexpr bool hasContext() const { return !m_Context.isNull(); }
+						bool hasContext() const { return !m_Context.isNull(); }
 
-						constexpr uint8_t getEventType() const { return m_EventType; }
+						uint8_t getEventType() const { return m_EventType; }
 
-						inline bool keyPress(xcb_keycode_t keycode, xcb_keysym_t &key, xcb_keysym_t &character, bool &isRepeat)
+						[[nodiscard]]
+						Ash::Error::Value keyPress(xcb_keycode_t keycode, xcb_keysym_t &key, xcb_keysym_t &character, bool &isRepeat)
 						{
 							if (m_Context.isNull())
 							{
-								key = XCB_NO_SYMBOL;
-								character = XCB_NO_SYMBOL;
-								isRepeat = false;
-								return false;
+								return Ash::System::Linux::X11::Client::Error::invalidKeyboardContext;
 							}
-							else
-							{
-								key = m_Keymap.getKeySymbols(keycode).getOr(0, XCB_NO_SYMBOL);
-								character = m_State.getKeySymbols(keycode).getOr(0, XCB_NO_SYMBOL);
-								isRepeat = (m_LastKeycode != 0) && (m_LastKeycode == keycode);
 
-								xkb_mod_index_t ctrl = m_Keymap.getModifierIndex(XKB_MOD_NAME_CTRL);
-								if ((m_State.isModifierActive(ctrl, XKB_STATE_MODS_EFFECTIVE) > 0) && (m_State.isModifierConsumed(ctrl, keycode) == 0))
+							Ash::Memory::View<xkb_keysym_t> mapKeySymbols;
+							Ash::Error::Value error = m_Keymap.getKeySymbols(keycode, mapKeySymbols);
+							if (!error)
+							{
+								Ash::Memory::View<xkb_keysym_t> stateKeySymbols;
+								error = m_State.getKeySymbols(keycode, stateKeySymbols);
+								if (!error)
 								{
-									if (((character >= '@') && (character <= '_')) || ((character >= 'a') && (character <= 'z')))
+									key = mapKeySymbols.getOr(0, XCB_NO_SYMBOL);
+									character = stateKeySymbols.getOr(0, XCB_NO_SYMBOL);
+									isRepeat = (m_LastKeycode != 0) && (m_LastKeycode == keycode);
+
+									error = m_State.modifyCtrlKeySymbol(m_Keymap.getModifierIndex(XKB_MOD_NAME_CTRL), keycode, character);
+									if (!error)
 									{
-										character = (character & 0x1F) | 0x1000000;
+										m_LastKeycode = keycode;
 									}
 								}
-
-								m_LastKeycode = keycode;
-								return true;
 							}
+
+							return error;
 						}
 
-						inline bool keyRelease(xcb_keycode_t keycode, xcb_keysym_t &key)
+						[[nodiscard]]
+						Ash::Error::Value keyRelease(xcb_keycode_t keycode, xcb_keysym_t &key)
 						{
 							if (m_Context.isNull())
 							{
 								key = XCB_NO_SYMBOL;
-								return false;
+								return Ash::System::Linux::X11::Client::Error::invalidKeyboardContext;
 							}
-							else
+
+							Ash::Memory::View<xkb_keysym_t> keySymbols;
+							Ash::Error::Value error = m_Keymap.getKeySymbols(keycode, keySymbols);
+							if (!error)
 							{
-								key = m_Keymap.getKeySymbols(keycode).getOr(0, XCB_NO_SYMBOL);
+								key = keySymbols.getOr(0, XCB_NO_SYMBOL);
 								m_LastKeycode = 0;
-								return true;
 							}
+
+							return error;
 						}
 
-						inline bool changeNew(const NewNotify &event)
+						[[nodiscard]]
+						Ash::Error::Value changeNew(const NewNotify &event)
 						{
-							if (m_Context.isNull() || (event->deviceID != m_DeviceId))
+							if (m_Context.isNull())
 							{
-								return false;
+								return Ash::System::Linux::X11::Client::Error::invalidKeyboardContext;
 							}
 
-							return ((event->changed & XCB_XKB_NKN_DETAIL_KEYCODES) == 0) || newDevice(event->deviceID);
+							return ((event->deviceID == m_DeviceId) && ((event->changed & XCB_XKB_NKN_DETAIL_KEYCODES) == 0)) ? newDevice(event->deviceID) : Ash::Error::none;
 						}
 
-						inline bool changeMap(const MapNotify &event)
+						[[nodiscard]]
+						Ash::Error::Value changeMap(const MapNotify &event)
 						{
-							if (m_Context.isNull() || (event->deviceID != m_DeviceId))
+							if (m_Context.isNull())
 							{
-								return false;
+								return Ash::System::Linux::X11::Client::Error::invalidKeyboardContext;
 							}
 
-							return newDevice(event->deviceID);
+							return (event->deviceID == m_DeviceId) ? newDevice(event->deviceID) : Ash::Error::none;
 						}
 
-						inline bool changeState(const StateNotify &event)
+						[[nodiscard]]
+						Ash::Error::Value changeState(const StateNotify &event)
 						{
-							if (m_Context.isNull() || (event->deviceID != m_DeviceId))
+							if (m_Context.isNull())
 							{
-								return false;
+								return Ash::System::Linux::X11::Client::Error::invalidKeyboardContext;
 							}
 
-							return m_State.updateMask(event->baseMods, event->latchedMods, event->lockedMods, event->baseGroup, event->latchedGroup, event->lockedGroup);
+							return (event->deviceID == m_DeviceId) ? m_State.updateMask(event->baseMods, event->latchedMods, event->lockedMods, event->baseGroup, event->latchedGroup, event->lockedGroup) : Ash::Error::none;
 						}
 
 					protected:
-						void cleanUp()
+						[[nodiscard]]
+						Ash::Error::Value construct()
+						{
+							if (!xkb_x11_setup_xkb_extension(Ash::System::Linux::X11::Connection::getHandle(), XKB_X11_MIN_MAJOR_XKB_VERSION, XKB_X11_MIN_MINOR_XKB_VERSION, XKB_X11_SETUP_XKB_EXTENSION_NO_FLAGS, NULL, NULL, &m_EventType, NULL))
+							{
+								return Ash::System::Linux::X11::Client::Error::xkbExtensionNotSupported;
+							}
+
+							Ash::Error::Value error = Context::newValue(m_Context);
+							if (!error)
+							{
+								error = newDevice();
+								if (!error)
+								{
+									error = setFlags();
+									if (!error)
+									{
+										error = selectEvents();
+									}
+								}
+							}
+
+							return error;
+						}
+
+						void destroy()
 						{
 							m_State = nullptr;
 							m_Keymap = nullptr;
 							m_Context = nullptr;
 						}
 
-						bool newDevice()
+						[[nodiscard]]
+						Ash::Error::Value newDevice()
 						{
 							return newDevice(xkb_x11_get_core_keyboard_device_id(Ash::System::Linux::X11::Connection::getHandle()));
 						}
 
-						bool newDevice(int32_t deviceId)
+						[[nodiscard]]
+						Ash::Error::Value newDevice(int32_t deviceId)
 						{
 							if (deviceId < 0)
 							{
-								return false;
+								return Ash::System::Linux::X11::Client::Error::invalidKeyboardDeviceId;
 							}
 
-							Keymap keymap = m_Context.newDeviceKeymap(deviceId);
-							State state = keymap.newDeviceState(deviceId);
-							if (keymap.isNull() || state.isNull())
+							Keymap keymap;
+							Ash::Error::Value error = m_Context.newDeviceKeymap(deviceId, keymap);
+							if (!error)
 							{
-								return false;
+								State state;
+								error = keymap.newDeviceState(deviceId, state);
+								if (!error)
+								{
+									m_State = std::move(state);
+									m_Keymap = std::move(keymap);
+									m_DeviceId = deviceId;
+									m_LastKeycode = 0;
+								}
 							}
 
-							m_State = std::move(state);
-							m_Keymap = std::move(keymap);
-							m_DeviceId = deviceId;
-							m_LastKeycode = 0;
-							return true;
+							return error;
 						}
 
-						bool setFlags()
+						[[nodiscard]]
+						Ash::Error::Value setFlags()
 						{
-							return !ClientFlags(m_DeviceId, XCB_XKB_PER_CLIENT_FLAG_DETECTABLE_AUTO_REPEAT, 1, 0, 0, 0).getReply().isNull();
+							ClientFlags::Reply reply;
+							return ClientFlags(m_DeviceId, XCB_XKB_PER_CLIENT_FLAG_DETECTABLE_AUTO_REPEAT, 1, 0, 0, 0).getReply(reply);
 						}
 
-						bool selectEvents()
+						[[nodiscard]]
+						Ash::Error::Value selectEvents()
 						{
 							xcb_xkb_select_events_details_t details = {};
 
