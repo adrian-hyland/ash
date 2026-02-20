@@ -3,6 +3,7 @@
 #include <windows.h>
 #include "ash.wide.h"
 #include "ash.ui.core.h"
+#include "ash.system.windows.ui.error.h"
 #include "ash.system.windows.library.shcore.h"
 #include "ash.system.windows.ui.metrics.h"
 
@@ -38,15 +39,16 @@ namespace Ash
 						Ash::UI::Boundary m_Boundary;
 					};
 
-					static inline Ash::UI::Boundary getBoundary() { return m_Instance.getBoundary(); }
+					static Ash::UI::Boundary getBoundary() { return m_Instance.getBoundary(); }
 
 					static Display getPrimaryDisplay() { return *m_Instance.getDisplays().at(0); }
 
 					static Ash::Memory::View<Display> getDisplays() { return m_Instance.getDisplays(); }
 
-					static bool onScreenChange(Ash::UI::Boundary boundary)
+					[[nodiscard]]
+					static Ash::Error::Value onScreenChange(Ash::UI::Boundary screenBoundary)
 					{
-						return m_Instance.screenChange(boundary);
+						return m_Instance.onScreenChange(screenBoundary);
 					}
 
 				protected:
@@ -55,7 +57,7 @@ namespace Ash
 					class Instance
 					{
 					public:
-						inline Instance() : m_Boundary(), m_DisplayList()
+						Instance() : m_Boundary(), m_DisplayList()
 						{
 							Ash::System::Windows::Library::Shcore::SetProcessDpiAwareness setProcessDpiAwareness = Ash::System::Windows::Library::Shcore::setProcessDpiAwareness();
 							if (setProcessDpiAwareness != nullptr)
@@ -67,22 +69,27 @@ namespace Ash
 							m_DisplayList = getDisplayList();
 						}
 
-						constexpr Ash::UI::Boundary getBoundary() const { return m_Boundary; }
+						Ash::UI::Boundary getBoundary() const { return m_Boundary; }
 
-						constexpr Ash::Memory::View<Display> getDisplays() const { return m_DisplayList; }
+						Ash::Memory::View<Display> getDisplays() const { return m_DisplayList; }
 
-						inline bool screenChange(Ash::UI::Boundary boundary)
+						[[nodiscard]]
+						Ash::Error::Value onScreenChange(Ash::UI::Boundary boundary)
 						{
-							m_Boundary = boundary;
-							m_DisplayList = getDisplayList();
+							Ash::Error::Value error = getDisplayList(m_DisplayList);
+							if (!Ash::Error::isSet(error))
+							{
+								m_Boundary = boundary;
+							}
 
-							return true;
+							return error;
 						}
 
 					protected:
-						static DisplayList getDisplayList()
+						[[nodiscard]]
+						static Ash::Error::Value getDisplayList(DisplayList &displayList)
 						{
-							DisplayList displayList;
+							DisplayList list;
 							DISPLAY_DEVICEW adapterDevice = {};
 
 							adapterDevice.cb = sizeof(adapterDevice);
@@ -91,50 +98,65 @@ namespace Ash
 								DISPLAY_DEVICEW displayDevice = {};
 
 								displayDevice.cb = sizeof(displayDevice);
-								if (::EnumDisplayDevicesW(adapterDevice.DeviceName, 0, &displayDevice, 0))
+								for (DWORD displayNumber = 0; ::EnumDisplayDevicesW(adapterDevice.DeviceName, displayNumber, &displayDevice, 0); displayNumber++)
 								{
 									Display display;
 									bool isPrimary;
-									if (getDisplay(displayDevice, display, isPrimary))
+
+									Ash::Error::Value error = getDisplay(displayDevice, display, isPrimary);
+									if (error)
 									{
-										if (isPrimary)
-										{
-											displayList.insert(0, display);
-										}
-										else
-										{
-											displayList.append(display);
-										}
+										return error;
+									}
+
+									error = isPrimary ? list.insert(0, display) : list.append(display);
+									if (error)
+									{
+										return error;
 									}
 								}
 							}
 
+							displayList.moveFrom(list);
+
+							return Ash::Error::none;
+						}
+
+						static DisplayList getDisplayList()
+						{
+							DisplayList displayList;
+
+							getDisplayList(displayList).throwOnError();
+
 							return displayList;
 						}
 
-						static bool getDisplay(const DISPLAY_DEVICEW &displayDevice, Display &display, bool &isPrimary)
+						[[nodiscard]]
+						static Ash::Error::Value getDisplay(const DISPLAY_DEVICEW &displayDevice, Display &display, bool &isPrimary)
 						{
-							MONITORINFO monitorInfo;
-							DEVMODEW deviceMode;
+							MONITORINFO monitorInfo = {};
+							DEVMODEW deviceMode = {};
 							POINT point = { 0, 0 };
 
 							deviceMode.dmSize = sizeof(deviceMode);
 							deviceMode.dmDriverExtra = 0;
-							if (::EnumDisplaySettingsExW(displayDevice.DeviceName, ENUM_CURRENT_SETTINGS, &deviceMode, 0) && (deviceMode.dmFields & DM_POSITION))
+							if (!::EnumDisplaySettingsExW(displayDevice.DeviceName, ENUM_CURRENT_SETTINGS, &deviceMode, 0) && (deviceMode.dmFields & DM_POSITION))
 							{
-								point.x = deviceMode.dmPosition.x;
-								point.y = deviceMode.dmPosition.y;
+								return Ash::System::Windows::UI::Error::noDisplaySettings;
 							}
+
+							point.x = deviceMode.dmPosition.x;
+							point.y = deviceMode.dmPosition.y;
 
 							monitorInfo.cbSize = sizeof(monitorInfo);
 							if (!::GetMonitorInfo(::MonitorFromPoint(point, MONITOR_DEFAULTTONEAREST), &monitorInfo))
 							{
-								return false;
+								return Ash::System::Windows::UI::Error::noMonitorSettings;
 							}
 
 							display = Display(Ash::Wide::View(displayDevice.DeviceName), getBoundary(monitorInfo.rcMonitor));
 							isPrimary = ((monitorInfo.dwFlags & MONITORINFOF_PRIMARY) != 0);
-							return true;
+							return Ash::Error::none;
 						}
 
 						static Ash::UI::Boundary getBoundary(RECT rect)
