@@ -32,7 +32,8 @@ namespace Ash
 
 								using View = Ash::Memory::View<Format>;
 
-								static constexpr size_t format(Content &content, size_t offset, const Ash::System::Linux::X11::ICCCM::Hints &value)
+								[[nodiscard]]
+								static constexpr Ash::Error::Value format(Content &content, size_t &offset, const Ash::System::Linux::X11::ICCCM::Hints &value)
 								{
 									Ash::System::Linux::X11::ICCCM::Hints::Flag flag;
 									bool input;
@@ -47,8 +48,9 @@ namespace Ash
 
 									return Ash::System::Linux::X11::Property::Data::Word<32>::format(content, offset, flag, input, initialState, iconPixmap, iconWindow, iconPosition.x, iconPosition.y, iconMask, windowGroup);
 								}
-	
-								static constexpr size_t parse(View content, size_t offset, Ash::System::Linux::X11::ICCCM::Hints &value)
+
+								[[nodiscard]]
+								static constexpr Ash::Error::Value parse(View content, size_t &offset, Ash::System::Linux::X11::ICCCM::Hints &value)
 								{
 									Ash::System::Linux::X11::ICCCM::Hints::Flag flag;
 									bool input;
@@ -59,14 +61,15 @@ namespace Ash
 									xcb_pixmap_t iconMask;
 									xcb_window_t windowGroup;
 
-									offset = Ash::System::Linux::X11::Property::Data::Word<32>::parse(content, offset, flag, input, initialState, iconPixmap, iconWindow, iconPosition.x, iconPosition.y, iconMask, windowGroup);
-									if (offset != 0)
+									Ash::Error::Value error = Ash::System::Linux::X11::Property::Data::Word<32>::parse(content, offset, flag, input, initialState, iconPixmap, iconWindow, iconPosition.x, iconPosition.y, iconMask, windowGroup);
+									if (!error)
 									{
 										value.setFields(flag, input, initialState, iconPixmap, iconWindow, iconPosition, iconMask, windowGroup);
 									}
-									return offset;
+
+									return error;
 								}
-							};	
+							};
 
 							class SizeHints : public Ash::System::Linux::X11::Generic::Property::Data
 							{
@@ -77,7 +80,8 @@ namespace Ash
 
 								using View = Ash::Memory::View<Format>;
 
-								static constexpr size_t format(Content &content, size_t offset, const Ash::System::Linux::X11::ICCCM::SizeHints &value)
+								[[nodiscard]]
+								static constexpr Ash::Error::Value format(Content &content, size_t &offset, const Ash::System::Linux::X11::ICCCM::SizeHints &value)
 								{
 									Ash::System::Linux::X11::ICCCM::SizeHints::Flag flag;
 									Ash::UI::Size minSize;
@@ -99,8 +103,9 @@ namespace Ash
 									                                                                                        baseSize.width,        baseSize.height,
 									                                                                                        gravity);
 								}
-	
-								static constexpr size_t parse(View content, size_t offset, Ash::System::Linux::X11::ICCCM::SizeHints &value)
+
+								[[nodiscard]]
+								static constexpr Ash::Error::Value parse(View content, size_t &offset, Ash::System::Linux::X11::ICCCM::SizeHints &value)
 								{
 									Ash::System::Linux::X11::ICCCM::SizeHints::Flag flag;
 									uint32_t pad;
@@ -112,21 +117,22 @@ namespace Ash
 									Ash::UI::Size baseSize;
 									xcb_gravity_t gravity;
 
-									offset = Ash::System::Linux::X11::Property::Data::Word<32>::parse(content, offset, flag, pad, pad, pad, pad, 
-									                                                                                         minSize.width,         minSize.height,
-									                                                                                         maxSize.width,         maxSize.height,
-									                                                                                         resizeIncrement.width, resizeIncrement.height,
-									                                                                                         minAspectRatio.width,  minAspectRatio.height,
-									                                                                                         maxAspectRatio.width,  maxAspectRatio.height,
-									                                                                                         baseSize.width,        baseSize.height,
-									                                                                                         gravity);
-									if (offset != 0)
+									Ash::Error::Value error = Ash::System::Linux::X11::Property::Data::Word<32>::parse(content, offset, flag, pad, pad, pad, pad,
+									                                                                                   minSize.width,         minSize.height,
+									                                                                                   maxSize.width,         maxSize.height,
+									                                                                                   resizeIncrement.width, resizeIncrement.height,
+									                                                                                   minAspectRatio.width,  minAspectRatio.height,
+									                                                                                   maxAspectRatio.width,  maxAspectRatio.height,
+									                                                                                   baseSize.width,        baseSize.height,
+									                                                                                   gravity);
+									if (!error)
 									{
 										value.setFields(flag, minSize, maxSize, resizeIncrement, minAspectRatio, maxAspectRatio, baseSize, gravity);
 									}
-									return offset;
+
+									return error;
 								}
-							};	
+							};
 						}
 
 						using Name = Ash::System::Linux::X11::Property::Utf8String<Ash::System::Linux::X11::Atom::ICCCM::Name>;
