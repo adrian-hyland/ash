@@ -39,65 +39,69 @@ namespace Ash
 								typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>,
 								typename = Ash::Type::IsSame<typename ALLOCATION::Type, Format>
 							>
-							static constexpr size_t format(Ash::Memory::Value<ALLOCATION> &content, size_t offset, const VALUE &value)
+							[[nodiscard]]
+							static constexpr Ash::Error::Value format(Ash::Memory::Value<ALLOCATION> &content, size_t &offset, const VALUE &value)
 							{
-								if (content.set(offset++, value))
+								Ash::Error::Value error = content.set(offset, Format(value));
+								if (!error)
 								{
-									return offset;
+									offset++;
 								}
-								else
-								{
-									return 0;
-								}
+
+								return error;
 							}
-	
+
 							template
 							<
 								typename ALLOCATION,
 								typename VALUE,
 								typename ...NEXT_VALUE
 							>
-							static constexpr size_t format(Ash::Memory::Value<ALLOCATION> &content, size_t offset, const VALUE &value, const NEXT_VALUE &...nextValue)
+							[[nodiscard]]
+							static constexpr Ash::Error::Value format(Ash::Memory::Value<ALLOCATION> &content, size_t &offset, const VALUE &value, const NEXT_VALUE &...nextValue)
 							{
-								offset = format(content, offset, value);
-								if (offset != 0)
+								Ash::Error::Value error = format(content, offset, Format(value));
+								if (!error)
 								{
-									offset = format(content, offset, nextValue...);
+									error = format(content, offset, nextValue...);
 								}
-								return offset;
+
+								return error;
 							}
-	
+
 							template
 							<
 								typename VALUE
 							>
-							static constexpr size_t parse(View content, size_t offset, VALUE &value)
+							[[nodiscard]]
+							static constexpr Ash::Error::Value parse(View content, size_t &offset, VALUE &value)
 							{
 								Format format;
-								if (content.get(offset++, format))
+								Ash::Error::Value error = content.get(offset, format);
+								if (!error)
 								{
+									offset++;
 									value = VALUE(format);
-									return offset;
 								}
-								else
-								{
-									return 0;
-								}
+
+								return error;
 							}
-	
+
 							template
 							<
 								typename VALUE,
 								typename ...NEXT_VALUE
 							>
-							static constexpr size_t parse(View content, size_t offset, VALUE &value, NEXT_VALUE &...nextValue)
+							[[nodiscard]]
+							static constexpr Ash::Error::Value parse(View content, size_t &offset, VALUE &value, NEXT_VALUE &...nextValue)
 							{
-								offset = parse(content, offset, value);
-								if (offset != 0)
+								Ash::Error::Value error = parse(content, offset, value);
+								if (!error)
 								{
-									offset = parse(content, offset, nextValue...);
+									error = parse(content, offset, nextValue...);
 								}
-								return offset;
+
+								return error;
 							}
 						};
 
@@ -116,12 +120,14 @@ namespace Ash
 								typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>,
 								typename = Ash::Type::IsSame<typename ALLOCATION::Type, Format>
 							>
-							static constexpr size_t format(Ash::Memory::Value<ALLOCATION> &content, size_t offset, Ash::UI::Size value)
+							[[nodiscard]]
+							static constexpr Ash::Error::Value format(Ash::Memory::Value<ALLOCATION> &content, size_t &offset, Ash::UI::Size value)
 							{
 								return Word<32>::format(content, offset, value.width, value.height);
 							}
 
-							static constexpr size_t parse(View content, size_t offset, Ash::UI::Size &value)
+							[[nodiscard]]
+							static constexpr Ash::Error::Value parse(View content, size_t &offset, Ash::UI::Size &value)
 							{
 								return Word<32>::parse(content, offset, value.width, value.height);
 							}
@@ -142,12 +148,14 @@ namespace Ash
 								typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>,
 								typename = Ash::Type::IsSame<typename ALLOCATION::Type, Format>
 							>
-							static constexpr size_t format(Ash::Memory::Value<ALLOCATION> &content, size_t offset, Ash::UI::Position value)
+							[[nodiscard]]
+							static constexpr Ash::Error::Value format(Ash::Memory::Value<ALLOCATION> &content, size_t &offset, Ash::UI::Position value)
 							{
 								return Word<32>::format(content, offset, value.x, value.y);
 							}
-	
-							static constexpr size_t parse(View content, size_t offset, Ash::UI::Position &value)
+
+							[[nodiscard]]
+							static constexpr Ash::Error::Value parse(View content, size_t &offset, Ash::UI::Position &value)
 							{
 								return Word<32>::parse(content, offset, value.x, value.y);
 							}
@@ -168,15 +176,17 @@ namespace Ash
 								typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>,
 								typename = Ash::Type::IsSame<typename ALLOCATION::Type, Format>
 							>
-							static constexpr size_t format(Ash::Memory::Value<ALLOCATION> &content, size_t offset, Ash::UI::Boundary value)
+							[[nodiscard]]
+							static constexpr Ash::Error::Value format(Ash::Memory::Value<ALLOCATION> &content, size_t &offset, Ash::UI::Boundary value)
 							{
 								return Word<32>::format(content, offset, value.position.x, value.position.y, value.size.width, value.size.height);
 							}
-	
-							static constexpr size_t parse(View content, size_t offset, Ash::UI::Boundary &value)
+
+							[[nodiscard]]
+							static constexpr Ash::Error::Value parse(View content, size_t &offset, Ash::UI::Boundary &value)
 							{
 								return Word<32>::parse(content, offset, value.position.x, value.position.y, value.size.width, value.size.height);
-							}	
+							}
 						};
 
 						class Frame : public Ash::System::Linux::X11::Generic::Property::Data
@@ -194,15 +204,17 @@ namespace Ash
 								typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>,
 								typename = Ash::Type::IsSame<typename ALLOCATION::Type, Format>
 							>
-							static constexpr size_t format(Ash::Memory::Value<ALLOCATION> &content, size_t offset, Ash::UI::Frame value)
+							[[nodiscard]]
+							static constexpr Ash::Error::Value format(Ash::Memory::Value<ALLOCATION> &content, size_t &offset, Ash::UI::Frame value)
 							{
 								return Word<32>::format(content, offset, value.left, value.right, value.top, value.bottom);
 							}
-	
-							static constexpr size_t parse(View content, size_t offset, Ash::UI::Frame &value)
+
+							[[nodiscard]]
+							static constexpr Ash::Error::Value parse(View content, size_t &offset, Ash::UI::Frame &value)
 							{
 								return Word<32>::parse(content, offset, value.left, value.right, value.top, value.bottom);
-							}	
+							}
 						};
 
 						class FrameStruts : public Ash::System::Linux::X11::Generic::Property::Data
@@ -220,21 +232,23 @@ namespace Ash
 								typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>,
 								typename = Ash::Type::IsSame<typename ALLOCATION::Type, Format>
 							>
-							static constexpr size_t format(Ash::Memory::Value<ALLOCATION> &content, size_t offset, Ash::UI::FrameStruts value)
+							[[nodiscard]]
+							static constexpr Ash::Error::Value format(Ash::Memory::Value<ALLOCATION> &content, size_t &offset, Ash::UI::FrameStruts value)
 							{
 								return Word<32>::format(content, offset, value.left.start,   value.left.end,   value.left.size,
 								                                         value.right.start,  value.right.end,  value.right.size,
 								                                         value.top.start,    value.top.end,    value.top.size,
 								                                         value.bottom.start, value.bottom.end, value.bottom.size);
 							}
-	
-							static constexpr size_t parse(View content, size_t offset, Ash::UI::FrameStruts &value)
+
+							[[nodiscard]]
+							static constexpr Ash::Error::Value parse(View content, size_t &offset, Ash::UI::FrameStruts &value)
 							{
 								return Word<32>::parse(content, offset, value.left.start,   value.left.end,   value.left.size,
 								                                        value.right.start,  value.right.end,  value.right.size,
 								                                        value.top.start,    value.top.end,    value.top.size,
 								                                        value.bottom.start, value.bottom.end, value.bottom.size);
-							}	
+							}
 						};
 
 						class Utf8String : public Ash::System::Linux::X11::Generic::Property::Data
@@ -254,19 +268,22 @@ namespace Ash
 								typename = Ash::Type::IsSame<typename ALLOCATION::Type, Format>,
 								typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
 							>
-							static constexpr size_t format(Ash::Memory::Value<ALLOCATION> &content, size_t offset, Ash::String::View<ENCODING> value)
+							[[nodiscard]]
+							static constexpr Ash::Error::Value format(Ash::Memory::Value<ALLOCATION> &content, size_t &offset, Ash::String::View<ENCODING> value)
 							{
 								if constexpr (Ash::Type::isSame<ENCODING, Ash::Encoding::Utf8>)
 								{
-									return content.set(offset, value) ? offset + value.getLength() : 0;
-								}
-								else if (Ash::Encoding::convert<ENCODING, Ash::Encoding::Utf8>(value, content, offset) == value.getLength())
-								{
-									return offset;
+									Ash::Error::Value error = content.set(offset, value);
+									if (!error)
+									{
+										offset = offset + value.getLength();
+									}
+
+									return error;
 								}
 								else
 								{
-									return 0;
+									return Ash::Encoding::convert<ENCODING, Ash::Encoding::Utf8>(value, content, offset);
 								}
 							}
 
@@ -278,9 +295,10 @@ namespace Ash
 								typename = Ash::Type::IsSame<typename ALLOCATION::Type, Format>,
 								typename = Ash::Type::IsStringLiteral<LITERAL>
 							>
-							static constexpr size_t format(Ash::Memory::Value<ALLOCATION> &content, size_t offset, LITERAL value)
+							[[nodiscard]]
+							static constexpr Ash::Error::Value format(Ash::Memory::Value<ALLOCATION> &content, size_t &offset, LITERAL value)
 							{
-								return format(content, offset, Ash::String::View<typename Ash::String::Literal<LITERAL>::Encoding>(value));
+								return format(content, offset, Ash::String::view(value));
 							}
 
 							template
@@ -290,21 +308,30 @@ namespace Ash
 								typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>,
 								typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
 							>
-							static constexpr size_t parse(View content, size_t offset, Ash::String::Value<ALLOCATION, ENCODING> &value)
+							[[nodiscard]]
+							static constexpr Ash::Error::Value parse(View content, size_t &offset, Ash::String::Value<ALLOCATION, ENCODING> &value)
 							{
 								content = content.getView(offset);
 								if constexpr (Ash::Type::isSame<ENCODING, Ash::Encoding::Utf8>)
 								{
 									value.clear();
-									return value.set(0, content) ? offset + content.getLength() : 0;
-								}
-								else if (Ash::Encoding::convert<Ash::Encoding::Utf8, ENCODING>(content, value) == content.getLength())
-								{
-									return offset + content.getLength();
+									Ash::Error::Value error = value.set(0, content);
+									if (!error)
+									{
+										offset = offset + content.getLength();
+									}
+
+									return error;
 								}
 								else
 								{
-									return 0;
+									Ash::Error::Value error = Ash::Encoding::convert<Ash::Encoding::Utf8, ENCODING>(content, value);
+									if (!error)
+									{
+										offset = offset + content.getLength();
+									}
+
+									return error;
 								}
 							}
 						};
@@ -332,70 +359,88 @@ namespace Ash
 								typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>,
 								typename = Ash::Type::IsSame<typename ALLOCATION::Type, Format>
 							>
-							static constexpr size_t format(Ash::Memory::Value<ALLOCATION> &content, size_t offset, const VALUE &value)
+							[[nodiscard]]
+							static constexpr Ash::Error::Value format(Ash::Memory::Value<ALLOCATION> &content, size_t &offset, const VALUE &value)
 							{
-								offset = Element::format(content, offset, value);
+								Ash::Error::Value error = Element::format(content, offset, value);
 								if constexpr (Ash::Type::isSame<Element, Ash::System::Linux::X11::Property::Data::Utf8String>)
 								{
-									if ((offset != 0) && content.set(offset, '\0'))
+									if (!error)
 									{
-										offset++;
+										error = content.set(offset, Format('\0'));
+										if (!error)
+										{
+											offset++;
+										}
 									}
 								}
-								return offset;
+
+								return error;
 							}
-	
+
 							template
 							<
 								typename ALLOCATION,
 								typename VALUE,
 								typename ...NEXT_VALUE
 							>
-							static constexpr size_t format(Ash::Memory::Value<ALLOCATION> &content, size_t offset, const VALUE &value, const NEXT_VALUE &...nextValue)
+							[[nodiscard]]
+							static constexpr Ash::Error::Value format(Ash::Memory::Value<ALLOCATION> &content, size_t &offset, const VALUE &value, const NEXT_VALUE &...nextValue)
 							{
-								offset = format(content, offset, value);
-								if (offset != 0)
+								Ash::Error::Value error = format(content, offset, value);
+								if (!error)
 								{
-									offset = format(content, offset, nextValue...);
+									error = format(content, offset, nextValue...);
 								}
-								return offset;
+
+								return error;
 							}
-	
+
 							template
 							<
 								typename VALUE
 							>
-							static constexpr size_t parse(View content, size_t offset, VALUE &value)
+							[[nodiscard]]
+							static constexpr Ash::Error::Value parse(View content, size_t &offset, VALUE &value)
 							{
 								if constexpr (Ash::Type::isSame<Element, Ash::System::Linux::X11::Property::Data::Utf8String>)
 								{
 									size_t nullOffset = Ash::Encoding::find<Ash::Encoding::Utf8>(content, offset, '\0');
 									if (nullOffset == content.getLength())
 									{
-										return 0;
+										return Ash::System::Linux::X11::Client::Error::invalidPropertyString;
 									}
-									size_t length = Element::parse(content.getView(offset, nullOffset - offset), 0, value);
-									return (length != 0) ? offset = offset + length + 1 : 0;
+
+									size_t contentOffset = 0;
+									Ash::Error::Value error = Element::parse(content.getView(offset, nullOffset - offset), contentOffset, value);
+									if (!error)
+									{
+										offset = offset + contentOffset + 1;
+									}
+
+									return error;
 								}
 								else
 								{
 									return Element::parse(content, offset, value);
 								}
 							}
-	
+
 							template
 							<
 								typename VALUE,
 								typename ...NEXT_VALUE
 							>
-							static constexpr size_t parse(View content, size_t offset, VALUE &value, NEXT_VALUE &...nextValue)
+							[[nodiscard]]
+							static constexpr Ash::Error::Value parse(View content, size_t &offset, VALUE &value, NEXT_VALUE &...nextValue)
 							{
-								offset = parse(content, offset, value);
-								if (offset != 0)
+								Ash::Error::Value error = parse(content, offset, value);
+								if (!error)
 								{
-									offset = parse(content, offset, nextValue...);
+									error = parse(content, offset, nextValue...);
 								}
-								return offset;
+
+								return error;
 							}
 
 							static constexpr size_t getCount(View content)
@@ -490,28 +535,34 @@ namespace Ash
 						<
 							typename ...VALUE
 						>
-						static constexpr bool set(Content &content, const VALUE &...value)
+						[[nodiscard]]
+						static constexpr Ash::Error::Value set(Content &content, const VALUE &...value)
 						{
+							size_t offset = 0;
 							content.clear();
-							return Data::format(content, 0, value...) != 0;
+							return Data::format(content, offset, value...);
 						}
 
 						template
 						<
 							typename ...VALUE
 						>
-						static constexpr bool get(View content, VALUE &...value)
+						[[nodiscard]]
+						static constexpr Ash::Error::Value get(View content, VALUE &...value)
 						{
-							return Data::parse(content, 0, value...) != 0;
+							size_t offset = 0;
+							return Data::parse(content, offset, value...);
 						}
 
 						template
 						<
 							typename VALUE
 						>
-						static constexpr bool index(View content, size_t index, VALUE &value)
+						[[nodiscard]]
+						static constexpr Ash::Error::Value index(View content, size_t index, VALUE &value)
 						{
-							return Data::parse(content, Data::getOffset(content, index), value) != 0;
+							size_t offset = Data::getOffset(content, index);
+							return Data::parse(content, offset, value);
 						}
 
 						static constexpr size_t getCount(View content)
