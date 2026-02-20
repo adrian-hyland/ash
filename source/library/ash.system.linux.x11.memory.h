@@ -35,7 +35,7 @@ namespace Ash
 
 						constexpr Reference(Reference &&reference) : m_Value(reference.m_Value) { reference.m_Value = nullptr; }
 
-						inline ~Reference()
+						constexpr ~Reference()
 						{
 							clear();
 						}
@@ -62,6 +62,12 @@ namespace Ash
 						constexpr operator Type *() { return m_Value; }
 
 						constexpr bool isNull() const { return m_Value == nullptr; }
+
+						constexpr Type **at()
+						{
+							clear();
+							return &m_Value;
+						}
 
 					protected:
 						constexpr void clear()
