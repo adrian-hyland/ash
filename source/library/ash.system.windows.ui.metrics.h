@@ -15,13 +15,13 @@ namespace Ash
 				class Metrics
 				{
 				public:
-					static inline Ash::UI::Boundary getScreenBoundary()
+					static Ash::UI::Boundary getScreenBoundary()
 					{
 						return Ash::UI::Boundary({ get(SM_XVIRTUALSCREEN), get(SM_YVIRTUALSCREEN) },
 						                         { Ash::UI::Size::Dimension(get(SM_CXVIRTUALSCREEN)), Ash::UI::Size::Dimension(get(SM_CYVIRTUALSCREEN)) });
 					}
 
-					static inline Ash::UI::Boundary getDesktopBoundary()
+					static Ash::UI::Boundary getDesktopBoundary()
 					{
 						RECT rect;
 						if (!SystemParametersInfoW(SPI_GETWORKAREA, 0, &rect, 0))
@@ -32,13 +32,13 @@ namespace Ash
 					}
 
 				protected:
-					static inline UINT getSystemDpi()
+					static UINT getSystemDpi()
 					{
 						Ash::System::Windows::Library::User32::GetDpiForSystem getDpiForSystem = Ash::System::Windows::Library::User32::getDpiForSystem();
 						return (getDpiForSystem != nullptr) ? getDpiForSystem() : USER_DEFAULT_SCREEN_DPI;
 					}
 
-					static inline int get(int index)
+					static int get(int index)
 					{
 						Ash::System::Windows::Library::User32::GetSystemMetricsForDpi getSystemMetricsForDpi = Ash::System::Windows::Library::User32::getSystemMetricsForDpi();
 						return (getSystemMetricsForDpi != nullptr) ? getSystemMetricsForDpi(index, getSystemDpi()) : ::GetSystemMetrics(index);

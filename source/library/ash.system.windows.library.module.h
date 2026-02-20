@@ -21,18 +21,18 @@ namespace Ash
 					<
 						typename FUNCTION
 					>
-					inline FUNCTION getFunctionAddress(const char *functionName)
+					FUNCTION getFunctionAddress(const char *functionName)
 					{
 						return ((m_Handle != nullptr) && (functionName != nullptr)) ? reinterpret_cast<FUNCTION>(::GetProcAddress(m_Handle, functionName)) : nullptr;
 					}
 
 				protected:
-					inline Module(const wchar_t *name)
+					Module(const wchar_t *name)
 					{
 						m_Handle = ::LoadLibraryW(name);
 					}
 
-					inline ~Module()
+					~Module()
 					{
 						if (m_Handle != nullptr)
 						{

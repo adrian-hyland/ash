@@ -33,7 +33,7 @@ namespace Ash
 
 					constexpr const Type &operator * () const { return *m_Iterator.data; }
 
-					inline Iterate &operator ++ ()
+					constexpr Iterate &operator ++ ()
 					{
 						NEXT_ITERATOR(&m_Iterator);
 						return *this;
@@ -45,9 +45,9 @@ namespace Ash
 						return m_Iterator.rem != 0;
 					}
 
-					inline Iterate begin() const { return *this; }
+					constexpr Iterate begin() const { return *this; }
 
-					inline Iterate end() const { return *this; }
+					constexpr Iterate end() const { return *this; }
 
 				private:
 					Iterator m_Iterator;

@@ -17,7 +17,7 @@ namespace Ash
 			public:
 				using Value = int64_t;
 
-				static inline Ash::Error::Value getNow(Value &utcTime, Ash::Calendar::TimeDuration &utcOffset, Ash::Calendar::TimeDuration &dstOffset)
+				static Ash::Error::Value getNow(Value &utcTime, Ash::Calendar::TimeDuration &utcOffset, Ash::Calendar::TimeDuration &dstOffset)
 				{
 					Value sinceEpoch;
 
@@ -39,22 +39,22 @@ namespace Ash
 				}
 
 			protected:
-				static inline Ash::Error::Value getTime(Value &sinceEpoch)
+				static Ash::Error::Value getTime(Value &sinceEpoch)
 				{
 					return (time(&sinceEpoch) == -1) ? Ash::System::Linux::error() : Ash::Error::none;
 				}
 
-				static inline Ash::Error::Value getGmtTime(Value sinceEpoch, struct tm &gmtTime)
+				static Ash::Error::Value getGmtTime(Value sinceEpoch, struct tm &gmtTime)
 				{
 					return (gmtime_r(&sinceEpoch, &gmtTime) == nullptr) ? Ash::System::Linux::error() : Ash::Error::none;
 				}
 
-				static inline Ash::Error::Value getLocalTime(Value sinceEpoch, struct tm &localTime)
+				static Ash::Error::Value getLocalTime(Value sinceEpoch, struct tm &localTime)
 				{
 					return (localtime_r(&sinceEpoch, &localTime) == nullptr) ? Ash::System::Linux::error() : Ash::Error::none;
 				}
 
-				static inline Ash::Calendar::Date getEpoch()
+				static Ash::Calendar::Date getEpoch()
 				{
 					struct tm epoch;
 

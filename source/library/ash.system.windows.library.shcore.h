@@ -18,12 +18,12 @@ namespace Ash
 					using GetProcessDpiAwareness = HRESULT (*)(HANDLE, PROCESS_DPI_AWARENESS *);
 					using SetProcessDpiAwareness = HRESULT (*)(PROCESS_DPI_AWARENESS);
 
-					static inline GetProcessDpiAwareness getProcessDpiAwareness()
+					static GetProcessDpiAwareness getProcessDpiAwareness()
 					{
 						return m_Instance.getProcessDpiAwareness();
 					}
 
-					static inline SetProcessDpiAwareness setProcessDpiAwareness()
+					static SetProcessDpiAwareness setProcessDpiAwareness()
 					{
 						return m_Instance.setProcessDpiAwareness();
 					}
@@ -34,18 +34,18 @@ namespace Ash
 					public:
 						using Module = Ash::System::Windows::Library::Module;
 
-						inline Instance() : Module(L"shcore.dll")
+						Instance() : Module(L"shcore.dll")
 						{
 							m_GetProcessDpiAwareness = getFunctionAddress<GetProcessDpiAwareness>("GetProcessDpiAwareness");
 							m_SetProcessDpiAwareness = getFunctionAddress<SetProcessDpiAwareness>("SetProcessDpiAwareness");
 						}
 
-						constexpr GetProcessDpiAwareness getProcessDpiAwareness() const
+						GetProcessDpiAwareness getProcessDpiAwareness() const
 						{
 							return m_GetProcessDpiAwareness;
 						}
 
-						constexpr SetProcessDpiAwareness setProcessDpiAwareness() const
+						SetProcessDpiAwareness setProcessDpiAwareness() const
 						{
 							return m_SetProcessDpiAwareness;
 						}

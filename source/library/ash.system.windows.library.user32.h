@@ -20,22 +20,22 @@ namespace Ash
 					using GetSystemMetricsForDpi = int (*)(int, UINT);
 					using AdjustWindowRectExForDpi = BOOL (*)(LPRECT, DWORD, BOOL, DWORD, UINT);
 
-					static inline GetDpiForSystem getDpiForSystem()
+					static GetDpiForSystem getDpiForSystem()
 					{
 						return m_Instance.getDpiForSystem();
 					}
 
-					static inline GetDpiForWindow getDpiForWindow()
+					static GetDpiForWindow getDpiForWindow()
 					{
 						return m_Instance.getDpiForWindow();
 					}
 
-					static inline GetSystemMetricsForDpi getSystemMetricsForDpi()
+					static GetSystemMetricsForDpi getSystemMetricsForDpi()
 					{
 						return m_Instance.getSystemMetricsForDpi();
 					}
 
-					static inline AdjustWindowRectExForDpi adjustWindowRectExForDpi()
+					static AdjustWindowRectExForDpi adjustWindowRectExForDpi()
 					{
 						return m_Instance.adjustWindowRectExForDpi();
 					}
@@ -46,7 +46,7 @@ namespace Ash
 					public:
 						using Module = Ash::System::Windows::Library::Module;
 
-						inline Instance() : Module(L"user32.dll")
+						Instance() : Module(L"user32.dll")
 						{
 							m_GetDpiForSystem = getFunctionAddress<GetDpiForSystem>("GetDpiForSystem");
 							m_GetDpiForWindow = getFunctionAddress<GetDpiForWindow>("GetDpiForWindow");
@@ -54,22 +54,22 @@ namespace Ash
 							m_AdjustWindowRectExForDpi = getFunctionAddress<AdjustWindowRectExForDpi>("AdjustWindowRectExForDpi");
 						}
 
-						inline GetDpiForSystem getDpiForSystem()
+						GetDpiForSystem getDpiForSystem()
 						{
 							return m_GetDpiForSystem;
 						}
 
-						inline GetDpiForWindow getDpiForWindow()
+						GetDpiForWindow getDpiForWindow()
 						{
 							return m_GetDpiForWindow;
 						}
 
-						inline GetSystemMetricsForDpi getSystemMetricsForDpi()
+						GetSystemMetricsForDpi getSystemMetricsForDpi()
 						{
 							return m_GetSystemMetricsForDpi;
 						}
 
-						inline AdjustWindowRectExForDpi adjustWindowRectExForDpi()
+						AdjustWindowRectExForDpi adjustWindowRectExForDpi()
 						{
 							return m_AdjustWindowRectExForDpi;
 						}

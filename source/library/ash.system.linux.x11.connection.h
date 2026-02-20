@@ -14,13 +14,13 @@ namespace Ash
 				class Connection
 				{
 				public:
-					static inline xcb_connection_t *getHandle() { return m_Instance.getHandle(); }
+					static xcb_connection_t *getHandle() { return m_Instance.getHandle(); }
 
-					static inline xcb_screen_t *getScreen() { return m_Instance.getScreen(); }
+					static xcb_screen_t *getScreen() { return m_Instance.getScreen(); }
 
-					static inline xcb_window_t getRootWindow() { return m_Instance.getRootWindow(); }
+					static xcb_window_t getRootWindow() { return m_Instance.getRootWindow(); }
 
-					static inline bool flush()
+					static bool flush()
 					{
 						xcb_connection_t *handle = getHandle();
 
@@ -31,22 +31,22 @@ namespace Ash
 					class Instance
 					{
 					public:
-						inline Instance() : m_Handle(nullptr), m_Screen(nullptr)
+						Instance() : m_Handle(nullptr), m_Screen(nullptr)
 						{
 							m_Handle = xcb_connect(nullptr, nullptr);
 							m_Screen = xcb_setup_roots_iterator(xcb_get_setup(m_Handle)).data;
 						};
 
-						inline ~Instance()
+						~Instance()
 						{
 							xcb_disconnect(m_Handle);
 						};
 
-						constexpr xcb_connection_t *getHandle() const { return m_Handle; }
+						xcb_connection_t *getHandle() const { return m_Handle; }
 
-						constexpr xcb_screen_t *getScreen() const { return m_Screen; }
+						xcb_screen_t *getScreen() const { return m_Screen; }
 
-						constexpr xcb_window_t getRootWindow() const { return m_Screen != nullptr ? m_Screen->root : XCB_NONE; }
+						xcb_window_t getRootWindow() const { return (m_Screen != nullptr) ? m_Screen->root : XCB_NONE; }
 
 					private:
 						xcb_connection_t *m_Handle;

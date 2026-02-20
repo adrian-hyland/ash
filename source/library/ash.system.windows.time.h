@@ -17,7 +17,7 @@ namespace Ash
 			public:
 				using Value = int64_t;
 
-				static inline Ash::Error::Value getNow(Value &utcTime, Ash::Calendar::TimeDuration &utcOffset, Ash::Calendar::TimeDuration &dstOffset)
+				static Ash::Error::Value getNow(Value &utcTime, Ash::Calendar::TimeDuration &utcOffset, Ash::Calendar::TimeDuration &dstOffset)
 				{
 					Value sinceEpoch;
 
@@ -35,7 +35,7 @@ namespace Ash
 				}
 
 			protected:
-				static inline Ash::Error::Value getTime(Value &sinceEpoch)
+				static Ash::Error::Value getTime(Value &sinceEpoch)
 				{
 					FILETIME fileTime;
 					ULARGE_INTEGER integer;
@@ -49,7 +49,7 @@ namespace Ash
 					return Ash::Error::none;
 				}
 
-				static inline Ash::Error::Value getGmtTime(Value sinceEpoch, SYSTEMTIME &gmtTime)
+				static Ash::Error::Value getGmtTime(Value sinceEpoch, SYSTEMTIME &gmtTime)
 				{
 					FILETIME fileTime;
 					ULARGE_INTEGER integer;
@@ -61,7 +61,7 @@ namespace Ash
 					return !::FileTimeToSystemTime(&fileTime, &gmtTime) ? Ash::System::Windows::error() : Ash::Error::none;
 				}
 
-				static inline Ash::Calendar::Date getEpoch()
+				static Ash::Calendar::Date getEpoch()
 				{
 					SYSTEMTIME epoch;
 

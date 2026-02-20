@@ -160,7 +160,7 @@ namespace Ash
 							static constexpr const char actionBelow[]              = "_NET_WM_ACTION_BELOW";
 						};
 
-						static inline xcb_atom_t getValue(Ash::Ascii::View name)
+						static xcb_atom_t getValue(Ash::Ascii::View name)
 						{
 							return getValue(getIndex(name));
 						}
@@ -302,7 +302,7 @@ namespace Ash
 							return count;
 						}
 
-						static inline xcb_atom_t getValue(size_t index) { return m_Values.getOr(index, XCB_ATOM_NONE); }
+						static xcb_atom_t getValue(size_t index) { return m_Values.getOr(index, XCB_ATOM_NONE); }
 
 					private:
 						static inline Ash::Memory::Sequence<xcb_atom_t, count> m_Values = Ash::System::Linux::X11::InternAtom::toAtoms(Ash::System::Linux::X11::InternAtom::fromNames(names, true));
@@ -317,7 +317,7 @@ namespace Ash
 					public:
 						static constexpr Ash::Ascii::View name = NAME;
 
-						static const inline xcb_atom_t value = Ash::System::Linux::X11::Atom::Registry::getValue(name);
+						static inline const xcb_atom_t value = Ash::System::Linux::X11::Atom::Registry::getValue(name);
 					};
 
 					namespace Core

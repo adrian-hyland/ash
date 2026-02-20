@@ -36,7 +36,7 @@ namespace Ash
 				}
 
 			protected:
-				static inline bool getDescription(Code code, Ash::Error::Code::Description description)
+				static bool getDescription(Code code, Ash::Error::Code::Description description)
 				{
 					static const char *errorDescriptions[] =
 					{
