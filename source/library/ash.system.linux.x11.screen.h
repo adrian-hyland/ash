@@ -36,37 +36,73 @@ namespace Ash
 						Ash::UI::Boundary m_Boundary;
 					};
 
-					static inline Ash::UI::Boundary getBoundary() { return m_Boundary; }
+					static Ash::UI::Boundary getBoundary() { return m_Boundary; }
 
 					static const Display &getPrimaryDisplay() { return *m_DisplayList.at(0); }
 
 					static Ash::Memory::View<Display> getDisplays() { return m_DisplayList; }
 
-					static bool onScreenChange(Ash::UI::Boundary screenBoundary)
+					[[nodiscard]]
+					static Ash::Error::Value onScreenChange(Ash::UI::Boundary screenBoundary)
 					{
-						m_Boundary = screenBoundary;
-						m_DisplayList = getDisplayList();
+						Ash::Error::Value error = getDisplayList(m_DisplayList);
+						if (!error)
+						{
+							m_Boundary = screenBoundary;
+						}
 
-						return true;
+						return error;
 					}
 
 				protected:
 					using DisplayList = Ash::Memory::ArrayBuffer<Display, 4>;
 
+					[[nodiscard]]
+					static Ash::Error::Value getDisplayList(DisplayList &displayList)
+					{
+						DisplayList list;
+
+						Ash::System::Linux::X11::RandR::GetMonitors::Reply getMonitors;
+						Ash::Error::Value error = Ash::System::Linux::X11::RandR::GetMonitors(Ash::System::Linux::X11::Connection::getRootWindow(), true).getReply(getMonitors);
+						if (error)
+						{
+							return error;
+						}
+
+						for (xcb_randr_monitor_info_t monitor : Ash::System::Linux::X11::RandR::GetMonitors::iterate(getMonitors))
+						{
+							Ash::System::Linux::X11::GetAtomName::Reply reply;
+							Ash::Error::Value error = Ash::System::Linux::X11::GetAtomName(monitor.name).getReply(reply);
+							if (error)
+							{
+								return error;
+							}
+
+							Ash::System::Linux::X11::Screen::Display::Name name;
+							error = reply.getValue(name);
+							if (error)
+							{
+								return error;
+							}
+
+							Ash::UI::Boundary boundary = Ash::UI::Boundary({ monitor.x, monitor.y }, { monitor.width, monitor.height });
+							error = list.append(Ash::System::Linux::X11::Screen::Display(name, boundary));
+							if (error)
+							{
+								return error;
+							}
+						}
+
+						displayList.moveFrom(list);
+
+						return Ash::Error::none;
+					}
+
 					static DisplayList getDisplayList()
 					{
 						DisplayList displayList;
 
-						Ash::System::Linux::X11::RandR::GetMonitors::Reply getMonitors = Ash::System::Linux::X11::RandR::GetMonitors(Ash::System::Linux::X11::Connection::getRootWindow(), true).getReply();
-						for (xcb_randr_monitor_info_t monitor : Ash::System::Linux::X11::RandR::GetMonitors::iterate(getMonitors))
-						{
-							Ash::System::Linux::X11::Screen::Display::Name name;
-							if (Ash::System::Linux::X11::GetAtomName(monitor.name).getReply().getValue(name))
-							{
-								Ash::UI::Boundary boundary = Ash::UI::Boundary({ monitor.x, monitor.y }, { monitor.width, monitor.height });
-								displayList.append(Ash::System::Linux::X11::Screen::Display(name, boundary));
-							}
-						}
+						getDisplayList(displayList).throwOnError();
 
 						return displayList;
 					}
