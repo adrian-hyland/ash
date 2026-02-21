@@ -9,12 +9,12 @@ class BackgroundThread : public Ash::Concurrency::Thread
 public:
 	using Function = Ash::Unique::Pointer<Ash::Callable::Generic::Function<void>>;
 
-	BackgroundThread() : Ash::Concurrency::Thread(), m_Queue() { run(this); }
+	BackgroundThread() : Ash::Concurrency::Thread(), m_Queue() { run(this).throwOnError(); }
 
 	~BackgroundThread()
 	{
 		send(Function());
-		join();
+		join().assertErrorNotSet();
 	}
 
 	void send(Function function) { m_Queue.add(std::move(function)); }
