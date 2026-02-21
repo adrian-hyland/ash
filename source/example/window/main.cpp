@@ -21,7 +21,7 @@ public:
 	>
 	TestWindow(TITLE title) : TestWindow(Ash::String::View<typename Ash::String::Literal<TITLE>::Encoding>(title)) {}
 
-	virtual bool onMouse(Ash::UI::Position position, Ash::UI::Mouse::Button buttonState, Ash::UI::Mouse::Button buttonPressed) override
+	virtual Ash::Error::Value onMouse(Ash::UI::Position position, Ash::UI::Mouse::Button buttonState, Ash::UI::Mouse::Button buttonPressed) override
 	{
 		std::cout << "onMouse: (" << position.x << "," << position.y << "), button state: (";
 		printMouseButton(buttonState);
@@ -30,14 +30,14 @@ public:
 		std::cout << ")\n";
 		if (buttonPressed.isPressed(Ash::UI::Mouse::Button::left))
 		{
-			show(Ash::UI::AspectRatio(2, 1), 50);
+			return show(Ash::UI::AspectRatio(2, 1), 50);
 		}
 		else if (buttonPressed.isPressed(Ash::UI::Mouse::Button::right))
 		{
 			std::cout << "closing window...\n";
 			close();
 		}
-		return true;
+		return Ash::Error::none;
 	}
 
 	void printMouseButton(Ash::UI::Mouse::Button button)
@@ -75,12 +75,12 @@ public:
 		}
 	}
 
-	virtual bool onMouseWheel(Ash::UI::Position position, Ash::UI::Mouse::Wheel wheel) override
+	virtual Ash::Error::Value onMouseWheel(Ash::UI::Position position, Ash::UI::Mouse::Wheel wheel) override
 	{
 		std::cout << "onMouseWheel: (" << position.x << "," << position.y << ") wheel: (";
 		printMouseWheel(wheel);
 		std::cout << ")\n";
-		return true;
+		return Ash::Error::none;
 	}
 
 	void printMouseWheel(Ash::UI::Mouse::Wheel wheel)
@@ -104,14 +104,14 @@ public:
 		std::cout << "," << wheel.getDelta();
 	}
 
-	virtual bool onKey(Ash::UI::Keyboard::State keyState, Ash::UI::Keyboard::Key key) override
+	virtual Ash::Error::Value onKey(Ash::UI::Keyboard::State keyState, Ash::UI::Keyboard::Key key) override
 	{
 		std::cout << "onKey: state " << Ash::UI::Keyboard::State::Value(keyState) << " ";
 		printKey(key);
-		return true;
+		return Ash::Error::none;
 	}
 
-	virtual bool onKeyCharacter(Ash::Unicode::Character character) override
+	virtual Ash::Error::Value onKeyCharacter(Ash::Unicode::Character character) override
 	{
 		std::cout << "onKeyCharacter: ";
 		if ((character <= 0x20) || (character == 0x7F))
@@ -126,13 +126,13 @@ public:
 			}
 		}
 		std::cout << "\n";
-		return true;
+		return Ash::Error::none;
 	}
 
-	virtual bool onResize(Ash::UI::Size size) override
+	virtual Ash::Error::Value onResize(Ash::UI::Size size) override
 	{
 		std::cout << "onResize: " << size.width << "x" << size.height << "\n";
-		return true;
+		return Ash::Error::none;
 	}
 
 	void printKey(Ash::UI::Keyboard::Key key)
@@ -345,9 +345,9 @@ int main()
 {
 	TestWindow window(u8"héllo wórld");
 
-	window.show(Ash::UI::AspectRatio(1, 1), 100);
+	window.show(Ash::UI::AspectRatio(1, 1), 100).throwOnError();
 
-	Ash::UI::Window::eventLoop();
+	Ash::UI::Window::eventLoop().throwOnError();
 
 	return 0;
 }
