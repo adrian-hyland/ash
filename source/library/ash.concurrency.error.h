@@ -35,7 +35,11 @@ namespace Ash
 						"Thread not started",
 						"Thread already started",
 						"Process not started",
-						"Process already started"
+						"Process already started",
+						"Invalid queue",
+						"Time out",
+						"Acquire failed",
+						"Wait failed"
 					};
 
 					const char *errorDescription = (code < sizeof(errorDescriptions) / sizeof(errorDescriptions[0])) ? errorDescriptions[code] : nullptr;
@@ -51,12 +55,16 @@ namespace Ash
 
 			inline constexpr Category category;
 
-			constexpr Ash::Error::Value invalidEnvironmentName  = Ash::Error::Value(category, 0);
-			constexpr Ash::Error::Value environmentNameNotFound = Ash::Error::Value(category, 1);
-			constexpr Ash::Error::Value threadNotStarted        = Ash::Error::Value(category, 2);
-			constexpr Ash::Error::Value threadAlreadyStarted    = Ash::Error::Value(category, 3);
-			constexpr Ash::Error::Value processNotStarted       = Ash::Error::Value(category, 4);
-			constexpr Ash::Error::Value processAlreadyStarted   = Ash::Error::Value(category, 5);
+			constexpr Ash::Error::Value invalidEnvironmentName  = { category, 0 };
+			constexpr Ash::Error::Value environmentNameNotFound = { category, 1 };
+			constexpr Ash::Error::Value threadNotStarted        = { category, 2 };
+			constexpr Ash::Error::Value threadAlreadyStarted    = { category, 3 };
+			constexpr Ash::Error::Value processNotStarted       = { category, 4 };
+			constexpr Ash::Error::Value processAlreadyStarted   = { category, 5 };
+			constexpr Ash::Error::Value invalidQueue            = { category, 6 };
+			constexpr Ash::Error::Value timeOut                 = { category, 7 };
+			constexpr Ash::Error::Value acquireFailed           = { category, 8 };
+			constexpr Ash::Error::Value waitFailed              = { category, 9 };
 		}
 	}
 }
