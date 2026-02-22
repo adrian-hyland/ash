@@ -31,33 +31,35 @@ namespace Ash
 				class Mutex : public Ash::Concurrency::Generic::Lock
 				{
 				public:
-					inline Mutex() : m_Handle(PTHREAD_MUTEX_INITIALIZER) {}
+					Mutex() : m_Handle(PTHREAD_MUTEX_INITIALIZER) {}
 
-					inline ~Mutex()
+					~Mutex()
 					{
 						::pthread_mutex_destroy(&m_Handle);
 					}
 
-					inline bool tryAcquire()
+					[[nodiscard]]
+					Ash::Error::Value tryAcquire()
 					{
-						return ::pthread_mutex_trylock(&m_Handle) == 0;
+						return Ash::System::Linux::error(::pthread_mutex_trylock(&m_Handle)).translateError(Ash::System::Linux::Error::busy, Ash::Concurrency::Error::acquireFailed);
 					}
 
-					inline bool tryAcquire(Ash::Timer::Value duration)
+					[[nodiscard]]
+					Ash::Error::Value tryAcquire(Ash::Timer::Value duration)
 					{
 						duration = duration + Ash::Timer::getClockValue(Ash::Timer::Clock::System);
 
 						timespec timeout = duration.as<timespec>();
 
-						return ::pthread_mutex_timedlock(&m_Handle, &timeout) == 0;
+						return Ash::System::Linux::error(::pthread_mutex_timedlock(&m_Handle, &timeout)).translateError(Ash::System::Linux::Error::timeOut, Ash::Concurrency::Error::timeOut);
 					}
 
-					inline void acquire()
+					void acquire()
 					{
 						::pthread_mutex_lock(&m_Handle);
 					}
 
-					inline void release()
+					void release()
 					{
 						::pthread_mutex_unlock(&m_Handle);
 					}
@@ -77,24 +79,24 @@ namespace Ash
 				class Condition : public Ash::Concurrency::Generic::Lock
 				{
 				public:
-					inline Condition() : m_Handle(PTHREAD_COND_INITIALIZER), m_Mutex() {}
+					Condition() : m_Handle(PTHREAD_COND_INITIALIZER), m_Mutex() {}
 
-					inline ~Condition()
+					~Condition()
 					{
 						::pthread_cond_destroy(&m_Handle);
 					}
 
-					inline void acquire()
+					void acquire()
 					{
 						m_Mutex.acquire();
 					}
 
-					inline void release()
+					void release()
 					{
 						m_Mutex.release();
 					}
 
-					inline void signal()
+					void signal()
 					{
 						::pthread_cond_signal(&m_Handle);
 					}
@@ -103,7 +105,7 @@ namespace Ash
 					<
 						typename PREDICATE
 					>
-					inline void wait(PREDICATE predicate)
+					void wait(PREDICATE predicate)
 					{
 						while (!predicate())
 						{
@@ -115,21 +117,19 @@ namespace Ash
 					<
 						typename PREDICATE
 					>
-					inline bool tryWait(PREDICATE predicate, Ash::Timer::Value duration)
+					[[nodiscard]]
+					Ash::Error::Value tryWait(PREDICATE predicate, Ash::Timer::Value duration)
 					{
 						duration = duration + Ash::Timer::getClockValue(Ash::Timer::Clock::System);
-
 						timespec timeout = duration.as<timespec>();
+						Ash::Error::Value error = Ash::Error::none;
 
-						while (!predicate())
+						while (!error && !predicate())
 						{
-							if (::pthread_cond_timedwait(&m_Handle, &m_Mutex.m_Handle, &timeout) != 0)
-							{
-								return false;
-							}
+							error = Ash::System::Linux::error(::pthread_cond_timedwait(&m_Handle, &m_Mutex.m_Handle, &timeout)).translateError(Ash::System::Linux::Error::timeOut, Ash::Concurrency::Error::timeOut);
 						}
 
-						return true;
+						return error;
 					}
 
 				private:
@@ -148,16 +148,16 @@ namespace Ash
 				public:
 					using Handle = Ash::Nullable<pthread_t>;
 
-					inline Thread() : m_Handle() {}
+					Thread() : m_Handle() {}
 
-					inline Thread(Thread &&thread) noexcept : m_Handle(std::move(thread.m_Handle)) {}
+					Thread(Thread &&thread) noexcept : m_Handle(std::move(thread.m_Handle)) {}
 
-					inline ~Thread()
+					~Thread()
 					{
 						join().assertErrorNotSet();
 					}
 
-					inline Thread &operator = (Thread &&thread) noexcept
+					Thread &operator = (Thread &&thread) noexcept
 					{
 						if (this != &thread)
 						{
@@ -174,7 +174,7 @@ namespace Ash
 						typename ...ARGUMENTS
 					>
 					[[nodiscard]]
-					inline Ash::Error::Value run(FUNCTION function, ARGUMENTS &&...arguments)
+					Ash::Error::Value run(FUNCTION function, ARGUMENTS &&...arguments)
 					{
 						if (!m_Handle.isNull())
 						{
@@ -187,7 +187,7 @@ namespace Ash
 					}
 
 					[[nodiscard]]
-					inline Ash::Error::Value join()
+					Ash::Error::Value join()
 					{
 						Ash::Error::Value error = Ash::Error::none;
 
@@ -210,7 +210,7 @@ namespace Ash
 						typename ...ARGUMENTS
 					>
 					[[nodiscard]]
-					static inline Ash::Error::Value runDetached(FUNCTION function, ARGUMENTS &&...arguments)
+					static Ash::Error::Value runDetached(FUNCTION function, ARGUMENTS &&...arguments)
 					{
 						Handle handle = runFunction(function, std::forward<ARGUMENTS>(arguments)...);
 						if (handle.isNull())
@@ -234,7 +234,7 @@ namespace Ash
 					public:
 						using Function = Ash::Callable::Function<FUNCTION, ARGUMENTS...>;
 
-						static inline Handle run(FUNCTION function, ARGUMENTS &&...arguments)
+						static Handle run(FUNCTION function, ARGUMENTS &&...arguments)
 						{
 							Callable *callable = new Callable(function, std::forward<ARGUMENTS>(arguments)...);
 
@@ -251,7 +251,7 @@ namespace Ash
 					protected:
 						constexpr Callable(FUNCTION function, ARGUMENTS &&...arguments) : m_Function(function, std::forward<ARGUMENTS>(arguments)...) {}
 
-						static inline void *run(void *param)
+						static void *run(void *param)
 						{
 							Callable *callable = static_cast<Callable *>(param);
 
@@ -271,7 +271,7 @@ namespace Ash
 						typename FUNCTION,
 						typename ...ARGUMENTS
 					>
-					static inline Handle runFunction(FUNCTION function, ARGUMENTS &&...arguments)
+					static Handle runFunction(FUNCTION function, ARGUMENTS &&...arguments)
 					{
 						return Callable<FUNCTION, ARGUMENTS...>::run(function, std::forward<ARGUMENTS>(arguments)...);
 					}
@@ -944,7 +944,7 @@ namespace Ash
 						};
 
 						[[nodiscard]]
-						static inline Ash::Error::Value getBlock(Block &block)
+						static Ash::Error::Value getBlock(Block &block)
 						{
 							Block environmentBlock;
 
@@ -957,7 +957,7 @@ namespace Ash
 							return error;
 						}
 
-						static inline Block getBlock()
+						static Block getBlock()
 						{
 							Block block;
 
@@ -967,7 +967,7 @@ namespace Ash
 						}
 
 						[[nodiscard]]
-						static inline Ash::Error::Value set(const Setting &setting)
+						static Ash::Error::Value set(const Setting &setting)
 						{
 							return (::setenv(Name(setting.getName()), Value(setting.getValue()), true) == 0) ? Ash::Error::none : Ash::System::Linux::error();
 						}
@@ -977,7 +977,7 @@ namespace Ash
 							typename ENCODING,
 							typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
 						>
-						static inline Ash::Error::Value get(Ash::String::View<ENCODING> name, Setting &setting)
+						static Ash::Error::Value get(Ash::String::View<ENCODING> name, Setting &setting)
 						{
 							Name settingName;
 
@@ -1008,7 +1008,7 @@ namespace Ash
 							typename ENCODING,
 							typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
 						>
-						static inline Setting get(Ash::String::View<ENCODING> name)
+						static Setting get(Ash::String::View<ENCODING> name)
 						{
 							Setting setting;
 
@@ -1022,7 +1022,7 @@ namespace Ash
 							typename NAME,
 							typename = Ash::Type::IsStringLiteral<NAME>
 						>
-						static inline Setting get(NAME name)
+						static Setting get(NAME name)
 						{
 							return get(Ash::String::view(name));
 						}
@@ -1034,7 +1034,7 @@ namespace Ash
 							typename = Ash::Type::IsClass<NAME_ENCODING, Ash::Generic::Encoding>,
 							typename = Ash::Type::IsClass<VALUE_ENCODING, Ash::Generic::Encoding>
 						>
-						static inline Setting get(Ash::String::View<NAME_ENCODING> name, Ash::String::View<VALUE_ENCODING> defaultValue)
+						static Setting get(Ash::String::View<NAME_ENCODING> name, Ash::String::View<VALUE_ENCODING> defaultValue)
 						{
 							Setting setting;
 
@@ -1056,7 +1056,7 @@ namespace Ash
 							typename = Ash::Type::IsClass<NAME_ENCODING, Ash::Generic::Encoding>,
 							typename = Ash::Type::IsStringLiteral<VALUE>
 						>
-						static inline Setting get(Ash::String::View<NAME_ENCODING> name, VALUE defaultValue)
+						static Setting get(Ash::String::View<NAME_ENCODING> name, VALUE defaultValue)
 						{
 							return get(name, Ash::String::view(defaultValue));
 						}
@@ -1068,7 +1068,7 @@ namespace Ash
 							typename = Ash::Type::IsStringLiteral<NAME>,
 							typename = Ash::Type::IsClass<VALUE_ENCODING, Ash::Generic::Encoding>
 						>
-						static inline Setting get(NAME name, Ash::String::View<VALUE_ENCODING> defaultValue)
+						static Setting get(NAME name, Ash::String::View<VALUE_ENCODING> defaultValue)
 						{
 							return get(Ash::String::view(name), defaultValue);
 						}
@@ -1080,7 +1080,7 @@ namespace Ash
 							typename = Ash::Type::IsStringLiteral<NAME>,
 							typename = Ash::Type::IsStringLiteral<VALUE>
 						>
-						static inline Setting get(NAME name, VALUE defaultValue)
+						static Setting get(NAME name, VALUE defaultValue)
 						{
 							return get(Ash::String::view(name), Ash::String::view(defaultValue));
 						}
@@ -1115,22 +1115,22 @@ namespace Ash
 						return *this;
 					}
 
-					inline ~Process()
+					~Process()
 					{
 						join().assertErrorNotSet();
 					}
 
-					inline Identifier getIdentifier() const { return m_Identifier; }
+					Identifier getIdentifier() const { return m_Identifier; }
 
-					static inline Identifier getCurrentIdentifier() { return getpid(); }
+					static Identifier getCurrentIdentifier() { return getpid(); }
 
-					static inline Ash::System::Linux::FileSystem::Path getCurrentName()
+					static Ash::System::Linux::FileSystem::Path getCurrentName()
 					{
 						return (const char *)::program_invocation_name;
 					}
 
 					[[nodiscard]]
-					inline Ash::Error::Value run(const CommandLine &commandLine)
+					Ash::Error::Value run(const CommandLine &commandLine)
 					{
 						Ash::Error::Value error = (m_Identifier == invalid) ? Ash::Error::none : Ash::Concurrency::Error::processAlreadyStarted;
 						if (!error)
@@ -1148,7 +1148,7 @@ namespace Ash
 					}
 
 					[[nodiscard]]
-					inline Ash::Error::Value run(const CommandLine &commandLine, const Environment::Block &environmentBlock)
+					Ash::Error::Value run(const CommandLine &commandLine, const Environment::Block &environmentBlock)
 					{
 						Ash::Error::Value error = (m_Identifier == invalid) ? Ash::Error::none : Ash::Concurrency::Error::processAlreadyStarted;
 						if (!error)
@@ -1171,7 +1171,7 @@ namespace Ash
 					}
 
 					[[nodiscard]]
-					inline Ash::Error::Value join(int *exitCode = nullptr)
+					Ash::Error::Value join(int *exitCode = nullptr)
 					{
 						if (m_Identifier != invalid)
 						{
