@@ -17,7 +17,7 @@ public:
 		join().assertErrorNotSet();
 	}
 
-	void send(Function function) { m_Queue.add(std::move(function)); }
+	void send(Function function) { m_Queue.add(std::move(function)).throwOnError(); }
 
 	void operator ()()
 	{
