@@ -44,10 +44,12 @@ namespace Ash
 
 				inline constexpr Category category;
 
-				constexpr Ash::Error::Value pathNotFound   = { category, ENOENT };
-				constexpr Ash::Error::Value accessDenied   = { category, EACCES };
-				constexpr Ash::Error::Value fileNotOpen    = { category, EBADF  };
-				constexpr Ash::Error::Value diskOutOfSpace = { category, ENOSPC };
+				constexpr Ash::Error::Value pathNotFound   = { category, ENOENT    };
+				constexpr Ash::Error::Value accessDenied   = { category, EACCES    };
+				constexpr Ash::Error::Value fileNotOpen    = { category, EBADF     };
+				constexpr Ash::Error::Value diskOutOfSpace = { category, ENOSPC    };
+				constexpr Ash::Error::Value timeOut        = { category, ETIMEDOUT };
+				constexpr Ash::Error::Value busy           = { category, EBUSY     };
 			}
 
 			constexpr Ash::Error::Value error(Ash::System::Linux::Error::Code code = errno)
