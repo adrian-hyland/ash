@@ -41,6 +41,7 @@ namespace Ash
 				constexpr Ash::Error::Value fileNotOpen             = { category, ERROR_INVALID_HANDLE   };
 				constexpr Ash::Error::Value diskOutOfSpace          = { category, ERROR_DISK_FULL        };
 				constexpr Ash::Error::Value environmentNameNotFound = { category, ERROR_ENVVAR_NOT_FOUND };
+				constexpr Ash::Error::Value timeOut                 = { category, ERROR_TIMEOUT          };
 			}
 
 			constexpr Ash::Error::Value error(Ash::System::Windows::Error::Code code = ::GetLastError())
