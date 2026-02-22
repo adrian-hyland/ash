@@ -73,16 +73,16 @@ namespace Ash
 				Automatic
 			};
 
-			inline Event(Reset reset = Manual, bool value = false) : m_Condition(), m_Reset(reset), m_Value(value) {}
+			Event(Reset reset = Manual, bool value = false) : m_Condition(), m_Reset(reset), m_Value(value) {}
 
-			inline void reset()
+			void reset()
 			{
 				Ash::Concurrency::Lock::Scope lock(m_Condition);
 
 				m_Value = false;
 			}
 
-			inline void signal()
+			void signal()
 			{
 				Ash::Concurrency::Lock::Scope lock(m_Condition);
 
@@ -90,35 +90,35 @@ namespace Ash
 				m_Condition.signal();
 			}
 
-			inline bool tryWait()
+			[[nodiscard]]
+			Ash::Error::Value tryWait()
 			{
 				Ash::Concurrency::Lock::Scope lock(m_Condition);
 
-				bool acquired = m_Value;
+				Ash::Error::Value error = !m_Value ? Ash::Concurrency::Error::waitFailed : Ash::Error::none;
 				if (m_Reset == Reset::Automatic)
 				{
 					m_Value = false;
 				}
-				return acquired;
+
+				return error;
 			}
 
-			inline bool tryWait(Ash::Timer::Value duration)
+			[[nodiscard]]
+			Ash::Error::Value tryWait(Ash::Timer::Value duration)
 			{
 				Ash::Concurrency::Lock::Scope lock(m_Condition);
 
-				if (!m_Condition.tryWait([this]() { return m_Value; }, duration))
-				{
-					return false;
-				}
-				else if (m_Reset == Reset::Automatic)
+				Ash::Error::Value error = m_Condition.tryWait([this]() { return m_Value; }, duration);
+				if (!error && (m_Reset == Reset::Automatic))
 				{
 					m_Value = false;
 				}
 
-				return true;
+				return error;
 			}
 
-			inline void wait()
+			void wait()
 			{
 				Ash::Concurrency::Lock::Scope lock(m_Condition);
 
@@ -146,34 +146,37 @@ namespace Ash
 		public:
 			using Count = uintmax_t;
 
-			inline Semaphore(Count count = 0) : m_Condition(), m_Count(count) {}
+			Semaphore(Count count = 0) : m_Condition(), m_Count(count) {}
 
-			inline bool tryAcquire()
+			[[nodiscard]]
+			Ash::Error::Value tryAcquire()
 			{
 				Ash::Concurrency::Lock::Scope lock(m_Condition);
 
-				bool acquired = (m_Count > 0);
-				if (acquired)
+				Ash::Error::Value error = (m_Count == 0) ? Ash::Concurrency::Error::acquireFailed : Ash::Error::none;
+				if (!error)
 				{
 					m_Count--;
 				}
-				return acquired;
+
+				return error;
 			}
 
-			inline bool tryAcquire(Ash::Timer::Value duration)
+			[[nodiscard]]
+			Ash::Error::Value tryAcquire(Ash::Timer::Value duration)
 			{
 				Ash::Concurrency::Lock::Scope lock(m_Condition);
 
-				if (!m_Condition.tryWait([this]() { return m_Count > 0; }, duration))
+				Ash::Error::Value error = m_Condition.tryWait([this]() { return m_Count > 0; }, duration);
+				if (!error)
 				{
-					return false;
+					m_Count--;
 				}
 
-				m_Count--;
-				return true;
+				return error;
 			}
 
-			inline void acquire()
+			void acquire()
 			{
 				Ash::Concurrency::Lock::Scope lock(m_Condition);
 
@@ -181,7 +184,7 @@ namespace Ash
 				m_Count--;
 			}
 
-			inline void release(Count count = 1)
+			void release(Count count = 1)
 			{
 				Ash::Concurrency::Lock::Scope lock(m_Condition);
 
