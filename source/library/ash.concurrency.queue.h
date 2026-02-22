@@ -33,26 +33,28 @@ namespace Ash
 				m_First.clear();
 			}
 
-			bool add(Type &&value)
+			[[nodiscard]]
+			Ash::Error::Value add(Type &&value)
 			{
-				if (!m_Last.add(std::move(value)))
+				Ash::Error::Value error = m_Last.add(std::move(value));
+				if (!error)
 				{
-					return false;
+					m_Count.release();
 				}
 
-				m_Count.release();
-				return true;
+				return error;
 			}
 
-			bool add(const Type &value)
+			[[nodiscard]]
+			Ash::Error::Value add(const Type &value)
 			{
-				if (!m_Last.add(value))
+				Ash::Error::Value error = m_Last.add(value);
+				if (!error)
 				{
-					return false;
+					m_Count.release();
 				}
 
-				m_Count.release();
-				return true;
+				return error;
 			}
 
 			Type remove()
@@ -62,26 +64,28 @@ namespace Ash
 				return m_First.remove();
 			}
 
-			bool tryRemove(Type &value)
+			[[nodiscard]]
+			Ash::Error::Value tryRemove(Type &value)
 			{
-				if (!m_Count.tryAcquire())
+				Ash::Error::Value error = m_Count.tryAcquire();
+				if (!error)
 				{
-					return false;
+					value = std::move(m_First.remove());
 				}
 
-				value = std::move(m_First.remove());
-				return true;
+				return error;
 			}
 
-			bool tryRemove(Ash::Timer::Value duration, Type &value)
+			[[nodiscard]]
+			Ash::Error::Value tryRemove(Ash::Timer::Value duration, Type &value)
 			{
-				if (!m_Count.tryAcquire(duration))
+				Ash::Error::Value error = m_Count.tryAcquire(duration);
+				if (!error)
 				{
-					return false;
+					value = std::move(m_First.remove());
 				}
 
-				value = std::move(m_First.remove());
-				return true;
+				return error;
 			}
 
 		protected:
@@ -124,32 +128,40 @@ namespace Ash
 					}
 				}
 
-				bool add(Type &&value)
+				[[nodiscard]]
+				Ash::Error::Value add(Type &&value)
 				{
-					if (m_Node != nullptr)
+					if (m_Node == nullptr)
 					{
-						Node *node = m_Node;
-						if (addNode())
-						{
-							node->m_Content = std::move(value);
-							return true;
-						}
+						return Ash::Concurrency::Error::invalidQueue;
 					}
-					return false;
+
+					Node *node = m_Node;
+					Ash::Error::Value error = addNode();
+					if (!error)
+					{
+						node->m_Content = std::move(value);
+					}
+
+					return error;
 				}
 
-				bool add(const Type &value)
+				[[nodiscard]]
+				Ash::Error::Value add(const Type &value)
 				{
-					if (m_Node != nullptr)
+					if (m_Node == nullptr)
 					{
-						Node *node = m_Node;
-						if (addNode())
-						{
-							node->m_Content = value;
-							return true;
-						}
+						return Ash::Concurrency::Error::invalidQueue;
 					}
-					return false;
+
+					Node *node = m_Node;
+					Ash::Error::Value error = addNode();
+					if (!error)
+					{
+						node->m_Content = value;
+					}
+
+					return error;
 				}
 
 				Type remove()
@@ -160,16 +172,17 @@ namespace Ash
 				}
 
 			protected:
-				bool addNode()
+				[[nodiscard]]
+				Ash::Error::Value addNode()
 				{
 					m_Node->m_Next = new (std::nothrow) Node();
 					if (m_Node->m_Next == nullptr)
 					{
-						return false;
+						return Ash::Memory::Error::allocationFailure;
 					}
 
 					m_Node = m_Node->m_Next;
-					return true;
+					return Ash::Error::none;
 				}
 
 				void removeNode()
@@ -212,34 +225,50 @@ namespace Ash
 					}
 				}
 
-				bool add(Type &&value)
+				[[nodiscard]]
+				Ash::Error::Value add(Type &&value)
 				{
-					if (m_Node != nullptr)
+					if (m_Node == nullptr)
 					{
-						Node *node = m_Node;
-						Offset offset = m_Offset;
-						if ((++m_Offset != 0) || addNode())
+						return Ash::Concurrency::Error::invalidQueue;
+					}
+
+					Node *node = m_Node;
+					Offset offset = m_Offset;
+					if (++m_Offset == 0)
+					{
+						Ash::Error::Value error = addNode();
+						if (error)
 						{
-							*node->m_Content.at(offset) = std::move(value);
-							return true;
+							return error;
 						}
 					}
-					return false;
+
+					*node->m_Content.at(offset) = std::move(value);
+					return Ash::Error::none;
 				}
 
-				bool add(const Type &value)
+				[[nodiscard]]
+				Ash::Error::Value add(const Type &value)
 				{
-					if (m_Node != nullptr)
+					if (m_Node == nullptr)
 					{
-						Node *node = m_Node;
-						Offset offset = m_Offset;
-						if ((++m_Offset != 0) || addNode())
+						return Ash::Concurrency::Error::invalidQueue;
+					}
+
+					Node *node = m_Node;
+					Offset offset = m_Offset;
+					if (++m_Offset == 0)
+					{
+						Ash::Error::Value error = addNode();
+						if (error)
 						{
-							*node->m_Content.at(offset) = value;
-							return true;
+							return error;
 						}
 					}
-					return false;
+
+					*node->m_Content.at(offset) = value;
+					return Ash::Error::none;
 				}
 
 				Type remove()
@@ -249,20 +278,22 @@ namespace Ash
 					{
 						removeNode();
 					}
+
 					return value;
 				}
 
 			protected:
-				bool addNode()
+				[[nodiscard]]
+				Ash::Error::Value addNode()
 				{
 					m_Node->m_Next = new (std::nothrow) Node();
 					if (m_Node->m_Next == nullptr)
 					{
-						return false;
+						return Ash::Memory::Error::allocationFailure;
 					}
 
 					m_Node = m_Node->m_Next;
-					return true;
+					return Ash::Error::none;
 				}
 
 				void removeNode()
@@ -299,14 +330,16 @@ namespace Ash
 					Element::clear();
 				}
 
-				bool add(Type &&value)
+				[[nodiscard]]
+				Ash::Error::Value add(Type &&value)
 				{
 					Ash::Concurrency::Lock::Scope lock(m_Lock);
 
 					return Element::add(std::move(value));
 				}
 
-				bool add(const Type &value)
+				[[nodiscard]]
+				Ash::Error::Value add(const Type &value)
 				{
 					Ash::Concurrency::Lock::Scope lock(m_Lock);
 
