@@ -229,7 +229,7 @@ namespace Ash
 				[[nodiscard]]
 				constexpr Ash::Error::Value reallocateAndSet(size_t capacity, size_t offset, VALUE_TYPE &&value)
 				{
-					return reallocate(capacity, value, offset, 0);
+					return reallocate(capacity, std::forward<VALUE_TYPE>(value), offset, 0);
 				}
 
 				template
@@ -241,7 +241,7 @@ namespace Ash
 				[[nodiscard]]
 				constexpr Ash::Error::Value reallocateAndInsert(size_t capacity, size_t offset, VALUE_TYPE &&value)
 				{
-					return reallocate(capacity, value, offset, m_Length - offset);
+					return reallocate(capacity, std::forward<VALUE_TYPE>(value), offset, m_Length - offset);
 				}
 
 				[[nodiscard]]
