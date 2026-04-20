@@ -1536,65 +1536,226 @@ namespace Ash
 					return {};
 				}
 
+				Ash::Test::Assertion getParentComponents()
+				{
+					static struct
+					{
+						const char    *path;
+						const wchar_t *parentComponents;
+					} testCases[] =
+					{
+						{ ".",                        L"."                       },
+						{ "..",                       L"."                       },
+						{ "../",                      L"."                       },
+						{ "../.",                     L"."                       },
+						{ "test",                     L"."                       },
+						{ "test/",                    L"."                       },
+						{ "test/.",                   L"."                       },
+						{ "./test",                   L"."                       },
+						{ "./test/",                  L"."                       },
+						{ "./test/.",                 L"."                       },
+						{ "../test",                  L".\\.."                   },
+						{ "../test/",                 L".\\.."                   },
+						{ "../test/.",                L".\\.."                   },
+						{ "./test/..",                L".\\test"                 },
+						{ "./test/../",               L".\\test"                 },
+						{ "./test/../.",              L".\\test"                 },
+
+						{ "c:",                       L"c:"                      },
+						{ "c:/",                      L"c:"                      },
+						{ "c:/.",                     L"c:"                      },
+						{ "c:/..",                    L"c:"                      },
+						{ "c:/../",                   L"c:"                      },
+						{ "c:/../.",                  L"c:"                      },
+						{ "c:/test",                  L"c:"                      },
+						{ "c:/test/",                 L"c:"                      },
+						{ "c:/test/.",                L"c:"                      },
+						{ "c:/test/..",               L"c:\\test"                },
+						{ "c:/test/../",              L"c:\\test"                },
+						{ "c:/test/../.",             L"c:\\test"                },
+
+						{ "//server/share",           L"\\\\server\\share"       },
+						{ "//server/share/",          L"\\\\server\\share"       },
+						{ "//server/share/.",         L"\\\\server\\share"       },
+						{ "//server/share/..",        L"\\\\server\\share"       },
+						{ "//server/share/../",       L"\\\\server\\share"       },
+						{ "//server/share/../.",      L"\\\\server\\share"       },
+						{ "//server/share/test",      L"\\\\server\\share"       },
+						{ "//server/share/test/",     L"\\\\server\\share"       },
+						{ "//server/share/test/.",    L"\\\\server\\share"       },
+						{ "//server/share/test/..",   L"\\\\server\\share\\test" },
+						{ "//server/share/test/../",  L"\\\\server\\share\\test" },
+						{ "//server/share/test/../.", L"\\\\server\\share\\test" }
+					};
+					Ash::Wide::View component;
+
+					TEST_IS_EQ(Ash::FileSystem::Path().getParentComponents(component), Ash::FileSystem::Error::invalidPath);
+
+					for (size_t n = 0; n < sizeof(testCases) / sizeof(testCases[0]); n++)
+					{
+						TEST_IS_EQ(Ash::FileSystem::Path(testCases[n].path).getParentComponents(component), Ash::Error::none);
+						TEST_IS_EQ(component.getLength(), wcslen(testCases[n].parentComponents));
+						TEST_IS_ZERO(memcmp(component.at(0), testCases[n].parentComponents, component.getLength()));
+					}
+
+					Ash::Wide::String<> wideComponent;
+					TEST_IS_EQ(Ash::FileSystem::Path("./test/file").getParentComponents(wideComponent), Ash::Error::none);
+					TEST_IS_EQ(wideComponent.getLength(), wcslen(L".\\test"));
+					TEST_IS_ZERO(memcmp(wideComponent.at(0), L".\\test", wideComponent.getLength()));
+
+					Ash::Utf8::String<> utf8Component;
+					TEST_IS_EQ(Ash::FileSystem::Path("./test/file").getParentComponents(utf8Component), Ash::Error::none);
+					TEST_IS_EQ(utf8Component.getLength(), strlen(".\\test"));
+					TEST_IS_ZERO(memcmp(utf8Component.at(0), ".\\test", utf8Component.getLength()));
+
+					Ash::Ascii::String<> asciiComponent;
+					TEST_IS_EQ(Ash::FileSystem::Path("./test/file").getParentComponents(asciiComponent), Ash::Error::none);
+					TEST_IS_EQ(asciiComponent.getLength(), strlen(".\\test"));
+					TEST_IS_ZERO(memcmp(asciiComponent.at(0), ".\\test", asciiComponent.getLength()));
+
+					return {};
+				}
+
+				Ash::Test::Assertion getParent()
+				{
+					static struct
+					{
+						const char    *path;
+						const wchar_t *parentPath;
+					} testCases[] =
+					{
+						{ ".",                        L"."                       },
+						{ "..",                       L"."                       },
+						{ "../",                      L"."                       },
+						{ "../.",                     L"."                       },
+						{ "test",                     L"."                       },
+						{ "test/",                    L"."                       },
+						{ "test/.",                   L"."                       },
+						{ "./test",                   L"."                       },
+						{ "./test/",                  L"."                       },
+						{ "./test/.",                 L"."                       },
+						{ "../test",                  L".\\.."                   },
+						{ "../test/",                 L".\\.."                   },
+						{ "../test/.",                L".\\.."                   },
+						{ "./test/..",                L".\\test"                 },
+						{ "./test/../",               L".\\test"                 },
+						{ "./test/../.",              L".\\test"                 },
+
+						{ "c:",                       L"c:"                      },
+						{ "c:/",                      L"c:"                      },
+						{ "c:/.",                     L"c:"                      },
+						{ "c:/..",                    L"c:"                      },
+						{ "c:/../",                   L"c:"                      },
+						{ "c:/../.",                  L"c:"                      },
+						{ "c:/test",                  L"c:"                      },
+						{ "c:/test/",                 L"c:"                      },
+						{ "c:/test/.",                L"c:"                      },
+						{ "c:/test/..",               L"c:\\test"                },
+						{ "c:/test/../",              L"c:\\test"                },
+						{ "c:/test/../.",             L"c:\\test"                },
+
+						{ "//server/share",           L"\\\\server\\share"       },
+						{ "//server/share/",          L"\\\\server\\share"       },
+						{ "//server/share/.",         L"\\\\server\\share"       },
+						{ "//server/share/..",        L"\\\\server\\share"       },
+						{ "//server/share/../",       L"\\\\server\\share"       },
+						{ "//server/share/../.",      L"\\\\server\\share"       },
+						{ "//server/share/test",      L"\\\\server\\share"       },
+						{ "//server/share/test/",     L"\\\\server\\share"       },
+						{ "//server/share/test/.",    L"\\\\server\\share"       },
+						{ "//server/share/test/..",   L"\\\\server\\share\\test" },
+						{ "//server/share/test/../",  L"\\\\server\\share\\test" },
+						{ "//server/share/test/../.", L"\\\\server\\share\\test" }
+					};
+					Ash::FileSystem::Path parentPath;
+
+					TEST_IS_EQ(Ash::FileSystem::Path().getParent(parentPath), Ash::FileSystem::Error::invalidPath);
+
+					try
+					{
+						parentPath = Ash::FileSystem::Path().getParent();
+						TEST_FAIL("Ash::Error::Exception");
+					}
+					catch (const Ash::Error::Exception &exception)
+					{
+						TEST_IS_EQ(exception.getCategory(), Ash::FileSystem::Error::invalidPath.getCategory());
+						TEST_IS_EQ(exception.getCode(), Ash::FileSystem::Error::invalidPath.getCode());
+					}
+
+					for (size_t n = 0; n < sizeof(testCases) / sizeof(testCases[0]); n++)
+					{
+						TEST_IS_EQ(Ash::FileSystem::Path(testCases[n].path).getParent(parentPath), Ash::Error::none);
+						TEST_IS_ZERO(wcscmp((const wchar_t *)parentPath, testCases[n].parentPath));
+					}
+
+					for (size_t n = 0; n < sizeof(testCases) / sizeof(testCases[0]); n++)
+					{
+						parentPath = Ash::FileSystem::Path(testCases[n].path).getParent();
+						TEST_IS_ZERO(wcscmp((const wchar_t *)parentPath, testCases[n].parentPath));
+					}
+
+					return {};
+				}
+
 				Ash::Test::Assertion getLastComponent()
 				{
 					static struct
 					{
-						const char *path;
-						const char *lastComponent;
+						const char    *path;
+						const wchar_t *lastComponent;
 					} testCases[] =
 					{
-						{ ".",                        "."                 },
-						{ "..",                       ".."                },
-						{ "../",                      ".."                },
-						{ "../.",                     ".."                },
-						{ "test",                     "test"              },
-						{ "test/",                    "test"              },
-						{ "test/.",                   "test"              },
-						{ "./test",                   "test"              },
-						{ "./test/",                  "test"              },
-						{ "./test/.",                 "test"              },
-						{ "../test",                  "test"              },
-						{ "../test/",                 "test"              },
-						{ "../test/.",                "test"              },
-						{ "./test/..",                ".."                },
-						{ "./test/../",               ".."                },
-						{ "./test/../.",              ".."                },
+						{ ".",                        L""     },
+						{ "..",                       L".."   },
+						{ "../",                      L".."   },
+						{ "../.",                     L".."   },
+						{ "test",                     L"test" },
+						{ "test/",                    L"test" },
+						{ "test/.",                   L"test" },
+						{ "./test",                   L"test" },
+						{ "./test/",                  L"test" },
+						{ "./test/.",                 L"test" },
+						{ "../test",                  L"test" },
+						{ "../test/",                 L"test" },
+						{ "../test/.",                L"test" },
+						{ "./test/..",                L".."   },
+						{ "./test/../",               L".."   },
+						{ "./test/../.",              L".."   },
 
-						{ "c:",                       "c:"                },
-						{ "c:/",                      "c:"                },
-						{ "c:/.",                     "c:"                },
-						{ "c:/..",                    ".."                },
-						{ "c:/../",                   ".."                },
-						{ "c:/../.",                  ".."                },
-						{ "c:/test",                  "test"              },
-						{ "c:/test/",                 "test"              },
-						{ "c:/test/.",                "test"              },
-						{ "c:/test/..",               ".."                },
-						{ "c:/test/../",              ".."                },
-						{ "c:/test/../.",             ".."                },
+						{ "c:",                       L""     },
+						{ "c:/",                      L""     },
+						{ "c:/.",                     L""     },
+						{ "c:/..",                    L".."   },
+						{ "c:/../",                   L".."   },
+						{ "c:/../.",                  L".."   },
+						{ "c:/test",                  L"test" },
+						{ "c:/test/",                 L"test" },
+						{ "c:/test/.",                L"test" },
+						{ "c:/test/..",               L".."   },
+						{ "c:/test/../",              L".."   },
+						{ "c:/test/../.",             L".."   },
 
-						{ "//server/share",           "\\\\server\\share" },
-						{ "//server/share/",          "\\\\server\\share" },
-						{ "//server/share/.",         "\\\\server\\share" },
-						{ "//server/share/..",        ".."                },
-						{ "//server/share/../",       ".."                },
-						{ "//server/share/../.",      ".."                },
-						{ "//server/share/test",      "test"              },
-						{ "//server/share/test/",     "test"              },
-						{ "//server/share/test/.",    "test"              },
-						{ "//server/share/test/..",   ".."                },
-						{ "//server/share/test/../",  ".."                },
-						{ "//server/share/test/../.", ".."                }
+						{ "//server/share",           L""     },
+						{ "//server/share/",          L""     },
+						{ "//server/share/.",         L""     },
+						{ "//server/share/..",        L".."   },
+						{ "//server/share/../",       L".."   },
+						{ "//server/share/../.",      L".."   },
+						{ "//server/share/test",      L"test" },
+						{ "//server/share/test/",     L"test" },
+						{ "//server/share/test/.",    L"test" },
+						{ "//server/share/test/..",   L".."   },
+						{ "//server/share/test/../",  L".."   },
+						{ "//server/share/test/../.", L".."   }
 					};
-					Ash::Utf8::String<> component;
+					Ash::Wide::View component;
 
 					TEST_IS_EQ(Ash::FileSystem::Path().getLastComponent(component), Ash::FileSystem::Error::invalidPath);
 
 					for (size_t n = 0; n < sizeof(testCases) / sizeof(testCases[0]); n++)
 					{
 						TEST_IS_EQ(Ash::FileSystem::Path(testCases[n].path).getLastComponent(component), Ash::Error::none);
-						TEST_IS_EQ(component.getLength(), strlen(testCases[n].lastComponent));
+						TEST_IS_EQ(component.getLength(), wcslen(testCases[n].lastComponent));
 						TEST_IS_ZERO(memcmp(component.at(0), testCases[n].lastComponent, component.getLength()));
 					}
 
@@ -1612,6 +1773,87 @@ namespace Ash
 					TEST_IS_EQ(Ash::FileSystem::Path("./test").getLastComponent(asciiComponent), Ash::Error::none);
 					TEST_IS_EQ(asciiComponent.getLength(), strlen("test"));
 					TEST_IS_ZERO(memcmp(asciiComponent.at(0), "test", asciiComponent.getLength()));
+
+					return {};
+				}
+
+				Ash::Test::Assertion getLast()
+				{
+					static struct
+					{
+						const char    *path;
+						const wchar_t *lastPath;
+					} testCases[] =
+					{
+						{ ".",                        L"."       },
+						{ "..",                       L".\\.."   },
+						{ "../",                      L".\\.."   },
+						{ "../.",                     L".\\.."   },
+						{ "test",                     L".\\test" },
+						{ "test/",                    L".\\test" },
+						{ "test/.",                   L".\\test" },
+						{ "./test",                   L".\\test" },
+						{ "./test/",                  L".\\test" },
+						{ "./test/.",                 L".\\test" },
+						{ "../test",                  L".\\test" },
+						{ "../test/",                 L".\\test" },
+						{ "../test/.",                L".\\test" },
+						{ "./test/..",                L".\\.."   },
+						{ "./test/../",               L".\\.."   },
+						{ "./test/../.",              L".\\.."   },
+
+						{ "c:",                       L"."       },
+						{ "c:/",                      L"."       },
+						{ "c:/.",                     L"."       },
+						{ "c:/..",                    L".\\.."   },
+						{ "c:/../",                   L".\\.."   },
+						{ "c:/../.",                  L".\\.."   },
+						{ "c:/test",                  L".\\test" },
+						{ "c:/test/",                 L".\\test" },
+						{ "c:/test/.",                L".\\test" },
+						{ "c:/test/..",               L".\\.."   },
+						{ "c:/test/../",              L".\\.."   },
+						{ "c:/test/../.",             L".\\.."   },
+
+						{ "//server/share",           L"."       },
+						{ "//server/share/",          L"."       },
+						{ "//server/share/.",         L"."       },
+						{ "//server/share/..",        L".\\.."   },
+						{ "//server/share/../",       L".\\.."   },
+						{ "//server/share/../.",      L".\\.."   },
+						{ "//server/share/test",      L".\\test" },
+						{ "//server/share/test/",     L".\\test" },
+						{ "//server/share/test/.",    L".\\test" },
+						{ "//server/share/test/..",   L".\\.."   },
+						{ "//server/share/test/../",  L".\\.."   },
+						{ "//server/share/test/../.", L".\\.."   }
+					};
+					Ash::FileSystem::Path lastPath;
+
+					TEST_IS_EQ(Ash::FileSystem::Path().getLast(lastPath), Ash::FileSystem::Error::invalidPath);
+
+					try
+					{
+						lastPath = Ash::FileSystem::Path().getLast();
+						TEST_FAIL("Ash::Error::Exception");
+					}
+					catch (const Ash::Error::Exception &exception)
+					{
+						TEST_IS_EQ(exception.getCategory(), Ash::FileSystem::Error::invalidPath.getCategory());
+						TEST_IS_EQ(exception.getCode(), Ash::FileSystem::Error::invalidPath.getCode());
+					}
+
+					for (size_t n = 0; n < sizeof(testCases) / sizeof(testCases[0]); n++)
+					{
+						TEST_IS_EQ(Ash::FileSystem::Path(testCases[n].path).getLast(lastPath), Ash::Error::none);
+						TEST_IS_ZERO(wcscmp((const wchar_t *)lastPath, testCases[n].lastPath));
+					}
+
+					for (size_t n = 0; n < sizeof(testCases) / sizeof(testCases[0]); n++)
+					{
+						lastPath = Ash::FileSystem::Path(testCases[n].path).getLast();
+						TEST_IS_ZERO(wcscmp((const wchar_t *)lastPath, testCases[n].lastPath));
+					}
 
 					return {};
 				}
@@ -2316,51 +2558,184 @@ namespace Ash
 					return {};
 				}
 
+				Ash::Test::Assertion getParentComponents()
+				{
+					static struct
+					{
+						const char    *path;
+						const char8_t *parentComponents;
+					} testCases[] =
+					{
+						{ ".",           u8"."      },
+						{ "..",          u8"."      },
+						{ "../",         u8"."      },
+						{ "../.",        u8"."      },
+						{ "test",        u8"."      },
+						{ "test/",       u8"."      },
+						{ "test/.",      u8"."      },
+						{ "./test",      u8"."      },
+						{ "./test/",     u8"."      },
+						{ "./test/.",    u8"."      },
+						{ "../test",     u8"./.."   },
+						{ "../test/",    u8"./.."   },
+						{ "../test/.",   u8"./.."   },
+						{ "./test/..",   u8"./test" },
+						{ "./test/../",  u8"./test" },
+						{ "./test/../.", u8"./test" },
+
+						{ "/",           u8"/"     },
+						{ "/.",          u8"/"     },
+						{ "/..",         u8"/"     },
+						{ "/../",        u8"/"     },
+						{ "/../.",       u8"/"     },
+						{ "/test",       u8"/"     },
+						{ "/test/",      u8"/"     },
+						{ "/test/.",     u8"/"     },
+						{ "/test/..",    u8"/test" },
+						{ "/test/../",   u8"/test" },
+						{ "/test/../.",  u8"/test" }
+					};
+					Ash::Utf8::View component;
+
+					TEST_IS_EQ(Ash::FileSystem::Path().getParentComponents(component), Ash::FileSystem::Error::invalidPath);
+
+					for (size_t n = 0; n < sizeof(testCases) / sizeof(testCases[0]); n++)
+					{
+						TEST_IS_EQ(Ash::FileSystem::Path(testCases[n].path).getParentComponents(component), Ash::Error::none);
+						TEST_IS_EQ(component.getLength(), strlen((const char *)testCases[n].parentComponents));
+						TEST_IS_ZERO(memcmp(component.at(0), testCases[n].parentComponents, component.getLength()));
+					}
+
+					Ash::Wide::String<> wideComponent;
+					TEST_IS_EQ(Ash::FileSystem::Path("./test/file").getParentComponents(wideComponent), Ash::Error::none);
+					TEST_IS_EQ(wideComponent.getLength(), wcslen(L"./test"));
+					TEST_IS_ZERO(memcmp(wideComponent.at(0), L"./test", wideComponent.getLength()));
+
+					Ash::Utf8::String<> utf8Component;
+					TEST_IS_EQ(Ash::FileSystem::Path("./test/file").getParentComponents(utf8Component), Ash::Error::none);
+					TEST_IS_EQ(utf8Component.getLength(), strlen("./test"));
+					TEST_IS_ZERO(memcmp(utf8Component.at(0), "./test", utf8Component.getLength()));
+
+					Ash::Ascii::String<> asciiComponent;
+					TEST_IS_EQ(Ash::FileSystem::Path("./test/file").getParentComponents(asciiComponent), Ash::Error::none);
+					TEST_IS_EQ(asciiComponent.getLength(), strlen("./test"));
+					TEST_IS_ZERO(memcmp(asciiComponent.at(0), "./test", asciiComponent.getLength()));
+
+					return {};
+				}
+
+				Ash::Test::Assertion getParent()
+				{
+					static struct
+					{
+						const char    *path;
+						const char8_t *parentPath;
+					} testCases[] =
+					{
+						{ ".",           u8"."      },
+						{ "..",          u8"."      },
+						{ "../",         u8"."      },
+						{ "../.",        u8"."      },
+						{ "test",        u8"."      },
+						{ "test/",       u8"."      },
+						{ "test/.",      u8"."      },
+						{ "./test",      u8"."      },
+						{ "./test/",     u8"."      },
+						{ "./test/.",    u8"."      },
+						{ "../test",     u8"./.."   },
+						{ "../test/",    u8"./.."   },
+						{ "../test/.",   u8"./.."   },
+						{ "./test/..",   u8"./test" },
+						{ "./test/../",  u8"./test" },
+						{ "./test/../.", u8"./test" },
+
+						{ "/",           u8"/"     },
+						{ "/.",          u8"/"     },
+						{ "/..",         u8"/"     },
+						{ "/../",        u8"/"     },
+						{ "/../.",       u8"/"     },
+						{ "/test",       u8"/"     },
+						{ "/test/",      u8"/"     },
+						{ "/test/.",     u8"/"     },
+						{ "/test/..",    u8"/test" },
+						{ "/test/../",   u8"/test" },
+						{ "/test/../.",  u8"/test" }
+					};
+					Ash::FileSystem::Path parentPath;
+
+					TEST_IS_EQ(Ash::FileSystem::Path().getParent(parentPath), Ash::FileSystem::Error::invalidPath);
+
+					try
+					{
+						parentPath = Ash::FileSystem::Path().getParent();
+						TEST_FAIL("Ash::Error::Exception");
+					}
+					catch (const Ash::Error::Exception &exception)
+					{
+						TEST_IS_EQ(exception.getCategory(), Ash::FileSystem::Error::invalidPath.getCategory());
+						TEST_IS_EQ(exception.getCode(), Ash::FileSystem::Error::invalidPath.getCode());
+					}
+
+					for (size_t n = 0; n < sizeof(testCases) / sizeof(testCases[0]); n++)
+					{
+						TEST_IS_EQ(Ash::FileSystem::Path(testCases[n].path).getParent(parentPath), Ash::Error::none);
+						TEST_IS_ZERO(strcmp((const char *)(const char8_t *)parentPath, (const char *)testCases[n].parentPath));
+					}
+
+					for (size_t n = 0; n < sizeof(testCases) / sizeof(testCases[0]); n++)
+					{
+						parentPath = Ash::FileSystem::Path(testCases[n].path).getParent();
+						TEST_IS_ZERO(strcmp((const char *)(const char8_t *)parentPath, (const char *)testCases[n].parentPath));
+					}
+
+					return {};
+				}
+
 				Ash::Test::Assertion getLastComponent()
 				{
 					static struct
 					{
-						const char *path;
-						const char *lastComponent;
+						const char    *path;
+						const char8_t *lastComponent;
 					} testCases[] =
 					{
-						{ ".",           "."    },
-						{ "..",          ".."   },
-						{ "../",         ".."   },
-						{ "../.",        ".."   },
-						{ "test",        "test" },
-						{ "test/",       "test" },
-						{ "test/.",      "test" },
-						{ "./test",      "test" },
-						{ "./test/",     "test" },
-						{ "./test/.",    "test" },
-						{ "../test",     "test" },
-						{ "../test/",    "test" },
-						{ "../test/.",   "test" },
-						{ "./test/..",   ".."   },
-						{ "./test/../",  ".."   },
-						{ "./test/../.", ".."   },
+						{ ".",           u8""     },
+						{ "..",          u8".."   },
+						{ "../",         u8".."   },
+						{ "../.",        u8".."   },
+						{ "test",        u8"test" },
+						{ "test/",       u8"test" },
+						{ "test/.",      u8"test" },
+						{ "./test",      u8"test" },
+						{ "./test/",     u8"test" },
+						{ "./test/.",    u8"test" },
+						{ "../test",     u8"test" },
+						{ "../test/",    u8"test" },
+						{ "../test/.",   u8"test" },
+						{ "./test/..",   u8".."   },
+						{ "./test/../",  u8".."   },
+						{ "./test/../.", u8".."   },
 
-						{ "/",           "/"    },
-						{ "/.",          "/"    },
-						{ "/..",         ".."   },
-						{ "/../",        ".."   },
-						{ "/../.",       ".."   },
-						{ "/test",       "test" },
-						{ "/test/",      "test" },
-						{ "/test/.",     "test" },
-						{ "/test/..",    ".."   },
-						{ "/test/../",   ".."   },
-						{ "/test/../.",  ".."   }
+						{ "/",           u8""     },
+						{ "/.",          u8""     },
+						{ "/..",         u8".."   },
+						{ "/../",        u8".."   },
+						{ "/../.",       u8".."   },
+						{ "/test",       u8"test" },
+						{ "/test/",      u8"test" },
+						{ "/test/.",     u8"test" },
+						{ "/test/..",    u8".."   },
+						{ "/test/../",   u8".."   },
+						{ "/test/../.",  u8".."   }
 					};
-					Ash::Utf8::String<> component;
+					Ash::Utf8::View component;
 
 					TEST_IS_EQ(Ash::FileSystem::Path().getLastComponent(component), Ash::FileSystem::Error::invalidPath);
 
 					for (size_t n = 0; n < sizeof(testCases) / sizeof(testCases[0]); n++)
 					{
 						TEST_IS_EQ(Ash::FileSystem::Path(testCases[n].path).getLastComponent(component), Ash::Error::none);
-						TEST_IS_EQ(component.getLength(), strlen(testCases[n].lastComponent));
+						TEST_IS_EQ(component.getLength(), strlen((const char *)testCases[n].lastComponent));
 						TEST_IS_ZERO(memcmp(component.at(0), testCases[n].lastComponent, component.getLength()));
 					}
 
@@ -2378,6 +2753,73 @@ namespace Ash
 					TEST_IS_EQ(Ash::FileSystem::Path("./test").getLastComponent(asciiComponent), Ash::Error::none);
 					TEST_IS_EQ(asciiComponent.getLength(), strlen("test"));
 					TEST_IS_ZERO(memcmp(asciiComponent.at(0), "test", asciiComponent.getLength()));
+
+					return {};
+				}
+
+				Ash::Test::Assertion getLast()
+				{
+					static struct
+					{
+						const char    *path;
+						const char8_t *lastPath;
+					} testCases[] =
+					{
+						{ ".",           u8"."      },
+						{ "..",          u8"./.."   },
+						{ "../",         u8"./.."   },
+						{ "../.",        u8"./.."   },
+						{ "test",        u8"./test" },
+						{ "test/",       u8"./test" },
+						{ "test/.",      u8"./test" },
+						{ "./test",      u8"./test" },
+						{ "./test/",     u8"./test" },
+						{ "./test/.",    u8"./test" },
+						{ "../test",     u8"./test" },
+						{ "../test/",    u8"./test" },
+						{ "../test/.",   u8"./test" },
+						{ "./test/..",   u8"./.."   },
+						{ "./test/../",  u8"./.."   },
+						{ "./test/../.", u8"./.."   },
+
+						{ "/",           u8"."      },
+						{ "/.",          u8"."      },
+						{ "/..",         u8"./.."   },
+						{ "/../",        u8"./.."   },
+						{ "/../.",       u8"./.."   },
+						{ "/test",       u8"./test" },
+						{ "/test/",      u8"./test" },
+						{ "/test/.",     u8"./test" },
+						{ "/test/..",    u8"./.."   },
+						{ "/test/../",   u8"./.."   },
+						{ "/test/../.",  u8"./.."   }
+					};
+					Ash::FileSystem::Path lastPath;
+
+					TEST_IS_EQ(Ash::FileSystem::Path().getLast(lastPath), Ash::FileSystem::Error::invalidPath);
+
+					try
+					{
+						lastPath = Ash::FileSystem::Path().getLast();
+						TEST_FAIL("Ash::Error::Exception");
+					}
+					catch (const Ash::Error::Exception &exception)
+					{
+						TEST_IS_EQ(exception.getCategory(), Ash::FileSystem::Error::invalidPath.getCategory());
+						TEST_IS_EQ(exception.getCode(), Ash::FileSystem::Error::invalidPath.getCode());
+					}
+
+					for (size_t n = 0; n < sizeof(testCases) / sizeof(testCases[0]); n++)
+					{
+						TEST_IS_EQ(Ash::FileSystem::Path(testCases[n].path).getLast(lastPath), Ash::Error::none);
+						TEST_IS_ZERO(strcmp((const char *)(const char8_t *)lastPath, (const char *)testCases[n].lastPath));
+					}
+
+					for (size_t n = 0; n < sizeof(testCases) / sizeof(testCases[0]); n++)
+					{
+						lastPath = Ash::FileSystem::Path(testCases[n].path).getLast();
+						TEST_IS_ZERO(strcmp((const char *)(const char8_t *)lastPath, (const char *)testCases[n].lastPath));
+					}
 
 					return {};
 				}
@@ -2406,7 +2848,10 @@ namespace Ash
 			TEST_CASE(Ash::Test::FileSystem::Path::isAbsolute),
 			TEST_CASE(Ash::Test::FileSystem::Path::getType),
 			TEST_CASE(Ash::Test::FileSystem::Path::reduce),
-			TEST_CASE(Ash::Test::FileSystem::Path::getLastComponent)
+			TEST_CASE(Ash::Test::FileSystem::Path::getParentComponents),
+			TEST_CASE(Ash::Test::FileSystem::Path::getParent),
+			TEST_CASE(Ash::Test::FileSystem::Path::getLastComponent),
+			TEST_CASE(Ash::Test::FileSystem::Path::getLast)
 		);
 	}
 }
