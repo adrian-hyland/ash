@@ -146,6 +146,7 @@ namespace Ash
 						m_Content.append('\0').assertErrorNotSet();
 					}
 
+					[[nodiscard]]
 					constexpr Ash::Error::Value reduce(Path &reducedPath) const
 					{
 						if (&reducedPath == this)
@@ -213,6 +214,7 @@ namespace Ash
 						return error;
 					}
 
+					[[nodiscard]]
 					constexpr Ash::Error::Value reduce()
 					{
 						Path reducedPath;
@@ -363,6 +365,7 @@ namespace Ash
 						typename SHARE,
 						typename ...RELATIVE_PATH
 					>
+					[[nodiscard]]
 					constexpr Ash::Error::Value setNetworkShare(NAME name, SHARE share, RELATIVE_PATH ...relativePath)
 					{
 						return Ash::FileSystem::Error::networkPathNotSupported;
@@ -383,15 +386,7 @@ namespace Ash
 						{
 							length--;
 							size_t offset = m_Content.reverseFind(length, separator);
-							if (offset == m_Content.getLength())
-							{
-								offset = 0;
-							}
-							else if (offset + 1 < length)
-							{
-								offset++;
-							}
-
+							offset = (offset != m_Content.getLength()) ? offset + 1 : length;
 							length = length - offset;
 							return value.convertFrom(m_Content.getView(offset, length), false);
 						}
@@ -400,6 +395,83 @@ namespace Ash
 							value.clear();
 							return Ash::FileSystem::Error::invalidPath;
 						}
+					}
+
+					[[nodiscard]]
+					constexpr Ash::Error::Value getLast(Path &path) const
+					{
+						Ash::Utf8::View lastComponent;
+						Ash::Error::Value error;
+
+						error = getLastComponent(lastComponent);
+						if (!error)
+						{
+							error = path.set(lastComponent);
+						}
+
+						return error;
+					}
+
+					constexpr Path getLast() const
+					{
+						Path lastPath;
+
+						getLast(lastPath).throwOnError();
+
+						return lastPath;
+					}
+
+					template
+					<
+						typename VALUE_ALLOCATION,
+						typename VALUE_ENCODING,
+						typename = Ash::Type::IsClass<VALUE_ALLOCATION, Ash::Memory::Generic::Allocation>,
+						typename = Ash::Type::IsClass<VALUE_ENCODING, Ash::Generic::Encoding>
+					>
+					[[nodiscard]]
+					constexpr Ash::Error::Value getParentComponents(Ash::String::Value<VALUE_ALLOCATION, VALUE_ENCODING> &value) const
+					{
+						size_t length = m_Content.getLength();
+						if (length > 1)
+						{
+							length--;
+							size_t offset = m_Content.reverseFind(length, separator);
+							if (offset != m_Content.getLength())
+							{
+								length = (offset != 0) ? offset : 1;
+							}
+
+							return value.convertFrom(m_Content.getView(0, length), false);
+						}
+						else
+						{
+							value.clear();
+							return Ash::FileSystem::Error::invalidPath;
+						}
+					}
+
+					[[nodiscard]]
+					constexpr Ash::Error::Value getParent(Path &path) const
+					{
+						Ash::Utf8::View parentComponents;
+						Ash::Error::Value error;
+
+						error = getParentComponents(parentComponents);
+						if (!error)
+						{
+							error = path.set(parentComponents);
+						}
+
+						return error;
+					}
+
+					constexpr Path getParent() const
+					{
+						Path parentPath;
+
+						getParent(parentPath).throwOnError();
+
+						return parentPath;
 					}
 
 				protected:
@@ -437,7 +509,6 @@ namespace Ash
 						typename ENCODING,
 						typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
 					>
-					[[nodiscard]]
 					static constexpr Type getType(Ash::String::View<ENCODING> path)
 					{
 						return isSeparator(path.getOr(0, '\0')) ? Type::absoluteRoot : Type::relative;
@@ -580,6 +651,19 @@ namespace Ash
 
 					template
 					<
+						typename ALLOCATION,
+						typename ENCODING,
+						typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>,
+						typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
+					>
+					[[nodiscard]]
+					constexpr Ash::Error::Value startWith(const Ash::String::Value<ALLOCATION, ENCODING> &path)
+					{
+						return startWith(path.getView());
+					}
+
+					template
+					<
 						typename PATH,
 						typename = Ash::Type::IsStringLiteral<PATH>
 					>
@@ -700,6 +784,19 @@ namespace Ash
 
 					template
 					<
+						typename ALLOCATION,
+						typename ENCODING,
+						typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>,
+						typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
+					>
+					[[nodiscard]]
+					constexpr Ash::Error::Value appendRelativePath(const Ash::String::Value<ALLOCATION, ENCODING> &path)
+					{
+						return appendRelativePath(path.getView());
+					}
+
+					template
+					<
 						typename PATH,
 						typename = Ash::Type::IsStringLiteral<PATH>
 					>
@@ -792,6 +889,19 @@ namespace Ash
 
 					template
 					<
+						typename ALLOCATION,
+						typename ENCODING,
+						typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>,
+						typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
+					>
+					[[nodiscard]]
+					constexpr Ash::Error::Value appendComponent(const Ash::String::Value<ALLOCATION, ENCODING> &component)
+					{
+						return appendComponent(component.getView());
+					}
+
+					template
+					<
 						typename COMPONENT,
 						typename = Ash::Type::IsStringLiteral<COMPONENT>
 					>
@@ -849,18 +959,20 @@ namespace Ash
 
 					using Handle = FILE *;
 
+					using Size = off64_t;
+
 					using Position = off64_t;
 
-					inline File() : m_Handle(nullptr) {}
+					File() : m_Handle(nullptr) {}
 
-					inline File(File &&file) noexcept : m_Handle(file.m_Handle) { file.m_Handle = nullptr; }
+					File(File &&file) noexcept : m_Handle(file.m_Handle) { file.m_Handle = nullptr; }
 
-					inline ~File()
+					~File()
 					{
 						close();
 					}
 
-					inline File &operator = (File &&file) noexcept
+					File &operator = (File &&file) noexcept
 					{
 						if (this != &file)
 						{
@@ -873,12 +985,12 @@ namespace Ash
 						return *this;
 					}
 
-					inline operator Handle *() { return (m_Handle != nullptr) ? &m_Handle : nullptr; }
+					operator Handle *() { return (m_Handle != nullptr) ? &m_Handle : nullptr; }
 
-					inline bool isOpen() const { return m_Handle != nullptr; }
+					bool isOpen() const { return m_Handle != nullptr; }
 
 					[[nodiscard]]
-					inline Ash::Error::Value open(const Path &fileName, Create create, Access access, Inherit inherit = Inherit::Deny)
+					Ash::Error::Value open(const Path &fileName, Create create, Access access, Inherit inherit = Inherit::Deny)
 					{
 						close();
 
@@ -917,7 +1029,7 @@ namespace Ash
 						return Ash::Error::none;
 					}
 
-					inline void close()
+					void close()
 					{
 						if (m_Handle != nullptr)
 						{
@@ -927,49 +1039,57 @@ namespace Ash
 					}
 
 					[[nodiscard]]
-					inline Ash::Error::Value movePositionFromStart(Position offset = 0)
+					Ash::Error::Value movePositionFromStart(Ash::System::Linux::FileSystem::File::Position offset = 0)
 					{
-						if (m_Handle == nullptr)
-						{
-							return Ash::System::Linux::Error::fileNotOpen;
-						}
+						Ash::Error::assert(m_Handle != nullptr, Ash::System::Linux::Error::fileNotOpen);
 
 						return (::fseeko64(m_Handle, offset, SEEK_SET) == 0) ? Ash::Error::none : Ash::System::Linux::error();
 					}
 
 					[[nodiscard]]
-					inline Ash::Error::Value movePositionFromEnd(Position offset = 0)
+					Ash::Error::Value movePositionFromEnd(Ash::System::Linux::FileSystem::File::Position offset = 0)
 					{
-						if (m_Handle == nullptr)
-						{
-							return Ash::System::Linux::Error::fileNotOpen;
-						}
+						Ash::Error::assert(m_Handle != nullptr, Ash::System::Linux::Error::fileNotOpen);
 
 						return (::fseeko64(m_Handle, offset, SEEK_END) == 0) ? Ash::Error::none : Ash::System::Linux::error();
 					}
 
 					[[nodiscard]]
-					inline Ash::Error::Value movePosition(Position offset)
+					Ash::Error::Value movePosition(Ash::System::Linux::FileSystem::File::Position offset)
 					{
-						if (m_Handle == nullptr)
-						{
-							return Ash::System::Linux::Error::fileNotOpen;
-						}
+						Ash::Error::assert(m_Handle != nullptr, Ash::System::Linux::Error::fileNotOpen);
 
 						return (::fseeko64(m_Handle, offset, SEEK_CUR) == 0) ? Ash::Error::none : Ash::System::Linux::error();
 					}
 
 					[[nodiscard]]
-					inline Ash::Error::Value getPosition(Position &position)
+					Ash::Error::Value getPosition(Ash::System::Linux::FileSystem::File::Position &position)
 					{
-						if (m_Handle == nullptr)
-						{
-							return Ash::System::Linux::Error::fileNotOpen;
-						}
+						Ash::Error::assert(m_Handle != nullptr, Ash::System::Linux::Error::fileNotOpen);
 
 						position = ::ftello64(m_Handle);
 
 						return (position >= 0) ? Ash::Error::none : Ash::System::Linux::error();
+					}
+
+					[[nodiscard]]
+					Ash::Error::Value getSize(Ash::System::Linux::FileSystem::File::Size &size)
+					{
+						Ash::Error::assert(m_Handle != nullptr, Ash::System::Linux::Error::fileNotOpen);
+
+						Ash::System::Linux::FileSystem::File::Position position;
+
+						Ash::Error::Value error = getPosition(position);
+						if (!error)
+						{
+							error = getEndPosition(size);
+							if (!error)
+							{
+								error = movePositionFromStart(position);
+							}
+						}
+
+						return Ash::Error::none;
 					}
 
 					template
@@ -978,12 +1098,9 @@ namespace Ash
 						typename = Ash::Type::IsByteSizeInteger<TYPE>
 					>
 					[[nodiscard]]
-					inline Ash::Error::Value read(TYPE &byte)
+					Ash::Error::Value read(TYPE &byte)
 					{
-						if (m_Handle == nullptr)
-						{
-							return Ash::System::Linux::Error::fileNotOpen;
-						}
+						Ash::Error::assert(m_Handle != nullptr, Ash::System::Linux::Error::fileNotOpen);
 
 						if (::fread(&byte, sizeof(byte), 1, m_Handle) != 1)
 						{
@@ -999,12 +1116,9 @@ namespace Ash
 						typename = Ash::Type::IsByteSizeInteger<TYPE>
 					>
 					[[nodiscard]]
-					inline Ash::Error::Value write(TYPE byte)
+					Ash::Error::Value write(TYPE byte)
 					{
-						if (m_Handle == nullptr)
-						{
-							return Ash::System::Linux::Error::fileNotOpen;
-						}
+						Ash::Error::assert(m_Handle != nullptr, Ash::System::Linux::Error::fileNotOpen);
 
 						return (::fwrite(&byte, sizeof(byte), 1, m_Handle) == 1) ? Ash::Error::none : Ash::System::Linux::error();
 					}
@@ -1015,7 +1129,7 @@ namespace Ash
 						typename = Ash::Type::IsByteSizeInteger<TYPE>
 					>
 					[[nodiscard]]
-					inline Ash::Error::Value append(TYPE byte)
+					Ash::Error::Value append(TYPE byte)
 					{
 						Ash::Error::Value error = movePositionFromEnd();
 						if (!error)
@@ -1034,12 +1148,9 @@ namespace Ash
 						typename = Ash::Type::IsByteSizeInteger<TYPE>
 					>
 					[[nodiscard]]
-					inline Ash::Error::Value read(Ash::Memory::Value<ALLOCATION, TYPE> &content, size_t length)
+					Ash::Error::Value read(Ash::Memory::Value<ALLOCATION, TYPE> &content, size_t length)
 					{
-						if (m_Handle == nullptr)
-						{
-							return Ash::System::Linux::Error::fileNotOpen;
-						}
+						Ash::Error::assert(m_Handle != nullptr, Ash::System::Linux::Error::fileNotOpen);
 
 						size_t offset = content.getLength();
 
@@ -1073,12 +1184,9 @@ namespace Ash
 						typename = Ash::Type::IsByteSizeInteger<TYPE>
 					>
 					[[nodiscard]]
-					inline Ash::Error::Value write(Ash::Memory::View<TYPE> content)
+					Ash::Error::Value write(Ash::Memory::View<TYPE> content)
 					{
-						if (m_Handle == nullptr)
-						{
-							return Ash::System::Linux::Error::fileNotOpen;
-						}
+						Ash::Error::assert(m_Handle != nullptr, Ash::System::Linux::Error::fileNotOpen);
 
 						return (::fwrite(content.at(0), sizeof(TYPE), content.getLength(), m_Handle) == content.getLength()) ? Ash::Error::none : Ash::System::Linux::error();
 					}
@@ -1089,12 +1197,39 @@ namespace Ash
 						typename = Ash::Type::IsByteSizeInteger<TYPE>
 					>
 					[[nodiscard]]
-					inline bool append(Ash::Memory::View<TYPE> content)
+					Ash::Error::Value append(Ash::Memory::View<TYPE> content)
 					{
 						Ash::Error::Value error = movePositionFromEnd();
 						if (!error)
 						{
 							error = write(content);
+						}
+
+						return error;
+					}
+
+					template
+					<
+						typename ALLOCATION,
+						typename TYPE,
+						typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>,
+						typename = Ash::Type::IsByteSizeInteger<TYPE>
+					>
+					[[nodiscard]]
+					Ash::Error::Value readAll(Ash::Memory::Value<ALLOCATION, TYPE> &content)
+					{
+						Ash::Error::assert(m_Handle != nullptr, Ash::System::Linux::Error::fileNotOpen);
+
+						Size size = 0;
+
+						Ash::Error::Value error = getEndPosition(size);
+						if (!error)
+						{
+							error = movePositionFromStart(0);
+							if (!error)
+							{
+								error = read(content, size);
+							}
 						}
 
 						return error;
@@ -1137,6 +1272,18 @@ namespace Ash
 						}
 
 						return flags;
+					}
+
+					[[nodiscard]]
+					Ash::Error::Value getEndPosition(Ash::System::Linux::FileSystem::File::Position &position)
+					{
+						Ash::Error::Value error = movePositionFromEnd();
+						if (!error)
+						{
+							error = getPosition(position);
+						}
+
+						return error;
 					}
 
 				private:
