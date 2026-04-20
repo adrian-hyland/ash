@@ -342,6 +342,7 @@ namespace Ash
 							}
 						);
 						Ash::System::Linux::X11::CreateWindow createWindow(*this, Ash::System::Linux::X11::Connection::getRootWindow(), boundary, eventMask);
+
 						Ash::System::Linux::X11::ChangeProperty<Ash::System::Linux::X11::Property::ICCCM::Protocols> icccmProtocols;
 						if (Ash::System::Linux::X11::Property::ICCCM::Protocols::isSupported)
 						{
@@ -350,35 +351,45 @@ namespace Ash
 								icccmProtocols = Ash::System::Linux::X11::ChangeProperty<Ash::System::Linux::X11::Property::ICCCM::Protocols>(XCB_PROP_MODE_REPLACE, *this, Ash::System::Linux::X11::Atom::ICCCM::DeleteWindow::value);
 							}
 						}
+
 						Ash::System::Linux::X11::ChangeProperty<Ash::System::Linux::X11::Property::ICCCM::Name> icccmName;
 						if (Ash::System::Linux::X11::Property::ICCCM::Name::isSupported)
 						{
 							icccmName = Ash::System::Linux::X11::ChangeProperty<Ash::System::Linux::X11::Property::ICCCM::Name>(XCB_PROP_MODE_REPLACE, *this, title);
 						}
+
 						Ash::System::Linux::X11::ChangeProperty<Ash::System::Linux::X11::Property::ICCCM::IconName> icccmIconName;
 						if (Ash::System::Linux::X11::Property::ICCCM::IconName::isSupported)
 						{
 							icccmIconName = Ash::System::Linux::X11::ChangeProperty<Ash::System::Linux::X11::Property::ICCCM::IconName>(XCB_PROP_MODE_REPLACE, *this, title);
 						}
+
 						Ash::System::Linux::X11::ChangeProperty<Ash::System::Linux::X11::Property::ICCCM::InstanceClass> icccmInstanceClass;
 						if (Ash::System::Linux::X11::Property::ICCCM::InstanceClass::isSupported)
 						{
-							Ash::Utf8::StringBuffer<256> name;
-							if (Ash::System::Linux::Concurrency::Process::getCurrentName().getLastComponent(name))
+							Ash::System::Linux::FileSystem::Path name;
+							if (!Ash::Error::isSet(Ash::System::Linux::Concurrency::Process::getName(name)))
 							{
-								icccmInstanceClass = Ash::System::Linux::X11::ChangeProperty<Ash::System::Linux::X11::Property::ICCCM::InstanceClass>(XCB_PROP_MODE_REPLACE, *this, name.getView(), name.getView());
+								Ash::Utf8::View filename;
+								if (!Ash::Error::isSet(name.getLastComponent(filename)))
+								{
+									icccmInstanceClass = Ash::System::Linux::X11::ChangeProperty<Ash::System::Linux::X11::Property::ICCCM::InstanceClass>(XCB_PROP_MODE_REPLACE, *this, filename, filename);
+								}
 							}
 						}
+1
 						Ash::System::Linux::X11::ChangeProperty<Ash::System::Linux::X11::Property::EWMH::Name> ewmhName;
 						if (Ash::System::Linux::X11::Property::EWMH::Name::isSupported)
 						{
 							ewmhName = Ash::System::Linux::X11::ChangeProperty<Ash::System::Linux::X11::Property::EWMH::Name>(XCB_PROP_MODE_REPLACE, *this, title);
 						}
+
 						Ash::System::Linux::X11::ChangeProperty<Ash::System::Linux::X11::Property::EWMH::IconName> ewmhIconName;
 						if (Ash::System::Linux::X11::Property::EWMH::IconName::isSupported)
 						{
 							ewmhIconName = Ash::System::Linux::X11::ChangeProperty<Ash::System::Linux::X11::Property::EWMH::IconName>(XCB_PROP_MODE_REPLACE, *this, title);
 						}
+
 						Ash::System::Linux::X11::ChangeProperty<Ash::System::Linux::X11::Property::EWMH::WindowType> ewmhWindowType;
 						if (Ash::System::Linux::X11::Property::EWMH::WindowType::isSupported)
 						{
