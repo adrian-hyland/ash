@@ -387,6 +387,19 @@ namespace Ash
 
 						template
 						<
+							typename ALLOCATION,
+							typename ENCODING,
+							typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>,
+							typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
+						>
+						[[nodiscard]]
+						constexpr Ash::Error::Value append(const Ash::String::Value<ALLOCATION, ENCODING> &value)
+						{
+							return append(value.getView());
+						}
+
+						template
+						<
 							typename VALUE,
 							typename = Ash::Type::IsStringLiteral<VALUE>
 						>
@@ -525,33 +538,41 @@ namespace Ash
 
 							template
 							<
+								typename NAME_ALLOCATION,
 								typename NAME_ENCODING,
+								typename VALUE_ALLOCATION,
 								typename VALUE_ENCODING,
+								typename = Ash::Type::IsClass<NAME_ALLOCATION, Ash::Memory::Generic::Allocation>,
 								typename = Ash::Type::IsClass<NAME_ENCODING, Ash::Generic::Encoding>,
+								typename = Ash::Type::IsClass<VALUE_ALLOCATION, Ash::Memory::Generic::Allocation>,
 								typename = Ash::Type::IsClass<VALUE_ENCODING, Ash::Generic::Encoding>
 							>
-							constexpr Setting(const Ash::String::View<NAME_ENCODING> &name, Ash::String::View<VALUE_ENCODING> value) : m_Content()
+							constexpr Setting(const Ash::String::Value<NAME_ALLOCATION, NAME_ENCODING> &name, const Ash::String::Value<VALUE_ALLOCATION, VALUE_ENCODING> &value) : m_Content()
 							{
-								format(name, value).throwOnError();
+								format(name.getView(), value.getView()).throwOnError();
 							}
 
 							template
 							<
+								typename NAME_ALLOCATION,
 								typename NAME_ENCODING,
 								typename VALUE,
+								typename = Ash::Type::IsClass<NAME_ALLOCATION, Ash::Memory::Generic::Allocation>,
 								typename = Ash::Type::IsClass<NAME_ENCODING, Ash::Generic::Encoding>,
 								typename = Ash::Type::IsStringLiteral<VALUE>
 							>
-							constexpr Setting(Ash::String::View<NAME_ENCODING> name, VALUE value) : Setting(name, Ash::String::view(value)) {}
+							constexpr Setting(const Ash::String::Value<NAME_ALLOCATION, NAME_ENCODING> &name, VALUE value) : Setting(name, Ash::String::view(value)) {}
 
 							template
 							<
 								typename NAME,
+								typename VALUE_ALLOCATION,
 								typename VALUE_ENCODING,
 								typename = Ash::Type::IsStringLiteral<NAME>,
+								typename = Ash::Type::IsClass<VALUE_ALLOCATION, Ash::Memory::Generic::Allocation>,
 								typename = Ash::Type::IsClass<VALUE_ENCODING, Ash::Generic::Encoding>
 							>
-							constexpr Setting(NAME name, Ash::String::View<VALUE_ENCODING> value) : Setting(Ash::String::view(name), value) {}
+							constexpr Setting(NAME name, const Ash::String::Value<VALUE_ALLOCATION, VALUE_ENCODING> &value) : Setting(Ash::String::view(name), value) {}
 
 							template
 							<
@@ -582,13 +603,17 @@ namespace Ash
 
 							template
 							<
+								typename NAME_ALLOCATION,
 								typename NAME_ENCODING,
+								typename VALUE_ALLOCATION,
 								typename VALUE_ENCODING,
+								typename = Ash::Type::IsClass<NAME_ALLOCATION, Ash::Memory::Generic::Allocation>,
 								typename = Ash::Type::IsClass<NAME_ENCODING, Ash::Generic::Encoding>,
+								typename = Ash::Type::IsClass<VALUE_ALLOCATION, Ash::Memory::Generic::Allocation>,
 								typename = Ash::Type::IsClass<VALUE_ENCODING, Ash::Generic::Encoding>
 							>
 							[[nodiscard]]
-							constexpr Ash::Error::Value set(Ash::String::View<NAME_ENCODING> name, Ash::String::View<VALUE_ENCODING> value)
+							constexpr Ash::Error::Value set(const Ash::String::Value<NAME_ALLOCATION, NAME_ENCODING> &name, const Ash::String::Value<VALUE_ALLOCATION, VALUE_ENCODING> &value)
 							{
 								Setting setting;
 
@@ -603,13 +628,15 @@ namespace Ash
 
 							template
 							<
+								typename NAME_ALLOCATION,
 								typename NAME_ENCODING,
 								typename VALUE,
+								typename = Ash::Type::IsClass<NAME_ALLOCATION, Ash::Memory::Generic::Allocation>,
 								typename = Ash::Type::IsClass<NAME_ENCODING, Ash::Generic::Encoding>,
 								typename = Ash::Type::IsStringLiteral<VALUE>
 							>
 							[[nodiscard]]
-							constexpr Ash::Error::Value set(Ash::String::View<NAME_ENCODING> name, VALUE value)
+							constexpr Ash::Error::Value set(const Ash::String::Value<NAME_ALLOCATION, NAME_ENCODING> &name, VALUE value)
 							{
 								return set(name, Ash::String::view(value));
 							}
@@ -617,12 +644,14 @@ namespace Ash
 							template
 							<
 								typename NAME,
+								typename VALUE_ALLOCATION,
 								typename VALUE_ENCODING,
 								typename = Ash::Type::IsStringLiteral<NAME>,
+								typename = Ash::Type::IsClass<VALUE_ALLOCATION, Ash::Memory::Generic::Allocation>,
 								typename = Ash::Type::IsClass<VALUE_ENCODING, Ash::Generic::Encoding>
 							>
 							[[nodiscard]]
-							constexpr Ash::Error::Value set(NAME name, Ash::String::View<VALUE_ENCODING> value)
+							constexpr Ash::Error::Value set(NAME name, const Ash::String::Value<VALUE_ALLOCATION, VALUE_ENCODING> &value)
 							{
 								return set(Ash::String::view(name), value);
 							}
@@ -689,6 +718,18 @@ namespace Ash
 							static constexpr bool isNameValid(Ash::String::View<NAME_ENCODING> name)
 							{
 								return (name.getLength() > 0) && !name.contains('=');
+							}
+
+							template
+							<
+								typename NAME_ALLOCATION,
+								typename NAME_ENCODING,
+								typename = Ash::Type::IsClass<NAME_ALLOCATION, Ash::Memory::Generic::Allocation>,
+								typename = Ash::Type::IsClass<NAME_ENCODING, Ash::Generic::Encoding>
+							>
+							static constexpr bool isNameValid(const Ash::String::Value<NAME_ALLOCATION, NAME_ENCODING> &name)
+							{
+								return isNameValid(name.getView());
 							}
 
 							template
@@ -804,6 +845,17 @@ namespace Ash
 
 							template
 							<
+								typename ALLOCATION,
+								typename ENCODING,
+								typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
+							>
+							constexpr Setting::View get(const Ash::String::Value<ALLOCATION, ENCODING> &name) const
+							{
+								return get(name.getView());
+							}
+
+							template
+							<
 								typename NAME,
 								typename = Ash::Type::IsStringLiteral<NAME>
 							>
@@ -839,6 +891,19 @@ namespace Ash
 								}
 
 								return Ash::Error::none;
+							}
+
+							template
+							<
+								typename ALLOCATION,
+								typename ENCODING,
+								typename = Ash::Type::IsClass<ALLOCATION, Ash::Memory::Generic::Allocation>,
+								typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
+							>
+							[[nodiscard]]
+							constexpr Ash::Error::Value remove(const Ash::String::Value<ALLOCATION, ENCODING> &name)
+							{
+								return remove(name.getView());
 							}
 
 							template
@@ -977,6 +1042,7 @@ namespace Ash
 							typename ENCODING,
 							typename = Ash::Type::IsClass<ENCODING, Ash::Generic::Encoding>
 						>
+						[[nodiscard]]
 						static Ash::Error::Value get(Ash::String::View<ENCODING> name, Setting &setting)
 						{
 							Name settingName;
@@ -1124,9 +1190,61 @@ namespace Ash
 
 					static Identifier getCurrentIdentifier() { return getpid(); }
 
-					static Ash::System::Linux::FileSystem::Path getCurrentName()
+					[[nodiscard]]
+					static Ash::Error::Value getName(Ash::System::Linux::FileSystem::Path &path)
 					{
-						return (const char *)::program_invocation_name;
+						return path.copyFrom(name);
+					}
+
+					static Ash::System::Linux::FileSystem::Path getName()
+					{
+						return name;
+					}
+
+					[[nodiscard]]
+					static Ash::Error::Value getDirectory(Ash::System::Linux::FileSystem::Path &path)
+					{
+						return name.getParent(path);
+					}
+
+					static Ash::System::Linux::FileSystem::Path getDirectory()
+					{
+						Ash::System::Linux::FileSystem::Path directory;
+
+						getDirectory(directory).throwOnError();
+
+						return directory;
+					}
+
+					template
+					<
+						typename ...RELATIVE_PATH
+					>
+					[[nodiscard]]
+					static Ash::Error::Value getPath(Ash::System::Linux::FileSystem::Path &path, RELATIVE_PATH ...relativePath)
+					{
+						Ash::Error::Value error;
+
+						error = getDirectory(path);
+						if (!error)
+						{
+							error = path.set(path, std::forward<RELATIVE_PATH>(relativePath)...);
+						}
+
+						return error;
+					}
+
+					template
+					<
+						typename ...RELATIVE_PATH
+					>
+					static Ash::System::Linux::FileSystem::Path getPath(RELATIVE_PATH ...relativePath)
+					{
+						Ash::System::Linux::FileSystem::Path path;
+
+						getPath(path, std::forward<RELATIVE_PATH>(relativePath)...).throwOnError();
+
+						return path;
 					}
 
 					[[nodiscard]]
@@ -1200,6 +1318,21 @@ namespace Ash
 
 						return Ash::Error::none;
 					}
+
+					class Name : public Ash::System::Linux::FileSystem::Path
+					{
+					public:
+						Name() : Ash::System::Linux::FileSystem::Path()
+						{
+							Ash::System::Linux::FileSystem::Path::set(static_cast<const char *>(::program_invocation_name)).throwOnError();
+							if (Ash::System::Linux::FileSystem::Path::isRelative())
+							{
+								Ash::System::Linux::FileSystem::Path::setCurrentDirectory(static_cast<const Ash::System::Linux::FileSystem::Path &>(*this)).throwOnError();
+							}
+						}
+					};
+
+					static inline Name name = Name();
 
 				private:
 					Identifier m_Identifier;
