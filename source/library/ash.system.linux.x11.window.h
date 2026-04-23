@@ -377,7 +377,7 @@ namespace Ash
 								}
 							}
 						}
-1
+
 						Ash::System::Linux::X11::ChangeProperty<Ash::System::Linux::X11::Property::EWMH::Name> ewmhName;
 						if (Ash::System::Linux::X11::Property::EWMH::Name::isSupported)
 						{
